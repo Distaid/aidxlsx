@@ -1,0 +1,414 @@
+# .github/workflows/release.yml
+# Релиз: единственный путь публикации — push тега v*, созданного владельцем.
+# workflow_dispatch (вход version) — dry-run: собирает, тестирует, пакует, но не публикует,
+# не создаёт тег и не создаёт Release.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Dry-run: версия из Directory.Build.props, например 0.1.0-preview1 (ничего не публикуется)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# Один релиз за раз: статическая группа, без выражений и неподдерживаемых функций.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
+  CONFIGURATION: Release
+  NUGET_SOURCE: https://api.nuget.org/v3/index.json
+  PACKAGE_ID: Aid.Xlsx
+
+jobs:
+  version:
+    name: version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.derive.outputs.version }}
+      tag: ${{ steps.derive.outputs.tag }}
+      prerelease: ${{ steps.derive.outputs.prerelease }}
+      major_minor: ${{ steps.derive.outputs.major_minor }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - name: derive version
+        id: derive
+        shell: bash
+        run: |
+          set -euo pipefail
+          prefix=$(sed -n 's:.*<VersionPrefix>\([^<]*\)</VersionPrefix>.*:\1:p' Directory.Build.props | head -n 1)
+          suffix=$(sed -n 's:.*<VersionSuffix>\([^<]*\)</VersionSuffix>.*:\1:p' Directory.Build.props | head -n 1)
+          if [ -z "$prefix" ]; then
+            echo "::error::в Directory.Build.props нет VersionPrefix"
+            exit 1
+          fi
+          expected="$prefix"
+          if [ -n "$suffix" ]; then expected="$prefix-$suffix"; fi
+
+          if [ "${{ github.event_name }}" == "push" ]; then
+            # публикация: тег создан и запушен владельцем (единственный триггер публикации)
+            tag="${GITHUB_REF_NAME}"
+            case "$tag" in
+              v*) ;;
+              *) echo "::error::тег должен начинаться с v: $tag"; exit 1 ;;
+            esac
+            version="${tag#v}"
+            ref_sha="$(git rev-parse HEAD)"
+          else
+            # dry-run: тега нет по определению, входная версия проверяется отдельно
+            version='${{ inputs.version }}'
+            ref_sha='${{ github.sha }}'
+            tag="v$version"
+          fi
+
+          if ! printf '%s' "$version" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-preview[1-9][0-9]*)?$'; then
+            echo "::error::версия '$version' не соответствует схеме 0.x.y-previewN или 1.0.0"
+            exit 1
+          fi
+          if [ "$expected" != "$version" ]; then
+            echo "::error::Directory.Build.props даёт '$expected', а запуск — '$version'. Сначала PR с bump версии."
+            exit 1
+          fi
+
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+
+          # 1) Коммит прогона должен быть на main — и для tag push, и для dry-run.
+          if ! git merge-base --is-ancestor "$ref_sha" refs/remotes/origin/main; then
+            echo "::error::коммит $ref_sha не на main"
+            exit 1
+          fi
+
+          # 2a) ancestry тега проверяется ТОЛЬКО в push-ветке.
+          if [ "${{ github.event_name }}" == "push" ]; then
+            if ! git merge-base --is-ancestor "refs/tags/$tag^{commit}" refs/remotes/origin/main; then
+              echo "::error::тег $tag не находится на ветке main"
+              exit 1
+            fi
+          else
+            # 2b) dry-run: refs/tags не используем (иначе git exit 128), проверяем отсутствие тега.
+            existing_tag=$(git tag --list "$tag")
+            if [ -n "$existing_tag" ]; then
+              echo "::error::тег $tag уже существует: dry-run должен запускаться на версии, которой ещё нет"
+              exit 1
+            fi
+          fi
+
+          if printf '%s' "$version" | grep -q -- '-'; then prerelease=true; else prerelease=false; fi
+          major_minor=$(printf '%s' "$prefix" | cut -d. -f1,2)
+
+          {
+            echo "version=$version"
+            echo "tag=$tag"
+            echo "prerelease=$prerelease"
+            echo "major_minor=$major_minor"
+          } >> "$GITHUB_OUTPUT"
+          echo "версия: $version (prerelease=$prerelease, tag=$tag, event=${{ github.event_name }})"
+
+  ci:
+    name: ci
+    needs: [version]
+    uses: ./.github/workflows/ci.yml
+
+  aot-matrix:
+    name: aot-${{ matrix.rid }}
+    needs: [version]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            rid: linux-x64
+            binary: Aid.Xlsx.AotSmoke
+          - os: windows-latest
+            rid: win-x64
+            binary: Aid.Xlsx.AotSmoke.exe
+          - os: macos-latest
+            rid: osx-arm64
+            binary: Aid.Xlsx.AotSmoke
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: setup-dotnet
+        uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: install clang (linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang
+          clang --version
+      - name: verify command line tools (macos)
+        if: runner.os == 'macOS'
+        run: |
+          xcode-select -p || sudo xcode-select --install
+          clang --version
+      - name: verify MSVC toolset (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          if (-not (Test-Path $vswhere)) { throw 'vswhere.exe не найден' }
+          & $vswhere -latest -products * -requires Microsoft.VisualStudio.Workload.NativeDesktop -property installationPath
+          & $vswhere -latest -property catalog_productDisplayVersion
+      - name: publish native aot
+        run: dotnet publish tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj -c ${{ env.CONFIGURATION }} -r ${{ matrix.rid }} -p:PublishAot=true -o artifacts/aot/${{ matrix.rid }}
+      - name: run smoke
+        shell: bash
+        run: ./artifacts/aot/${{ matrix.rid }}/${{ matrix.binary }}
+      - name: record size
+        shell: bash
+        run: |
+          set -euo pipefail
+          wc -c < "artifacts/aot/${{ matrix.rid }}/${{ matrix.binary }}" | tr -d ' ' > "artifacts/aot/${{ matrix.rid }}/size.txt"
+          cat "artifacts/aot/${{ matrix.rid }}/size.txt"
+      - name: upload size
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: aot-size-${{ matrix.rid }}
+          path: artifacts/aot/${{ matrix.rid }}/size.txt
+          if-no-files-found: error
+          retention-days: 90
+
+  pack:
+    name: pack
+    needs: [version, ci, aot-matrix]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: setup-dotnet
+        uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: restore
+        run: dotnet restore Aid.Xlsx.slnx
+      - name: pack
+        run: dotnet pack src/Aid.Xlsx/Aid.Xlsx.csproj -c ${{ env.CONFIGURATION }} --no-restore -p:ContinuousIntegrationBuild=true -p:Deterministic=true -o artifacts/packages
+      - name: verify package identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected_version='${{ needs.version.outputs.version }}'
+          found=0
+          for f in artifacts/packages/*.nupkg; do
+            case "$f" in
+              *".$expected_version.nupkg") found=1 ;;
+              *) echo "::error::имя пакета не совпадает с версией запуска: $f"; exit 1 ;;
+            esac
+          done
+          if [ "$found" -ne 1 ]; then
+            echo "::error::пакет версии $expected_version не найден"
+            exit 1
+          fi
+      - name: checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum artifacts/packages/*.nupkg artifacts/packages/*.snupkg > artifacts/packages/SHA256SUMS.txt
+          cat artifacts/packages/SHA256SUMS.txt
+      - name: reproducibility probe
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet pack src/Aid.Xlsx/Aid.Xlsx.csproj -c "$CONFIGURATION" --no-restore -p:ContinuousIntegrationBuild=true -p:Deterministic=true -o artifacts/packages-second
+          first=$(sha256sum artifacts/packages/*.nupkg | awk '{print $1}')
+          second=$(sha256sum artifacts/packages-second/*.nupkg | awk '{print $1}')
+          echo "pack #1: $first"
+          echo "pack #2: $second"
+          if [ "$first" = "$second" ]; then
+            echo "детерминированный pack: хеши .nupkg совпали"
+          else
+            echo "::warning::хеши .nupkg при повторном pack различаются; публикация не блокируется"
+          fi
+      - name: upload packages
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: packages
+          path: artifacts/packages
+          if-no-files-found: error
+          retention-days: 30
+
+  # Публикация — только по push тега, созданного владельцем. Dispatch сюда не доходит.
+  # Основной путь (Trusted Publishing через OIDC) не требует НИКАКИХ секретов:
+  # временный ключ выдаёт NuGet/login@v1 на 1 час по OIDC-токену.
+  # Резервный API key ниже — необязательный fallback, его отсутствие ничего не ломает.
+  publish:
+    name: publish-nuget
+    needs: [version, pack]
+    if: ${{ github.event_name == 'push' && needs.pack.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: nuget-production
+      url: https://www.nuget.org/packages/Aid.Xlsx/${{ needs.version.outputs.version }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: download packages
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: packages
+          path: artifacts/packages
+      - name: NuGet login (Trusted Publishing)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          # Значение должно совпадать с владельцем OIDC-политики на nuget.org.
+          # NuGet username задаётся один раз и не переименовывается.
+          user: Distaid
+      - name: push (Trusted Publishing)
+        env:
+          TRUSTED_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TRUSTED_API_KEY:-}" ]; then
+            echo "::error::NuGet/login не вернул NUGET_API_KEY"
+            exit 1
+          fi
+          for pkg in artifacts/packages/*.nupkg; do
+            echo "push $pkg"
+            dotnet nuget push "$pkg" \
+              --source "$NUGET_SOURCE" \
+              --api-key "$TRUSTED_API_KEY" \
+              --skip-duplicate \
+              --timeout 600
+          done
+      - name: push (optional fallback scoped key from environment secret)
+        if: failure()
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${NUGET_API_KEY:-}" ]; then
+            echo "::notice::резервный ключ NUGET_API_KEY не настроен — это допустимо: основной путь публикации секретов не требует."
+            exit 0
+          fi
+          for pkg in artifacts/packages/*.nupkg; do
+            echo "push $pkg (fallback)"
+            dotnet nuget push "$pkg" --source "$NUGET_SOURCE" --skip-duplicate --timeout 600
+          done
+      - name: summary
+        if: always()
+        run: |
+          echo "### Публикация Aid.Xlsx" >> "$GITHUB_STEP_SUMMARY"
+          echo "- версия: ${{ needs.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- тег: ${{ needs.version.outputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- пакет: https://www.nuget.org/packages/${{ env.PACKAGE_ID }}/${{ needs.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+
+  # Release работает только с уже существующим тегом; теги создаёт владелец, CI тегов не создаёт.
+  github-release:
+    name: github-release
+    needs: [version, publish]
+    if: ${{ github.event_name == 'push' && needs.publish.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: download packages
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: packages
+          path: artifacts/packages
+      - name: release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          version='${{ needs.version.outputs.version }}'
+          if [ -f CHANGELOG.md ]; then
+            awk -v v="$version" '
+              index($0, "## [" v "]") == 1 { printing = 1; next }
+              printing && index($0, "## [") == 1 { exit }
+              printing { print }
+            ' CHANGELOG.md > artifacts/release-notes.md
+          fi
+          if [ ! -s artifacts/release-notes.md ]; then
+            git log -1 --pretty='%s%n%n%b' > artifacts/release-notes.md
+          fi
+          { echo; echo "**Пакет:** https://www.nuget.org/packages/${{ env.PACKAGE_ID }}/$version"; } >> artifacts/release-notes.md
+          cat artifacts/release-notes.md
+      - name: create or update release (existing tag, idempotent)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          assets=(artifacts/packages/*.nupkg artifacts/packages/*.snupkg artifacts/packages/SHA256SUMS.txt)
+          prerelease=()
+          case "${TAG}" in
+            *-*) prerelease=(--prerelease) ;;
+          esac
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "Release ${TAG} уже существует — догружаем assets (--clobber)"
+            gh release upload "${TAG}" "${assets[@]}" --clobber
+          else
+            # --verify-tag: тег обязан существовать; CI его не создаёт
+            gh release create "${TAG}" --title "${TAG}" --notes-file artifacts/release-notes.md --verify-tag "${prerelease[@]}" "${assets[@]}"
+          fi
+
+  # dry-run: ничего не публикует и не создаёт; проверяет, что версия ещё не занята тегом.
+  dry-run:
+    name: dry-run
+    needs: [version]
+    if: ${{ github.event_name != 'push' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: verify dry-run preconditions
+        shell: bash
+        env:
+          TARGET_TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          echo "dry-run для $TARGET_TAG: сборочные джобы выполняются, публикация и Release не создаются."
+          if [ -n "$(git tag --list "$TARGET_TAG")" ]; then
+            echo "::error::тег $TARGET_TAG уже существует: dry-run запускается на версии, которой ещё нет"
+            exit 1
+          fi
+          echo "OK: тег $TARGET_TAG отсутствует, публикация пропущена"
+          {
+            echo "### release dry-run"
+            echo "- версия: ${{ needs.version.outputs.version }}"
+            echo "- тег для будущей публикации: $TARGET_TAG"
+            echo "- публикация и GitHub Release пропущены (workflow_dispatch)"
+          } >> "$GITHUB_STEP_SUMMARY"

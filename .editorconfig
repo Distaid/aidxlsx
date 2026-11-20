@@ -1,0 +1,24 @@
+# Aid.Xlsx - shared formatting rules for the whole repository.
+# Kept ASCII-only on purpose: tooling reads this file, so no BOM / no non-ASCII here.
+# Required to make `dotnet format --verify-no-changes` deterministic.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+[*.{yml,yaml,json,csproj,props,targets,slnx,xml,config}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+# Windows PowerShell 5.1 reads BOM-less non-ASCII files as ANSI, so .ps1 files are UTF-8 with BOM.
+[*.{ps1,psm1}]
+indent_size = 4
+charset = utf-8-bom

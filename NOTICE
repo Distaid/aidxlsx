@@ -1,0 +1,35 @@
+Aid.Xlsx
+========
+
+Aid.Xlsx is an independent project. It is not affiliated with, endorsed by, or
+sponsored by the ClosedXML project.
+
+Derived from ClosedXML
+----------------------
+This project is derived from ClosedXML (https://github.com/ClosedXML/ClosedXML),
+commit 057f5976c788d97e8eac86d1a528bd5411d9386e, licensed under the MIT License:
+
+    Copyright (c) 2016 ClosedXML
+
+The MIT License text is reproduced in the LICENSE file.
+
+Formula parser
+--------------
+The formula parser is derived from ClosedXML.Parser
+(https://github.com/ClosedXML/ClosedXML.Parser), commit
+3dcf1fde5741a4cbfbfda8e6142e886f6755463f, licensed under the MIT License.
+
+Third-party components
+----------------------
+- SixLabors.Fonts 1.0.0 - Apache License 2.0. A copy of the license is
+  provided in third-party/LICENSE-Apache-2.0.txt.
+- ExcelNumberFormat - MIT License.
+- RBush.Signed - MIT License.
+- DocumentFormat.OpenXml - MIT License. Used by test projects only; it is not
+  referenced by the shipped library.
+
+Trademarks
+----------
+Excel, Office and Microsoft are trademarks of Microsoft Corporation. ClosedXML
+is the name of a separate open source project. This project uses these names
+only to describe compatibility and origin.

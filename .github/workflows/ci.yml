@@ -1,0 +1,289 @@
+# .github/workflows/ci.yml
+# Основной CI: форматирование, сборка, тесты, API-parity, codegen drift, упаковка, AOT smoke.
+# Версия пакета здесь не вычисляется: единственный источник — Directory.Build.props.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
+  CONFIGURATION: Release
+
+jobs:
+  # Вычисляет, какие проекты уже есть в репозитории. Пока проект не появился,
+  # соответствующий джоб пропускается (skip), а не падает: это позволяет зелёный
+  # workflow на PR гигиены и bootstrap-коммите, пока проекты ещё не появились.
+  detect:
+    name: detect-projects
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      has_core: ${{ steps.scan.outputs.has_core }}
+      has_generation: ${{ steps.scan.outputs.has_generation }}
+      has_api_compat: ${{ steps.scan.outputs.has_api_compat }}
+      has_aot_smoke: ${{ steps.scan.outputs.has_aot_smoke }}
+      has_tests: ${{ steps.scan.outputs.has_tests }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: scan projects
+        id: scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          has() { if [ -d "$1" ]; then echo true; else echo false; fi }
+          # codegen-drift включается по readiness-маркеру: каталог Generation появляется ещё в фазе 0
+          # (импорт/переименование), а схемы и сгенерированный код — только в фазе 2.
+          if [ -f schemas/ooxml/SHA256SUMS ] || [ -n "$(find src -name '*.g.cs' -print -quit 2>/dev/null)" ]; then
+            has_generation=true
+          else
+            has_generation=false
+          fi
+          {
+            echo "has_core=$(has src/Aid.Xlsx)"
+            echo "has_generation=$has_generation"
+            echo "has_api_compat=$(has tests/Aid.Xlsx.ApiCompat)"
+            echo "has_aot_smoke=$(has tests/Aid.Xlsx.AotSmoke)"
+            echo "has_tests=$(has tests/Aid.Xlsx.Tests)"
+          } >> "$GITHUB_OUTPUT"
+
+  format:
+    name: format-check
+    runs-on: ubuntu-24.04
+    needs: [detect]
+    if: needs.detect.outputs.has_core == 'true'
+    timeout-minutes: 20
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: setup-dotnet
+        uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: restore
+        run: dotnet restore Aid.Xlsx.slnx
+      - name: format
+        run: dotnet format Aid.Xlsx.slnx --verify-no-changes --no-restore --verbosity normal
+
+  build-test:
+    name: build-test-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    needs: [detect]
+    if: needs.detect.outputs.has_core == 'true'
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            run_tests: true
+          - os: windows-latest
+            run_tests: false
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: setup-dotnet
+        uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: restore
+        run: dotnet restore Aid.Xlsx.slnx
+      - name: build
+        run: dotnet build Aid.Xlsx.slnx -c ${{ env.CONFIGURATION }} -warnaserror --no-restore
+      - name: test
+        if: matrix.run_tests
+        run: dotnet test Aid.Xlsx.slnx -c ${{ env.CONFIGURATION }} --no-build --logger "trx;LogFileName=tests.trx" --results-directory artifacts/test-results
+      - name: known vulnerabilities
+        if: matrix.run_tests
+        continue-on-error: true
+        run: dotnet list Aid.Xlsx.slnx package --vulnerable --include-transitive
+      - name: upload test results
+        if: matrix.run_tests && always()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: test-results-${{ matrix.os }}
+          path: artifacts/test-results
+          if-no-files-found: error
+          retention-days: 14
+
+  api-parity:
+    name: api-parity
+    runs-on: ubuntu-24.04
+    needs: [detect]
+    if: needs.detect.outputs.has_api_compat == 'true'
+    timeout-minutes: 30
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: setup-dotnet
+        uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: restore
+        run: dotnet restore Aid.Xlsx.slnx
+      - name: build
+        run: dotnet build Aid.Xlsx.slnx -c ${{ env.CONFIGURATION }} -warnaserror --no-restore
+      - name: public API parity gate
+        run: dotnet test tests/Aid.Xlsx.ApiCompat/Aid.Xlsx.ApiCompat.csproj -c ${{ env.CONFIGURATION }} --no-build
+
+  codegen-drift:
+    name: codegen-drift
+    runs-on: ubuntu-24.04
+    needs: [detect]
+    if: needs.detect.outputs.has_generation == 'true'
+    timeout-minutes: 30
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: setup-dotnet
+        uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: restore
+        run: dotnet restore Aid.Xlsx.slnx
+      - name: build
+        run: dotnet build Aid.Xlsx.slnx -c ${{ env.CONFIGURATION }} -warnaserror --no-restore
+      - name: regenerate code
+        run: dotnet run --project src/Aid.Xlsx.CodeGen/Aid.Xlsx.CodeGen.csproj -c ${{ env.CONFIGURATION }} --no-build -- all
+      - name: fail on drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "$(git status --porcelain)" ]; then
+            git status --porcelain
+            git --no-pager diff
+            echo "::error::Сгенерированный код отличается от закоммиченного. Выполните: dotnet run --project src/Aid.Xlsx.CodeGen -- all"
+            exit 1
+          fi
+
+  pack:
+    name: pack
+    needs: [detect, build-test]
+    if: needs.detect.outputs.has_core == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: setup-dotnet
+        uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: restore
+        run: dotnet restore Aid.Xlsx.slnx
+      - name: pack
+        run: dotnet pack src/Aid.Xlsx/Aid.Xlsx.csproj -c ${{ env.CONFIGURATION }} --no-restore -o artifacts/packages
+      - name: package contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in artifacts/packages/*.nupkg; do
+            echo "=== $f"
+            unzip -l "$f"
+          done
+          for f in artifacts/packages/*.snupkg; do
+            echo "=== $f"
+            unzip -l "$f"
+          done
+      - name: size budget
+        shell: bash
+        run: |
+          set -euo pipefail
+          pkg=$(ls artifacts/packages/*.nupkg | head -n 1)
+          bytes=$(wc -c < "$pkg" | tr -d ' ')
+          limit=$((5 * 1024 * 1024))
+          echo "размер пакета: $bytes байт, бюджет: $limit байт (бюджет размера пакета — 5 МБ)"
+          if [ "$bytes" -gt "$limit" ]; then
+            echo "::error::пакет превышает бюджет 5 МБ"
+            exit 1
+          fi
+      - name: upload packages
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: packages
+          path: artifacts/packages
+          if-no-files-found: error
+          retention-days: 7
+
+  aot-smoke:
+    name: aot-smoke
+    needs: [detect, build-test]
+    if: needs.detect.outputs.has_aot_smoke == 'true'
+    # Baseline до первого зелёного прогона: job не блокирует merge и не красит workflow в красный.
+    # Убрать эту строку в том же PR, который добавляет aot-smoke в required checks защищённой ветки.
+    continue-on-error: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: setup-dotnet
+        uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: install clang
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang
+          clang --version
+      - name: trim publish
+        run: dotnet publish tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj -c ${{ env.CONFIGURATION }} -r linux-x64 -p:PublishTrimmed=true -p:TrimMode=full -o artifacts/aot/trim-linux-x64
+      - name: native aot publish
+        run: dotnet publish tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj -c ${{ env.CONFIGURATION }} -r linux-x64 -p:PublishAot=true -o artifacts/aot/native-linux-x64
+      - name: run native aot smoke
+        run: ./artifacts/aot/native-linux-x64/Aid.Xlsx.AotSmoke
+      - name: record binary size
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/aot
+          bytes=$(wc -c < artifacts/aot/native-linux-x64/Aid.Xlsx.AotSmoke | tr -d ' ')
+          echo "AOT binary (linux-x64): $bytes байт" | tee artifacts/aot/size.txt
+      - name: upload aot size
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: aot-size-linux-x64
+          path: artifacts/aot/size.txt
+          if-no-files-found: error
+          retention-days: 14

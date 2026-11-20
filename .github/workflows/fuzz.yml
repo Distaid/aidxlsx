@@ -1,0 +1,66 @@
+# .github/workflows/fuzz.yml
+# Ночной фаззинг OPC/XML: сборка таргетов и короткий прогон.
+# До появления tests/Aid.Xlsx.Fuzzing прогон пропускается; job помечен continue-on-error,
+# чтобы ночные падения не считались блокирующими, пока фаззинг-таргеты не стабилизированы.
+name: fuzz
+
+on:
+  schedule:
+    - cron: '30 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fuzz
+  cancel-in-progress: false
+
+jobs:
+  fuzz:
+    name: fuzz-opc-xml
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    continue-on-error: true
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: check fuzz targets
+        id: check
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f tests/Aid.Xlsx.Fuzzing/Aid.Xlsx.Fuzzing.csproj ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::tests/Aid.Xlsx.Fuzzing отсутствует — прогон пропущен до появления кода"
+          fi
+      - name: setup-dotnet
+        if: steps.check.outputs.ready == 'true'
+        uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: restore
+        if: steps.check.outputs.ready == 'true'
+        run: dotnet restore Aid.Xlsx.slnx
+      - name: build
+        if: steps.check.outputs.ready == 'true'
+        run: dotnet build Aid.Xlsx.slnx -c Release -warnaserror --no-restore
+      - name: fuzz (15 минут)
+        if: steps.check.outputs.ready == 'true'
+        run: timeout 900 dotnet run --project tests/Aid.Xlsx.Fuzzing/Aid.Xlsx.Fuzzing.csproj -c Release --no-build
+      - name: upload crashes
+        if: always()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: fuzz-crashes
+          path: |
+            fuzz-output/
+            crashes/
+          if-no-files-found: ignore
+          retention-days: 30

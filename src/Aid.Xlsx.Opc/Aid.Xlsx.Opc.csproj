@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    OPC/XML-слой: контейнер, relationships, content types, XML/MCE-примитивы.
+    О модели Excel ничего не знает; TFM и общие свойства — из Directory.Build.props,
+    IsLibrary включает общие для библиотек trim/AOT-настройки и анализаторы.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>Aid.Xlsx.Opc</RootNamespace>
+    <AssemblyName>Aid.Xlsx.Opc</AssemblyName>
+    <IsLibrary>true</IsLibrary>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Polyfill">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

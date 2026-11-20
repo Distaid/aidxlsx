@@ -1,0 +1,93 @@
+﻿<Project>
+
+  <!--
+    Общие свойства сборки Aid.Xlsx: версия, метаданные пакета, анализаторы, AOT/trim.
+    Файл импортируется MSBuild автоматически для всех проектов ниже корня.
+    Здесь же — единственный источник версии и общие метаданные пакета:
+    отдельного файла версий нет — паттерн владельца (контракт t13 rev1).
+    TargetFramework по умолчанию — net10.0; поддержка .NET 11 — отдельная задача.
+  -->
+
+  <!-- ======================= Версия (единственный источник) ================= -->
+  <PropertyGroup>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionSuffix>preview1</VersionSuffix>
+    <Version Condition="'$(Version)' == '' and '$(VersionSuffix)' != ''">$(VersionPrefix)-$(VersionSuffix)</Version>
+    <Version Condition="'$(Version)' == ''">$(VersionPrefix)</Version>
+  </PropertyGroup>
+
+  <!-- ======================= Метаданные пакета ============================== -->
+  <PropertyGroup>
+    <Authors>Distaid</Authors>
+    <RepositoryUrl>https://github.com/Distaid/aidxlsx</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <Copyright>Copyright (c) 2026 Distaid</Copyright>
+  </PropertyGroup>
+
+  <!-- ======================= Свойства сборки =============================== -->
+  <PropertyGroup>
+    <LangVersion>14</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <!--
+      latest, а не latest-recommended: recommended-набор (CA1805/CA1859/CA1305/CA1822/CA1716 и др.)
+      даёт ~650 замечаний на импортированном upstream-коде — это состояние чужого кода, а не
+      регрессия порта. Возврат к latest-recommended — отдельная задача после разбора CA-baseline.
+    -->
+    <AnalysisLevel>latest</AnalysisLevel>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+    <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
+  <!-- Единый целевой TFM: проекты без явного TargetFramework получают net10.0. -->
+  <PropertyGroup Condition="'$(TargetFramework)' == '' and '$(TargetFrameworks)' == ''">
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <!-- ======================= Версии сборки ================================= -->
+  <PropertyGroup>
+    <!-- AssemblyVersion двигается только при смене major/minor: предсказуемая привязка для потребителей -->
+    <AssemblyVersion>$([System.Version]::Parse('$(VersionPrefix)').Major).$([System.Version]::Parse('$(VersionPrefix)').Minor).0.0</AssemblyVersion>
+    <!-- FileVersion: major.minor.patch.<номер preview, 0 для стабильной> -->
+    <_AidPreviewNumber Condition="'$(VersionSuffix)' != ''">$([System.Text.RegularExpressions.Regex]::Match('$(VersionSuffix)', '\d+').Value)</_AidPreviewNumber>
+    <_AidPreviewNumber Condition="'$(_AidPreviewNumber)' == ''">0</_AidPreviewNumber>
+    <FileVersion>$([System.Version]::Parse('$(VersionPrefix)').Major).$([System.Version]::Parse('$(VersionPrefix)').Minor).$([System.Version]::Parse('$(VersionPrefix)').Build).$(_AidPreviewNumber)</FileVersion>
+  </PropertyGroup>
+
+  <!-- Baseline для package validation. Пусто до первой опубликованной версии;
+       со второй версии сюда ставится опубликованный номер, и csproj передаёт его
+       в PackageValidationBaselineVersion. -->
+  <PropertyGroup>
+  </PropertyGroup>
+
+  <!-- ======================= AOT/trim для библиотек ========================= -->
+  <!--
+    IsTrimmable/IsAotCompatible и trim/AOT/single-file анализаторы включаются только для
+    библиотечных сборок (признак — $(IsLibrary)). Проект помечает себя IsLibrary=true в csproj,
+    но Directory.Build.props импортируется раньше тела проекта, поэтому к моменту проверки
+    условия ниже значение из csproj ещё не задано. Чтобы настройка осталась в одном месте,
+    библиотечные проекты перечислены здесь по имени; IsLibrary в csproj остаётся явной
+    пометкой проекта. Новый библиотечный проект нужно добавить в этот список.
+  -->
+  <PropertyGroup>
+    <IsLibrary Condition="'$(IsLibrary)' == '' and ('$(MSBuildProjectName)' == 'Aid.Xlsx' or '$(MSBuildProjectName)' == 'Aid.Xlsx.Opc')">true</IsLibrary>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsLibrary)' == 'true'">
+    <IsTrimmable>true</IsTrimmable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+  </PropertyGroup>
+
+</Project>

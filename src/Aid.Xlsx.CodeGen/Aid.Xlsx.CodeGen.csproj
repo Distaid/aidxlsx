@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Консольный XSD-codegen: сборка читателей/писателей частей OOXML.
+    Build-time инструмент, в пакет не попадает; библиотечные trim/AOT-настройки ему не нужны.
+    TFM и общие свойства — из Directory.Build.props.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Aid.Xlsx.CodeGen</RootNamespace>
+    <AssemblyName>Aid.Xlsx.CodeGen</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- Генератор использует типы OPC-слоя (пространство имён Aid.Xlsx.Opc). -->
+  <ItemGroup>
+    <Using Include="Aid.Xlsx.Opc" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Aid.Xlsx.Opc\Aid.Xlsx.Opc.csproj" />
+  </ItemGroup>
+</Project>

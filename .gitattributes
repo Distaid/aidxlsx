@@ -1,0 +1,30 @@
+# Aid.Xlsx - shared git attributes for the whole repository.
+# Kept ASCII-only on purpose: git reads this file, so no BOM / no non-ASCII here.
+* text=auto eol=lf
+
+*.slnx      text eol=lf
+*.cs        text eol=lf
+*.props     text eol=lf
+*.targets   text eol=lf
+*.csproj    text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.json      text eol=lf
+*.md        text eol=lf
+*.ps1       text eol=crlf
+*.cmd       text eol=crlf
+
+# Binary files: `binary` = -text -diff -merge (no content normalization);
+# `-eol` cancels the eol attribute inherited from the `*` rule.
+*.snk   binary -eol
+*.png   binary -eol
+*.bin   binary -eol
+*.zip   binary -eol
+*.dbg   binary -eol
+*.dll   binary -eol
+
+# Test corpus (.xlsx/.xlsm): binary only, otherwise git corrupts the archives.
+*.xlsx  binary -eol
+*.xlsm  binary -eol
+*.xlsb  binary -eol
+*.pdf   binary -eol

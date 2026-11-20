@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="src/Aid.Xlsx/Aid.Xlsx.csproj" />
+  <Project Path="src/Aid.Xlsx.Opc/Aid.Xlsx.Opc.csproj" />
+  <Project Path="src/Aid.Xlsx.CodeGen/Aid.Xlsx.CodeGen.csproj" />
+  <Project Path="tests/Aid.Xlsx.Tests/Aid.Xlsx.Tests.csproj" />
+</Solution>

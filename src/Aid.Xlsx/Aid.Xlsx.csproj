@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Основная библиотека Aid.Xlsx: модель Excel, чтение/запись частей, CalcEngine,
+    стили, таблицы, рисунки.
+    TFM, версия, nullable и общие свойства — из Directory.Build.props; IsLibrary включает
+    общие для библиотек trim/AOT-настройки и соответствующие анализаторы.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>Aid.Xlsx</RootNamespace>
+    <AssemblyName>Aid.Xlsx</AssemblyName>
+    <PackageId>Aid.Xlsx</PackageId>
+    <IsLibrary>true</IsLibrary>
+    <PackageIcon>icon.png</PackageIcon>
+    <NoWarn>$(NoWarn);NU1605;CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Graphics\Fonts\CarlitoBare-Bold.ttf" />
+    <EmbeddedResource Include="Graphics\Fonts\CarlitoBare-BoldItalic.ttf" />
+    <EmbeddedResource Include="Graphics\Fonts\CarlitoBare-Italic.ttf" />
+    <EmbeddedResource Include="Graphics\Fonts\CarlitoBare-Regular.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\.editorconfig" Link=".editorconfig" />
+    <None Include="..\..\assets\icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DocumentFormat.OpenXml" />
+    <PackageReference Include="ExcelNumberFormat" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+    <PackageReference Include="Polyfill">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="RBush.Signed" />
+    <PackageReference Include="SixLabors.Fonts" />
+    <PackageReference Include="ClosedXML.Parser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Aid.Xlsx.Opc\Aid.Xlsx.Opc.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,60 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Тесты портированной библиотеки. TFM, култура по умолчанию и общие свойства сборки
+    приходят из Directory.Build.props. Тестовые пакеты приватные (не текут потребителям).
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>Aid.Xlsx.Tests</RootNamespace>
+    <AssemblyName>Aid.Xlsx.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <!-- В тестах допустимы предупреждения: они не должны валить сборку решения. -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);NU1605;CS1591;CS1658;CS1584;</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="**\*.xlsx" Exclude="**\~$*.xlsx;bin\**" />
+    <EmbeddedResource Include="**\*.xlsm" Exclude="**\~$*.xlsm;bin\**" />
+    <EmbeddedResource Include="Resource\Images\**\*.*" />
+    <EmbeddedResource Include="Resource\Fonts\*.*" />
+    <EmbeddedResource Include="Resource\Other\**\*.txt" />
+  </ItemGroup>
+
+  <!--
+    Проект с примерами библиотеки в этот репозиторий не импортирован, поэтому тесты,
+    исполняющие примеры (каталог Examples), временно не компилируются: их помощник
+    TestHelper.RunTestExample вынесен туда же. Образцы картинок тесты рисунков берут
+    из собственных ресурсов (Resource\Images).
+  -->
+  <ItemGroup>
+    <Compile Remove="Examples\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="System.Data.SqlClient" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Aid.Xlsx\Aid.Xlsx.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Custom global usings added in the csproj file -->
+    <Using Include="NUnit.Framework.Legacy" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="NUnit.Framework.SetCultureAttribute">
+      <_Parameter1>en-US</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,32 @@
+using System;
+using System.Collections.Generic;
+
+namespace Aid.Xlsx.CodeGen.Model.TopLevel;
+
+/// <summary>
+/// <c><![CDATA[<xsd:complexType/>]]></c> that has <c><![CDATA[<xsd:simpleContent>]]></c> as an element.
+/// The type is inside <c><![CDATA[<xsd:schema/>]]></c>.
+/// <![CDATA[
+/// <xsd:complexType name="CT_CellFormula">
+///   <xsd:simpleContent>
+///     <xsd:extension base="ST_Formula">
+///       <xsd:attribute name = "t" type="ST_CellFormulaType" use="optional" default="normal"/>
+///       <xsd:attribute name = "aca" type="xsd:boolean" use="optional" default="false"/>
+///     </xsd:extension>
+///   <xsd:simpleContent>
+/// ]]>
+/// </summary>
+public class ComplexTypeSimpleContent : ComplexType
+{
+    public required string BaseTypeName { get; init; }
+
+    internal override List<Variable> GenerateParseMethod(CodeBuilder code)
+    {
+        if (BaseTypeName != "ST_Formula")
+            throw new NotImplementedException();
+
+        var name = char.ToLowerInvariant(BaseTypeName[3]) + BaseTypeName[4..];
+        code.AddLine($"var {name} = _reader.GetContent();");
+        return [new Variable("string", name)];
+    }
+}
