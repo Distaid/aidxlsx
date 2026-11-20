@@ -1,0 +1,79 @@
+# ---------------------------------------------------------------------------
+# Aid.Xlsx
+# ---------------------------------------------------------------------------
+
+# AgentTeams runtime state (task list, mailboxes, attempts) - not project source.
+.agent-teams/
+
+# ---------------------------------------------------------------------------
+# IDEs
+# ---------------------------------------------------------------------------
+.idea/
+*.sln.iml
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# ---------------------------------------------------------------------------
+# Build output
+# ---------------------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+artifacts/
+*.binlog
+*.log
+
+# NativeAOT / publish output produced by `dotnet publish`
+publish/
+*.publish/
+
+# ---------------------------------------------------------------------------
+# Tests and coverage
+# ---------------------------------------------------------------------------
+[Tt]est[Rr]esults/
+*.trx
+*.coverage
+*.coverlet.json
+coverage*.xml
+coverage*.json
+coverage*.info
+
+# Snapshot-test artifacts that must never be committed
+*.received.*
+
+# Fuzz corpora artifacts (crash files); seed corpora are committed
+fuzz-output/
+crashes/
+
+# ---------------------------------------------------------------------------
+# Benchmarks
+# ---------------------------------------------------------------------------
+BenchmarkDotNet.Artifacts/
+
+# ---------------------------------------------------------------------------
+# NuGet
+# ---------------------------------------------------------------------------
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+*.nuspec.bak
+
+# Local package output used by `dotnet pack -o`
+_localpackages/
+
+# ---------------------------------------------------------------------------
+# OS / editor junk
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.bak
+*.orig
+*.rej
+*.swp
