@@ -45,6 +45,13 @@
     <AnalysisLevel>latest</AnalysisLevel>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!--
+      NuGet audit is not part of the build: fetching vulnerability data during restore makes the
+      build depend on nuget.org availability and turns a transient network failure into a build
+      error. Vulnerable dependencies are checked explicitly in CI by the dedicated
+      "dotnet list package" step with the vulnerable flag.
+    -->
+    <NuGetAudit>false</NuGetAudit>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
