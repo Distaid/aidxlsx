@@ -20,7 +20,7 @@ internal class XLRangeRowsTests
         {
             var address = cell.Address.ToString();
             var fontSize = expectedChangedCells.Contains(address) ? 20 : 11;
-            Assert.AreEqual(fontSize, cell.Style.Font.FontSize, 0 , address);
+            Assert.AreEqual(fontSize, cell.Style.Font.FontSize, 0, address);
         }
     }
 }

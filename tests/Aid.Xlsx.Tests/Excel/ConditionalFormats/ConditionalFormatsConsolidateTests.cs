@@ -176,7 +176,7 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
 
             Assert.AreEqual(1, ws.ConditionalFormats.Count());
             var consolidatedCf = ws.ConditionalFormats.Single();
-            Assert.That(consolidatedCf, Is.EqualTo(cf).Using (new CfFormatComaparer()));
+            Assert.That(consolidatedCf, Is.EqualTo(cf).Using(new CfFormatComaparer()));
             Assert.AreEqual("A3:C8", consolidatedCf.Ranges.Single().RangeAddress.ToString());
             Assert.IsTrue(consolidatedCf.Values.Single().Value.IsFormula);
             Assert.AreEqual("A3=$D3", consolidatedCf.Values.Single().Value.Value);

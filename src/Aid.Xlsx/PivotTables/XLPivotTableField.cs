@@ -208,7 +208,7 @@ internal class XLPivotTableField
     internal void AddSubtotal(XLSubtotalFunction value)
     {
         Subtotals.Add(value);
-        var subtotalItemType = GetItemTypeForSubtotal(value);;
+        var subtotalItemType = GetItemTypeForSubtotal(value); ;
         _items.Add(new XLPivotFieldItem(this, null) { ItemType = subtotalItemType });
     }
 

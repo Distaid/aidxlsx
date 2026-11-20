@@ -4,7 +4,8 @@ using System;
 
 namespace Aid.Xlsx
 {
-    public enum XLChartType {
+    public enum XLChartType
+    {
         Area,
         Area3D,
         AreaStacked,
@@ -79,7 +80,7 @@ namespace Aid.Xlsx
         XYScatterStraightLinesNoMarkers,
         XYScatterStraightLinesWithMarkers
     }
-    public interface IXLChart: IXLDrawing<IXLChart>
+    public interface IXLChart : IXLDrawing<IXLChart>
     {
         Boolean RightAngleAxes { get; set; }
         IXLChart SetRightAngleAxes();

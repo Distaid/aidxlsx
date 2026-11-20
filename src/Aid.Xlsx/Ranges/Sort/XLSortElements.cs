@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Aid.Xlsx
 {
-    internal class XLSortElements: IXLSortElements
+    internal class XLSortElements : IXLSortElements
     {
         List<IXLSortElement> elements = new List<IXLSortElement>();
         public void Add(Int32 elementNumber)

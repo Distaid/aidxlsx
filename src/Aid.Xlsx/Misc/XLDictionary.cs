@@ -5,11 +5,11 @@ using System.Collections.Generic;
 
 namespace Aid.Xlsx
 {
-    public class XLDictionary<T>: Dictionary<Int32, T>
+    public class XLDictionary<T> : Dictionary<Int32, T>
     {
         public XLDictionary()
         {
-            
+
         }
         public XLDictionary(XLDictionary<T> other)
         {

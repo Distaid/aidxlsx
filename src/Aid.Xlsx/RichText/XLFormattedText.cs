@@ -44,7 +44,7 @@ namespace Aid.Xlsx
         {
             get => _phonetics ??= new XLPhonetics(_defaultFont, _defaultFont, Styles, OnContentChanged);
             init => _phonetics = value;
-        } 
+        }
 
         public IXLRichString AddText(String text)
         {

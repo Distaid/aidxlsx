@@ -36,14 +36,14 @@ namespace Aid.Xlsx
                 if (defaultPageOptions.Margins != null)
                 {
                     Margins = new XLMargins
-                                  {
-                                Top = defaultPageOptions.Margins.Top,
-                                Bottom = defaultPageOptions.Margins.Bottom,
-                                Left = defaultPageOptions.Margins.Left,
-                                Right = defaultPageOptions.Margins.Right,
-                                Header = defaultPageOptions.Margins.Header,
-                                Footer = defaultPageOptions.Margins.Footer
-                            };
+                    {
+                        Top = defaultPageOptions.Margins.Top,
+                        Bottom = defaultPageOptions.Margins.Bottom,
+                        Left = defaultPageOptions.Margins.Left,
+                        Right = defaultPageOptions.Margins.Right,
+                        Header = defaultPageOptions.Margins.Header,
+                        Footer = defaultPageOptions.Margins.Footer
+                    };
                 }
                 AlignHFWithMargins = defaultPageOptions.AlignHFWithMargins;
                 ScaleHFWithDocument = defaultPageOptions.ScaleHFWithDocument;
@@ -129,7 +129,7 @@ namespace Aid.Xlsx
             set
             {
                 _pagesWide = value;
-                if (_pagesWide >0)
+                if (_pagesWide > 0)
                     _scale = 0;
             }
         }
@@ -144,7 +144,7 @@ namespace Aid.Xlsx
             set
             {
                 _pagesTall = value;
-                if (_pagesTall >0)
+                if (_pagesTall > 0)
                     _scale = 0;
             }
         }
@@ -227,15 +227,23 @@ namespace Aid.Xlsx
         public IXLPageSetup SetHorizontalDpi(Int32 value) { HorizontalDpi = value; return this; }
         public IXLPageSetup SetVerticalDpi(Int32 value) { VerticalDpi = value; return this; }
         public IXLPageSetup SetFirstPageNumber(Int32? value) { FirstPageNumber = value; return this; }
-        public IXLPageSetup SetCenterHorizontally() { CenterHorizontally = true; return this; }	public IXLPageSetup SetCenterHorizontally(Boolean value) { CenterHorizontally = value; return this; }
-        public IXLPageSetup SetCenterVertically() { CenterVertically = true; return this; }	public IXLPageSetup SetCenterVertically(Boolean value) { CenterVertically = value; return this; }
+        public IXLPageSetup SetCenterHorizontally() { CenterHorizontally = true; return this; }
+        public IXLPageSetup SetCenterHorizontally(Boolean value) { CenterHorizontally = value; return this; }
+        public IXLPageSetup SetCenterVertically() { CenterVertically = true; return this; }
+        public IXLPageSetup SetCenterVertically(Boolean value) { CenterVertically = value; return this; }
         public IXLPageSetup SetPaperSize(XLPaperSize value) { PaperSize = value; return this; }
-        public IXLPageSetup SetScaleHFWithDocument() { ScaleHFWithDocument = true; return this; }	public IXLPageSetup SetScaleHFWithDocument(Boolean value) { ScaleHFWithDocument = value; return this; }
-        public IXLPageSetup SetAlignHFWithMargins() { AlignHFWithMargins = true; return this; }	public IXLPageSetup SetAlignHFWithMargins(Boolean value) { AlignHFWithMargins = value; return this; }
-        public IXLPageSetup SetShowGridlines() { ShowGridlines = true; return this; }	public IXLPageSetup SetShowGridlines(Boolean value) { ShowGridlines = value; return this; }
-        public IXLPageSetup SetShowRowAndColumnHeadings() { ShowRowAndColumnHeadings = true; return this; }	public IXLPageSetup SetShowRowAndColumnHeadings(Boolean value) { ShowRowAndColumnHeadings = value; return this; }
-        public IXLPageSetup SetBlackAndWhite() { BlackAndWhite = true; return this; }	public IXLPageSetup SetBlackAndWhite(Boolean value) { BlackAndWhite = value; return this; }
-        public IXLPageSetup SetDraftQuality() { DraftQuality = true; return this; }	public IXLPageSetup SetDraftQuality(Boolean value) { DraftQuality = value; return this; }
+        public IXLPageSetup SetScaleHFWithDocument() { ScaleHFWithDocument = true; return this; }
+        public IXLPageSetup SetScaleHFWithDocument(Boolean value) { ScaleHFWithDocument = value; return this; }
+        public IXLPageSetup SetAlignHFWithMargins() { AlignHFWithMargins = true; return this; }
+        public IXLPageSetup SetAlignHFWithMargins(Boolean value) { AlignHFWithMargins = value; return this; }
+        public IXLPageSetup SetShowGridlines() { ShowGridlines = true; return this; }
+        public IXLPageSetup SetShowGridlines(Boolean value) { ShowGridlines = value; return this; }
+        public IXLPageSetup SetShowRowAndColumnHeadings() { ShowRowAndColumnHeadings = true; return this; }
+        public IXLPageSetup SetShowRowAndColumnHeadings(Boolean value) { ShowRowAndColumnHeadings = value; return this; }
+        public IXLPageSetup SetBlackAndWhite() { BlackAndWhite = true; return this; }
+        public IXLPageSetup SetBlackAndWhite(Boolean value) { BlackAndWhite = value; return this; }
+        public IXLPageSetup SetDraftQuality() { DraftQuality = true; return this; }
+        public IXLPageSetup SetDraftQuality(Boolean value) { DraftQuality = value; return this; }
         public IXLPageSetup SetPageOrder(XLPageOrderValues value) { PageOrder = value; return this; }
         public IXLPageSetup SetShowComments(XLShowCommentsValues value) { ShowComments = value; return this; }
         public IXLPageSetup SetPrintErrorValue(XLPrintErrorValues value) { PrintErrorValue = value; return this; }

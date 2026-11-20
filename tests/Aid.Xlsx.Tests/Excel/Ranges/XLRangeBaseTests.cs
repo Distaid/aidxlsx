@@ -540,13 +540,13 @@ namespace Aid.Xlsx.Tests
             range.Sort("3 DESC");
 
             Assert.AreEqual(32, ws.Cell("A2").Value);
-            Assert.AreEqual( 6, ws.Cell("A3").Value);
-            Assert.AreEqual( 7, ws.Cell("A4").Value);
-            Assert.AreEqual( 2, ws.Cell("A5").Value);
+            Assert.AreEqual(6, ws.Cell("A3").Value);
+            Assert.AreEqual(7, ws.Cell("A4").Value);
+            Assert.AreEqual(2, ws.Cell("A5").Value);
 
-            Assert.AreEqual( 2, ws.Cell("B2").Value);
-            Assert.AreEqual( 9, ws.Cell("B3").Value);
-            Assert.AreEqual( 5, ws.Cell("B4").Value);
+            Assert.AreEqual(2, ws.Cell("B2").Value);
+            Assert.AreEqual(9, ws.Cell("B3").Value);
+            Assert.AreEqual(5, ws.Cell("B4").Value);
             Assert.AreEqual(14, ws.Cell("B5").Value);
 
             // Formulas has been moved around and their coordinates fixed after move

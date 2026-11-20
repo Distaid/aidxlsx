@@ -69,7 +69,7 @@ namespace Aid.Xlsx.Graphics
         private static uint ReadType(Stream stream) => stream.ReadU32BE();
 
         private static ArgumentException CorruptedException(string text) => new($"PNG is corrupted. {text}");
-        
+
         private static double PixelsPerMeterToDpi(uint ppm)
         {
             // Conversion from the common integer dots-per-inch to pixels-per-meter is lossy, so instead of 96 we get 95.9866

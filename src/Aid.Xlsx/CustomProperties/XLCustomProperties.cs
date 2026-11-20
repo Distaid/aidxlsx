@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Aid.Xlsx
 {
-    internal class XLCustomProperties: IXLCustomProperties, IEnumerable<IXLCustomProperty>
+    internal class XLCustomProperties : IXLCustomProperties, IEnumerable<IXLCustomProperty>
     {
         XLWorkbook workbook;
         public XLCustomProperties(XLWorkbook workbook)
@@ -43,6 +43,6 @@ namespace Aid.Xlsx
             return GetEnumerator();
         }
 
-      
+
     }
 }

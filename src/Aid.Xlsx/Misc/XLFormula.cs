@@ -8,7 +8,7 @@ namespace Aid.Xlsx
     public class XLFormula
     {
         public XLFormula()
-        {}
+        { }
 
         public XLFormula(XLFormula defaultFormula)
         {
@@ -44,7 +44,7 @@ namespace Aid.Xlsx
                 else
                 {
                     _value = value.Trim();
-                    IsFormula = !String.IsNullOrWhiteSpace(_value) && _value.TrimStart()[0] == '=' ;
+                    IsFormula = !String.IsNullOrWhiteSpace(_value) && _value.TrimStart()[0] == '=';
                     if (IsFormula)
                         _value = _value.Substring(1);
                 }

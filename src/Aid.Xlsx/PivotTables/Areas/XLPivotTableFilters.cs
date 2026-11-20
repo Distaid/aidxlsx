@@ -114,9 +114,9 @@ internal class XLPivotTableFilters : IXLPivotFields
         if (sourceName == XLConstants.PivotTable.ValuesSentinalLabel)
             throw new ArgumentException(nameof(sourceName), $"The column '{sourceName}' does not appear in the source range.");
 
-        var heightDifference= GetHeightDifference(1);
+        var heightDifference = GetHeightDifference(1);
         var movedArea = _pivotTable.Area.ShiftRows(heightDifference);
-        
+
         var fieldIndex = _pivotTable.AddFieldToAxis(sourceName, customName, XLPivotAxis.AxisPage);
         var filterField = new XLPivotPageField(fieldIndex);
         _fields.Add(filterField);

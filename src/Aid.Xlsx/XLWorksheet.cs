@@ -1246,7 +1246,7 @@ namespace Aid.Xlsx
                 }
             }
         }
-        
+
         internal override void WorksheetRangeShiftedRows(XLRange range, int rowsShifted)
         {
             if (!range.IsEntireRow())

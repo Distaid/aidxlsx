@@ -1212,7 +1212,8 @@ namespace Aid.Xlsx
             get
             {
                 ThrowIfDisposed();
-                return _workbookProtection; }
+                return _workbookProtection;
+            }
             set
             {
                 ThrowIfDisposed();

@@ -5,7 +5,7 @@ using System;
 namespace Aid.Xlsx
 {
     public enum XLHFPredefinedText
-    { 
+    {
         PageNumber, NumberOfPages, Date, Time, FullPath, Path, File, SheetName
     }
 
@@ -40,7 +40,7 @@ namespace Aid.Xlsx
         FirstPage
     }
 
-    public interface IXLHFItem: IXLWithRichString
+    public interface IXLHFItem : IXLWithRichString
     {
         /// <summary>
         /// Gets the text of the specified header/footer occurrence.

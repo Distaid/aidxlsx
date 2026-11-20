@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Aid.Xlsx
 {
-    internal class XLCharts: IXLCharts
+    internal class XLCharts : IXLCharts
     {
         private List<IXLChart> charts = new List<IXLChart>();
         public IEnumerator<IXLChart> GetEnumerator()

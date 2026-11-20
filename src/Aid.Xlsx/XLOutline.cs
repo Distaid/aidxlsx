@@ -3,7 +3,7 @@
 
 namespace Aid.Xlsx
 {
-    internal class XLOutline:IXLOutline
+    internal class XLOutline : IXLOutline
     {
         public XLOutline(IXLOutline outline)
         {

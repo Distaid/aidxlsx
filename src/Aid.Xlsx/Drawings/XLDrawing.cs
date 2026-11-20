@@ -4,7 +4,7 @@ using System;
 
 namespace Aid.Xlsx
 {
-    internal class XLDrawing<T>: IXLDrawing<T>
+    internal class XLDrawing<T> : IXLDrawing<T>
     {
         internal T Container;
         public XLDrawing()

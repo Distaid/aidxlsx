@@ -50,7 +50,7 @@ namespace Aid.Xlsx
             conditionalFormattingRuleExtension.AddNamespaceDeclaration("x14", "http://schemas.microsoft.com/office/spreadsheetml/2009/9/main");
             var id = new DocumentFormat.OpenXml.Office2010.Excel.Id
             {
-                Text = ((XLConditionalFormat) cf).Id.WrapInBraces()
+                Text = ((XLConditionalFormat)cf).Id.WrapInBraces()
             };
             conditionalFormattingRuleExtension.Append(id);
 

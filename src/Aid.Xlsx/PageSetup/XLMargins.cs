@@ -4,7 +4,7 @@ using System;
 
 namespace Aid.Xlsx
 {
-    internal class XLMargins: IXLMargins
+    internal class XLMargins : IXLMargins
     {
         public Double Left { get; set; }
         public Double Right { get; set; }

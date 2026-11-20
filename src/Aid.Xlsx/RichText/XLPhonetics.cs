@@ -30,7 +30,7 @@ namespace Aid.Xlsx
         public Boolean Bold
         {
             get => _font.Bold;
-            set => ChangeFont(f => f with { Bold = value});
+            set => ChangeFont(f => f with { Bold = value });
         }
 
         public Boolean Italic

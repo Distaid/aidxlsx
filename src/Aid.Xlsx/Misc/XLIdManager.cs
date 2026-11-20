@@ -8,7 +8,7 @@ namespace Aid.Xlsx
     internal class XLIdManager
     {
         private HashSet<Int32> _hash = new HashSet<Int32>();
-        
+
 
         public Int32 GetNext()
         {

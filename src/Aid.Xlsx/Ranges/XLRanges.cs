@@ -262,7 +262,7 @@ namespace Aid.Xlsx
         public IXLDataValidation CreateDataValidation()
         {
             var firstRange = Ranges.First();
-             var dataValidation = firstRange.Worksheet.DataValidations.Create(firstRange.SheetRange);
+            var dataValidation = firstRange.Worksheet.DataValidations.Create(firstRange.SheetRange);
             foreach (var range in Ranges.Skip(1))
             {
                 dataValidation.AddRange(range);

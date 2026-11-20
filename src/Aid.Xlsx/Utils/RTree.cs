@@ -78,10 +78,10 @@ internal sealed class RTree<TData>
 
         public bool Equals(AreaData? other)
         {
-            if (other is null) 
+            if (other is null)
                 return false;
 
-            if (ReferenceEquals(this, other)) 
+            if (ReferenceEquals(this, other))
                 return true;
 
             // Use reference equals for data, because it might contain some business equals that

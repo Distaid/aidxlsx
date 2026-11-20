@@ -430,7 +430,7 @@ internal class XLWorkbookStyles
             return existing;
 
         // TODO: If format is from different workbook, we should copy style if from different workbook and this workbook doesn't already have a style with same name
-        StyleId? formatStyleId  = format.CellStyleId is { } cellStyleId && _cellStyles.ContainsKey(cellStyleId) ? cellStyleId : null;
+        StyleId? formatStyleId = format.CellStyleId is { } cellStyleId && _cellStyles.ContainsKey(cellStyleId) ? cellStyleId : null;
 
         // We have to create new one, because some components may already exist here
         var cellFormat = new XLCellFormatValue

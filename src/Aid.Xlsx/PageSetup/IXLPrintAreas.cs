@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Aid.Xlsx
 {
-    public interface IXLPrintAreas: IEnumerable<IXLRange>
+    public interface IXLPrintAreas : IEnumerable<IXLRange>
     {
         /// <summary>Removes the print areas from the worksheet.</summary>
         void Clear();

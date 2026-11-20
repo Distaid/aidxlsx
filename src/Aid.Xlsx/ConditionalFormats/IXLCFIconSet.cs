@@ -4,7 +4,7 @@ using System;
 
 namespace Aid.Xlsx
 {
-    public enum XLCFIconSetOperator {GreaterThan, EqualOrGreaterThan}
+    public enum XLCFIconSetOperator { GreaterThan, EqualOrGreaterThan }
     public interface IXLCFIconSet
     {
         IXLCFIconSet AddValue(XLCFIconSetOperator setOperator, String value, XLCFContentType type);

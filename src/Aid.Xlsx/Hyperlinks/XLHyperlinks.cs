@@ -167,7 +167,7 @@ internal class XLHyperlinks : IXLHyperlinks, ISheetListener
         _areaIndex.GetNodes(point, pointNodes);
         foreach (var existingLink in pointNodes)
             Remove(existingLink.Data);
-        
+
         if (link is null)
             return;
 

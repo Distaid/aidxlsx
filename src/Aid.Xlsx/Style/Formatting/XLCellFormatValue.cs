@@ -23,7 +23,7 @@ internal record XLCellFormatValue
     /// A cell style that was originally used to create this format. The <c>null</c> value
     /// means <em>Normal</em> style. Uses a key to connect immutable format to mutable style.
     /// </summary>
-    public required StyleId? CellStyleId {get; init; }
+    public required StyleId? CellStyleId { get; init; }
 
     public required bool IncludeQuotePrefix { get; init; }
 

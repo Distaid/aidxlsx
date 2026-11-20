@@ -22,7 +22,7 @@ namespace Aid.Xlsx
         {
             if (key > MaxRowUsed) MaxRowUsed = key;
 
-             Deleted.Remove(key);
+            Deleted.Remove(key);
             _dictionary.Add(key, value);
         }
 

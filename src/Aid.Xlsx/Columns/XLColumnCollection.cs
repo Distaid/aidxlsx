@@ -38,7 +38,7 @@ namespace Aid.Xlsx
         {
             return _dictionary.Remove(key);
         }
-        
+
         public bool TryGetValue(int key, out XLColumn value)
         {
             return _dictionary.TryGetValue(key, out value);

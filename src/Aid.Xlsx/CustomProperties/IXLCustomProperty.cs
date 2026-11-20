@@ -4,7 +4,7 @@ using System;
 
 namespace Aid.Xlsx
 {
-    public enum XLCustomPropertyType { Text, Number, Date, Boolean}
+    public enum XLCustomPropertyType { Text, Number, Date, Boolean }
     public interface IXLCustomProperty
     {
         String Name { get; set; }
