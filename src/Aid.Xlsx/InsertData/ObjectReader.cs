@@ -22,10 +22,21 @@ namespace Aid.Xlsx.InsertData
 
         [RequiresUnreferencedCode("Objects are read as rows with reflection over their public fields and properties. Use a DataTable or explicit XLCellValue rows to stay trim-compatible.")]
         public ObjectReader(IEnumerable data)
+            : this(data, data.GetItemType()!)
+        {
+        }
+
+        /// <summary>
+        /// Create a reader for objects of a known item type. The type is passed explicitly, because the
+        /// sequence can be a non-generic projection (e.g. <c>List&lt;object&gt;</c> used to split mixed
+        /// data by runtime type) where <see cref="EnumerableExtensions.GetItemType"/> would return
+        /// <see cref="object"/> instead of the real item type.
+        /// </summary>
+        [RequiresUnreferencedCode("Objects are read as rows with reflection over their public fields and properties. Use a DataTable or explicit XLCellValue rows to stay trim-compatible.")]
+        internal ObjectReader(IEnumerable data, Type itemType)
         {
             _data = data.Cast<object>();
 
-            var itemType = data.GetItemType()!;
             if (itemType.IsNullableType())
                 itemType = itemType.GetUnderlyingType();
 

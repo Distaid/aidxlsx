@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <!--
     Тесты портированной библиотеки. TFM, култура по умолчанию и общие свойства сборки
@@ -9,8 +9,12 @@
     <RootNamespace>Aid.Xlsx.Tests</RootNamespace>
     <AssemblyName>Aid.Xlsx.Tests</AssemblyName>
     <IsPackable>false</IsPackable>
-    <!-- В тестах допустимы предупреждения: они не должны валить сборку решения. -->
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <!--
+      Тестовый код портирован из upstream и осознанно передаёт null и использует
+      nullable-идиомы без аннотаций, поэтому nullable-анализ в тестах выключен.
+      Остальные предупреждения остаются ошибками (глобальное TreatWarningsAsErrors).
+    -->
+    <Nullable>disable</Nullable>
     <NoWarn>$(NoWarn);NU1605;CS1591;CS1658;CS1584;</NoWarn>
   </PropertyGroup>
 

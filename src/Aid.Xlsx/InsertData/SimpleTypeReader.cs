@@ -16,9 +16,18 @@ namespace Aid.Xlsx.InsertData
 
         [RequiresUnreferencedCode("The item type of the sequence is discovered with reflection. Pass a typed sequence or a DataTable to stay trim-compatible.")]
         public SimpleTypeReader(IEnumerable data)
+            : this(data, data.GetItemType())
+        {
+        }
+
+        /// <summary>
+        /// Create a reader for simple values of a known item type. The type is passed explicitly,
+        /// because <paramref name="data"/> can be a non-generic projection (e.g. <c>List&lt;object&gt;</c>).
+        /// </summary>
+        internal SimpleTypeReader(IEnumerable data, Type itemType)
         {
             _data = data?.Cast<object>() ?? throw new ArgumentNullException(nameof(data));
-            _itemType = data.GetItemType();
+            _itemType = itemType;
         }
 
         public IEnumerable<IEnumerable<XLCellValue>> GetRecords()

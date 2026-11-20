@@ -49,10 +49,15 @@ namespace Aid.Xlsx.InsertData
 
             IInsertDataReader CreateReader(List<object> itemsOfSameType, Type itemType)
             {
-                if (itemType == null)
-                    return new NullDataReader(itemsOfSameType);
+                // Snapshot the group: the source list is reused for the next group of items, while
+                // the created reader enumerates its data lazily. Without a copy the reader would see
+                // the items of the following groups (with possibly different runtime types).
+                var items = new List<object>(itemsOfSameType);
 
-                return InsertDataReaderFactory.Instance.CreateReader(itemsOfSameType, itemType);
+                if (itemType == null)
+                    return new NullDataReader(items);
+
+                return InsertDataReaderFactory.Instance.CreateReader(items, itemType);
             }
         }
 

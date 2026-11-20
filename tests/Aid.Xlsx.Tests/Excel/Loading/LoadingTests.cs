@@ -8,7 +8,6 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Point = System.Drawing.Point;
 
 namespace Aid.Xlsx.Tests.Excel;
 
@@ -429,8 +428,8 @@ public class LoadingTests
                 Assert.AreEqual(3, wb.Worksheets.Single().Cell("C2").CachedValue);
             });
 
-            Assert.AreEqual(30, new XLWorkbook(stream, new LoadOptions { Dpi = new Point(30, 14) }).DpiX);
-            Assert.AreEqual(14, new XLWorkbook(stream, new LoadOptions { Dpi = new Point(30, 14) }).DpiY);
+            Assert.AreEqual(30, new XLWorkbook(stream, new LoadOptions { Dpi = new System.Drawing.Point(30, 14) }).DpiX);
+            Assert.AreEqual(14, new XLWorkbook(stream, new LoadOptions { Dpi = new System.Drawing.Point(30, 14) }).DpiY);
         }
     }
 

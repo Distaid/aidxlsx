@@ -33,9 +33,9 @@ namespace Aid.Xlsx.InsertData
             if (itemType == null || itemType == typeof(Object))
                 return new UntypedObjectReader(data);
             else if (itemType.IsNullableType() && itemType.GetUnderlyingType().IsSimpleType())
-                return new SimpleNullableTypeReader(data);
+                return new SimpleNullableTypeReader(data, itemType);
             else if (itemType.IsSimpleType())
-                return new SimpleTypeReader(data);
+                return new SimpleTypeReader(data, itemType);
             else if (typeof(IDataRecord).IsAssignableFrom(itemType))
                 return new DataRecordReader(data.OfType<IDataRecord>());
             else if (itemType.IsArray || typeof(IEnumerable).IsAssignableFrom(itemType))
@@ -43,7 +43,7 @@ namespace Aid.Xlsx.InsertData
             else if (itemType == typeof(DataRow))
                 return new DataTableReader(data.Cast<DataRow>());
 
-            return new ObjectReader(data);
+            return new ObjectReader(data, itemType);
         }
 
         public IInsertDataReader CreateReader<T>(IEnumerable<T[]> data)

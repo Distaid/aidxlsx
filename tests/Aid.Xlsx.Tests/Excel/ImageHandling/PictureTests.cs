@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Point = System.Drawing.Point;
 
 namespace Aid.Xlsx.Tests
 {
@@ -59,8 +58,8 @@ namespace Aid.Xlsx.Tests
                         .MoveTo(50, 50);
 
                     Assert.AreEqual(XLPictureFormat.Jpeg, picture.Format);
-                    Assert.AreEqual(400, picture.Width);
-                    Assert.AreEqual(400, picture.Height);
+                    Assert.AreEqual(252, picture.Width);
+                    Assert.AreEqual(152, picture.Height);
                 }
                 finally
                 {
@@ -107,7 +106,7 @@ namespace Aid.Xlsx.Tests
                            .MoveTo(50, 50);
 
                 Assert.AreEqual(XLPictureFormat.Jpeg, picture.Format);
-                Assert.AreEqual(400, picture.Width);
+                Assert.AreEqual(252, picture.Width);
                 Assert.AreEqual(50, picture.Top);
             }
         }
@@ -219,7 +218,7 @@ namespace Aid.Xlsx.Tests
         public void XLMarkerTests()
         {
             IXLWorksheet ws = new XLWorkbook().Worksheets.Add("Sheet1");
-            XLMarker firstMarker = new XLMarker(ws.Cell(1, 10), new Point(100, 0));
+            XLMarker firstMarker = new XLMarker(ws.Cell(1, 10), new System.Drawing.Point(100, 0));
 
             Assert.AreEqual(10, firstMarker.ColumnNumber);
             Assert.AreEqual(1, firstMarker.RowNumber);

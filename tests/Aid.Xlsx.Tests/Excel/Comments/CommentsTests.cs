@@ -5,7 +5,6 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using Point = System.Drawing.Point;
 
 namespace Aid.Xlsx.Tests.Excel.Comments
 {
@@ -197,7 +196,7 @@ namespace Aid.Xlsx.Tests.Excel.Comments
                     Assert.AreEqual(0, margins.Right);
                     Assert.AreEqual(0, margins.Bottom);
                 }
-            }, @"Other\Comments\InsetsUnitConversion.xlsx", new LoadOptions { Dpi = new Point(120, 120) });
+            }, @"Other\Comments\InsetsUnitConversion.xlsx", new LoadOptions { Dpi = new System.Drawing.Point(120, 120) });
         }
     }
 }

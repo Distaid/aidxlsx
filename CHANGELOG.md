@@ -11,13 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Restructured the solution for the port: the projects and namespaces are
   `Aid.Xlsx.Opc` (OPC/XML layer) and `Aid.Xlsx.CodeGen` (XSD code generator); the core
-  library now uses a flat layout вЂ” domain folders sit directly under `src/Aid.Xlsx/`,
+  library now uses a flat layout — domain folders sit directly under `src/Aid.Xlsx/`,
   part readers and writers live in `src/Aid.Xlsx/Internal/IO/`.
 
 ### Added
 
-- Initial repository files: `.gitignore`, the solution file `Aid.Xlsx.slnx` (currently
-  without projects) and the project documentation (`README.md`, this changelog).
+- Initial repository files: `.gitignore`, the solution file `Aid.Xlsx.slnx` with the
+  imported projects and the project documentation (`README.md`, this changelog).
+
+### Fixed
+
+- `InsertData`/`InsertTable` pass the row type to the readers explicitly instead of
+  inferring it from the materialized row collection, which returned `object` and
+  produced empty ranges. Rows of different runtime types are no longer mixed in one
+  grouped snapshot.
 
 ### Planned
 
