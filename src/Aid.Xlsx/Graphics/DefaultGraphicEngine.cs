@@ -11,6 +11,23 @@ using SixLabors.Fonts.Unicode;
 
 namespace Aid.Xlsx.Graphics
 {
+    /// <summary>
+    /// A graphic engine that uses SixLabors.Fonts to measure fonts and to read picture dimensions.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Metrics of <c>Calibri</c> are always measured through the embedded <c>CarlitoBare</c> font. Carlito is
+    /// metric compatible with Calibri (the same advance widths), so text widths and column widths are the
+    /// same on every platform, no matter whether Calibri is installed or not.
+    /// </para>
+    /// <para>
+    /// Metrics of other fonts come from the installed system fonts. When a font isn't installed (e.g. Arial
+    /// or Yu Gothic on Linux), the engine falls back to the fallback font or to the embedded font, so measured
+    /// text sizes and converted column widths can differ from values Excel produced on a system where the font
+    /// is installed. Load the required font with <see cref="CreateOnlyWithFonts(Stream, Stream[])"/> or
+    /// <see cref="CreateWithFontsAndSystemFonts(Stream, Stream[])"/> to get identical metrics everywhere.
+    /// </para>
+    /// </remarks>
     public class DefaultGraphicEngine : IXLGraphicEngine
     {
         /// <summary>
@@ -20,6 +37,14 @@ namespace Aid.Xlsx.Graphics
         /// font through strip-fonts.sh script.
         /// </summary>
         private const string EmbeddedFontName = "CarlitoBare";
+
+        /// <summary>
+        /// Name of a font whose metrics are always taken from the embedded <see cref="EmbeddedFontName"/> font.
+        /// Carlito is metric compatible with Calibri, so measuring Calibri through the embedded font makes
+        /// the measured metrics (and column widths derived from them) independent of the OS and of whether
+        /// Calibri is installed.
+        /// </summary>
+        private const string MetricCompatibleFontName = "Calibri";
         private const float FontMetricSize = 16f;
         private readonly ImageInfoReader[] _imageReaders =
         {
@@ -238,8 +263,17 @@ namespace Aid.Xlsx.Graphics
 
         private Font LoadFont(MetricId metricId)
         {
+            FontFamily fontFamily;
+
+            // Calibri is always measured with the embedded metric compatible font (CarlitoBare), so the
+            // metrics are the same on every OS and don't depend on installed fonts. This makes column
+            // widths and rows heights deterministic across platforms.
+            if (IsMetricCompatibleFont(metricId.Name))
+            {
+                fontFamily = _fontCollection.Value.Get(EmbeddedFontName);
+            }
             // First try the specified fallback font. On windows, unknown fonts should use MS Sans Serif
-            if (!_fontCollection.Value.TryGet(metricId.Name, out var fontFamily) &&
+            else if (!_fontCollection.Value.TryGet(metricId.Name, out fontFamily) &&
                 !_fontCollection.Value.TryGet(_fallbackFont, out fontFamily))
             {
                 // If not present, e.g. it's unlikely to be present on Linux, use embedded font as an ultimate fallback.
@@ -247,6 +281,11 @@ namespace Aid.Xlsx.Graphics
             }
 
             return fontFamily.CreateFont(FontMetricSize); // Size is irrelevant for metric
+        }
+
+        private static bool IsMetricCompatibleFont(string fontName)
+        {
+            return string.Equals(fontName, MetricCompatibleFontName, StringComparison.OrdinalIgnoreCase);
         }
 
         private void AddEmbeddedFont(FontCollection fontCollection)

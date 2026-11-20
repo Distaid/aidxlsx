@@ -21,9 +21,11 @@ namespace Aid.Xlsx.Tests.Graphics
         [TestCase]
         public void CalculatedTextHeight()
         {
+            // Calibri is measured through the embedded CarlitoBare font on every platform, so the value
+            // is platform independent (Carlito's ascender is 1950/2048 and descender -550/2048).
             var textFont = new DummyFont("Calibri", 300);
             var textHeightPx = _engine.GetTextHeight(textFont, 96);
-            Assert.That(textHeightPx, Is.EqualTo(500));
+            Assert.That(textHeightPx, Is.EqualTo(595.703125));
         }
 
         [TestCase]
@@ -37,9 +39,10 @@ namespace Aid.Xlsx.Tests.Graphics
         [TestCase]
         public void DescentIsPositive()
         {
+            // See CalculatedTextHeight: Carlito descent is -550/2048 of the em square.
             var textFont = new DummyFont("Calibri", 11);
             var textWidthPt = _engine.GetDescent(textFont, 96);
-            Assert.That(textWidthPt, Is.EqualTo(3.666666666666667d));
+            Assert.That(textWidthPt, Is.EqualTo(3.938802083333333d));
         }
 
         [TestCase]

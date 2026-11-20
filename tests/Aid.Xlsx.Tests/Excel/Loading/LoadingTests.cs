@@ -504,7 +504,11 @@ public class LoadingTests
         }, @"TryToLoad\CellsWithDateTimeWithLocalePrefix.xlsx");
     }
 
+    // The fixture stores the Arial font in styles and Arial isn't a metric-compatible substitute:
+    // on Unix the font isn't installed and the engine falls back to the embedded CarlitoBare font,
+    // so the converted column width differs from the value stored by Excel.
     [Test]
+    [Platform(Exclude = "Unix")]
     public void CanCorrectLoadWorkbookDefaultColumnWidth()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Examples\Styles\DefaultStyles.xlsx")))
@@ -526,7 +530,11 @@ public class LoadingTests
         }
     }
 
+    // The second fixture (BaseColumnWidth.xlsx) uses Arial, which isn't available on Unix: the
+    // engine falls back to the embedded CarlitoBare font and the base column width conversion
+    // produces a different value than Excel stored on Windows.
     [Test]
+    [Platform(Exclude = "Unix")]
     public void CanCorrectLoadWorksheetBaseColumnWidth()
     {
         // default calibi font case
@@ -548,7 +556,10 @@ public class LoadingTests
         }
     }
 
+    // The fixture uses the Yu Gothic font, which isn't available on Unix: the engine falls back to
+    // the embedded CarlitoBare font and the default column width conversion differs from Excel's.
     [Test]
+    [Platform(Exclude = "Unix")]
     public void CanCorrectLoadWorksheetDefaultColumnWidth()
     {
         // worksheet has default column width.
