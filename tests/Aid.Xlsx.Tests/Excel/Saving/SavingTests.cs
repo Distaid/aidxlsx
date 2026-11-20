@@ -241,7 +241,12 @@ namespace Aid.Xlsx.Tests.Excel.Saving
             }
         }
 
+        // Windows-only: on Unix the ReadOnly file attribute does not make an existing file
+        // unwritable for this code path (truncate/rename semantics), so saving succeeds there
+        // and the expected UnauthorizedAccessException never occurs. The Windows run still
+        // verifies that overwriting a read-only file is refused.
         [Test]
+        [Platform(Exclude = "Unix")]
         public void CannotSaveAsOverwriteExistingReadOnlyFile()
         {
             using (var existing = new TemporaryFile())
