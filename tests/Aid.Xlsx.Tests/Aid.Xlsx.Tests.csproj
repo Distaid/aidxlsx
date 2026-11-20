@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Тесты портированной библиотеки. TFM, култура по умолчанию и общие свойства сборки
-    приходят из Directory.Build.props. Тестовые пакеты приватные (не текут потребителям).
+    Tests for the ported library. The TFM, the default culture and the shared build properties
+    come from Directory.Build.props. Test packages are private (they do not flow to consumers).
   -->
 
   <PropertyGroup>
@@ -10,9 +10,9 @@
     <AssemblyName>Aid.Xlsx.Tests</AssemblyName>
     <IsPackable>false</IsPackable>
     <!--
-      Тестовый код портирован из upstream и осознанно передаёт null и использует
-      nullable-идиомы без аннотаций, поэтому nullable-анализ в тестах выключен.
-      Остальные предупреждения остаются ошибками (глобальное TreatWarningsAsErrors).
+      The test code is ported from upstream and deliberately passes null and uses
+      nullable idioms without annotations, so nullable analysis is disabled for tests.
+      All other warnings stay errors (the global TreatWarningsAsErrors).
     -->
     <Nullable>disable</Nullable>
     <NoWarn>$(NoWarn);NU1605;CS1591;CS1658;CS1584;</NoWarn>
@@ -27,10 +27,10 @@
   </ItemGroup>
 
   <!--
-    Проект с примерами библиотеки в этот репозиторий не импортирован, поэтому тесты,
-    исполняющие примеры (каталог Examples), временно не компилируются: их помощник
-    TestHelper.RunTestExample вынесен туда же. Образцы картинок тесты рисунков берут
-    из собственных ресурсов (Resource\Images).
+    The project with library examples has not been imported into this repository, so the tests
+    that execute examples (the Examples directory) are not compiled for now: their helper
+    TestHelper.RunTestExample lives there as well. Drawing tests take sample images
+    from their own resources (Resource\Images).
   -->
   <ItemGroup>
     <Compile Remove="Examples\**\*.cs" />

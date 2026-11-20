@@ -1,6 +1,6 @@
-// Помощник для тестов, исполняющих примеры библиотеки. Примеры приходят из отдельного
-// проекта (upstream ClosedXML.Examples), которого пока нет в этом репозитории, поэтому
-// каталог Examples целиком исключён из компиляции (см. Aid.Xlsx.Tests.csproj).
+// A helper for tests that execute library examples. The examples come from a separate
+// project (upstream ClosedXML.Examples) that is not in this repository yet, so the
+// whole Examples directory is excluded from compilation (see Aid.Xlsx.Tests.csproj).
 using ClosedXML.Examples;
 using Aid.Xlsx;
 using NUnit.Framework;

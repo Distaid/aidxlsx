@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Основная библиотека Aid.Xlsx: модель Excel, чтение/запись частей, CalcEngine,
-    стили, таблицы, рисунки.
-    TFM, версия, nullable и общие свойства — из Directory.Build.props; IsLibrary включает
-    общие для библиотек trim/AOT-настройки и соответствующие анализаторы.
+    The main Aid.Xlsx library: the Excel object model, part reading/writing, CalcEngine,
+    styles, tables and drawings.
+    The TFM, version, nullable and shared properties come from Directory.Build.props;
+    IsLibrary turns on the library-wide trim/AOT settings and the matching analyzers.
   -->
 
   <PropertyGroup>

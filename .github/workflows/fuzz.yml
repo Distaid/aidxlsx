@@ -1,7 +1,7 @@
 # .github/workflows/fuzz.yml
-# Ночной фаззинг OPC/XML: сборка таргетов и короткий прогон.
-# До появления tests/Aid.Xlsx.Fuzzing прогон пропускается; job помечен continue-on-error,
-# чтобы ночные падения не считались блокирующими, пока фаззинг-таргеты не стабилизированы.
+# Nightly OPC/XML fuzzing: build the targets and run a short session.
+# Until tests/Aid.Xlsx.Fuzzing appears the run is skipped; the job is marked continue-on-error
+# so that nightly failures are not treated as blocking while the fuzz targets are not stable yet.
 name: fuzz
 
 on:
@@ -36,7 +36,7 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::tests/Aid.Xlsx.Fuzzing отсутствует — прогон пропущен до появления кода"
+            echo "::notice::tests/Aid.Xlsx.Fuzzing is missing, the run is skipped until the code exists"
           fi
       - name: setup-dotnet
         if: steps.check.outputs.ready == 'true'
@@ -51,7 +51,7 @@ jobs:
       - name: build
         if: steps.check.outputs.ready == 'true'
         run: dotnet build Aid.Xlsx.slnx -c Release -warnaserror --no-restore
-      - name: fuzz (15 минут)
+      - name: fuzz (15 minutes)
         if: steps.check.outputs.ready == 'true'
         run: timeout 900 dotnet run --project tests/Aid.Xlsx.Fuzzing/Aid.Xlsx.Fuzzing.csproj -c Release --no-build
       - name: upload crashes

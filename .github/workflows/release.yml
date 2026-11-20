@@ -1,7 +1,7 @@
 # .github/workflows/release.yml
-# Релиз: единственный путь публикации — push тега v*, созданного владельцем.
-# workflow_dispatch (вход version) — dry-run: собирает, тестирует, пакует, но не публикует,
-# не создаёт тег и не создаёт Release.
+# Release: the only publication path is pushing a v* tag created by the owner.
+# workflow_dispatch (the version input) is a dry run: it builds, tests and packs but does not publish,
+# does not create a tag and does not create a Release.
 name: release
 
 on:
@@ -10,14 +10,14 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Dry-run: версия из Directory.Build.props, например 0.1.0-preview1 (ничего не публикуется)'
+        description: 'Dry run: the version from Directory.Build.props, for example 0.1.0-preview1 (nothing is published)'
         required: true
         type: string
 
 permissions:
   contents: read
 
-# Один релиз за раз: статическая группа, без выражений и неподдерживаемых функций.
+# One release at a time: a static group, no expressions and no unsupported functions.
 concurrency:
   group: release
   cancel-in-progress: false
@@ -53,56 +53,56 @@ jobs:
           prefix=$(sed -n 's:.*<VersionPrefix>\([^<]*\)</VersionPrefix>.*:\1:p' Directory.Build.props | head -n 1)
           suffix=$(sed -n 's:.*<VersionSuffix>\([^<]*\)</VersionSuffix>.*:\1:p' Directory.Build.props | head -n 1)
           if [ -z "$prefix" ]; then
-            echo "::error::в Directory.Build.props нет VersionPrefix"
+            echo "::error::Directory.Build.props has no VersionPrefix"
             exit 1
           fi
           expected="$prefix"
           if [ -n "$suffix" ]; then expected="$prefix-$suffix"; fi
 
           if [ "${{ github.event_name }}" == "push" ]; then
-            # публикация: тег создан и запушен владельцем (единственный триггер публикации)
+            # publication: the tag was created and pushed by the owner (the only publication trigger)
             tag="${GITHUB_REF_NAME}"
             case "$tag" in
               v*) ;;
-              *) echo "::error::тег должен начинаться с v: $tag"; exit 1 ;;
+              *) echo "::error::the tag must start with v: $tag"; exit 1 ;;
             esac
             version="${tag#v}"
             ref_sha="$(git rev-parse HEAD)"
           else
-            # dry-run: тега нет по определению, входная версия проверяется отдельно
+            # dry run: by definition there is no tag, the input version is validated separately
             version='${{ inputs.version }}'
             ref_sha='${{ github.sha }}'
             tag="v$version"
           fi
 
           if ! printf '%s' "$version" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-preview[1-9][0-9]*)?$'; then
-            echo "::error::версия '$version' не соответствует схеме 0.x.y-previewN или 1.0.0"
+            echo "::error::version '$version' does not match the 0.x.y-previewN or 1.0.0 scheme"
             exit 1
           fi
           if [ "$expected" != "$version" ]; then
-            echo "::error::Directory.Build.props даёт '$expected', а запуск — '$version'. Сначала PR с bump версии."
+            echo "::error::Directory.Build.props gives '$expected' but the run requested '$version'. Land a version bump PR first."
             exit 1
           fi
 
           git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
 
-          # 1) Коммит прогона должен быть на main — и для tag push, и для dry-run.
+          # 1) The commit being released must be on main, both for a tag push and for a dry run.
           if ! git merge-base --is-ancestor "$ref_sha" refs/remotes/origin/main; then
-            echo "::error::коммит $ref_sha не на main"
+            echo "::error::commit $ref_sha is not on main"
             exit 1
           fi
 
-          # 2a) ancestry тега проверяется ТОЛЬКО в push-ветке.
+          # 2a) Tag ancestry is checked ONLY in the push branch.
           if [ "${{ github.event_name }}" == "push" ]; then
             if ! git merge-base --is-ancestor "refs/tags/$tag^{commit}" refs/remotes/origin/main; then
-              echo "::error::тег $tag не находится на ветке main"
+              echo "::error::tag $tag is not reachable from the main branch"
               exit 1
             fi
           else
-            # 2b) dry-run: refs/tags не используем (иначе git exit 128), проверяем отсутствие тега.
+            # 2b) dry run: never touch refs/tags (git would exit 128), check that the tag does not exist.
             existing_tag=$(git tag --list "$tag")
             if [ -n "$existing_tag" ]; then
-              echo "::error::тег $tag уже существует: dry-run должен запускаться на версии, которой ещё нет"
+              echo "::error::tag $tag already exists: a dry run must target a version that does not exist yet"
               exit 1
             fi
           fi
@@ -116,7 +116,7 @@ jobs:
             echo "prerelease=$prerelease"
             echo "major_minor=$major_minor"
           } >> "$GITHUB_OUTPUT"
-          echo "версия: $version (prerelease=$prerelease, tag=$tag, event=${{ github.event_name }})"
+          echo "version: $version (prerelease=$prerelease, tag=$tag, event=${{ github.event_name }})"
 
   ci:
     name: ci
@@ -169,7 +169,7 @@ jobs:
         continue-on-error: true
         run: |
           $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
-          if (-not (Test-Path $vswhere)) { throw 'vswhere.exe не найден' }
+          if (-not (Test-Path $vswhere)) { throw 'vswhere.exe not found' }
           & $vswhere -latest -products * -requires Microsoft.VisualStudio.Workload.NativeDesktop -property installationPath
           & $vswhere -latest -property catalog_productDisplayVersion
       - name: publish native aot
@@ -221,11 +221,11 @@ jobs:
           for f in artifacts/packages/*.nupkg; do
             case "$f" in
               *".$expected_version.nupkg") found=1 ;;
-              *) echo "::error::имя пакета не совпадает с версией запуска: $f"; exit 1 ;;
+              *) echo "::error::package file name does not match the released version: $f"; exit 1 ;;
             esac
           done
           if [ "$found" -ne 1 ]; then
-            echo "::error::пакет версии $expected_version не найден"
+            echo "::error::no package found for version $expected_version"
             exit 1
           fi
       - name: checksums
@@ -245,9 +245,9 @@ jobs:
           echo "pack #1: $first"
           echo "pack #2: $second"
           if [ "$first" = "$second" ]; then
-            echo "детерминированный pack: хеши .nupkg совпали"
+            echo "deterministic pack: .nupkg hashes match"
           else
-            echo "::warning::хеши .nupkg при повторном pack различаются; публикация не блокируется"
+            echo "::warning::.nupkg hashes differ on a repeated pack; publication is not blocked"
           fi
       - name: upload packages
         uses: actions/upload-artifact@v7.0.2
@@ -257,10 +257,10 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-  # Публикация — только по push тега, созданного владельцем. Dispatch сюда не доходит.
-  # Основной путь (Trusted Publishing через OIDC) не требует НИКАКИХ секретов:
-  # временный ключ выдаёт NuGet/login@v1 на 1 час по OIDC-токену.
-  # Резервный API key ниже — необязательный fallback, его отсутствие ничего не ломает.
+  # Publication happens only on a push of a tag created by the owner. Dispatch never reaches this job.
+  # The main path (Trusted Publishing via OIDC) requires NO secrets at all:
+  # NuGet/login@v1 issues a temporary 1-hour key from the OIDC token.
+  # The API key below is an optional fallback; its absence breaks nothing.
   publish:
     name: publish-nuget
     needs: [version, pack]
@@ -283,8 +283,8 @@ jobs:
         id: login
         uses: NuGet/login@v1
         with:
-          # Значение должно совпадать с владельцем OIDC-политики на nuget.org.
-          # NuGet username задаётся один раз и не переименовывается.
+          # The value must match the owner of the OIDC policy on nuget.org.
+          # A NuGet username is set once and cannot be renamed.
           user: Distaid
       - name: push (Trusted Publishing)
         env:
@@ -292,7 +292,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${TRUSTED_API_KEY:-}" ]; then
-            echo "::error::NuGet/login не вернул NUGET_API_KEY"
+            echo "::error::NuGet/login did not return NUGET_API_KEY"
             exit 1
           fi
           for pkg in artifacts/packages/*.nupkg; do
@@ -310,7 +310,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${NUGET_API_KEY:-}" ]; then
-            echo "::notice::резервный ключ NUGET_API_KEY не настроен — это допустимо: основной путь публикации секретов не требует."
+            echo "::notice::the fallback NUGET_API_KEY secret is not configured, which is fine: the main publication path needs no secrets."
             exit 0
           fi
           for pkg in artifacts/packages/*.nupkg; do
@@ -320,12 +320,12 @@ jobs:
       - name: summary
         if: always()
         run: |
-          echo "### Публикация Aid.Xlsx" >> "$GITHUB_STEP_SUMMARY"
-          echo "- версия: ${{ needs.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- тег: ${{ needs.version.outputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- пакет: https://www.nuget.org/packages/${{ env.PACKAGE_ID }}/${{ needs.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Aid.Xlsx publication" >> "$GITHUB_STEP_SUMMARY"
+          echo "- version: ${{ needs.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- tag: ${{ needs.version.outputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- package: https://www.nuget.org/packages/${{ env.PACKAGE_ID }}/${{ needs.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
 
-  # Release работает только с уже существующим тегом; теги создаёт владелец, CI тегов не создаёт.
+  # The Release works only with an existing tag; tags are created by the owner, CI never creates tags.
   github-release:
     name: github-release
     needs: [version, publish]
@@ -360,7 +360,7 @@ jobs:
           if [ ! -s artifacts/release-notes.md ]; then
             git log -1 --pretty='%s%n%n%b' > artifacts/release-notes.md
           fi
-          { echo; echo "**Пакет:** https://www.nuget.org/packages/${{ env.PACKAGE_ID }}/$version"; } >> artifacts/release-notes.md
+          { echo; echo "**Package:** https://www.nuget.org/packages/${{ env.PACKAGE_ID }}/$version"; } >> artifacts/release-notes.md
           cat artifacts/release-notes.md
       - name: create or update release (existing tag, idempotent)
         env:
@@ -374,14 +374,14 @@ jobs:
             *-*) prerelease=(--prerelease) ;;
           esac
           if gh release view "${TAG}" >/dev/null 2>&1; then
-            echo "Release ${TAG} уже существует — догружаем assets (--clobber)"
+            echo "Release ${TAG} already exists, uploading assets again (--clobber)"
             gh release upload "${TAG}" "${assets[@]}" --clobber
           else
-            # --verify-tag: тег обязан существовать; CI его не создаёт
+            # --verify-tag: the tag must already exist; CI never creates it
             gh release create "${TAG}" --title "${TAG}" --notes-file artifacts/release-notes.md --verify-tag "${prerelease[@]}" "${assets[@]}"
           fi
 
-  # dry-run: ничего не публикует и не создаёт; проверяет, что версия ещё не занята тегом.
+  # dry run: publishes and creates nothing; verifies that the version is not taken by a tag yet.
   dry-run:
     name: dry-run
     needs: [version]
@@ -400,15 +400,15 @@ jobs:
           TARGET_TAG: ${{ needs.version.outputs.tag }}
         run: |
           set -euo pipefail
-          echo "dry-run для $TARGET_TAG: сборочные джобы выполняются, публикация и Release не создаются."
+          echo "dry run for $TARGET_TAG: the build jobs run, publication and the Release are not created."
           if [ -n "$(git tag --list "$TARGET_TAG")" ]; then
-            echo "::error::тег $TARGET_TAG уже существует: dry-run запускается на версии, которой ещё нет"
+            echo "::error::tag $TARGET_TAG already exists: a dry run must target a version that does not exist yet"
             exit 1
           fi
-          echo "OK: тег $TARGET_TAG отсутствует, публикация пропущена"
+          echo "OK: tag $TARGET_TAG is absent, publication skipped"
           {
             echo "### release dry-run"
-            echo "- версия: ${{ needs.version.outputs.version }}"
-            echo "- тег для будущей публикации: $TARGET_TAG"
-            echo "- публикация и GitHub Release пропущены (workflow_dispatch)"
+            echo "- version: ${{ needs.version.outputs.version }}"
+            echo "- tag for the future publication: $TARGET_TAG"
+            echo "- publication and GitHub Release skipped (workflow_dispatch)"
           } >> "$GITHUB_STEP_SUMMARY"

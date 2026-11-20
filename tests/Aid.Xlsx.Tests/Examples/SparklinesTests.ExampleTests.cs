@@ -1,5 +1,5 @@
-// Тест, исполняющий пример из отдельного проекта примеров, которого пока нет в репозитории.
-// Каталог Examples целиком исключён из компиляции (см. Aid.Xlsx.Tests.csproj).
+// A test that executes an example from the separate examples project, which is not in this repository yet.
+// The whole Examples directory is excluded from compilation (see Aid.Xlsx.Tests.csproj).
 using ClosedXML.Examples.Sparklines;
 using NUnit.Framework;
 

@@ -1,6 +1,6 @@
 # .github/workflows/aot-matrix.yml
-# Ночная проверка NativeAOT на трёх ОС: linux-x64, win-x64, osx-arm64.
-# Пока tests/Aid.Xlsx.AotSmoke не существует, джоб пропускается с notice (а не краснеет каждую ночь).
+# Nightly NativeAOT check on three operating systems: linux-x64, win-x64, osx-arm64.
+# While tests/Aid.Xlsx.AotSmoke does not exist, the job is skipped with a notice instead of failing every night.
 name: aot-matrix
 
 on:
@@ -36,7 +36,7 @@ jobs:
             has_aot_smoke=true
           else
             has_aot_smoke=false
-            echo "::notice::tests/Aid.Xlsx.AotSmoke отсутствует — AOT-матрица пропущена до появления smoke-проекта"
+            echo "::notice::tests/Aid.Xlsx.AotSmoke is missing, the AOT matrix is skipped until the smoke project exists"
           fi
           echo "has_aot_smoke=$has_aot_smoke" >> "$GITHUB_OUTPUT"
 

@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    OPC/XML-слой: контейнер, relationships, content types, XML/MCE-примитивы.
-    О модели Excel ничего не знает; TFM и общие свойства — из Directory.Build.props,
-    IsLibrary включает общие для библиотек trim/AOT-настройки и анализаторы.
+    OPC/XML layer: the package container, relationships, content types, XML/MCE primitives.
+    It knows nothing about the Excel model; the TFM and shared properties come from
+    Directory.Build.props, IsLibrary turns on the library-wide trim/AOT settings and analyzers.
   -->
 
   <PropertyGroup>

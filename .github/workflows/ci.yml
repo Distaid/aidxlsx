@@ -1,6 +1,6 @@
 # .github/workflows/ci.yml
-# Основной CI: форматирование, сборка, тесты, API-parity, codegen drift, упаковка, AOT smoke.
-# Версия пакета здесь не вычисляется: единственный источник — Directory.Build.props.
+# Main CI: formatting, build, tests, API parity, codegen drift, packaging, AOT smoke.
+# The package version is not computed here: the single source is Directory.Build.props.
 name: ci
 
 on:
@@ -24,9 +24,9 @@ env:
   CONFIGURATION: Release
 
 jobs:
-  # Вычисляет, какие проекты уже есть в репозитории. Пока проект не появился,
-  # соответствующий джоб пропускается (skip), а не падает: это позволяет зелёный
-  # workflow на PR гигиены и bootstrap-коммите, пока проекты ещё не появились.
+  # Detects which projects already exist in the repository. While a project is missing,
+  # the matching job is skipped instead of failing: this keeps the workflow green
+  # on hygiene PRs and on the bootstrap commit, before any project exists.
   detect:
     name: detect-projects
     runs-on: ubuntu-24.04
@@ -48,8 +48,8 @@ jobs:
         run: |
           set -euo pipefail
           has() { if [ -d "$1" ]; then echo true; else echo false; fi }
-          # codegen-drift включается по readiness-маркеру: каталог Generation появляется ещё в фазе 0
-          # (импорт/переименование), а схемы и сгенерированный код — только в фазе 2.
+          # codegen-drift is enabled by a readiness marker: the Generation directory appears in phase 0
+          # (import/rename), while schemas and generated code appear only in phase 2.
           if [ -f schemas/ooxml/SHA256SUMS ] || [ -n "$(find src -name '*.g.cs' -print -quit 2>/dev/null)" ]; then
             has_generation=true
           else
@@ -184,7 +184,7 @@ jobs:
           if [ -n "$(git status --porcelain)" ]; then
             git status --porcelain
             git --no-pager diff
-            echo "::error::Сгенерированный код отличается от закоммиченного. Выполните: dotnet run --project src/Aid.Xlsx.CodeGen -- all"
+            echo "::error::Generated code differs from the committed code. Run: dotnet run --project src/Aid.Xlsx.CodeGen -- all"
             exit 1
           fi
 
@@ -229,9 +229,9 @@ jobs:
           pkg=$(ls artifacts/packages/*.nupkg | head -n 1)
           bytes=$(wc -c < "$pkg" | tr -d ' ')
           limit=$((5 * 1024 * 1024))
-          echo "размер пакета: $bytes байт, бюджет: $limit байт (бюджет размера пакета — 5 МБ)"
+          echo "package size: $bytes bytes, budget: $limit bytes (the package size budget is 5 MB)"
           if [ "$bytes" -gt "$limit" ]; then
-            echo "::error::пакет превышает бюджет 5 МБ"
+            echo "::error::the package exceeds the 5 MB budget"
             exit 1
           fi
       - name: upload packages
@@ -246,8 +246,8 @@ jobs:
     name: aot-smoke
     needs: [detect, build-test]
     if: needs.detect.outputs.has_aot_smoke == 'true'
-    # Baseline до первого зелёного прогона: job не блокирует merge и не красит workflow в красный.
-    # Убрать эту строку в том же PR, который добавляет aot-smoke в required checks защищённой ветки.
+    # Baseline before the first green run: the job does not block a merge and does not turn the workflow red.
+    # Remove this line in the same PR that adds aot-smoke to the required checks of the protected branch.
     continue-on-error: true
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -279,7 +279,7 @@ jobs:
           set -euo pipefail
           mkdir -p artifacts/aot
           bytes=$(wc -c < artifacts/aot/native-linux-x64/Aid.Xlsx.AotSmoke | tr -d ' ')
-          echo "AOT binary (linux-x64): $bytes байт" | tee artifacts/aot/size.txt
+          echo "AOT binary (linux-x64): $bytes bytes" | tee artifacts/aot/size.txt
       - name: upload aot size
         uses: actions/upload-artifact@v7.0.2
         with:
