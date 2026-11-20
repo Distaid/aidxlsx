@@ -1,4 +1,4 @@
-﻿using Aid.Xlsx;
+using Aid.Xlsx;
 using Aid.Xlsx.Tests.Excel;
 using NUnit.Framework;
 using System;

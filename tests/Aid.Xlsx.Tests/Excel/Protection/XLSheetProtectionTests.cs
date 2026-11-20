@@ -1,4 +1,4 @@
-﻿// Keep this file CodeMaid organised and cleaned
+// Keep this file CodeMaid organised and cleaned
 using Aid.Xlsx;
 using NUnit.Framework;
 using System;

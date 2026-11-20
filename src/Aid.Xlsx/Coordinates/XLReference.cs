@@ -1,4 +1,4 @@
-﻿using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Extensions;
 using ClosedXML.Parser;
 
 namespace Aid.Xlsx;

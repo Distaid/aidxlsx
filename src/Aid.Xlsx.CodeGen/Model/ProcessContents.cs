@@ -1,4 +1,4 @@
-﻿namespace Aid.Xlsx.CodeGen.Model;
+namespace Aid.Xlsx.CodeGen.Model;
 
 /// <summary>
 /// How should XML processor process content of <c>any</c> element from <c>xsd</c>.

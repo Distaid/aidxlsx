@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Globalization;
 using Aid.Xlsx;
 using Aid.Xlsx.CalcEngine;

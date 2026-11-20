@@ -1,4 +1,4 @@
-﻿using Aid.Xlsx;
+using Aid.Xlsx;
 using NUnit.Framework;
 using System.Globalization;
 using System.Linq;

@@ -1,4 +1,4 @@
-﻿namespace Aid.Xlsx;
+namespace Aid.Xlsx;
 
 /// <summary>
 /// Absolute units of physical length.

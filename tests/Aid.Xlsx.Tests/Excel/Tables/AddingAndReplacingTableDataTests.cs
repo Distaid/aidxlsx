@@ -1,4 +1,4 @@
-﻿using Aid.Xlsx.Attributes;
+using Aid.Xlsx.Attributes;
 using Aid.Xlsx;
 using NUnit.Framework;
 using System;

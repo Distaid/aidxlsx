@@ -1,4 +1,4 @@
-﻿using Aid.Xlsx;
+using Aid.Xlsx;
 using DocumentFormat.OpenXml;
 using NUnit.Framework;
 using System;

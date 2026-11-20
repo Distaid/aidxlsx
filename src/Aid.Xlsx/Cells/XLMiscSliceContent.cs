@@ -1,4 +1,4 @@
-﻿namespace Aid.Xlsx
+namespace Aid.Xlsx
 {
     internal struct XLMiscSliceContent
     {

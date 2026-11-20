@@ -1,4 +1,4 @@
-﻿namespace Aid.Xlsx;
+namespace Aid.Xlsx;
 
 /// <summary>
 /// Listener for components that need to be notified about structural changes of a workbook

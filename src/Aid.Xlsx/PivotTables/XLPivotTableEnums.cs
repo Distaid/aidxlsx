@@ -1,4 +1,4 @@
-﻿namespace Aid.Xlsx
+namespace Aid.Xlsx
 {
     public enum XLFilterAreaOrder { DownThenOver, OverThenDown }
 

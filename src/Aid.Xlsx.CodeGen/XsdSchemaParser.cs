@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Aid.Xlsx.CodeGen.Model;
 using Aid.Xlsx.CodeGen.Model.Elements;
 using Aid.Xlsx.CodeGen.Model.SimpleTypes;

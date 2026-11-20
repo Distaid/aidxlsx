@@ -1,4 +1,4 @@
-﻿namespace Aid.Xlsx.CodeGen;
+namespace Aid.Xlsx.CodeGen;
 
 /// <summary>
 /// A type to use in generics instead of <c>void</c>.

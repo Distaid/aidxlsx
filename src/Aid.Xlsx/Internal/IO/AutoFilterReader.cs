@@ -1,4 +1,4 @@
-﻿using Aid.Xlsx.Utils;
+using Aid.Xlsx.Utils;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System;
 using System.Globalization;

@@ -1,4 +1,4 @@
-﻿namespace Aid.Xlsx.CodeGen.Model;
+namespace Aid.Xlsx.CodeGen.Model;
 
 /// <summary>
 /// Representation of <c>import</c> element in <c>xsd</c> file.

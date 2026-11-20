@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <!--
     Основная библиотека Aid.Xlsx: модель Excel, чтение/запись частей, CalcEngine,

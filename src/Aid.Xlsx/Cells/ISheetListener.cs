@@ -1,4 +1,4 @@
-﻿namespace Aid.Xlsx
+namespace Aid.Xlsx
 {
     /// <summary>
     /// An interface for components reacting on changes in a worksheet.

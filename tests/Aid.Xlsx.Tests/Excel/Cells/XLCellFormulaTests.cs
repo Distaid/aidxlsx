@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using Aid.Xlsx;
 
 namespace Aid.Xlsx.Tests.Excel.Cells

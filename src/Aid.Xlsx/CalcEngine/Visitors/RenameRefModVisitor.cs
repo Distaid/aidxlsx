@@ -1,4 +1,4 @@
-﻿using ClosedXML.Parser;
+using ClosedXML.Parser;
 using System.Collections.Generic;
 using System.Linq;
 

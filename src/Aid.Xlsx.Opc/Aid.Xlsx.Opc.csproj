@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <!--
     OPC/XML-слой: контейнер, relationships, content types, XML/MCE-примитивы.

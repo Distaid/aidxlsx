@@ -1,4 +1,4 @@
-﻿# Aid.Xlsx
+# Aid.Xlsx
 
 **Status: pre-alpha.** The sources are imported and the solution builds, but this is an
 early port onto an own OPC/XML layer with NativeAOT as a first-class goal. Nothing here is

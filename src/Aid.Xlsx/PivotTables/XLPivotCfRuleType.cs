@@ -1,4 +1,4 @@
-﻿namespace Aid.Xlsx;
+namespace Aid.Xlsx;
 
 /// <summary>
 /// Specifies how to apply <see cref="XLConditionalFormatType.Top10"/> conditional formatting rule

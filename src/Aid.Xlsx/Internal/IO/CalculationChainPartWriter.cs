@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;

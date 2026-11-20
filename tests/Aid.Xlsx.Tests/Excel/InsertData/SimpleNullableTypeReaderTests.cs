@@ -1,4 +1,4 @@
-﻿using Aid.Xlsx.InsertData;
+using Aid.Xlsx.InsertData;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;

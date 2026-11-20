@@ -5,6 +5,7 @@
       "aid.xlsx.opc": {
         "type": "Project"
       }
-    }
+    },
+    "net10.0/win-x64": {}
   }
 }

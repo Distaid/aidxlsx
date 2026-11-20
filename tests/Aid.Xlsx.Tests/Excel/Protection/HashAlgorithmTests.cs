@@ -1,4 +1,4 @@
-﻿using Aid.Xlsx.Utils;
+using Aid.Xlsx.Utils;
 using NUnit.Framework;
 using static Aid.Xlsx.XLProtectionAlgorithm;
 
