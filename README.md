@@ -1,9 +1,9 @@
 ﻿# Aid.Xlsx
 
-**Status: pre-alpha — sources not yet completed.** This repository is being bootstrapped
-from the sources of ClosedXML 0.106, which are being ported onto an own OPC/XML layer with
-NativeAOT as a first-class goal. Nothing here is a finished product, no package has been
-published yet, and the public API may change without notice.
+**Status: pre-alpha.** The sources are imported and the solution builds, but this is an
+early port onto an own OPC/XML layer with NativeAOT as a first-class goal. Nothing here is
+a finished product, no package has been published yet, and the public API may change
+without notice.
 
 Aid.Xlsx is a .NET library for reading, creating and editing `.xlsx` and `.xlsm`
 workbooks. It targets `net10.0`.
@@ -13,15 +13,15 @@ workbooks. It targets `net10.0`.
 - read, create and edit `.xlsx`/`.xlsm`: cells, values, formulas, cached values, styles,
   number formats, shared strings and rich text, tables, conditional formatting, data
   validation, comments, hyperlinks, images, page setup and protection;
-- a public API that is structurally 1:1 with ClosedXML 0.106 after namespace normalization
-  and the `XL*` → `Xlsx*` rename; source and binary compatibility with ClosedXML is not
+- a public API whose structure matches the upstream project after namespace normalization
+  and the `XL*` → `Xlsx*` rename; source and binary compatibility with upstream is not
   offered;
 - no `DocumentFormat.OpenXml` dependency at runtime: workbooks are read and written by a
   custom OPC/XML layer (`Aid.Xlsx.Opc`);
 - preservation of unknown parts on round-trip, including `.xlsm` VBA projects;
 - NativeAOT and trimming as supported scenarios, with reflection-free code on the common
   paths;
-- a formula engine ported from ClosedXML without semantic changes.
+- a formula engine ported without semantic changes.
 
 ## Target framework and NativeAOT
 
