@@ -10,6 +10,8 @@
     <RootNamespace>Aid.Xlsx.Opc</RootNamespace>
     <AssemblyName>Aid.Xlsx.Opc</AssemblyName>
     <IsLibrary>true</IsLibrary>
+    <!-- The OPC layer is shipped inside the Aid.Xlsx package, not as a separate package. -->
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

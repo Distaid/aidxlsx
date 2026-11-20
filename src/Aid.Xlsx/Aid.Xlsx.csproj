@@ -13,8 +13,23 @@
     <PackageId>Aid.Xlsx</PackageId>
     <IsLibrary>true</IsLibrary>
     <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!--
+      Single package distribution: the OPC layer ships inside Aid.Xlsx instead of being a
+      separate package. The target below adds the output of project references to lib/<tfm>/.
+    -->
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeProjectReferenceOutputs</TargetsForTfmSpecificBuildOutput>
     <NoWarn>$(NoWarn);NU1605;CS1591</NoWarn>
   </PropertyGroup>
+
+  <Target Name="IncludeProjectReferenceOutputs" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget','ProjectReference'))" />
+    </ItemGroup>
+  </Target>
 
   <ItemGroup>
     <EmbeddedResource Include="Graphics\Fonts\CarlitoBare-Bold.ttf" />
@@ -26,6 +41,10 @@
   <ItemGroup>
     <None Include="..\..\.editorconfig" Link=".editorconfig" />
     <None Include="..\..\assets\icon.png" Pack="true" PackagePath="\" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+    <None Include="..\..\NOTICE" Pack="true" PackagePath="\" />
+    <None Include="..\..\third-party\LICENSE-Apache-2.0.txt" Pack="true" PackagePath="third-party\" />
   </ItemGroup>
 
   <ItemGroup>
