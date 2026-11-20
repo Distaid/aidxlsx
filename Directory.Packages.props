@@ -1,15 +1,15 @@
 <Project>
 
   <!--
-    Central Package Management: версии пакетов задаются только здесь.
-    В csproj — только <PackageReference Include="..." /> без Version; атрибут Version в csproj
-    при включённом ManagePackageVersionsCentrally приводит к ошибке NU1008.
-    Версии перенесены из csproj без изменений; один и тот же пакет во всех проектах
-    имеет одну версию, поэтому конфликтов нет.
+    Central Package Management: package versions are defined only here.
+    Projects use <PackageReference Include="..." /> without a Version attribute; adding Version
+    while ManagePackageVersionsCentrally is enabled produces error NU1008.
+    The versions were moved out of the projects unchanged; the same package has a single version
+    across all projects, so there are no conflicts.
   -->
 
   <ItemGroup>
-    <!-- Runtime-зависимости библиотеки Aid.Xlsx -->
+    <!-- Runtime dependencies of the Aid.Xlsx library -->
     <PackageVersion Include="ClosedXML.Parser" Version="2.0.0-preview1" />
     <PackageVersion Include="DocumentFormat.OpenXml" Version="[3.1.1,4.0.0)" />
     <PackageVersion Include="ExcelNumberFormat" Version="1.1.0" />
@@ -17,10 +17,10 @@
     <PackageVersion Include="RBush.Signed" Version="4.0.0" />
     <PackageVersion Include="SixLabors.Fonts" Version="1.0.0" />
 
-    <!-- Инфраструктура сборки и упаковки -->
+    <!-- Build and packaging infrastructure -->
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
 
-    <!-- Тестовые зависимости -->
+    <!-- Test dependencies -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageVersion Include="NUnit" Version="4.5.1" />
     <PackageVersion Include="NUnit3TestAdapter" Version="5.2.0" />
