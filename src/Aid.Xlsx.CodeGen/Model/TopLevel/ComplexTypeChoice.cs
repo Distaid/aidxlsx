@@ -29,25 +29,25 @@ public class ComplexTypeChoice : ComplexType
         switch (choicesCount)
         {
             case ElementsCount.ZeroToOne:
-            {
-                var variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
-                return variables;
-            }
+                {
+                    var variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
+                    return variables;
+                }
             case ElementsCount.ZeroToMany:
-            {
-                var variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
-                return variables;
-            }
+                {
+                    var variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
+                    return variables;
+                }
             case ElementsCount.OneToOne:
-            {
-                var variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
-                return variables;
-            }
+                {
+                    var variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
+                    return variables;
+                }
             case ElementsCount.OneToMany:
-            {
-                var variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
-                return variables;
-            }
+                {
+                    var variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
+                    return variables;
+                }
             default:
                 throw new NotImplementedException();
         }

@@ -11,7 +11,7 @@ public class Restriction
     /// <summary>
     /// Name of a base type, e.g., <c>xsd:string</c>.
     /// </summary>
-    public required string BaseTypeName {get; init; }
+    public required string BaseTypeName { get; init; }
 
     /// <summary>
     /// Additional restrictions on possible values.
