@@ -3,6 +3,7 @@
   <Project Path="src/Aid.Xlsx.Opc/Aid.Xlsx.Opc.csproj" />
   <Project Path="src/Aid.Xlsx.Formula/Aid.Xlsx.Formula.csproj" />
   <Project Path="src/Aid.Xlsx.CodeGen/Aid.Xlsx.CodeGen.csproj" />
+  <Project Path="src/Aid.Xlsx.Generators/Aid.Xlsx.Generators.csproj" />
   <Project Path="tests/Aid.Xlsx.Tests/Aid.Xlsx.Tests.csproj" />
   <Project Path="tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj" />
 </Solution>

@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Generate reflection-free row mappers for `InsertMappedTable` and `InsertMappedData` from `[XlsxTable]` models.
 - Round-trip a workbook in fully trimmed and NativeAOT smoke applications.
 - Add an OPC ZIP container with content types, internal and external relationships, and byte-preserving copies of unchanged parts.
 - Initial repository files: `.gitignore`, the solution file `Aid.Xlsx.slnx` with the

@@ -17,6 +17,7 @@
     <PackageVersion Include="SixLabors.Fonts" Version="1.0.0" />
 
     <!-- Build and packaging infrastructure -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
 
     <!-- Test dependencies -->

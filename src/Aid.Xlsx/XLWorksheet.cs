@@ -1622,7 +1622,7 @@ namespace Aid.Xlsx
             return true;
         }
 
-        internal IXLTable InsertTable(Point origin, IInsertDataReader reader, String tableName, Boolean createTable, Boolean addHeadings, Boolean transpose)
+        internal IXLTable InsertTable(Point origin, IInsertDataReader reader, String? tableName, Boolean createTable, Boolean addHeadings, Boolean transpose)
         {
             if (createTable && Tables.Any<XLTable>(t => t.Area.Contains(origin)))
                 throw new InvalidOperationException($"This cell '{origin}' is already part of a table.");
@@ -1694,6 +1694,11 @@ namespace Aid.Xlsx
                     }
 
                     valueSlice.SetCellValue(point, value);
+                    if ((!addHeadings || rowNumber != origin.Row) && !transpose && i < propCount
+                        && reader.GetNumberFormat(i) is { } numberFormat)
+                    {
+                        Cell(point.Row, point.Column).Style.NumberFormat.Format = numberFormat;
+                    }
                     column++;
                 }
 

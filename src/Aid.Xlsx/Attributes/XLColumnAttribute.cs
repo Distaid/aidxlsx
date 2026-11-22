@@ -11,6 +11,9 @@ namespace Aid.Xlsx.Attributes
         public Boolean Ignore { get; set; }
         public Int32 Order { get; set; }
 
+        /// <summary>Excel number format applied by the generated mapper to data cells in this column.</summary>
+        public string? Format { get; set; }
+
         private static XLColumnAttribute? GetXLColumnAttribute(MemberInfo mi)
         {
             if (!mi.HasAttribute<XLColumnAttribute>()) return null;

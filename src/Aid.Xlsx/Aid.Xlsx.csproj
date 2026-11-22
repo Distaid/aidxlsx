@@ -23,12 +23,23 @@
       assemblies and PrivateAssets keeps them out of the package dependency list.
     -->
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeProjectReferenceOutputs</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);IncludeSourceGenerator</TargetsForTfmSpecificContentInPackage>
     <NoWarn>$(NoWarn);NU1605;CS1591</NoWarn>
   </PropertyGroup>
 
   <Target Name="IncludeProjectReferenceOutputs">
     <ItemGroup>
       <BuildOutputInPackage Include="$(TargetDir)Aid.Xlsx.Opc.dll;$(TargetDir)Aid.Xlsx.Formula.dll" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="IncludeSourceGenerator">
+    <MSBuild Projects="..\Aid.Xlsx.Generators\Aid.Xlsx.Generators.csproj" Targets="GetTargetPath"
+             RemoveProperties="TargetFramework;RuntimeIdentifier;SelfContained;PublishAot;PublishTrimmed">
+      <Output TaskParameter="TargetOutputs" ItemName="SourceGeneratorAssembly" />
+    </MSBuild>
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="@(SourceGeneratorAssembly)" PackagePath="analyzers/dotnet/cs" />
     </ItemGroup>
   </Target>
 
@@ -64,5 +75,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Aid.Xlsx.Opc\Aid.Xlsx.Opc.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Aid.Xlsx.Formula\Aid.Xlsx.Formula.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Aid.Xlsx.Generators\Aid.Xlsx.Generators.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
   </ItemGroup>
 </Project>

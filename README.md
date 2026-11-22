@@ -25,12 +25,28 @@ workbooks. It targets `net10.0`.
 
 ## Target framework and NativeAOT
 
-Only `net10.0` is targeted — for the library, the tests and the samples alike. There is no
-`netstandard`, no .NET Framework and no `net462` target.
+The runtime library, tests and samples target `net10.0`. The build-time source generator
+targets `netstandard2.0` so that it can run in the compiler host.
 
-NativeAOT is a product goal rather than an afterthought: the project plans to enable the
-trim, AOT and single-file analyzers, to treat warnings as errors, and to run an AOT smoke
-application through the create/save/load scenario on every supported platform in CI.
+The runtime libraries enable trim, AOT and single-file analyzers. The smoke application
+creates, saves and reloads a workbook after a fully trimmed or NativeAOT publish.
+
+`[XlsxTable]` generates a mapper for public instance fields and readable properties. Use
+`InsertMappedTable` or `InsertMappedData` to insert those rows without reflection. The NuGet
+package includes the generator.
+
+```csharp
+using Aid.Xlsx;
+using Aid.Xlsx.Attributes;
+
+using var workbook = new XLWorkbook();
+var sheet = workbook.Worksheets.Add("Sales");
+sheet.Cell("A1").InsertMappedTable(new[] { new Sale("Pears", 22m) });
+workbook.SaveAs("sales.xlsx");
+
+[XlsxTable("SalesData")]
+internal record Sale(string Item, [property: XLColumn(Format = "0.00")] decimal Amount);
+```
 
 ## Repository layout (planned)
 
@@ -40,17 +56,13 @@ src/Aid.Xlsx/                   core library: domain folders at the top level
                                 readers and writers live in Internal/IO
 src/Aid.Xlsx.Opc/               OPC container, relationships, XML/MCE primitives
 src/Aid.Xlsx.Formula/           formula parser
-src/Aid.Xlsx.SourceGenerators/  Roslyn incremental generators
+src/Aid.Xlsx.Generators/        Roslyn incremental generators
 src/Aid.Xlsx.CodeGen/           XSD-based code generation (build-time tool)
 tests/                          unit, compatibility, AOT smoke and package checks
 benchmarks/                     BenchmarkDotNet benchmarks
 eng/                            build and release scripts
 ```
 
-> The solution currently contains the imported library, the OPC/XML layer, the code
-> generation tool and the test project. The formula parser, API compatibility checks,
-> the NativeAOT smoke app and benchmarks are added in later phases.
->
 > The core uses a flat layout: domain folders sit directly under `src/Aid.Xlsx/`, while
 > part readers and writers live in `src/Aid.Xlsx/Internal/IO/`.
 
