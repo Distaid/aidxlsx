@@ -366,10 +366,11 @@ Add-Check 'aot-matrix.yml: matrix, clang, smoke, nightly' ($aotMissing.Count -eq
 $fuzzMissing = Find-MissingLiteral -Text $fuzzText -Needles @(
     'cron:',
     'Aid.Xlsx.Fuzzing',
-    'timeout 900',
-    'continue-on-error: true'
+    'target: [package, worksheet, styles, mce]',
+    'afl-fuzz -V 900',
+    'fuzzer_stats'
 )
-Add-Check 'fuzz.yml: target build, short run, no success requirement yet' ($fuzzMissing.Count -eq 0) ('missing: ' + ($fuzzMissing -join ', '))
+Add-Check 'fuzz.yml: instrumented targets, timed run, artifacts' ($fuzzMissing.Count -eq 0) ('missing: ' + ($fuzzMissing -join ', '))
 
 # --- 13. Directory.Build.props: build + version + metadata --------------
 # Version and metadata live in a single Directory.Build.props (the repository owner pattern).

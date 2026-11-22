@@ -1,7 +1,5 @@
 # .github/workflows/fuzz.yml
-# Nightly OPC/XML fuzzing: build the targets and run a short session.
-# Until tests/Aid.Xlsx.Fuzzing appears the run is skipped; the job is marked continue-on-error
-# so that nightly failures are not treated as blocking while the fuzz targets are not stable yet.
+# Nightly coverage-guided fuzzing of OPC and SpreadsheetML readers.
 name: fuzz
 
 on:
@@ -18,49 +16,60 @@ concurrency:
 
 jobs:
   fuzz:
-    name: fuzz-opc-xml
+    name: fuzz-${{ matrix.target }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
-    continue-on-error: true
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [package, worksheet, styles, mce]
     steps:
       - name: checkout
         uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      - name: check fuzz targets
-        id: check
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -f tests/Aid.Xlsx.Fuzzing/Aid.Xlsx.Fuzzing.csproj ]; then
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::tests/Aid.Xlsx.Fuzzing is missing, the run is skipped until the code exists"
-          fi
       - name: setup-dotnet
-        if: steps.check.outputs.ready == 'true'
         uses: actions/setup-dotnet@v6.1.0
         with:
           global-json-file: global.json
           cache: true
           cache-dependency-path: '**/packages.lock.json'
-      - name: restore
-        if: steps.check.outputs.ready == 'true'
-        run: dotnet restore Aid.Xlsx.slnx
+      - name: install fuzz tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y afl++
+          dotnet tool install --tool-path artifacts/fuzz/tools SharpFuzz.CommandLine --version 2.3.0
       - name: build
-        if: steps.check.outputs.ready == 'true'
-        run: dotnet build Aid.Xlsx.slnx -c Release -warnaserror --no-restore
+        run: dotnet build tests/Aid.Xlsx.Fuzzing -c Release -warnaserror -o artifacts/fuzz/bin
+      - name: prepare corpus
+        run: dotnet artifacts/fuzz/bin/Aid.Xlsx.Fuzzing.dll --seeds artifacts/fuzz/seeds
+      - name: instrument reader assemblies
+        run: |
+          artifacts/fuzz/tools/sharpfuzz artifacts/fuzz/bin/Aid.Xlsx.Opc.dll
+          artifacts/fuzz/tools/sharpfuzz artifacts/fuzz/bin/Aid.Xlsx.dll Aid.Xlsx.Internal.IO Aid.Xlsx.Workbooks
       - name: fuzz (15 minutes)
-        if: steps.check.outputs.ready == 'true'
-        run: timeout 900 dotnet run --project tests/Aid.Xlsx.Fuzzing/Aid.Xlsx.Fuzzing.csproj -c Release --no-build
-      - name: upload crashes
+        env:
+          TARGET: ${{ matrix.target }}
+          AFL_NO_AFFINITY: '1'
+          AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES: '1'
+          AFL_SKIP_BIN_CHECK: '1'
+          AFL_FORKSRV_INIT_TMOUT: '10000'
+        run: |
+          afl-fuzz -V 900 -m none -t 2000 -i "artifacts/fuzz/seeds/$TARGET" -o artifacts/fuzz/output \
+            -- dotnet artifacts/fuzz/bin/Aid.Xlsx.Fuzzing.dll "$TARGET"
+          issues=$(find artifacts/fuzz/output -type f \( -path '*/crashes/id:*' -o -path '*/hangs/id:*' \) -print)
+          if [ -n "$issues" ]; then
+            printf '%s\n' "$issues"
+            exit 1
+          fi
+      - name: upload results
         if: always()
         uses: actions/upload-artifact@v7.0.2
         with:
-          name: fuzz-crashes
+          name: fuzz-${{ matrix.target }}
           path: |
-            fuzz-output/
-            crashes/
+            artifacts/fuzz/output/**/crashes/
+            artifacts/fuzz/output/**/hangs/
+            artifacts/fuzz/output/**/fuzzer_stats
           if-no-files-found: ignore
           retention-days: 30
