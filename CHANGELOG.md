@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Write formula calculation chains, styles, shared strings, comments and pivot cache records through XML streams.
 - Read and write core, custom and extended workbook properties directly through OPC, retaining metadata outside the workbook model.
+- Read theme colors and generate default themes from XML. The streaming worksheet data reader uses its own cell and formula types.
 - Open and save workbook ZIP containers with the built-in OPC layer, preserving untouched parts and their relationships.
 - Build the formula parser from repository sources and ship it inside `Aid.Xlsx`.
 - Restructured the solution for the port: the projects and namespaces are

@@ -48,6 +48,7 @@
     <EmbeddedResource Include="Graphics\Fonts\CarlitoBare-BoldItalic.ttf" />
     <EmbeddedResource Include="Graphics\Fonts\CarlitoBare-Italic.ttf" />
     <EmbeddedResource Include="Graphics\Fonts\CarlitoBare-Regular.ttf" />
+    <EmbeddedResource Include="Internal\IO\DefaultTheme.xml" LogicalName="Aid.Xlsx.DefaultTheme.xml" />
   </ItemGroup>
 
   <ItemGroup>

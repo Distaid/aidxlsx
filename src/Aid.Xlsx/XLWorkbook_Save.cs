@@ -341,7 +341,8 @@ namespace Aid.Xlsx
             if (workbookPart.ThemePart == null)
             {
                 var themePart = workbookPart.AddNewPart<ThemePart>(context.RelIdGenerator.GetNext(RelType.Workbook));
-                ThemePartWriter.GenerateContent(themePart, (XLTheme)Theme);
+                using var target = themePart.GetStream(FileMode.Create, FileAccess.Write);
+                ThemeXml.WriteDefault(target, Theme);
             }
 
             // Clear list of deleted worksheets to prevent errors on multiple saves

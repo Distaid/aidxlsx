@@ -6,7 +6,6 @@ using Aid.Xlsx.Formatting;
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Opc;
 using Aid.Xlsx.Formulas;
-using DocumentFormat.OpenXml.Spreadsheet;
 using StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.XLImmutableRichText>;
 
 namespace Aid.Xlsx.Internal.IO;
@@ -16,6 +15,25 @@ namespace Aid.Xlsx.Internal.IO;
 /// </summary>
 internal partial class SheetDataReader
 {
+    private enum CellType
+    {
+        Boolean,
+        Number,
+        Error,
+        SharedString,
+        String,
+        InlineString,
+        Date
+    }
+
+    private enum FormulaType
+    {
+        Normal,
+        Array,
+        DataTable,
+        Shared
+    }
+
     private static readonly string[] DateCellFormats =
     {
         "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff", // Format accepted by OpenXML SDK
@@ -153,13 +171,13 @@ internal partial class SheetDataReader
 
         var dataType = t switch
         {
-            "b" => CellValues.Boolean,
-            "n" => CellValues.Number,
-            "e" => CellValues.Error,
-            "s" => CellValues.SharedString,
-            "str" => CellValues.String,
-            "inlineStr" => CellValues.InlineString,
-            "d" => CellValues.Date,
+            "b" => CellType.Boolean,
+            "n" => CellType.Number,
+            "e" => CellType.Error,
+            "s" => CellType.SharedString,
+            "str" => CellType.String,
+            "inlineStr" => CellType.InlineString,
+            "d" => CellType.Date,
             _ => throw new FormatException("Unknown cell type.")
         };
 
@@ -195,7 +213,7 @@ internal partial class SheetDataReader
         else
         {
             // A string cell must contain at least empty string.
-            if (dataType.Equals(CellValues.SharedString) || dataType.Equals(CellValues.String))
+            if (dataType is CellType.SharedString or CellType.String)
                 xlCell.SetOnlyValue(string.Empty);
         }
 
@@ -211,7 +229,7 @@ internal partial class SheetDataReader
         //var cellHasInlineString = @is is not null;
         if (@is is not null)
         {
-            if (dataType == CellValues.InlineString)
+            if (dataType == CellType.InlineString)
             {
                 xlCell.ShareString = false;
                 if (@is.Value.TryPickT0(out var text, out var richText))
@@ -242,23 +260,23 @@ internal partial class SheetDataReader
 
         var formulaType = _formulaType switch
         {
-            "" or "normal" => CellFormulaValues.Normal,
-            "array" => CellFormulaValues.Array,
-            "dataTable" => CellFormulaValues.DataTable,
-            "shared" => CellFormulaValues.Shared,
+            "" or "normal" => FormulaType.Normal,
+            "array" => FormulaType.Array,
+            "dataTable" => FormulaType.DataTable,
+            "shared" => FormulaType.Shared,
             _ => throw new NotSupportedException("Unknown formula type.")
         };
 
         // Always set shareString flag to `false`, because the text result of
         // formula is stored directly in the sheet, not shared string table.
         XLCellFormula? formula = null;
-        if (formulaType == CellFormulaValues.Normal)
+        if (formulaType == FormulaType.Normal)
         {
             formula = XLCellFormula.NormalA1(_formulaText);
             formulaSlice.Set(cellAddress, formula);
             valueSlice.SetShareString(cellAddress, false);
         }
-        else if (formulaType == CellFormulaValues.Array && _formulaArea is { } arrayArea) // Child cells of an array may have array type, but not ref, that is reserved for master cell
+        else if (formulaType == FormulaType.Array && _formulaArea is { } arrayArea) // Child cells of an array may have array type, but not ref, that is reserved for master cell
         {
             var aca = _formulaAca;
 
@@ -275,7 +293,7 @@ internal partial class SheetDataReader
                 }
             }
         }
-        else if (formulaType == CellFormulaValues.Shared && _formulaSi is { } sharedIndex)
+        else if (formulaType == FormulaType.Shared && _formulaSi is { } sharedIndex)
         {
             // Shared formulas are rather limited in use and parsing, even by Excel
             // https://stackoverflow.com/questions/54654993. Therefore we accept them,
@@ -303,7 +321,7 @@ internal partial class SheetDataReader
 
             valueSlice.SetShareString(cellAddress, false);
         }
-        else if (formulaType == CellFormulaValues.DataTable && _formulaArea is { } dataTableArea)
+        else if (formulaType == FormulaType.DataTable && _formulaArea is { } dataTableArea)
         {
             var is2D = _formulaDt2D;
             var input1Deleted = _formulaDel1;
@@ -329,9 +347,9 @@ internal partial class SheetDataReader
         return formula;
     }
 
-    private void SetCellValue(CellValues dataType, string cellValue, XLCell xlCell, XLCellFormatValue format)
+    private void SetCellValue(CellType dataType, string cellValue, XLCell xlCell, XLCellFormatValue format)
     {
-        if (dataType == CellValues.Number)
+        if (dataType == CellType.Number)
         {
             // XLCell is by default blank, so no need to set it.
             if (double.TryParse(cellValue, XLHelper.NumberStyle, XLHelper.ParseCulture, out var number))
@@ -346,7 +364,7 @@ internal partial class SheetDataReader
                 xlCell.SetOnlyValue(cellNumber);
             }
         }
-        else if (dataType == CellValues.SharedString)
+        else if (dataType == CellType.SharedString)
         {
             if (int.TryParse(cellValue, XLHelper.NumberStyle, XLHelper.ParseCulture, out var sharedStringId)
                 && sharedStringId >= 0 && sharedStringId < _sst.Count)
@@ -357,22 +375,22 @@ internal partial class SheetDataReader
             else
                 xlCell.SetOnlyValue(string.Empty);
         }
-        else if (dataType == CellValues.String) // A plain string that is a result of a formula calculation
+        else if (dataType == CellType.String) // A plain string that is a result of a formula calculation
         {
             xlCell.SetOnlyValue(cellValue);
         }
-        else if (dataType == CellValues.Boolean)
+        else if (dataType == CellType.Boolean)
         {
             var isTrue = string.Equals(cellValue, "1", StringComparison.Ordinal) ||
                          string.Equals(cellValue, "TRUE", StringComparison.OrdinalIgnoreCase);
             xlCell.SetOnlyValue(isTrue);
         }
-        else if (dataType == CellValues.Error)
+        else if (dataType == CellType.Error)
         {
             if (XLErrorParser.TryParseError(cellValue, out var error))
                 xlCell.SetOnlyValue(error);
         }
-        else if (dataType == CellValues.Date)
+        else if (dataType == CellType.Date)
         {
             // Technically, cell can contain date as ISO8601 string, but not rarely used due
             // to inconsistencies between ISO and serial date time representation.

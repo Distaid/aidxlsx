@@ -13,6 +13,24 @@ public sealed class WorkbookOpcRoundTripTests
     private const string OfficeRelationships = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/";
 
     [Test]
+    public void NewThemeRetainsCustomRgbAndSystemFallbackColors()
+    {
+        using var stream = new MemoryStream();
+        using (var workbook = new XLWorkbook())
+        {
+            workbook.AddWorksheet("Colors");
+            workbook.Theme.Accent1 = XLColor.FromHexRgb("123456");
+            workbook.Theme.Text1 = XLColor.FromHexRgb("234567");
+            workbook.SaveAs(stream, validate: true);
+        }
+
+        stream.Position = 0;
+        using var loaded = new XLWorkbook(stream);
+        Assert.That(loaded.Theme.Accent1, Is.EqualTo(XLColor.FromHexRgb("123456")));
+        Assert.That(loaded.Theme.Text1, Is.EqualTo(XLColor.FromHexRgb("234567")));
+    }
+
+    [Test]
     public void EditingWorkbookKeepsUnknownPartsAndTheirRelationships()
     {
         using var original = new MemoryStream();
