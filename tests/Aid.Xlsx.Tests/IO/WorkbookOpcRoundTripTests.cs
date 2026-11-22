@@ -1,6 +1,7 @@
 using System.Text;
 using System.Xml.Linq;
 using Aid.Xlsx.DataValidation;
+using Aid.Xlsx.Internal.IO;
 using Aid.Xlsx.Opc;
 using Aid.Xlsx.PageSetup;
 using Aid.Xlsx.Styles.Colors;
@@ -13,6 +14,23 @@ namespace Aid.Xlsx.Tests.IO;
 public sealed class WorkbookOpcRoundTripTests
 {
     private const string OfficeRelationships = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/";
+
+    [Test]
+    public void PackageValidationRejectsSheetWithMissingTarget()
+    {
+        using var opc = OpcPackage.Create();
+        var package = new WorkbookPackage(opc);
+        var workbook = package.AddWorkbook("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml");
+        workbook.ReplaceContent("""
+            <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+                      xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+              <sheets><sheet name="Missing" sheetId="1" r:id="rId1"/></sheets>
+            </workbook>
+            """u8);
+        workbook.Relationships.Add("rId1", OfficeRelationships + "worksheet", "worksheets/missing.xml");
+
+        Assert.That(() => package.Validate(workbook), Throws.TypeOf<InvalidDataException>().With.Message.Contains("sheet"));
+    }
 
     [Test]
     public void ReadsPivotTableDefinitionInStrictNamespace()

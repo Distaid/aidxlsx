@@ -99,7 +99,7 @@ namespace Aid.Xlsx.Internal.IO
                 WriteRunProperty(w, "charset", (int)font.Charset);
 
             if (font.Scheme != defaultFont.Scheme)
-                WriteRunProperty(w, "scheme", font.Scheme.ToOpenXml());
+                WriteRunProperty(w, "scheme", font.Scheme.ToOpenXmlString());
 
             w.WriteEndElement(); // rPr
 

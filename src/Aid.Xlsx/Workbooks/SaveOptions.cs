@@ -37,6 +37,10 @@ namespace Aid.Xlsx.Workbooks
         public Boolean? FilterPrivacy { get; set; }
 
         public Boolean GenerateCalculationChain { get; set; } = true;
+
+        /// <summary>
+        /// Check workbook relationships and the structure of supported XML parts before writing the package.
+        /// </summary>
         public Boolean ValidatePackage { get; set; }
     }
 }

@@ -1,5 +1,4 @@
 using Aid.Xlsx.Extensions;
-using DocumentFormat.OpenXml;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel
@@ -21,13 +20,6 @@ namespace Aid.Xlsx.Tests.Excel
         {
             Double value = 1234.1234567;
             Assert.AreEqual(value.SaveRound(), Math.Round(value, 6));
-        }
-
-        [Test]
-        public void DoubleValueSaveRound()
-        {
-            Double value = 1234.1234567;
-            Assert.AreEqual(new DoubleValue(value).SaveRound().Value, Math.Round(value, 6));
         }
 
         [TestCase("NoEscaping", ExpectedResult = "NoEscaping")]

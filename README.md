@@ -1,12 +1,10 @@
 # Aid.Xlsx
 
-**Status: pre-alpha.** The sources are imported and the solution builds, but this is an
-early port onto an own OPC/XML layer with NativeAOT as a first-class goal. Nothing here is
-a finished product, no package has been published yet, and the public API may change
-without notice.
+**Status: pre-alpha.** No package has been published yet, and the public API may change.
 
 Aid.Xlsx is a .NET library for reading, creating and editing `.xlsx` and `.xlsm`
-workbooks. It targets `net10.0`.
+workbooks. It targets `net10.0` and uses its own OPC/XML layer. The Open XML SDK is
+used by the tests for schema validation.
 
 ## Goals
 

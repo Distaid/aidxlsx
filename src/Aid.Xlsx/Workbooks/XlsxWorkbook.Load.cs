@@ -17,7 +17,6 @@ using Aid.Xlsx.Styles.Colors;
 using Aid.Xlsx.Tables;
 using Aid.Xlsx.Utils;
 using Aid.Xlsx.Worksheets;
-using DocumentFormat.OpenXml;
 
 namespace Aid.Xlsx.Workbooks
 {
@@ -60,7 +59,7 @@ namespace Aid.Xlsx.Workbooks
         private void LoadSheetsFromTemplate(String fileName)
         {
             LoadSheets(fileName);
-            _spreadsheetDocumentType = SpreadsheetDocumentType.Workbook;
+            _spreadsheetDocumentType = WorkbookPackageType.Workbook;
 
             // If we load a workbook as a template, we have to treat it as a "new" workbook.
             // The original file will NOT be copied into place before changes are applied

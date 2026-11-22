@@ -1,10 +1,9 @@
 using System.Globalization;
 using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Utils;
+using System.Xml.Linq;
+using Aid.Xlsx.Internal.IO;
 using Aid.Xlsx.Workbooks;
-using DocumentFormat.OpenXml.Spreadsheet;
 using NUnit.Framework;
-using X14 = DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace Aid.Xlsx.Tests.Excel
 {
@@ -43,136 +42,24 @@ namespace Aid.Xlsx.Tests.Excel
             Assert.That(() => _ = XlsxColor.Automatic.Color, Throws.TypeOf<InvalidOperationException>().With.Message.EqualTo("Cannot convert automatic color to Color."));
         }
 
-        [Test]
-        public void CanConvertXLColorToColorType()
+        [TestCase(OpenXmlConst.Main2006SsNs)]
+        [TestCase(OpenXmlConst.X14Main2009SsNs)]
+        public void SpreadsheetColorsRoundTripThroughXml(string namespaceName)
         {
-            var xlColor1 = XlsxColor.Red;
-            var xlColor2 = XlsxColor.FromIndex(20);
-            var xlColor3 = XlsxColor.FromTheme(XlsxThemeColor.Accent1);
-            var xlColor4 = XlsxColor.FromTheme(XlsxThemeColor.Accent2, 0.4);
+            var name = XName.Get("color", namespaceName);
+            var red = SpreadsheetColorXml.Write(name, XlsxColor.Red);
+            var indexed = SpreadsheetColorXml.Write(name, XlsxColor.FromIndex(20));
+            var theme = SpreadsheetColorXml.Write(name, XlsxColor.FromTheme(XlsxThemeColor.Accent1));
+            var tint = SpreadsheetColorXml.Write(name, XlsxColor.FromTheme(XlsxThemeColor.Accent2, 0.4));
 
-            var color1 = new ForegroundColor().FromXlsxColor<ForegroundColor>(xlColor1);
-            var color2 = new ForegroundColor().FromXlsxColor<ForegroundColor>(xlColor2);
-            var color3 = new BackgroundColor().FromXlsxColor<BackgroundColor>(xlColor3);
-            var color4 = new BackgroundColor().FromXlsxColor<BackgroundColor>(xlColor4);
-
-            Assert.AreEqual("FFFF0000", color1.Rgb.Value);
-            Assert.IsNull(color1.Indexed);
-            Assert.IsNull(color1.Theme);
-            Assert.IsNull(color1.Tint);
-
-            Assert.IsNull(color2.Rgb);
-            Assert.AreEqual(20, color2.Indexed.Value);
-            Assert.IsNull(color2.Theme);
-            Assert.IsNull(color2.Tint);
-
-            Assert.IsNull(color3.Rgb);
-            Assert.IsNull(color3.Indexed);
-            Assert.AreEqual(4, color3.Theme.Value);
-            Assert.IsNull(color3.Tint);
-
-            Assert.IsNull(color4.Rgb);
-            Assert.IsNull(color4.Indexed);
-            Assert.AreEqual(5, color4.Theme.Value);
-            Assert.AreEqual(0.4, color4.Tint.Value);
-        }
-
-        [Test]
-        public void CanConvertXlColorToX14ColorType()
-        {
-            var xlColor1 = XlsxColor.Red;
-            var xlColor2 = XlsxColor.FromIndex(20);
-            var xlColor3 = XlsxColor.FromTheme(XlsxThemeColor.Accent1);
-            var xlColor4 = XlsxColor.FromTheme(XlsxThemeColor.Accent2, 0.4);
-
-            var color1 = new X14.AxisColor().FromXlsxColor<X14.AxisColor>(xlColor1);
-            var color2 = new X14.BorderColor().FromXlsxColor<X14.BorderColor>(xlColor2);
-            var color3 = new X14.FillColor().FromXlsxColor<X14.FillColor>(xlColor3);
-            var color4 = new X14.HighMarkerColor().FromXlsxColor<X14.HighMarkerColor>(xlColor4);
-
-            Assert.AreEqual("FFFF0000", color1.Rgb.Value);
-            Assert.IsNull(color1.Indexed);
-            Assert.IsNull(color1.Theme);
-            Assert.IsNull(color1.Tint);
-
-            Assert.IsNull(color2.Rgb);
-            Assert.AreEqual(20, color2.Indexed.Value);
-            Assert.IsNull(color2.Theme);
-            Assert.IsNull(color2.Tint);
-
-            Assert.IsNull(color3.Rgb);
-            Assert.IsNull(color3.Indexed);
-            Assert.AreEqual(4, color3.Theme.Value);
-            Assert.IsNull(color3.Tint);
-
-            Assert.IsNull(color4.Rgb);
-            Assert.IsNull(color4.Indexed);
-            Assert.AreEqual(5, color4.Theme.Value);
-            Assert.AreEqual(0.4, color4.Tint.Value);
-        }
-
-        [Test]
-        public void CanConvertColorTypeToXlColor()
-        {
-            var color1 = new ForegroundColor { Rgb = new DocumentFormat.OpenXml.HexBinaryValue("FFFF0000") };
-            var color2 = new ForegroundColor { Indexed = new DocumentFormat.OpenXml.UInt32Value((uint)20) };
-            var color3 = new BackgroundColor { Theme = new DocumentFormat.OpenXml.UInt32Value((uint)4) };
-            var color4 = new BackgroundColor
-            {
-                Theme = new DocumentFormat.OpenXml.UInt32Value((uint)4),
-                Tint = new DocumentFormat.OpenXml.DoubleValue(0.4)
-            };
-
-            var xlColor1 = color1.ToXlsxColor();
-            var xlColor2 = color2.ToXlsxColor();
-            var xlColor3 = color3.ToXlsxColor();
-            var xlColor4 = color4.ToXlsxColor();
-
-            Assert.AreEqual(XlsxColorType.Color, xlColor1.ColorType);
-            Assert.AreEqual(XlsxColor.Red.Color, xlColor1.Color);
-
-            Assert.AreEqual(XlsxColorType.Indexed, xlColor2.ColorType);
-            Assert.AreEqual(20, xlColor2.Indexed);
-
-            Assert.AreEqual(XlsxColorType.Theme, xlColor3.ColorType);
-            Assert.AreEqual(XlsxThemeColor.Accent1, xlColor3.ThemeColor);
-            Assert.AreEqual(0, xlColor3.ThemeTint, XlsxHelper.Epsilon);
-
-            Assert.AreEqual(XlsxColorType.Theme, xlColor4.ColorType);
-            Assert.AreEqual(XlsxThemeColor.Accent1, xlColor4.ThemeColor);
-            Assert.AreEqual(0.4, xlColor4.ThemeTint, XlsxHelper.Epsilon);
-        }
-
-        [Test]
-        public void CanConvertX14ColorTypeToXlColor()
-        {
-            var color1 = new X14.AxisColor { Rgb = new DocumentFormat.OpenXml.HexBinaryValue("FFFF0000") };
-            var color2 = new X14.BorderColor { Indexed = new DocumentFormat.OpenXml.UInt32Value((uint)20) };
-            var color3 = new X14.FillColor { Theme = new DocumentFormat.OpenXml.UInt32Value((uint)4) };
-            var color4 = new X14.HighMarkerColor
-            {
-                Theme = new DocumentFormat.OpenXml.UInt32Value((uint)4),
-                Tint = new DocumentFormat.OpenXml.DoubleValue(0.4)
-            };
-
-            var xlColor1 = color1.ToXlsxColor();
-            var xlColor2 = color2.ToXlsxColor();
-            var xlColor3 = color3.ToXlsxColor();
-            var xlColor4 = color4.ToXlsxColor();
-
-            Assert.AreEqual(XlsxColorType.Color, xlColor1.ColorType);
-            Assert.AreEqual(XlsxColor.Red.Color, xlColor1.Color);
-
-            Assert.AreEqual(XlsxColorType.Indexed, xlColor2.ColorType);
-            Assert.AreEqual(20, xlColor2.Indexed);
-
-            Assert.AreEqual(XlsxColorType.Theme, xlColor3.ColorType);
-            Assert.AreEqual(XlsxThemeColor.Accent1, xlColor3.ThemeColor);
-            Assert.AreEqual(0, xlColor3.ThemeTint, XlsxHelper.Epsilon);
-
-            Assert.AreEqual(XlsxColorType.Theme, xlColor4.ColorType);
-            Assert.AreEqual(XlsxThemeColor.Accent1, xlColor4.ThemeColor);
-            Assert.AreEqual(0.4, xlColor4.ThemeTint, XlsxHelper.Epsilon);
+            Assert.That(red.Attributes().Select(attribute => attribute.ToString()), Is.EqualTo(new[] { "rgb=\"FFFF0000\"" }));
+            Assert.That(indexed.Attributes().Select(attribute => attribute.ToString()), Is.EqualTo(new[] { "indexed=\"20\"" }));
+            Assert.That(theme.Attributes().Select(attribute => attribute.ToString()), Is.EqualTo(new[] { "theme=\"4\"" }));
+            Assert.That(tint.Attributes().Select(attribute => attribute.ToString()), Is.EqualTo(new[] { "theme=\"5\"", "tint=\"0.4\"" }));
+            Assert.That(SpreadsheetColorXml.Read(red), Is.EqualTo(XlsxColor.Red));
+            Assert.That(SpreadsheetColorXml.Read(indexed), Is.EqualTo(XlsxColor.FromIndex(20)));
+            Assert.That(SpreadsheetColorXml.Read(theme), Is.EqualTo(XlsxColor.FromTheme(XlsxThemeColor.Accent1)));
+            Assert.That(SpreadsheetColorXml.Read(tint), Is.EqualTo(XlsxColor.FromTheme(XlsxThemeColor.Accent2, 0.4)));
         }
 
         [Test]

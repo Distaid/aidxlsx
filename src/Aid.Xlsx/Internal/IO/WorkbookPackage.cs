@@ -4,7 +4,7 @@ using Aid.Xlsx.Opc;
 
 namespace Aid.Xlsx.Internal.IO;
 
-internal sealed class WorkbookPackage(OpcPackage package)
+internal sealed partial class WorkbookPackage(OpcPackage package)
 {
     private const string TransitionalRelationships = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/";
     private const string StrictRelationships = "http://purl.oclc.org/ooxml/officeDocument/relationships/";
@@ -135,7 +135,7 @@ internal sealed class WorkbookPackage(OpcPackage package)
         if (numbered || index > 1 || package.Parts.ContainsKey(partName))
         {
             var dot = name.LastIndexOf('.');
-            for (;; index++)
+            for (; ; index++)
             {
                 partName = name.Insert(dot, index.ToString(CultureInfo.InvariantCulture));
                 if (!package.Parts.ContainsKey(partName))

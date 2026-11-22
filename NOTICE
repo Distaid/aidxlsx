@@ -26,7 +26,7 @@ Third-party components
   provided in third-party/LICENSE-Apache-2.0.txt.
 - ExcelNumberFormat - MIT License.
 - RBush.Signed - MIT License.
-- DocumentFormat.OpenXml - MIT License. Used by the library during the OPC/XML migration.
+- DocumentFormat.OpenXml - MIT License. Used by the test suite to validate generated workbooks.
 
 Trademarks
 ----------

@@ -3,6 +3,8 @@ using System.Reflection;
 using System.Xml.Linq;
 using Aid.Xlsx.Workbooks;
 using Aid.Xlsx.Worksheets;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Validation;
 using NUnit.Framework;
 using LoadOptions = Aid.Xlsx.Workbooks.LoadOptions;
 using Path = System.IO.Path;
@@ -58,7 +60,7 @@ namespace Aid.Xlsx.Tests
         /// <param name="workbookGenerator">A function that gets an empty workbook and fills it with data.</param>
         /// <param name="referenceResource">Reference workbook saved in resources</param>
         /// <param name="evaluateFormulae">Should formulas of created workbook be evaluated and values saved?</param>
-        /// <param name="validate">Should the created workbook be validated during by OpenXmlSdk validator?</param>
+        /// <param name="validate">Should the created workbook be checked by the library and the Open XML SDK validator?</param>
         public static void CreateAndCompare(Action<XlsxWorkbook> workbookGenerator, string referenceResource, bool evaluateFormulae = false, bool validate = true)
         {
             CreateAndCompare(() =>
@@ -87,6 +89,15 @@ namespace Aid.Xlsx.Tests
 
             using (var wb = workbookGenerator.Invoke())
                 wb.SaveAs(filePath2, validate, evaluateFormulae);
+
+            if (validate)
+            {
+                using var document = SpreadsheetDocument.Open(filePath2, false);
+                var errors = new OpenXmlValidator().Validate(document)
+                    .Select(error => $"Part {error.Part?.Uri}, path {error.Path?.XPath}: {error.Description}")
+                    .ToArray();
+                Assert.That(errors, Is.Empty, string.Join(Environment.NewLine, errors));
+            }
 
             if (CompareWithResources)
             {

@@ -674,7 +674,13 @@ internal partial class StylesReader
         if (readingOrder is not null && readingOrder is not (0 or 1 or 2))
             throw PartStructureException.InvalidAttributeFormat();
 
-        var normalizedTextRotation = OpenXmlHelper.NormalizeRotation(textRotation ?? 0);
+        var normalizedTextRotation = (textRotation ?? 0) switch
+        {
+            <= 90 and var rotation => (int)rotation,
+            <= 180 and var rotation => 90 - (int)rotation,
+            255 => 255,
+            _ => throw new ArgumentOutOfRangeException(nameof(textRotation)),
+        };
         return new XlsxDifferentialAlignmentValue
         {
             Horizontal = horizontal,

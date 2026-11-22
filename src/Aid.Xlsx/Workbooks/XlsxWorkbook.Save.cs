@@ -1,60 +1,19 @@
 #nullable disable
 
 using System.Diagnostics;
-using System.Globalization;
 using System.Xml.Linq;
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Internal.IO;
 using Aid.Xlsx.Opc;
 using Aid.Xlsx.PivotTables;
 using Aid.Xlsx.Worksheets;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Validation;
-using DocumentFormat.OpenXml;
 using Path = System.IO.Path;
 
 namespace Aid.Xlsx.Workbooks
 {
     public partial class XlsxWorkbook
     {
-        private void Validate(SpreadsheetDocument package)
-        {
-            var backupCulture = Thread.CurrentThread.CurrentCulture;
-
-            IList<ValidationErrorInfo> errors;
-            try
-            {
-                Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-                var validator = new OpenXmlValidator();
-                errors = validator.Validate(package).ToArray();
-
-                // The styles part is written directly into the part stream, without intermediate OOXML SDK
-                // representation. The validation loads the written XML into a memory so it can validate it.
-                // But the loaded in-memory represenation from validation is then picked up by
-                // the SpreadsheetDocument saving code and the XML would be re-serialized and the original XML
-                // from part writer would be discarded. That is a problem for the following reasons:
-                // * XML of a part would be different when saved with a validation and without a validation
-                // * There is no control over XML serialization. The writer is attempting to mimic Excel for
-                //   easier comparison against Excel (e.g. default namespace doesn't have a prefix), but part
-                //   writer just uses default serialization setting.
-                // To solve this, we discard the in-memory represenation created by the validator. Thus the save
-                // code will not re-serialize the part that has already been written.
-                if (package.WorkbookPart.WorkbookStylesPart is { } stylesPart)
-                    stylesPart.UnloadRootElement();
-            }
-            finally
-            {
-                Thread.CurrentThread.CurrentCulture = backupCulture;
-            }
-
-            if (errors.Any())
-            {
-                var message = string.Join("\r\n", errors.Select(e => string.Format("Part {0}, Path {1}: {2}", e.Part.Uri, e.Path.XPath, e.Description)).ToArray());
-                throw new ApplicationException(message);
-            }
-        }
-
-        private void CreatePackage(String filePath, SpreadsheetDocumentType spreadsheetDocumentType, SaveOptions options)
+        private void CreatePackage(String filePath, WorkbookPackageType spreadsheetDocumentType, SaveOptions options)
         {
             var directoryName = Path.GetDirectoryName(filePath);
             if (!string.IsNullOrWhiteSpace(directoryName)) Directory.CreateDirectory(directoryName);
@@ -64,13 +23,13 @@ namespace Aid.Xlsx.Workbooks
             WritePackage(stream, !exists, exists ? spreadsheetDocumentType : null, spreadsheetDocumentType, options);
         }
 
-        private void CreatePackage(Stream stream, bool newStream, SpreadsheetDocumentType spreadsheetDocumentType, SaveOptions options)
+        private void CreatePackage(Stream stream, bool newStream, WorkbookPackageType spreadsheetDocumentType, SaveOptions options)
         {
             WritePackage(stream, newStream, null, spreadsheetDocumentType, options);
         }
 
-        private void WritePackage(Stream stream, bool newStream, SpreadsheetDocumentType? requestedType,
-            SpreadsheetDocumentType spreadsheetDocumentType, SaveOptions options)
+        private void WritePackage(Stream stream, bool newStream, WorkbookPackageType? requestedType,
+            WorkbookPackageType spreadsheetDocumentType, SaveOptions options)
         {
             using var opc = newStream ? OpcPackage.Create() : OpcPackage.Open(stream);
             var package = new WorkbookPackage(opc);
@@ -83,11 +42,7 @@ namespace Aid.Xlsx.Workbooks
             var newExtendedRelationshipId = CreateParts(package, workbookPart, options, WorkbookPropertiesParts.HasExtendedProperties(opc));
             WorkbookPropertiesParts.Write(opc, this, newExtendedRelationshipId);
             if (options.ValidatePackage)
-            {
-                using var adapter = new OpcSdkPackage(opc, FileAccess.Read);
-                using var document = SpreadsheetDocument.Open(adapter);
-                Validate(document);
-            }
+                package.Validate(workbookPart);
 
             if (newStream)
             {
@@ -103,12 +58,12 @@ namespace Aid.Xlsx.Workbooks
             output.CopyTo(stream);
         }
 
-        private static string GetWorkbookContentType(SpreadsheetDocumentType type) => type switch
+        private static string GetWorkbookContentType(WorkbookPackageType type) => type switch
         {
-            SpreadsheetDocumentType.Workbook => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml",
-            SpreadsheetDocumentType.Template => "application/vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml",
-            SpreadsheetDocumentType.MacroEnabledWorkbook => "application/vnd.ms-excel.sheet.macroEnabled.main+xml",
-            SpreadsheetDocumentType.MacroEnabledTemplate => "application/vnd.ms-excel.template.macroEnabled.main+xml",
+            WorkbookPackageType.Workbook => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml",
+            WorkbookPackageType.Template => "application/vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml",
+            WorkbookPackageType.MacroEnabledWorkbook => "application/vnd.ms-excel.sheet.macroEnabled.main+xml",
+            WorkbookPackageType.MacroEnabledTemplate => "application/vnd.ms-excel.template.macroEnabled.main+xml",
             _ => throw new ArgumentOutOfRangeException(nameof(type)),
         };
 

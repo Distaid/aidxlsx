@@ -11,6 +11,7 @@ using Aid.Xlsx.CustomProperties;
 using Aid.Xlsx.DefinedNames;
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Graphics;
+using Aid.Xlsx.Internal.IO;
 using Aid.Xlsx.PageSetup;
 using Aid.Xlsx.PivotTables;
 using Aid.Xlsx.Protection;
@@ -21,7 +22,6 @@ using Aid.Xlsx.Styles;
 using Aid.Xlsx.Tables;
 using Aid.Xlsx.Utils;
 using Aid.Xlsx.Worksheets;
-using DocumentFormat.OpenXml;
 using static Aid.Xlsx.Protection.XlsxProtectionAlgorithm;
 
 namespace Aid.Xlsx.Workbooks
@@ -575,7 +575,7 @@ namespace Aid.Xlsx.Workbooks
                 if (File.Exists(file))
                     File.Delete(file);
 
-                CreatePackage(file, GetSpreadsheetDocumentType(file), options);
+                CreatePackage(file, GetWorkbookPackageType(file), options);
             }
             else if (_loadSource == XlsxLoadSource.File)
             {
@@ -585,7 +585,7 @@ namespace Aid.Xlsx.Workbooks
                     File.SetAttributes(file, FileAttributes.Normal);
                 }
 
-                CreatePackage(file, GetSpreadsheetDocumentType(file), options);
+                CreatePackage(file, GetWorkbookPackageType(file), options);
             }
             else if (_loadSource == XlsxLoadSource.Stream)
             {
@@ -603,7 +603,7 @@ namespace Aid.Xlsx.Workbooks
             _originalStream = null;
         }
 
-        private static SpreadsheetDocumentType GetSpreadsheetDocumentType(string filePath)
+        private static WorkbookPackageType GetWorkbookPackageType(string filePath)
         {
             var extension = Path.GetExtension(filePath);
 
@@ -613,16 +613,16 @@ namespace Aid.Xlsx.Workbooks
             switch (extension)
             {
                 case "xlsm":
-                    return SpreadsheetDocumentType.MacroEnabledWorkbook;
+                    return WorkbookPackageType.MacroEnabledWorkbook;
 
                 case "xltm":
-                    return SpreadsheetDocumentType.MacroEnabledTemplate;
+                    return WorkbookPackageType.MacroEnabledTemplate;
 
                 case "xlsx":
-                    return SpreadsheetDocumentType.Workbook;
+                    return WorkbookPackageType.Workbook;
 
                 case "xltx":
-                    return SpreadsheetDocumentType.Template;
+                    return WorkbookPackageType.Template;
 
                 default:
                     throw new ArgumentException(String.Format("Extension '{0}' is not supported. Supported extensions are '.xlsx', '.xlsm', '.xltx' and '.xltm'.", extension));
@@ -889,7 +889,7 @@ namespace Aid.Xlsx.Workbooks
         {
             _loadSource = XlsxLoadSource.File;
             _originalFile = file;
-            _spreadsheetDocumentType = GetSpreadsheetDocumentType(_originalFile);
+            _spreadsheetDocumentType = GetWorkbookPackageType(_originalFile);
             Styles = new XlsxWorkbookStyles();
             Load(file);
 
@@ -1129,7 +1129,7 @@ namespace Aid.Xlsx.Workbooks
         }
 
         private static XlsxCalcEngine _calcEngineExpr;
-        private SpreadsheetDocumentType _spreadsheetDocumentType;
+        private WorkbookPackageType _spreadsheetDocumentType;
 
         private static XlsxCalcEngine CalcEngineExpr
         {
