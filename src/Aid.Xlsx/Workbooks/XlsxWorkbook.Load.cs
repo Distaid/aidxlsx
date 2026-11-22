@@ -17,7 +17,6 @@ using Aid.Xlsx.Styles.Colors;
 using Aid.Xlsx.Tables;
 using Aid.Xlsx.Utils;
 using Aid.Xlsx.Worksheets;
-using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml;
 
 namespace Aid.Xlsx.Workbooks
@@ -55,9 +54,7 @@ namespace Aid.Xlsx.Workbooks
 
             using var opc = OpcPackage.Open(stream);
             WorkbookPropertiesParts.Read(opc, this);
-            using var package = new OpcSdkPackage(opc, FileAccess.Read);
-            using (var dSpreadsheet = SpreadsheetDocument.Open(package))
-                LoadSpreadsheetDocument(dSpreadsheet);
+            LoadWorkbook(new WorkbookPackage(opc));
         }
 
         private void LoadSheetsFromTemplate(String fileName)
@@ -97,26 +94,26 @@ namespace Aid.Xlsx.Workbooks
             }
         }
 
-        private void LoadSpreadsheetDocument(SpreadsheetDocument dSpreadsheet)
+        private void LoadWorkbook(WorkbookPackage package)
         {
             var context = new LoadContext();
             ShapeIdManager = new XlsxIdManager();
 
-            var workbookPart = dSpreadsheet.WorkbookPart;
+            var workbookPart = package.WorkbookPart ?? throw new InvalidDataException("The package has no workbook part.");
 
-            if (workbookPart?.ThemePart is { } themePart)
+            if (package.FirstRelatedPart(workbookPart, "theme").Part is { } themePart)
             {
-                using var themeStream = themePart.GetStream(FileMode.Open, FileAccess.Read);
+                using var themeStream = themePart.OpenRead();
                 ThemeXml.Read(themeStream, Theme);
             }
 
             XElement workbook;
-            using (var workbookStream = workbookPart.GetStream(FileMode.Open, FileAccess.Read))
+            using (var workbookStream = workbookPart.OpenRead())
                 workbook = WorkbookXml.ReadRoot(workbookStream);
             WorkbookXml.LoadSettings(workbook, this);
 
             // Styles part is optional and each workbook must have a default style
-            var stylesPart = workbookPart.WorkbookStylesPart;
+            var stylesPart = package.FirstRelatedPart(workbookPart, "styles").Part;
             if (stylesPart is not null)
             {
                 using var xmlReader = CreateTreeReader(stylesPart);
@@ -130,7 +127,7 @@ namespace Aid.Xlsx.Workbooks
 
             // Spec says each package must have exactly one SST part, but some packages don't have that.
             List<OneOf<string, XlsxImmutableRichText>> sst = [];
-            var sstPart = workbookPart.GetPartsOfType<SharedStringTablePart>().FirstOrDefault();
+            var sstPart = package.FirstRelatedPart(workbookPart, "sharedStrings").Part;
             if (sstPart is not null)
             {
                 using var sstXmlReader = CreateTreeReader(sstPart);
@@ -166,7 +163,7 @@ namespace Aid.Xlsx.Workbooks
                 // Although relationship to worksheet is most common, there can be other types
                 // than worksheet, e.g. chartSheet. Since we can't load them, add them to list
                 // of unsupported sheets and copy them when saving. See Codeplex #6932.
-                var worksheetPart = workbookPart.GetPartById(dSheet.Id) as WorksheetPart;
+                var worksheetPart = package.RelatedPart(workbookPart, dSheet.Id, "worksheet");
                 if (worksheetPart == null)
                 {
                     UnsupportedSheets.Add(new UnsupportedSheet { SheetId = sheetId, Position = position });
@@ -194,7 +191,7 @@ namespace Aid.Xlsx.Workbooks
                 // Although relationship to worksheet is most common, there can be other types
                 // than worksheet, e.g. chartSheet. Since we can't load them, add them to list
                 // of unsupported sheets and copy them when saving. See Codeplex #6932.
-                var worksheetPart = workbookPart.GetPartById(dSheet.Id) as WorksheetPart;
+                var worksheetPart = package.RelatedPart(workbookPart, dSheet.Id, "worksheet");
                 if (worksheetPart == null)
                 {
                     continue;
@@ -206,9 +203,10 @@ namespace Aid.Xlsx.Workbooks
                     continue;
                 }
 
-                using (var worksheetStream = worksheetPart.GetStream(FileMode.Open, FileAccess.Read))
+                using (var worksheetStream = worksheetPart.OpenRead())
                 {
-                    var hyperlinks = worksheetPart.HyperlinkRelationships.ToDictionary(relationship => relationship.Id, relationship => relationship.Uri);
+                    var hyperlinks = worksheetPart.Relationships.Where(rel => WorkbookPackage.IsOfficeRelationship(rel, "hyperlink"))
+                        .ToDictionary(rel => rel.Id, rel => new Uri(rel.Target, UriKind.RelativeOrAbsolute));
                     WorksheetPartReader.LoadWorksheet(ws, worksheetStream, hyperlinks, sst, context);
                 }
 
@@ -216,22 +214,22 @@ namespace Aid.Xlsx.Workbooks
 
                 #region LoadTables
 
-                foreach (var tableDefinitionPart in worksheetPart.TableDefinitionParts)
+                foreach (var (id, tableDefinitionPart) in package.RelatedParts(worksheetPart, "table"))
                 {
-                    using var tableStream = tableDefinitionPart.GetStream(FileMode.Open, FileAccess.Read);
-                    TableDefinitionXml.Load(tableStream, ws, worksheetPart.GetIdOfPart(tableDefinitionPart));
+                    using var tableStream = tableDefinitionPart.OpenRead();
+                    TableDefinitionXml.Load(tableStream, ws, id);
                 }
 
                 #endregion LoadTables
 
-                LoadDrawings(worksheetPart, ws);
+                LoadDrawings(package, worksheetPart, ws);
 
                 #region LoadComments
 
-                if (worksheetPart.WorksheetCommentsPart is { } commentsPart)
+                if (package.FirstRelatedPart(worksheetPart, "comments").Part is { } commentsPart)
                 {
-                    var shapes = GetCommentShapes(worksheetPart);
-                    using var commentsStream = commentsPart.GetStream(FileMode.Open, FileAccess.Read);
+                    var shapes = GetCommentShapes(package, worksheetPart);
+                    using var commentsStream = commentsPart.OpenRead();
                     CommentPartReader.Load(commentsStream, ws,
                         index => GetCommentShapeId(index < shapes.Count ? shapes[index] : null),
                         (index, comment) =>
@@ -265,12 +263,13 @@ namespace Aid.Xlsx.Workbooks
             LoadDefinedNames(workbook);
 
             // Read cache definition before table definition
-            foreach (var pivotTableCacheDefinitionPart in workbookPart.GetPartsOfType<PivotTableCacheDefinitionPart>())
+            var cacheRelationships = package.RelatedParts(workbookPart, "pivotCacheDefinition").ToList();
+            foreach (var (id, pivotTableCacheDefinitionPart) in cacheRelationships)
             {
-                using var definitionStream = pivotTableCacheDefinitionPart.GetStream(FileMode.Open, FileAccess.Read);
+                using var definitionStream = pivotTableCacheDefinitionPart.OpenRead();
                 var definition = PivotCacheDefinitionXml.Read(definitionStream);
-                var pivotCache = PivotCacheDefinitionXml.Load(definition, workbookPart.GetIdOfPart(pivotTableCacheDefinitionPart), this);
-                if (pivotTableCacheDefinitionPart.PivotTableCacheRecordsPart is { } recordsPart)
+                var pivotCache = PivotCacheDefinitionXml.Load(definition, id, this);
+                if (package.FirstRelatedPart(pivotTableCacheDefinitionPart, "pivotCacheRecords").Part is { } recordsPart)
                 {
                     using var reader = CreateTreeReader(recordsPart);
                     var recordsReader = new PivotCacheRecordsReader(reader, pivotCache);
@@ -288,48 +287,46 @@ namespace Aid.Xlsx.Workbooks
                 }
 
                 // The referenced sheet can also be ChartsheetPart. Only look for pivot tables in normal sheet parts.
-                var worksheetPart = workbookPart.GetPartById(dSheet.Id) as WorksheetPart;
+                var worksheetPart = package.RelatedPart(workbookPart, dSheet.Id, "worksheet");
 
                 if (worksheetPart is not null)
                 {
                     var ws = (XlsxWorksheet)WorksheetsInternal.Worksheet(dSheet.Name);
 
-                    foreach (var pivotTablePart in worksheetPart.PivotTableParts)
+                    foreach (var (id, pivotTablePart) in package.RelatedParts(worksheetPart, "pivotTable"))
                     {
-                        if (pivotTablePart.PivotTableCacheDefinitionPart is not { } cachePart)
+                        var (definitionId, cachePart) = package.FirstRelatedPart(pivotTablePart, "pivotCacheDefinition");
+                        if (cachePart is null)
                             continue;
 
-                        var cacheId = workbookPart.GetIdOfPart(cachePart);
+                        var cacheId = cacheRelationships.FirstOrDefault(pair => pair.Part == cachePart).Id;
                         var cache = PivotCachesInternal.FirstOrDefault<XlsxPivotCache>(candidate => candidate.WorkbookCacheRelId == cacheId);
                         if (cache is null)
                         {
                             // A producer may use distinct caches for the same source range or table.
-                            using var cacheStream = cachePart.GetStream(FileMode.Open, FileAccess.Read);
+                            using var cacheStream = cachePart.OpenRead();
                             var source = PivotCacheDefinitionXml.ReadSource(PivotCacheDefinitionXml.Read(cacheStream));
                             cache = PivotCachesInternal.FirstOrDefault<XlsxPivotCache>(candidate => candidate.Source.Equals(source));
                         }
 
                         if (cache is not null)
                         {
-                            using var partStream = pivotTablePart.GetStream(FileMode.Open, FileAccess.Read);
-                            PivotTableXml.Load(PivotTableXml.Read(partStream), ws, cache, worksheetPart.GetIdOfPart(pivotTablePart),
-                                pivotTablePart.GetIdOfPart(cachePart), context);
+                            using var partStream = pivotTablePart.OpenRead();
+                            PivotTableXml.Load(PivotTableXml.Read(partStream), ws, cache, id, definitionId, context);
                         }
                     }
                 }
             }
         }
 
-        private static void LoadDrawings(WorksheetPart worksheetPart, XlsxWorksheet sheet)
+        private static void LoadDrawings(WorkbookPackage package, OpcPart worksheetPart, XlsxWorksheet sheet)
         {
-            if (worksheetPart.DrawingsPart is not { } part)
+            if (package.FirstRelatedPart(worksheetPart, "drawing").Part is not { } part)
                 return;
 
-            using var stream = part.GetStream(FileMode.Open, FileAccess.Read);
+            using var stream = part.OpenRead();
             DrawingXml.LoadPictures(DrawingXml.Read(stream), sheet,
-                id => part.TryGetPartById(id, out var image) && image is ImagePart
-                    ? image.GetStream(FileMode.Open, FileAccess.Read)
-                    : null);
+                id => package.RelatedPart(part, id, "image")?.OpenRead());
         }
 
         #region Comment Helpers
@@ -355,12 +352,11 @@ namespace Aid.Xlsx.Workbooks
             LoadColorsAndLines(comment, shape);
         }
 
-        private static IList<XElement> GetCommentShapes(WorksheetPart worksheetPart)
+        private static IList<XElement> GetCommentShapes(WorkbookPackage package, OpcPart worksheetPart)
         {
-            // Cannot get this to return Vml.Shape elements
-            foreach (var vmlPart in worksheetPart.VmlDrawingParts)
+            foreach (var (_, vmlPart) in package.RelatedParts(worksheetPart, "vmlDrawing"))
             {
-                using (var stream = vmlPart.GetStream(FileMode.Open))
+                using (var stream = vmlPart.OpenRead())
                 {
                     var xdoc = XDocumentExtensions.Load(stream);
                     if (xdoc == null)
@@ -819,9 +815,9 @@ namespace Aid.Xlsx.Workbooks
         }
 
 
-        private XmlTreeReader CreateTreeReader(OpenXmlPart openXmlPart)
+        private XmlTreeReader CreateTreeReader(OpcPart part)
         {
-            var stream = openXmlPart.GetStream(FileMode.Open);
+            var stream = part.OpenRead();
             return new XmlTreeReader(stream, XmlToEnumMapper.Instance, StrictAttributeParsing);
         }
     }

@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Read and write picture anchors directly through DrawingML and preserve unrelated drawing elements when deleting pictures.
 - Read and write workbook settings, sheets, views, and defined names directly through SpreadsheetML.
 - Open and save workbook ZIP containers with the built-in OPC layer, preserving untouched parts and their relationships.
+- Resolve workbook and worksheet parts directly through OPC relationships when loading Strict and Transitional files.
 - Build the formula parser from repository sources and ship it inside `Aid.Xlsx`.
 - Restructured the solution for the port: the projects and namespaces are
   `Aid.Xlsx.Opc` (OPC/XML layer) and `Aid.Xlsx.CodeGen` (XSD code generator); the core

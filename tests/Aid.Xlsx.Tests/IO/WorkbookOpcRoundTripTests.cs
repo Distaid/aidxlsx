@@ -110,9 +110,15 @@ public sealed class WorkbookOpcRoundTripTests
         using var updated = new MemoryStream();
         using (var package = OpcPackage.Open(original))
         {
-            var workbookPart = package.GetPart(package.Relationships.Single(rel => rel.Type == OfficeRelationships + "officeDocument").TargetPartName);
+            var workbookRelationship = package.Relationships.Single(rel => rel.Type == OfficeRelationships + "officeDocument");
+            var workbookPart = package.GetPart(workbookRelationship.TargetPartName);
             var sheetRelationship = workbookPart.Relationships.Single(rel => rel.Type == OfficeRelationships + "worksheet");
             var worksheet = package.GetPart(sheetRelationship.TargetPartName);
+            package.Relationships.Remove(workbookRelationship.Id);
+            package.Relationships.Add(workbookRelationship.Id, relationshipNamespace + "/officeDocument", workbookRelationship.Target);
+            workbookPart.Relationships.Remove(sheetRelationship.Id);
+            workbookPart.Relationships.Add(sheetRelationship.Id, relationshipNamespace + "/worksheet", sheetRelationship.Target);
+            worksheet.Relationships.Add("externalLink", relationshipNamespace + "/hyperlink", "https://example.com/", isExternal: true);
             workbookPart.ReplaceContent(Encoding.UTF8.GetBytes($"""
                 <workbook xmlns="{spreadsheetNamespace}" xmlns:r="{relationshipNamespace}">
                   <fileSharing readOnlyRecommended="1" userName="Reader"/>
@@ -123,12 +129,13 @@ public sealed class WorkbookOpcRoundTripTests
                 </workbook>
                 """));
             worksheet.ReplaceContent(Encoding.UTF8.GetBytes($"""
-                <worksheet xmlns="{spreadsheetNamespace}">
+                <worksheet xmlns="{spreadsheetNamespace}" xmlns:r="{relationshipNamespace}">
                   <sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>
                   <sheetViews><sheetView showGridLines="0" workbookViewId="0"><pane xSplit="2" ySplit="1" state="frozen"/></sheetView></sheetViews>
                   <sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>abc</t></is></c></row></sheetData>
                   <mergeCells><mergeCell ref="A1:B1"/></mergeCells>
                   <dataValidations count="1"><dataValidation type="whole" operator="greaterThanOrEqual" sqref="C1"><formula1>10</formula1></dataValidation></dataValidations>
+                  <hyperlinks><hyperlink ref="A1" r:id="externalLink"/></hyperlinks>
                   <pageMargins left="0.4" right="0.5" top="0.6" bottom="0.7" header="0.2" footer="0.3"/>
                   <pageSetup orientation="landscape" fitToWidth="2" fitToHeight="3"/>
                 </worksheet>
@@ -148,6 +155,7 @@ public sealed class WorkbookOpcRoundTripTests
         Assert.That(name.Visible, Is.False);
         var sheet = loaded.Worksheet("Data");
         Assert.That(sheet.Cell("A1").GetString(), Is.EqualTo("abc"));
+        Assert.That(sheet.Cell("A1").GetHyperlink().ExternalAddress, Is.EqualTo(new Uri("https://example.com/")));
         Assert.That(sheet.ShowGridLines, Is.False);
         Assert.That(sheet.SheetView.SplitColumn, Is.EqualTo(2));
         Assert.That(sheet.SheetView.SplitRow, Is.EqualTo(1));

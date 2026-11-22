@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Aid.Xlsx.Opc;
 
@@ -16,6 +17,9 @@ public sealed class OpcRelationshipCollection : IReadOnlyCollection<OpcRelations
     public int Count => _relationships.Count;
 
     public OpcRelationship this[string id] => _relationships[id];
+
+    public bool TryGet(string id, [NotNullWhen(true)] out OpcRelationship? relationship) =>
+        _relationships.TryGetValue(id, out relationship);
 
     public OpcRelationship Add(string id, string type, string target, bool isExternal = false)
     {
