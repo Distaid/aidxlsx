@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" PrivateAssets="all" />
+    <ProjectReference Include="..\..\src\Aid.Xlsx\Aid.Xlsx.csproj" />
+    <ProjectReference Include="..\..\src\Aid.Xlsx.Opc\Aid.Xlsx.Opc.csproj" />
+    <ProjectReference Include="..\..\src\Aid.Xlsx.Formula\Aid.Xlsx.Formula.csproj" />
+    <None Update="AcceptedDifferences.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

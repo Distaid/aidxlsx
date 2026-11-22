@@ -150,7 +150,7 @@ jobs:
       - name: build
         run: dotnet build Aid.Xlsx.slnx -c ${{ env.CONFIGURATION }} -warnaserror --no-restore
       - name: public API parity gate
-        run: dotnet test tests/Aid.Xlsx.ApiCompat/Aid.Xlsx.ApiCompat.csproj -c ${{ env.CONFIGURATION }} --no-build
+        run: dotnet run --project tests/Aid.Xlsx.ApiCompat/Aid.Xlsx.ApiCompat.csproj -c ${{ env.CONFIGURATION }} --no-build
 
   codegen-drift:
     name: codegen-drift

@@ -1,0 +1,127 @@
+# Structural differences from the published workbook API baseline.
+# Regenerate with --print-differences after reviewing each change.
+
++ type workbook.MappedDataExtensions class abstract sealed : System.Object  [ExtensionAttribute()]
++ type workbook.TableMapperRegistry class abstract sealed : System.Object  [EditorBrowsableAttribute(1)]
++ type workbook.XlsConverter class abstract sealed : System.Object
++ type workbook.XlsxIgnoreAttribute class sealed : System.Attribute  [AttributeUsageAttribute(384,Inherited=False)]
++ type workbook.XlsxTableAttribute class sealed : System.Attribute  [AttributeUsageAttribute(12,Inherited=False)]
++ type workbook.XlsxWorkbook class sealed : System.Object
++ workbook.IXlsxConditionalFormat property System.Collections.Generic.IEnumerable`1<workbook.IXlsxRange> Ranges() get(public abstract) set(public abstract)
++ workbook.IXlsxDataValidations method public abstract System.Boolean TryGet(workbook.IXlsxRangeAddress rangeAddress, out ref workbook.IXlsxDataValidation? dataValidation)
++ workbook.IXlsxHyperlinks method public abstract System.Boolean TryGet(workbook.IXlsxAddress address, out ref workbook.XlsxHyperlink? hyperlink)
++ workbook.IXlsxSparkline method public abstract workbook.IXlsxSparkline SetSourceData(workbook.IXlsxRange? value)
++ workbook.IXlsxSparkline property workbook.IXlsxRange? SourceData() get(public abstract) set(public abstract)
++ workbook.LoadOptions property System.Boolean StrictAttributeParsing() get(public) set(public)
++ workbook.LoadOptions property System.Int64 MaxCalculationMemoryBytes() get(public) set(public)
++ workbook.LoadOptions property System.Threading.CancellationToken CancellationToken() get(public) set(public)
++ workbook.MappedDataExtensions method public static workbook.IXlsxRange InsertMappedData<!!0>(workbook.IXlsxCell cell, System.Collections.Generic.IEnumerable`1<!!0?> data, System.Boolean addHeadings = False) [!!0 0 ] [ExtensionAttribute()]
++ workbook.MappedDataExtensions method public static workbook.IXlsxTable InsertMappedTable<!!0>(workbook.IXlsxCell cell, System.Collections.Generic.IEnumerable`1<!!0?> data, System.String? tableName = null) [!!0 0 ] [ExtensionAttribute()]
++ workbook.TableMapperRegistry method public static System.Void Register<!!0>(System.String? tableName, System.String[] headers, System.String?[] formats, System.Func`3<!!0?,System.Int32,workbook.XlsxCellValue> read) [!!0 0 ]
++ workbook.XlsConverter method public static System.Void Convert(System.IO.Stream source, System.IO.Stream destination)
++ workbook.XlsConverter method public static System.Void Convert(System.String sourcePath, System.String destinationPath)
++ workbook.XlsxColor method public virtual System.Boolean Equals(System.Object? obj)
++ workbook.XlsxColor method public virtual final System.Boolean Equals(workbook.XlsxColor? other)
++ workbook.XlsxColor property workbook.XlsxColor Automatic() get(public static)
++ workbook.XlsxColorType field public static workbook.XlsxColorType Automatic = 0
++ workbook.XlsxColorType field public static workbook.XlsxColorType Color = 1
++ workbook.XlsxColorType field public static workbook.XlsxColorType Indexed = 3
++ workbook.XlsxColorType field public static workbook.XlsxColorType Theme = 2
++ workbook.XlsxColumnAttribute property System.String? Format() get(public) set(public)
++ workbook.XlsxHelper field public static System.String LastSheetAddress = "XFD1048576"
++ workbook.XlsxIgnoreAttribute ctor public()
++ workbook.XlsxTableAttribute ctor public(System.String? name = null)
++ workbook.XlsxTableAttribute property System.String? Name() get(public)
+- interface workbook.IXlsxBaseCollection`2<!0,!1> : System.Collections.Generic.IEnumerable`1<!0>
+- interface workbook.IXlsxBaseCollection`2<!0,!1> : System.Collections.IEnumerable
+- interface workbook.IXlsxPicture : System.IDisposable
+- interface workbook.XlsxAlignmentKey : System.IEquatable`1<workbook.XlsxAlignmentKey>
+- type workbook.AttributeExtensions class abstract sealed : System.Object  [ExtensionAttribute()]
+- type workbook.IXlsxBaseCollection`2<!0,!1> interface  : -  [!0 0 ] [!1 0 ]
+- type workbook.XlsxAlignmentKey struct sealed : System.ValueType
+- type workbook.XlsxAlignmentValue class  : System.Object
+- type workbook.XlsxMath class abstract sealed : System.Object
+- type workbook.XlsxWorkbook class  : System.Object
+- workbook.AttributeExtensions method public static !!0[] GetAttributes<!!0>(System.Reflection.MemberInfo member) [!!0 0 System.Attribute] [ExtensionAttribute()]
+- workbook.AttributeExtensions method public static System.Boolean HasAttribute<!!0>(System.Reflection.MemberInfo member) [!!0 0 System.Attribute] [ExtensionAttribute()]
+- workbook.AttributeExtensions method public static System.Reflection.MethodInfo GetMethod<!!0>(!!0 instance, System.Linq.Expressions.Expression`1<System.Action`1<!!0>> methodSelector) [!!0 0 ] [ExtensionAttribute()]
+- workbook.AttributeExtensions method public static System.Reflection.MethodInfo GetMethod<!!0>(!!0 instance, System.Linq.Expressions.Expression`1<System.Func`2<!!0,System.Object>> methodSelector) [!!0 0 ] [ExtensionAttribute()]
+- workbook.IXlsxBaseCollection`2<!0,!1> method public abstract !1 AddToNamed(System.String rangeName)
+- workbook.IXlsxBaseCollection`2<!0,!1> method public abstract !1 AddToNamed(System.String rangeName, workbook.XlsxScope scope)
+- workbook.IXlsxBaseCollection`2<!0,!1> method public abstract !1 AddToNamed(System.String rangeName, workbook.XlsxScope scope, System.String comment)
+- workbook.IXlsxBaseCollection`2<!0,!1> method public abstract !1 Clear(workbook.XlsxClearOptions clearOptions = 253)
+- workbook.IXlsxBaseCollection`2<!0,!1> method public abstract !1 SetDataType(workbook.XlsxDataType dataType)
+- workbook.IXlsxBaseCollection`2<!0,!1> method public abstract !1 SetValue<!!0>(!!0 value) [!!0 0 ]
+- workbook.IXlsxBaseCollection`2<!0,!1> method public abstract workbook.IXlsxCells Cells()
+- workbook.IXlsxBaseCollection`2<!0,!1> method public abstract workbook.IXlsxCells CellsUsed()
+- workbook.IXlsxBaseCollection`2<!0,!1> method public abstract workbook.IXlsxCells CellsUsed(System.Boolean includeFormats)
+- workbook.IXlsxBaseCollection`2<!0,!1> method public abstract workbook.IXlsxDataValidation SetDataValidation()
+- workbook.IXlsxBaseCollection`2<!0,!1> property System.Int32 Count() get(public abstract)
+- workbook.IXlsxBaseCollection`2<!0,!1> property System.Object Value() set(public abstract)
+- workbook.IXlsxBaseCollection`2<!0,!1> property workbook.IXlsxStyle Style() get(public abstract) set(public abstract)
+- workbook.IXlsxCell method public abstract workbook.IXlsxDataValidation SetDataValidation() [ObsoleteAttribute("Use GetDataValidation to access the existing rule, or CreateDataValidation() to create a new one.")]
+- workbook.IXlsxConditionalFormat property workbook.IXlsxRanges Ranges() get(public abstract)
+- workbook.IXlsxDataValidations method public abstract System.Boolean TryGet(workbook.IXlsxRangeAddress rangeAddress, out ref workbook.IXlsxDataValidation dataValidation)
+- workbook.IXlsxHyperlinks method public abstract System.Boolean TryGet(workbook.IXlsxAddress address, out ref workbook.XlsxHyperlink hyperlink)
+- workbook.IXlsxRangeBase method public abstract workbook.IXlsxDataValidation SetDataValidation() [ObsoleteAttribute("Use GetDataValidation() to access the existing rule, or CreateDataValidation() to create a new one.")]
+- workbook.IXlsxSparkline method public abstract workbook.IXlsxSparkline SetSourceData(workbook.IXlsxRange value)
+- workbook.IXlsxSparkline property System.Boolean IsValid() get(public abstract)
+- workbook.IXlsxSparkline property workbook.IXlsxRange SourceData() get(public abstract) set(public abstract)
+- workbook.XlsxAlignmentKey method public static System.Boolean op_Equality(workbook.XlsxAlignmentKey left, workbook.XlsxAlignmentKey right)
+- workbook.XlsxAlignmentKey method public static System.Boolean op_Inequality(workbook.XlsxAlignmentKey left, workbook.XlsxAlignmentKey right)
+- workbook.XlsxAlignmentKey method public virtual System.Boolean Equals(System.Object obj)
+- workbook.XlsxAlignmentKey method public virtual System.Int32 GetHashCode()
+- workbook.XlsxAlignmentKey method public virtual System.String ToString()
+- workbook.XlsxAlignmentKey method public virtual final System.Boolean Equals(workbook.XlsxAlignmentKey other)
+- workbook.XlsxAlignmentKey property System.Boolean JustifyLastLine() get(public) set(public init)
+- workbook.XlsxAlignmentKey property System.Boolean ShrinkToFit() get(public) set(public init)
+- workbook.XlsxAlignmentKey property System.Boolean WrapText() get(public) set(public init)
+- workbook.XlsxAlignmentKey property System.Int32 Indent() get(public) set(public init)
+- workbook.XlsxAlignmentKey property System.Int32 RelativeIndent() get(public) set(public init)
+- workbook.XlsxAlignmentKey property System.Int32 TextRotation() get(public) set(public init)
+- workbook.XlsxAlignmentKey property workbook.XlsxAlignmentHorizontalValues Horizontal() get(public) set(public init)
+- workbook.XlsxAlignmentKey property workbook.XlsxAlignmentReadingOrderValues ReadingOrder() get(public) set(public init)
+- workbook.XlsxAlignmentKey property workbook.XlsxAlignmentVerticalValues Vertical() get(public) set(public init)
+- workbook.XlsxAlignmentValue method public static workbook.XlsxAlignmentValue FromKey(ref workbook.XlsxAlignmentKey key)
+- workbook.XlsxAlignmentValue method public virtual System.Boolean Equals(System.Object obj)
+- workbook.XlsxAlignmentValue method public virtual System.Int32 GetHashCode()
+- workbook.XlsxAlignmentValue property System.Boolean JustifyLastLine() get(public)
+- workbook.XlsxAlignmentValue property System.Boolean ShrinkToFit() get(public)
+- workbook.XlsxAlignmentValue property System.Boolean WrapText() get(public)
+- workbook.XlsxAlignmentValue property System.Int32 Indent() get(public)
+- workbook.XlsxAlignmentValue property System.Int32 RelativeIndent() get(public)
+- workbook.XlsxAlignmentValue property System.Int32 TextRotation() get(public)
+- workbook.XlsxAlignmentValue property workbook.XlsxAlignmentHorizontalValues Horizontal() get(public)
+- workbook.XlsxAlignmentValue property workbook.XlsxAlignmentKey Key() get(public)
+- workbook.XlsxAlignmentValue property workbook.XlsxAlignmentReadingOrderValues ReadingOrder() get(public)
+- workbook.XlsxAlignmentValue property workbook.XlsxAlignmentVerticalValues Vertical() get(public)
+- workbook.XlsxColor method public virtual System.Boolean Equals(System.Object obj)
+- workbook.XlsxColor method public virtual final System.Boolean Equals(workbook.XlsxColor other)
+- workbook.XlsxColorType field public static workbook.XlsxColorType Color = 0
+- workbook.XlsxColorType field public static workbook.XlsxColorType Indexed = 2
+- workbook.XlsxColorType field public static workbook.XlsxColorType Theme = 1
+- workbook.XlsxMath method public static System.Boolean IsEven(System.Double value)
+- workbook.XlsxMath method public static System.Boolean IsEven(System.Int32 value)
+- workbook.XlsxMath method public static System.Boolean IsOdd(System.Double value)
+- workbook.XlsxMath method public static System.Boolean IsOdd(System.Int32 value)
+- workbook.XlsxMath method public static System.Double ACosh(System.Double x)
+- workbook.XlsxMath method public static System.Double ACoth(System.Double x)
+- workbook.XlsxMath method public static System.Double ACsch(System.Double x)
+- workbook.XlsxMath method public static System.Double ASech(System.Double x)
+- workbook.XlsxMath method public static System.Double ATanh(System.Double x)
+- workbook.XlsxMath method public static System.Double Asinh(System.Double x)
+- workbook.XlsxMath method public static System.Double Coth(System.Double x)
+- workbook.XlsxMath method public static System.Double Csch(System.Double x)
+- workbook.XlsxMath method public static System.Double DegreesToGrads(System.Double degrees)
+- workbook.XlsxMath method public static System.Double DegreesToRadians(System.Double degrees)
+- workbook.XlsxMath method public static System.Double GradsToDegrees(System.Double grads)
+- workbook.XlsxMath method public static System.Double GradsToRadians(System.Double grads)
+- workbook.XlsxMath method public static System.Double RadiansToDegrees(System.Double radians)
+- workbook.XlsxMath method public static System.Double RadiansToGrads(System.Double radians)
+- workbook.XlsxMath method public static System.Double Round(System.Double value, System.Double digits)
+- workbook.XlsxMath method public static System.Double Sech(System.Double x)
+- workbook.XlsxWorkbook method public static DocumentFormat.OpenXml.Drawing.Spreadsheet.NonVisualDrawingProperties GetPropertiesFromAnchor(DocumentFormat.OpenXml.OpenXmlElement anchor)
+- workbook.XlsxWorkbook method public static DocumentFormat.OpenXml.OpenXmlElement GetAnchorFromImageId(DocumentFormat.OpenXml.Packaging.DrawingsPart drawingsPart, System.String relId)
+- workbook.XlsxWorkbook method public static DocumentFormat.OpenXml.OpenXmlElement GetAnchorFromImageIndex(DocumentFormat.OpenXml.Packaging.WorksheetPart worksheetPart, System.Int32 index)
+- workbook.XlsxWorkbook method public static System.String GetImageRelIdFromAnchor(DocumentFormat.OpenXml.OpenXmlElement anchor)
+- workbook.XlsxWorkbook property workbook.IXlsxStyle DefaultStyle() get(public static)

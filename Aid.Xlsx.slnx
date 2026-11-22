@@ -6,4 +6,5 @@
   <Project Path="src/Aid.Xlsx.Generators/Aid.Xlsx.Generators.csproj" />
   <Project Path="tests/Aid.Xlsx.Tests/Aid.Xlsx.Tests.csproj" />
   <Project Path="tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj" />
+  <Project Path="tests/Aid.Xlsx.ApiCompat/Aid.Xlsx.ApiCompat.csproj" />
 </Solution>
