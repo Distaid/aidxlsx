@@ -2,10 +2,11 @@
 
 using System.Diagnostics;
 using Aid.Xlsx.Cells;
+using Aid.Xlsx.Internal.IO;
+using Aid.Xlsx.Opc;
 using Aid.Xlsx.Styles.Formatting;
 using Aid.Xlsx.Tables;
 using Aid.Xlsx.Worksheets;
-using DocumentFormat.OpenXml.Packaging;
 
 namespace Aid.Xlsx.Workbooks
 {
@@ -126,9 +127,9 @@ namespace Aid.Xlsx.Workbooks
             /// <summary>
             /// Add all existing rel ids present on the parts or workbook to the generator, so they are not duplicated again.
             /// </summary>
-            public void AddExistingValues(WorkbookPart workbookPart, XlsxWorkbook xlWorkbook)
+            public void AddExistingValues(WorkbookPackage package, OpcPart workbookPart, XlsxWorkbook xlWorkbook)
             {
-                AddValues(workbookPart.Parts.Select(p => p.RelationshipId), RelType.Workbook);
+                AddValues(workbookPart.Relationships.Select(rel => rel.Id), RelType.Workbook);
                 AddValues(xlWorkbook.WorksheetsInternal.Cast<XlsxWorksheet>().Where(ws => !String.IsNullOrWhiteSpace(ws.RelId)).Select(ws => ws.RelId), RelType.Workbook);
                 AddValues(xlWorkbook.WorksheetsInternal.Cast<XlsxWorksheet>().Where(ws => !String.IsNullOrWhiteSpace(ws.LegacyDrawingId)).Select(ws => ws.LegacyDrawingId), RelType.Workbook);
                 AddValues(xlWorkbook.WorksheetsInternal
@@ -140,14 +141,12 @@ namespace Aid.Xlsx.Workbooks
                 foreach (var xlWorksheet in xlWorkbook.WorksheetsInternal.Cast<XlsxWorksheet>())
                 {
                     // if the worksheet is a new one, it doesn't have RelId yet.
-                    if (string.IsNullOrEmpty(xlWorksheet.RelId) || !workbookPart.TryGetPartById(xlWorksheet.RelId, out var part))
+                    if (string.IsNullOrEmpty(xlWorksheet.RelId) || package.RelatedPart(workbookPart, xlWorksheet.RelId, "worksheet") is not { } worksheetPart)
                         continue;
 
-                    var worksheetPart = (WorksheetPart)part;
-                    AddValues(worksheetPart.HyperlinkRelationships.Select(hr => hr.Id), RelType.Workbook);
-                    AddValues(worksheetPart.Parts.Select(p => p.RelationshipId), RelType.Workbook);
-                    if (worksheetPart.DrawingsPart != null)
-                        AddValues(worksheetPart.DrawingsPart.Parts.Select(p => p.RelationshipId), RelType.Workbook);
+                    AddValues(worksheetPart.Relationships.Select(rel => rel.Id), RelType.Workbook);
+                    if (package.FirstRelatedPart(worksheetPart, "drawing").Part is { } drawingPart)
+                        AddValues(drawingPart.Relationships.Select(rel => rel.Id), RelType.Workbook);
                 }
             }
 

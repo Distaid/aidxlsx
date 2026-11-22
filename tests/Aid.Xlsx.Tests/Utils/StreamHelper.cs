@@ -140,7 +140,8 @@ namespace Aid.Xlsx.Tests
         {
             if (contentType is not ("application/vnd.openxmlformats-package.core-properties+xml" or
                 "application/vnd.openxmlformats-officedocument.drawing+xml" or
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.pivotCacheDefinition+xml") &&
+                 "application/vnd.openxmlformats-officedocument.spreadsheetml.pivotCacheDefinition+xml" or
+                 "application/vnd.openxmlformats-officedocument.spreadsheetml.connections+xml") &&
                 document.Root?.Name != workbookTagName && document.Root?.Name != worksheetTagName)
                 return;
 

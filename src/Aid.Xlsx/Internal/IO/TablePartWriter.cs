@@ -1,7 +1,7 @@
 using System.Xml.Linq;
 using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Opc;
 using Aid.Xlsx.Tables;
-using DocumentFormat.OpenXml.Packaging;
 using static Aid.Xlsx.Workbooks.XlsxWorkbook;
 
 namespace Aid.Xlsx.Internal.IO
@@ -11,36 +11,35 @@ namespace Aid.Xlsx.Internal.IO
     /// </summary>
     internal class TablePartWriter
     {
-        internal static void SynchronizeTableParts(XlsxTables tables, WorksheetPart worksheetPart, SaveContext context)
+        internal static void SynchronizeTableParts(XlsxTables tables, WorkbookPackage package, OpcPart worksheetPart, SaveContext context)
         {
             // Remove table definition parts that are not a part of workbook
-            foreach (var tableDefinitionPart in worksheetPart.GetPartsOfType<TableDefinitionPart>().ToList())
+            foreach (var (partId, _) in package.RelatedParts(worksheetPart, "table").ToList())
             {
-                var partId = worksheetPart.GetIdOfPart(tableDefinitionPart);
                 var xlWorkbookContainsTable = tables.Cast<XlsxTable>().Any(t => t.RelId == partId);
                 if (!xlWorkbookContainsTable)
                 {
-                    worksheetPart.DeletePart(tableDefinitionPart);
+                    package.Unlink(worksheetPart, partId);
                 }
             }
 
             foreach (var xlTable in tables.Cast<XlsxTable>())
             {
-                if (String.IsNullOrEmpty(xlTable.RelId))
+                if (String.IsNullOrEmpty(xlTable.RelId) || package.RelatedPart(worksheetPart, xlTable.RelId, "table") is null)
                 {
                     xlTable.RelId = context.RelIdGenerator.GetNext(RelType.Workbook);
-                    worksheetPart.AddNewPart<TableDefinitionPart>(xlTable.RelId);
+                    package.AddPart(worksheetPart, xlTable.RelId, "table");
                 }
             }
         }
 
-        internal static void GenerateTableParts(XlsxTables tables, WorksheetPart worksheetPart, SaveContext context)
+        internal static void GenerateTableParts(XlsxTables tables, WorkbookPackage package, OpcPart worksheetPart, SaveContext context)
         {
             foreach (var xlTable in tables.Cast<XlsxTable>())
             {
                 var relId = xlTable.RelId;
-                var tableDefinitionPart = (TableDefinitionPart)worksheetPart.GetPartById(relId);
-                using var output = tableDefinitionPart.GetStream(FileMode.Create, FileAccess.Write);
+                var tableDefinitionPart = package.RelatedPart(worksheetPart, relId, "table")!;
+                using var output = tableDefinitionPart.OpenWrite();
                 Write(output, xlTable, context);
             }
         }

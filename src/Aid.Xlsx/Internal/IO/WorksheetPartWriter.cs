@@ -7,12 +7,12 @@ using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Drawings;
 using Aid.Xlsx.Exceptions;
 using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Opc;
 using Aid.Xlsx.Rows;
 using Aid.Xlsx.Tables;
 using Aid.Xlsx.Utils;
 using Aid.Xlsx.Workbooks;
 using Aid.Xlsx.Worksheets;
-using DocumentFormat.OpenXml.Packaging;
 using XElement = System.Xml.Linq.XElement;
 using static Aid.Xlsx.Internal.IO.OpenXmlConst;
 using static Aid.Xlsx.Workbooks.XlsxWorkbook;
@@ -22,8 +22,8 @@ namespace Aid.Xlsx.Internal.IO
     internal class WorksheetPartWriter
     {
         internal static void GenerateWorksheetPartContent(
-            bool partIsEmpty,
-            WorksheetPart worksheetPart,
+            WorkbookPackage package,
+            OpcPart worksheetPart,
             XlsxWorksheet xlWorksheet,
             SaveOptions options,
             SaveContext context)
@@ -32,7 +32,7 @@ namespace Aid.Xlsx.Internal.IO
                 xlWorksheet.ConditionalFormats.Consolidate();
 
             WorksheetXml xml;
-            using (var source = partIsEmpty ? null : worksheetPart.GetStream(FileMode.Open, FileAccess.Read))
+            using (var source = worksheetPart.Length == 0 ? null : worksheetPart.OpenRead())
                 xml = WorksheetXml.Create(source, xlWorksheet.Internals.RowsCollection.Values.Any(row => row.DyDescent.HasValue));
 
             xml.UpdateSettings(xlWorksheet);
@@ -40,11 +40,12 @@ namespace Aid.Xlsx.Internal.IO
             xml.UpdateConditionalFormats(xlWorksheet, context);
             xml.UpdateSparklines(xlWorksheet);
             xml.UpdateValidations(xlWorksheet, options.ConsolidateDataValidationRanges);
-            xml.UpdateHyperlinks(xlWorksheet, worksheetPart.HyperlinkRelationships.ToList().Select(rel => rel.Id),
-                id => worksheetPart.DeleteReferenceRelationship(id), uri =>
+            var hyperlinkIds = worksheetPart.Relationships.Where(rel => WorkbookPackage.IsOfficeRelationship(rel, "hyperlink"))
+                .Select(rel => rel.Id).ToList();
+            xml.UpdateHyperlinks(xlWorksheet, hyperlinkIds, id => worksheetPart.Relationships.Remove(id), uri =>
                 {
                     var id = context.RelIdGenerator.GetNext(RelType.Workbook);
-                    worksheetPart.AddHyperlinkRelationship(uri, true, id);
+                    WorkbookPackage.LinkHyperlink(worksheetPart, id, uri);
                     return id;
                 });
             xml.UpdatePrintSettings(xlWorksheet);
@@ -56,12 +57,11 @@ namespace Aid.Xlsx.Internal.IO
             xml.UpdateTableReferences(tables.Cast<XlsxTable>().Select(table => table.RelId));
             tables.Deleted.Clear();
 
-            var previousDrawing = worksheetPart.DrawingsPart;
-            var previousDrawingId = previousDrawing is null ? null : worksheetPart.GetIdOfPart(previousDrawing);
-            var drawingId = SavePictures(worksheetPart, (XlsxPictures)xlWorksheet.Pictures, context);
+            var (previousDrawingId, _) = package.FirstRelatedPart(worksheetPart, "drawing");
+            var drawingId = SavePictures(package, worksheetPart, (XlsxPictures)xlWorksheet.Pictures, context);
             xml.UpdateDrawingReferences(previousDrawingId, drawingId, xlWorksheet.LegacyDrawingId);
 
-            using var stream = worksheetPart.GetStream(FileMode.Create, FileAccess.Write);
+            using var stream = worksheetPart.OpenWrite();
             using var writer = XmlWriter.Create(stream, new XmlWriterSettings { Encoding = new UTF8Encoding(false) });
             xml.Write(writer, () => StreamSheetData(writer, xlWorksheet, context, options));
         }
@@ -155,22 +155,23 @@ namespace Aid.Xlsx.Internal.IO
             }
         }
 
-        private static string SavePictures(WorksheetPart worksheetPart, XlsxPictures pictures, SaveContext context)
+        private static string SavePictures(WorkbookPackage package, OpcPart worksheetPart, XlsxPictures pictures, SaveContext context)
         {
-            var part = worksheetPart.DrawingsPart;
+            var (drawingId, part) = package.FirstRelatedPart(worksheetPart, "drawing");
             if (pictures.Count == 0 && pictures.Deleted.Count == 0)
-                return part is null ? null : worksheetPart.GetIdOfPart(part);
+                return drawingId;
 
             XElement root;
             if (part is null)
             {
-                part = worksheetPart.AddNewPart<DrawingsPart>(context.RelIdGenerator.GetNext(RelType.Workbook));
+                drawingId = context.RelIdGenerator.GetNext(RelType.Workbook);
+                part = package.AddPart(worksheetPart, drawingId, "drawing");
                 root = DrawingXml.Create();
             }
             else
             {
-                using var stream = part.GetStream(FileMode.Open, FileAccess.Read);
-                root = stream.Length == 0 ? DrawingXml.Create() : DrawingXml.Read(stream);
+                using var stream = part.OpenRead();
+                root = part.Length == 0 ? DrawingXml.Create() : DrawingXml.Read(stream);
             }
 
             var anchorsByImage = root.Elements().Where(DrawingXml.IsPictureAnchor)
@@ -179,19 +180,16 @@ namespace Aid.Xlsx.Internal.IO
             var matched = new HashSet<XElement>();
             foreach (var picture in pictures.Cast<XlsxPicture>())
             {
-                ImagePart imagePart;
-                if (picture.RelId is not null && part.TryGetPartById(picture.RelId, out var related) && related is ImagePart image)
-                {
-                    imagePart = image;
-                }
-                else
+                var imagePart = picture.RelId is null ? null : package.RelatedPart(part, picture.RelId, "image");
+                if (imagePart is null)
                 {
                     picture.RelId = context.RelIdGenerator.GetNext(RelType.Workbook);
-                    imagePart = part.AddImagePart(picture.Format.ToOpenXml(), picture.RelId);
+                    imagePart = package.AddImage(part, picture.RelId, picture.Format);
                 }
 
                 picture.ImageStream.Position = 0;
-                imagePart.FeedData(picture.ImageStream);
+                using (var imageStream = imagePart.OpenWrite())
+                    picture.ImageStream.CopyTo(imageStream);
 
                 var anchor = DrawingXml.CreatePictureAnchor(root.Name.Namespace, picture, picture.RelId);
                 var candidates = anchorsByImage[picture.RelId].Where(element => !matched.Contains(element)).ToList();
@@ -218,14 +216,14 @@ namespace Aid.Xlsx.Internal.IO
                 foreach (var anchor in anchorsByImage[removedId].Where(element => !matched.Contains(element)))
                     anchor.Remove();
 
-                if (!root.Elements().Any(element => DrawingXml.ImageId(element) == removedId) && part.HasPartWithId(removedId))
-                    part.DeletePart(removedId);
+                if (!root.Elements().Any(element => DrawingXml.ImageId(element) == removedId))
+                    package.Unlink(part, removedId);
             }
 
             pictures.Deleted.Clear();
-            if (!root.HasElements && !part.Parts.Any())
+            if (!root.HasElements && part.Relationships.Count == 0)
             {
-                worksheetPart.DeletePart(part);
+                package.Unlink(worksheetPart, drawingId);
                 return null;
             }
 
@@ -236,9 +234,9 @@ namespace Aid.Xlsx.Internal.IO
                     properties.SetAttributeValue("id", id++);
             }
 
-            using var output = part.GetStream(FileMode.Create, FileAccess.Write);
+            using var output = part.OpenWrite();
             DrawingXml.Write(output, root);
-            return worksheetPart.GetIdOfPart(part);
+            return drawingId;
         }
 
         private static void StreamSheetData(XmlWriter xml, XlsxWorksheet xlWorksheet, SaveContext context, SaveOptions options)
