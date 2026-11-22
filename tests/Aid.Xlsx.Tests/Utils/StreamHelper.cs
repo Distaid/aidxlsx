@@ -9,6 +9,7 @@ namespace Aid.Xlsx.Tests
     {
         private static readonly XName colTagName = XName.Get("col", @"http://schemas.openxmlformats.org/spreadsheetml/2006/main");
         private static readonly XName workbookTagName = XName.Get("workbook", colTagName.NamespaceName);
+        private static readonly XName worksheetTagName = XName.Get("worksheet", colTagName.NamespaceName);
         private static readonly XName widthAttrName = XName.Get("width");
 
         private static readonly IEnumerable<(string PartSubstring, XName NodeName)> ignoredNodes = new List<(string PartSubstring, XName NodeName)>
@@ -137,7 +138,8 @@ namespace Aid.Xlsx.Tests
 
         private static void NormalizeNamespaceDeclarations(XDocument document, string contentType)
         {
-            if (contentType != "application/vnd.openxmlformats-package.core-properties+xml" && document.Root?.Name != workbookTagName)
+            if (contentType != "application/vnd.openxmlformats-package.core-properties+xml" &&
+                document.Root?.Name != workbookTagName && document.Root?.Name != worksheetTagName)
                 return;
 
             // The XML writers use different namespace declarations from those in the fixtures.

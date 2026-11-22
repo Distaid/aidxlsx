@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Write formula calculation chains, styles, shared strings, comments and pivot cache records through XML streams.
 - Read and write core, custom and extended workbook properties directly through OPC, retaining metadata outside the workbook model.
 - Read theme colors and generate default themes from XML. The streaming worksheet data reader uses its own cell and formula types.
-- Stream worksheet cells directly from XML without reflecting into the Open XML SDK reader.
+- Stream worksheet cells directly through XML readers and writers without SDK reflection.
 - Read worksheet layout, print settings, hyperlinks, validations, and sparklines directly from XML.
 - Read and write table definitions and auto-filters directly through XML.
 - Read and write worksheet conditional formatting rules and data bar settings directly through XML.

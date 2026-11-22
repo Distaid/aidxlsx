@@ -1,6 +1,6 @@
 #nullable disable
 
-using System.Reflection;
+using System.Text;
 using System.Xml;
 using Aid.Xlsx.Cells;
 using Aid.Xlsx.Columns;
@@ -100,7 +100,9 @@ namespace Aid.Xlsx.Internal.IO
             if (worksheet.NamespaceDeclarations.All(ns => ns.Value != X14Ac2009SsNs))
             {
                 worksheet.AddNamespaceDeclaration("x14ac", X14Ac2009SsNs);
-                worksheet.SetAttribute(new OpenXmlAttribute("mc", "Ignorable", MarkupCompatibilityNs, "x14ac"));
+                var ignorable = worksheet.MCAttributes?.Ignorable?.Value;
+                worksheet.SetAttribute(new OpenXmlAttribute("mc", "Ignorable", MarkupCompatibilityNs,
+                    string.IsNullOrWhiteSpace(ignorable) ? "x14ac" : ignorable + " x14ac"));
             }
 
             #endregion Worksheet
@@ -507,13 +509,17 @@ namespace Aid.Xlsx.Internal.IO
 
             #region SheetData
 
-            if (!worksheet.Elements<SheetData>().Any())
+            var sheetData = new SheetData();
+            if (worksheet.GetFirstChild<SheetData>() is { } oldSheetData)
+            {
+                worksheet.ReplaceChild(sheetData, oldSheetData);
+            }
+            else
             {
                 var previousElement = cm.GetPreviousElementFor(XlsxWorksheetContents.SheetData);
-                worksheet.InsertAfter(new SheetData(), previousElement);
+                worksheet.InsertAfter(sheetData, previousElement);
             }
 
-            var sheetData = worksheet.Elements<SheetData>().First();
             cm.SetElement(XlsxWorksheetContents.SheetData, sheetData);
 
             // Sheet data is not updated in the Worksheet DOM here, because it is later being streamed directly to the file
@@ -1810,51 +1816,35 @@ namespace Aid.Xlsx.Internal.IO
         /// </summary>
         private static void StreamToPart(Worksheet worksheet, WorksheetPart worksheetPart, XlsxWorksheet xlWorksheet, SaveContext context, SaveOptions options)
         {
-            // Worksheet part might have some data, but the writer truncates everything upon creation.
-            using var writer = OpenXmlWriter.Create(worksheetPart);
-            using var reader = OpenXmlReader.Create(worksheet);
-
+            using var metadata = new StringReader(worksheet.OuterXml);
+            using var reader = XmlReader.Create(metadata, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
+            using var stream = worksheetPart.GetStream(FileMode.Create, FileAccess.Write);
+            using var writer = XmlWriter.Create(stream, new XmlWriterSettings { Encoding = new UTF8Encoding(false) });
             writer.WriteStartDocument(true);
+            reader.MoveToContent();
+            writer.WriteStartElement(reader.Prefix, reader.LocalName, reader.NamespaceURI);
+            writer.WriteAttributes(reader, defattr: false);
 
-            while (reader.Read())
+            reader.Read();
+            while (reader.NodeType != XmlNodeType.EndElement && !reader.EOF)
             {
-                if (reader.ElementType == typeof(SheetData))
+                if (reader.NodeType == XmlNodeType.Element && reader.LocalName == "sheetData" && reader.NamespaceURI == Main2006SsNs)
                 {
                     StreamSheetData(writer, xlWorksheet, context, options);
-
-                    // Skip whole SheetData elements from original file, already written
                     reader.Skip();
                 }
-
-                if (reader.IsStartElement)
+                else
                 {
-                    writer.WriteStartElement(reader);
-                    var canContainText = typeof(OpenXmlLeafTextElement).IsAssignableFrom(reader.ElementType);
-                    if (canContainText)
-                    {
-                        var text = reader.GetText();
-                        if (text.Length > 0)
-                        {
-                            writer.WriteString(text);
-                        }
-                    }
-                }
-                else if (reader.IsEndElement)
-                {
-                    writer.WriteEndElement();
+                    writer.WriteNode(reader, defattr: false);
                 }
             }
-            writer.Close();
+
+            writer.WriteEndElement();
+            writer.WriteEndDocument();
         }
 
-        private static void StreamSheetData(OpenXmlWriter writer, XlsxWorksheet xlWorksheet, SaveContext context, SaveOptions options)
+        private static void StreamSheetData(XmlWriter xml, XlsxWorksheet xlWorksheet, SaveContext context, SaveOptions options)
         {
-            // Steal through reflection for now, whole OpenXmlPartWriter will be replaced by XmlWriter soon. OpenXmlPartWriter has basically
-            // no inner state, unless it is in a string leaf node. By writing SheetData through XmlWriter only, we bypass all that.
-            var xmlWriterFieldInfo = typeof(OpenXmlPartWriter).GetField("_xmlWriter", BindingFlags.Instance | BindingFlags.NonPublic)!;
-            var untypedXmlWriter = xmlWriterFieldInfo.GetValue(writer);
-            var xml = (XmlWriter)untypedXmlWriter;
-
             var maxColumn = GetMaxColumn(xlWorksheet);
 
             xml.WriteStartElement("sheetData", Main2006SsNs);

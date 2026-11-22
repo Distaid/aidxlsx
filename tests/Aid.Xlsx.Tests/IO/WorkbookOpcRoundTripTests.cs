@@ -81,6 +81,50 @@ public sealed class WorkbookOpcRoundTripTests
     }
 
     [Test]
+    public void StreamingNewCellsRetainsWorksheetExtensionTextAndNamespace()
+    {
+        XNamespace spreadsheet = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+        XNamespace compatibility = "http://schemas.openxmlformats.org/markup-compatibility/2006";
+        XNamespace extensionNamespace = "urn:example:worksheet-extension";
+        using var original = new MemoryStream();
+        using (var workbook = new XlsxWorkbook())
+        {
+            workbook.AddWorksheet("Data").Cell("A1").Value = 1;
+            workbook.SaveAs(original, validate: false);
+        }
+
+        using var edited = new MemoryStream();
+        string sheetPath;
+        using (var package = OpcPackage.Open(original))
+        {
+            var workbookPart = package.GetPart(package.Relationships.Single(rel => rel.Type == OfficeRelationships + "officeDocument").TargetPartName);
+            sheetPath = workbookPart.Relationships.Single(rel => rel.Type == OfficeRelationships + "worksheet").TargetPartName;
+            package.GetPart(sheetPath).ReplaceContent(Encoding.UTF8.GetBytes($"""
+                <worksheet xmlns="{spreadsheet}" xmlns:mc="{compatibility}" xmlns:custom="{extensionNamespace}" mc:Ignorable="custom">
+                  <sheetData><row r="1"><c r="A1"><v>1</v></c></row></sheetData>
+                  <extLst><ext uri="urn:example:extension"><custom:message>preserved text</custom:message></ext></extLst>
+                </worksheet>
+                """));
+            package.Save(edited);
+        }
+
+        using var saved = new MemoryStream();
+        using (var workbook = new XlsxWorkbook(edited))
+        {
+            workbook.Worksheet("Data").Cell("A1").Value = 42;
+            workbook.SaveAs(saved, validate: false);
+        }
+
+        using var result = OpcPackage.Open(saved);
+        using var worksheet = result.GetPart(sheetPath).OpenRead();
+        var root = XElement.Load(worksheet);
+        Assert.That(root.GetNamespaceOfPrefix("custom"), Is.EqualTo(extensionNamespace));
+        Assert.That((string)root.Attribute(compatibility + "Ignorable"), Is.EqualTo("custom x14ac"));
+        Assert.That(root.Descendants(extensionNamespace + "message").Single().Value, Is.EqualTo("preserved text"));
+        Assert.That(root.Descendants(spreadsheet + "v").Single().Value, Is.EqualTo("42"));
+    }
+
+    [Test]
     public void NewThemeRetainsCustomRgbAndSystemFallbackColors()
     {
         using var stream = new MemoryStream();
