@@ -293,7 +293,7 @@ jobs:
       - name: native aot publish
         run: dotnet publish tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj -c ${{ env.CONFIGURATION }} -r linux-x64 -p:PublishAot=true -p:NuGetLockFilePath=obj/packages.aot.lock.json -o artifacts/aot/native-linux-x64
       - name: run native aot smoke
-        run: ./artifacts/aot/native-linux-x64/Aid.Xlsx.AotSmoke
+        run: ./artifacts/aot/native-linux-x64/Aid.Xlsx.AotSmoke artifacts/aot/smoke.xlsx
       - name: record binary size
         shell: bash
         run: |
@@ -301,10 +301,12 @@ jobs:
           mkdir -p artifacts/aot
           bytes=$(wc -c < artifacts/aot/native-linux-x64/Aid.Xlsx.AotSmoke | tr -d ' ')
           echo "AOT binary (linux-x64): $bytes bytes" | tee artifacts/aot/size.txt
-      - name: upload aot size
+      - name: upload aot smoke results
         uses: actions/upload-artifact@v7.0.2
         with:
           name: aot-size-linux-x64
-          path: artifacts/aot/size.txt
+          path: |
+            artifacts/aot/size.txt
+            artifacts/aot/smoke.xlsx
           if-no-files-found: error
           retention-days: 14

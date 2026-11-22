@@ -1,6 +1,8 @@
 using Aid.Xlsx.Attributes;
 using Aid.Xlsx.ConditionalFormats;
 using Aid.Xlsx.Conversion;
+using Aid.Xlsx.DataValidation;
+using Aid.Xlsx.Hyperlinks;
 using Aid.Xlsx.InsertData;
 using Aid.Xlsx.Protection;
 using Aid.Xlsx.Styles.Colors;
@@ -11,6 +13,7 @@ using var file = new MemoryStream();
 
 using (var workbook = new XlsxWorkbook())
 {
+    workbook.Use1904DateSystem = true;
     var sheet = workbook.Worksheets.Add("Sales");
     var sales = new[] { new Sale("Apples", 20m, new DateOnly(2026, 1, 2)), new Sale("Pears", 22m, null) };
     sheet.Cell("A1").InsertMappedTable(sales).Theme = XlsxTableTheme.TableStyleDark2;
@@ -20,10 +23,14 @@ using (var workbook = new XlsxWorkbook())
     sheet.Cell("D2").Value = new DateTime(2026, 1, 2);
     sheet.Cell("D2").Style.DateFormat.Format = "yyyy-mm-dd";
     sheet.Cell("D3").GetComment().AddText("Verified");
+    sheet.Range("D5:E5").Merge().FirstCell().Value = "Merged";
+    sheet.Range("F2:F3").CreateDataValidation().TextLength.Between(1, 20);
+    sheet.Cell("D6").Value = "Link";
+    sheet.Cell("D6").SetHyperlink(new XlsxHyperlink(new Uri("https://example.org/sales")));
     sheet.Range("B2:B3").AddConditionalFormat().WhenGreaterThan(20).Fill.SetBackgroundColor(XlsxColor.Green);
     sheet.Protect("sheet password", XlsxProtectionAlgorithm.Algorithm.SHA512);
     workbook.Protect("workbook password", XlsxProtectionAlgorithm.Algorithm.SHA512);
-    workbook.SaveAs(file, new SaveOptions { EvaluateFormulasBeforeSaving = true });
+    workbook.SaveAs(file, new SaveOptions { EvaluateFormulasBeforeSaving = true, ValidatePackage = true });
 }
 
 file.Position = 0;
@@ -38,8 +45,12 @@ Require(salesSheet.Cell("C3").IsEmpty(), "generated nullable value");
 Require(salesSheet.Cell("F1").GetString() == "Item" && salesSheet.Cell("G3").GetDouble() == 22d, "generated data range");
 Require(salesSheet.Cell("D1").GetDouble() == 42d, "evaluated formula");
 Require(salesSheet.Cell("D1").Style.NumberFormat.Format == "0.00", "number format");
-Require(salesSheet.Cell("D2").GetDateTime() == new DateTime(2026, 1, 2), "date value");
+Require(reloaded.Use1904DateSystem && salesSheet.Cell("D2").GetDateTime() == new DateTime(2026, 1, 2), "1904 date system");
 Require(salesSheet.Cell("D3").GetComment().Text == "Verified", "comment");
+Require(salesSheet.Cell("E5").IsMerged() && salesSheet.Cell("D5").GetString() == "Merged", "merged range");
+Require(salesSheet.Cell("D6").GetHyperlink().ExternalAddress == new Uri("https://example.org/sales"), "hyperlink");
+var validation = salesSheet.Cell("F2").GetDataValidation();
+Require(validation.AllowedValues == XlsxAllowedValues.TextLength && validation.MinValue == "1" && validation.MaxValue == "20", "data validation");
 var conditionalFormat = salesSheet.ConditionalFormats.Single();
 Require(conditionalFormat.Operator == XlsxCFOperator.GreaterThan && conditionalFormat.Style.Fill.BackgroundColor == XlsxColor.Green, "conditional formatting");
 Require(salesSheet.IsPasswordProtected && reloaded.IsPasswordProtected, "SHA-512 protection");
@@ -53,6 +64,11 @@ XlsConverter.Convert(legacy, converted);
 converted.Position = 0;
 using var convertedWorkbook = new XlsxWorkbook(converted);
 Require(convertedWorkbook.Worksheet("Hidden").Cell("A1").GetDouble() == 42, "BIFF8 conversion");
+if (args.Length == 1)
+{
+    using var artifact = File.Create(args[0]);
+    file.WriteTo(artifact);
+}
 Console.WriteLine("Workbook round-trip passed.");
 
 static void Require(bool valid, string scenario)
