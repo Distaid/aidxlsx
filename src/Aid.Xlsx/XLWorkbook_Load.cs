@@ -39,20 +39,30 @@ namespace Aid.Xlsx
 
         private void LoadSheets(String fileName)
         {
-            using (var dSpreadsheet = SpreadsheetDocument.Open(fileName, false))
-                LoadSpreadsheetDocument(dSpreadsheet);
+            using var stream = File.OpenRead(fileName);
+            LoadSheets(stream);
         }
 
         private void LoadSheets(Stream stream)
         {
-            using (var dSpreadsheet = SpreadsheetDocument.Open(stream, false))
+            if (!stream.CanSeek)
+            {
+                using var copy = new MemoryStream();
+                stream.CopyTo(copy);
+                LoadSheets(copy);
+                return;
+            }
+
+            using var opc = OpcPackage.Open(stream);
+            using var package = new OpcSdkPackage(opc, FileAccess.Read);
+            using (var dSpreadsheet = SpreadsheetDocument.Open(package))
                 LoadSpreadsheetDocument(dSpreadsheet);
         }
 
         private void LoadSheetsFromTemplate(String fileName)
         {
-            using (var dSpreadsheet = SpreadsheetDocument.CreateFromTemplate(fileName))
-                LoadSpreadsheetDocument(dSpreadsheet);
+            LoadSheets(fileName);
+            _spreadsheetDocumentType = SpreadsheetDocumentType.Workbook;
 
             // If we load a workbook as a template, we have to treat it as a "new" workbook.
             // The original file will NOT be copied into place before changes are applied

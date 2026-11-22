@@ -16,6 +16,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Path = System.IO.Path;
 using Aid.Xlsx.Internal.IO;
+using Aid.Xlsx.Opc;
 using System.Diagnostics;
 
 namespace Aid.Xlsx
@@ -64,33 +65,44 @@ namespace Aid.Xlsx
             var directoryName = Path.GetDirectoryName(filePath);
             if (!string.IsNullOrWhiteSpace(directoryName)) Directory.CreateDirectory(directoryName);
 
-            var package = File.Exists(filePath)
-                ? SpreadsheetDocument.Open(filePath, true)
-                : SpreadsheetDocument.Create(filePath, spreadsheetDocumentType);
-
-            using (package)
-            {
-                if (package.DocumentType != spreadsheetDocumentType)
-                {
-                    package.ChangeDocumentType(spreadsheetDocumentType);
-                }
-
-                CreateParts(package, options);
-                if (options.ValidatePackage) Validate(package);
-            }
+            var exists = File.Exists(filePath);
+            using var stream = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            WritePackage(stream, !exists, exists ? spreadsheetDocumentType : null, spreadsheetDocumentType, options);
         }
 
         private void CreatePackage(Stream stream, bool newStream, SpreadsheetDocumentType spreadsheetDocumentType, SaveOptions options)
         {
-            var package = newStream
-                ? SpreadsheetDocument.Create(stream, spreadsheetDocumentType)
-                : SpreadsheetDocument.Open(stream, true);
+            WritePackage(stream, newStream, null, spreadsheetDocumentType, options);
+        }
 
-            using (package)
+        private void WritePackage(Stream stream, bool newStream, SpreadsheetDocumentType? requestedType,
+            SpreadsheetDocumentType spreadsheetDocumentType, SaveOptions options)
+        {
+            using var opc = newStream ? OpcPackage.Create() : OpcPackage.Open(stream);
+            using var package = new OpcSdkPackage(opc, FileAccess.ReadWrite);
+            using (var document = newStream
+                ? SpreadsheetDocument.Create(package, spreadsheetDocumentType)
+                : SpreadsheetDocument.Open(package))
             {
-                CreateParts(package, options);
-                if (options.ValidatePackage) Validate(package);
+                if (requestedType is { } type && document.DocumentType != type)
+                    document.ChangeDocumentType(type);
+
+                CreateParts(document, options);
+                if (options.ValidatePackage) Validate(document);
             }
+
+            if (newStream)
+            {
+                package.WriteTo(stream);
+                return;
+            }
+
+            using var output = new MemoryStream();
+            package.WriteTo(output);
+            stream.Position = 0;
+            stream.SetLength(0);
+            output.Position = 0;
+            output.CopyTo(stream);
         }
 
         // http://blogs.msdn.com/b/vsod/archive/2010/02/05/how-to-delete-a-worksheet-from-excel-using-open-xml-sdk-2-0.aspx
