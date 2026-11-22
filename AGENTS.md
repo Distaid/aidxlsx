@@ -77,6 +77,8 @@ the only nested convenience folder is `Internal/IO`.
   base that predates nullable reference types. The library projects keep it enabled.
   Do not make the tests project nullable-enabled indirectly (for example with `#nullable
   enable` in a single file) without a reason.
+- **C# file names:** Use one dot, before the `.cs` extension, including for partial classes.
+  Generated sources use the `.g.cs` suffix.
 - **Generated code:** `*.g.cs` files are produced by `Aid.Xlsx.CodeGen`
   (`dotnet run --project src/Aid.Xlsx.CodeGen -- all`) and committed. Never edit them by
   hand; change the generator or its inputs instead.

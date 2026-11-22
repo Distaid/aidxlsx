@@ -631,6 +631,14 @@ foreach ($relativePath in $committableFiles) {
 # (excluded via .git/info/exclude), so git ls-files does not return them.
 Add-Check 'no references to planning documents in committable files' ($planningHits.Count -eq 0) ($planningHits -join '; ')
 
+# --- 20. C# file names --------------------------------------------------
+$csharpNameIssues = @($committableFiles | Where-Object {
+    (Test-Path -LiteralPath (Join-Path $RepoRoot $_) -PathType Leaf) -and
+        [System.IO.Path]::GetFileName($_) -match '\..*\.cs$' -and
+        [System.IO.Path]::GetFileName($_) -notmatch '^[^.]+\.g\.cs$'
+})
+Add-Check 'C# filenames use one dot or the .g.cs suffix' ($csharpNameIssues.Count -eq 0) ($csharpNameIssues -join '; ')
+
 # --- Summary ------------------------------------------------------------
 Write-Host ''
 if ($script:Failures.Count -eq 0) {
