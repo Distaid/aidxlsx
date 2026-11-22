@@ -259,64 +259,17 @@ namespace Aid.Xlsx
 
                 #region LoadComments
 
-                if (worksheetPart.WorksheetCommentsPart != null)
+                if (worksheetPart.WorksheetCommentsPart is { } commentsPart)
                 {
-                    var root = worksheetPart.WorksheetCommentsPart.Comments;
-                    var authors = root.GetFirstChild<Authors>().ChildElements.OfType<Author>().ToList();
-                    var comments = root.GetFirstChild<CommentList>().ChildElements.OfType<Comment>().ToList();
-
-                    // **** MAYBE FUTURE SHAPE SIZE SUPPORT
                     var shapes = GetCommentShapes(worksheetPart);
-
-                    for (var i = 0; i < comments.Count; i++)
-                    {
-                        var c = comments[i];
-
-                        XElement shape = null;
-                        if (i < shapes.Count)
-                            shape = shapes[i];
-
-                        // find cell by reference
-                        var cell = ws.Cell(c.Reference);
-
-                        var shapeIdString = shape?.Attribute("id")?.Value;
-                        if (shapeIdString?.StartsWith("_x0000_s") ?? false)
-                            shapeIdString = shapeIdString.Substring(8);
-
-                        int? shapeId = int.TryParse(shapeIdString, out int sid) ? (int?)sid : null;
-                        var xlComment = cell.CreateComment(shapeId);
-
-                        xlComment.Author = authors[(int)c.AuthorId.Value].InnerText;
-                        ShapeIdManager.Add(xlComment.ShapeId);
-
-                        var runs = c.GetFirstChild<CommentText>().Elements<Run>();
-                        foreach (var run in runs)
+                    using var commentsStream = commentsPart.GetStream(FileMode.Open, FileAccess.Read);
+                    CommentPartReader.Load(commentsStream, ws,
+                        index => GetCommentShapeId(index < shapes.Count ? shapes[index] : null),
+                        (index, comment) =>
                         {
-                            var runProperties = run.RunProperties;
-                            String text = run.Text.InnerText.FixNewLines();
-                            var rt = xlComment.AddText(text);
-                            OpenXmlHelper.LoadFont(runProperties, rt);
-                        }
-
-                        if (shape != null)
-                        {
-                            LoadShapeProperties(xlComment, shape);
-
-                            var clientData = shape.Elements().First(e => e.Name.LocalName == "ClientData");
-                            LoadClientData(xlComment, clientData);
-
-                            var textBox = shape.Elements().First(e => e.Name.LocalName == "textbox");
-                            LoadTextBox(xlComment, textBox);
-
-                            var alt = shape.Attribute("alt");
-                            if (alt != null) xlComment.Style.Web.SetAlternateText(alt.Value);
-
-                            LoadColorsAndLines(xlComment, shape);
-
-                            //var insetmode = (string)shape.Attributes().First(a=> a.Name.LocalName == "insetmode");
-                            //xlComment.Style.Margins.Automatic = insetmode != null && insetmode.Equals("auto");
-                        }
-                    }
+                            if (index < shapes.Count)
+                                LoadCommentShape(comment, shapes[index]);
+                        });
                 }
 
                 #endregion LoadComments
@@ -477,6 +430,27 @@ namespace Aid.Xlsx
         }
 
         #region Comment Helpers
+
+        private static int? GetCommentShapeId(XElement shape)
+        {
+            var id = (string)shape?.Attribute("id");
+            if (id?.StartsWith("_x0000_s", StringComparison.Ordinal) == true)
+                id = id[8..];
+
+            return int.TryParse(id, out var shapeId) ? shapeId : null;
+        }
+
+        private void LoadCommentShape(XLComment comment, XElement shape)
+        {
+            LoadShapeProperties(comment, shape);
+            LoadClientData(comment, shape.Elements().First(e => e.Name.LocalName == "ClientData"));
+            LoadTextBox(comment, shape.Elements().First(e => e.Name.LocalName == "textbox"));
+
+            if ((string)shape.Attribute("alt") is { } alternateText)
+                comment.Style.Web.SetAlternateText(alternateText);
+
+            LoadColorsAndLines(comment, shape);
+        }
 
         private static IList<XElement> GetCommentShapes(WorksheetPart worksheetPart)
         {

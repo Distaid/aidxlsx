@@ -59,15 +59,10 @@ internal static class XmlTreeReaderExtensions
             return indexedColor;
         }
 
-        var auto = reader.GetOptionalBool("auto");
-        if (auto is not null)
-        {
-            var autoColor = XLColor.Automatic;
-            reader.Close(colorElementName, ns);
-            return autoColor;
-        }
-
-        throw PartStructureException.IncorrectElementFormat(colorElementName);
+        // All attributes of CT_Color are optional. An empty color uses the automatic color.
+        _ = reader.GetOptionalBool("auto");
+        reader.Close(colorElementName, ns);
+        return XLColor.Automatic;
     }
 
     /// <summary>

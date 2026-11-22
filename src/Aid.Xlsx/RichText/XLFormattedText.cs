@@ -48,16 +48,22 @@ namespace Aid.Xlsx
 
         public IXLRichString AddText(String text)
         {
-            var richText = new XLRichString(text, _defaultFont, this, Styles, OnContentChanged);
-            AddText(richText);
-            OnContentChanged();
-            return richText;
+            return AddText(text, _defaultFont);
         }
 
         public IXLRichString AddText(String text, IXLFontBase font)
         {
-            var richFont = XLFontFormatValue.FromFontBase(font, Styles);
-            var richText = new XLRichString(text, richFont, this, Styles, OnContentChanged);
+            return AddText(text, XLFontFormatValue.FromFontBase(font, Styles));
+        }
+
+        internal void AddText(string text, XLDifferentialFontValue font)
+        {
+            AddText(text, _defaultFont.AdjustWith(font));
+        }
+
+        private IXLRichString AddText(string text, XLFontFormatValue font)
+        {
+            var richText = new XLRichString(text, font, this, Styles, OnContentChanged);
             AddText(richText);
             OnContentChanged();
             return richText;

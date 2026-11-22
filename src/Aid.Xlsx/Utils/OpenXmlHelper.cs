@@ -163,68 +163,6 @@ namespace Aid.Xlsx.Utils
             }
         }
 
-        internal static void LoadFont(OpenXmlElement fontSource, IXLFontBase fontBase)
-        {
-            if (fontSource == null) return;
-
-            fontBase.Bold = GetBoolean(fontSource.Elements<Bold>().FirstOrDefault());
-            var fontColor = fontSource.Elements<DocumentFormat.OpenXml.Spreadsheet.Color>().FirstOrDefault();
-            if (fontColor != null)
-                fontBase.FontColor = fontColor.ToXlsxColor();
-
-            var fontFamilyNumbering =
-                fontSource.Elements<DocumentFormat.OpenXml.Spreadsheet.FontFamily>().FirstOrDefault();
-            if (fontFamilyNumbering != null && fontFamilyNumbering.Val != null)
-                fontBase.FontFamilyNumbering =
-                    (XLFontFamilyNumberingValues)Int32.Parse(fontFamilyNumbering.Val.ToString());
-            var runFont = fontSource.Elements<RunFont>().FirstOrDefault();
-            if (runFont != null)
-            {
-                if (runFont.Val != null)
-                    fontBase.FontName = runFont.Val;
-            }
-            var fontSize = fontSource.Elements<FontSize>().FirstOrDefault();
-            if (fontSize != null)
-            {
-                if ((fontSize).Val != null)
-                    fontBase.FontSize = (fontSize).Val;
-            }
-
-            fontBase.Italic = GetBoolean(fontSource.Elements<Italic>().FirstOrDefault());
-            fontBase.Shadow = GetBoolean(fontSource.Elements<Shadow>().FirstOrDefault());
-            fontBase.Strikethrough = GetBoolean(fontSource.Elements<Strike>().FirstOrDefault());
-
-            var underline = fontSource.Elements<Underline>().FirstOrDefault();
-            if (underline != null)
-            {
-                fontBase.Underline = underline.Val != null ? underline.Val.Value.ToXlsx() : XLFontUnderlineValues.Single;
-            }
-
-            var verticalTextAlignment = fontSource.Elements<VerticalTextAlignment>().FirstOrDefault();
-            if (verticalTextAlignment is not null)
-            {
-                fontBase.VerticalAlignment = verticalTextAlignment.Val is not null ? verticalTextAlignment.Val.Value.ToXlsx() : XLFontVerticalTextAlignmentValues.Baseline;
-            }
-
-            var fontScheme = fontSource.Elements<FontScheme>().FirstOrDefault();
-            if (fontScheme is not null)
-            {
-                fontBase.FontScheme = fontScheme.Val is not null ? fontScheme.Val.Value.ToXlsx() : XLFontScheme.None;
-            }
-        }
-
-        internal static Boolean GetBoolean(BooleanPropertyType property)
-        {
-            if (property != null)
-            {
-                if (property.Val != null)
-                    return property.Val;
-                return true;
-            }
-
-            return false;
-        }
-
 #nullable enable
 
         #endregion Public Methods

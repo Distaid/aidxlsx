@@ -11,6 +11,50 @@ namespace Aid.Xlsx.Tests.Excel.Comments
     public class CommentsTests
     {
         [Test]
+        public void LoadsPlainAndFormattedCommentText()
+        {
+            using var stream = new MemoryStream();
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.AddWorksheet("Sheet1");
+                worksheet.Cell("A1").CreateComment().AddText("Placeholder");
+                worksheet.Cell("A2").CreateComment().AddText("Placeholder");
+                workbook.SaveAs(stream);
+            }
+
+            using (var package = SpreadsheetDocument.Open(stream, true))
+            using (var comments = package.WorkbookPart.WorksheetParts.Single().WorksheetCommentsPart.GetStream(FileMode.Create))
+            using (var writer = new StreamWriter(comments))
+            {
+                writer.Write("""
+                    <comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+                      <authors><author>Writer</author></authors>
+                      <commentList>
+                        <comment ref="A1" authorId="0"><text><t>Plain_x0009_text</t></text></comment>
+                        <comment ref="A2" authorId="0"><text>
+                          <r><rPr><b/><color rgb="FFFF0000"/></rPr><t>Rich</t></r>
+                          <r><t xml:space="preserve"> text</t></r>
+                        </text></comment>
+                      </commentList>
+                    </comments>
+                    """);
+            }
+
+            stream.Position = 0;
+            using var reloaded = new XLWorkbook(stream);
+            var sheet = reloaded.Worksheet(1);
+            var plain = sheet.Cell("A1").GetComment();
+            var formatted = sheet.Cell("A2").GetComment();
+            var firstRun = formatted.First();
+
+            Assert.AreEqual("Writer", plain.Author);
+            Assert.AreEqual("Plain\ttext", plain.Text);
+            Assert.AreEqual("Rich text", formatted.Text);
+            Assert.IsTrue(firstRun.Bold);
+            Assert.AreEqual(XLColor.Red, firstRun.FontColor);
+        }
+
+        [Test]
         public void CanConvertVmlPaletteEntriesToColors()
         {
             using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\CommentsWithColorNamesAndIndexes.xlsx")))
