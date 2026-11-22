@@ -20,7 +20,7 @@ internal partial class RstReader
 {
     private static readonly Comparer<PhoneticRunDto> ComparePhoneticRunsByStartIndex = Comparer<PhoneticRunDto>.Create((x, y) => x.StartIndex.CompareTo(y.StartIndex));
 
-    private readonly string _ns = OpenXmlConst.Main2006SsNs;
+    private readonly string _ns;
 
     private readonly XmlTreeReader _reader;
 
@@ -43,10 +43,11 @@ internal partial class RstReader
     private XLFontVerticalTextAlignmentValues? _runVerticalAlignment;
     private XLFontScheme? _runScheme;
 
-    internal RstReader(XmlTreeReader reader, XLWorkbookStyles styles)
+    internal RstReader(XmlTreeReader reader, XLWorkbookStyles styles, string ns = OpenXmlConst.Main2006SsNs)
     {
         _reader = reader;
         _styles = styles;
+        _ns = ns;
     }
 
     /// <summary>

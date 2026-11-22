@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using System.Xml;
+using System.Xml.Linq;
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Opc;
 using Aid.Xlsx.Utils;
@@ -18,114 +19,126 @@ namespace Aid.Xlsx.Internal.IO;
 
 internal class WorksheetPartReader
 {
-    private static readonly FieldInfo OpenXmlPartXmlReaderField = typeof(OpenXmlPartReader).GetField("_xmlReader", BindingFlags.Instance | BindingFlags.NonPublic)
-        ?? throw new InvalidOperationException("OpenXmlPartReader._xmlReader was not found.");
-
-    private static readonly FieldInfo OpenXmlPartElementStateField = typeof(OpenXmlPartReader).GetField("_elementState", BindingFlags.Instance | BindingFlags.NonPublic)
-        ?? throw new InvalidOperationException("OpenXmlPartReader._elementState was not found.");
-
-    private static readonly object OpenXmlLoadEndState = Enum.Parse(OpenXmlPartElementStateField.FieldType, "LoadEnd");
-
     internal void LoadWorksheet(XLWorksheet ws, WorksheetPart worksheetPart, List<StringItem> sst, LoadContext context)
     {
         PageSetupProperties pageSetupProperties = null;
+        using var stream = worksheetPart.GetStream(FileMode.Open, FileAccess.Read);
+        using var reader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
+        if (reader.MoveToContent() != XmlNodeType.Element)
+            throw new InvalidDataException("The worksheet part is empty.");
 
-        using (var reader = new OpenXmlPartReader(worksheetPart))
+        var ns = reader.NamespaceURI;
+        if (reader.LocalName != "worksheet" || ns is not (OpenXmlConst.Main2006SsNs or OpenXmlConst.StrictSpreadsheetNs))
+            return;
+        if (reader.IsEmptyElement)
+            return;
+
+        reader.Read();
+        while (!reader.EOF)
         {
-            Type[] ignoredElements = new Type[]
+            if (reader.NodeType != XmlNodeType.Element)
             {
-                    typeof(CustomSheetViews) // Custom sheet views contain its own auto filter data, and more, which should be ignored for now
-            };
-
-            while (reader.Read())
-            {
-                while (ignoredElements.Contains(reader.ElementType))
-                    reader.ReadNextSibling();
-
-                if (reader.ElementType == typeof(SheetFormatProperties))
-                {
-                    var sheetFormatProperties = (SheetFormatProperties)reader.LoadCurrentElement();
-                    if (sheetFormatProperties != null)
-                    {
-                        if (sheetFormatProperties.DefaultRowHeight != null)
-                            ws.RowHeight = sheetFormatProperties.DefaultRowHeight;
-
-                        ws.RowHeightChanged = (sheetFormatProperties.CustomHeight != null &&
-                                               sheetFormatProperties.CustomHeight.Value);
-
-                        if (sheetFormatProperties.DefaultColumnWidth != null)
-                            ws.ColumnWidth = XLHelper.ConvertWidthToNoC(sheetFormatProperties.DefaultColumnWidth.Value, ws.Style.Font, ws.Workbook);
-                        else if (sheetFormatProperties.BaseColumnWidth != null)
-                            ws.ColumnWidth = XLHelper.CalculateColumnWidth(sheetFormatProperties.BaseColumnWidth.Value, ws.Style.Font, ws.Workbook);
-                    }
-                }
-                else if (reader.ElementType == typeof(SheetViews))
-                    LoadSheetViews((SheetViews)reader.LoadCurrentElement(), ws);
-                else if (reader.ElementType == typeof(MergeCells))
-                {
-                    var mergedCells = (MergeCells)reader.LoadCurrentElement();
-                    if (mergedCells != null)
-                    {
-                        foreach (MergeCell mergeCell in mergedCells.Elements<MergeCell>())
-                            ws.Range(mergeCell.Reference).Merge(false);
-                    }
-                }
-                else if (reader.ElementType == typeof(Columns))
-                    LoadColumns(ws, (Columns)reader.LoadCurrentElement());
-                else if (reader.ElementType == typeof(SheetData))
-                    LoadSheetData(ws, sst, reader);
-                else if (reader.ElementType == typeof(AutoFilter))
-                    AutoFilterReader.LoadAutoFilter((AutoFilter)reader.LoadCurrentElement(), ws);
-                else if (reader.ElementType == typeof(SheetProtection))
-                    LoadSheetProtection((SheetProtection)reader.LoadCurrentElement(), ws);
-                else if (reader.ElementType == typeof(DataValidations))
-                    LoadDataValidations((DataValidations)reader.LoadCurrentElement(), ws);
-                else if (reader.ElementType == typeof(ConditionalFormatting))
-                    LoadConditionalFormatting((ConditionalFormatting)reader.LoadCurrentElement(), ws, context);
-                else if (reader.ElementType == typeof(Hyperlinks))
-                    LoadHyperlinks((Hyperlinks)reader.LoadCurrentElement(), worksheetPart, ws);
-                else if (reader.ElementType == typeof(PrintOptions))
-                    LoadPrintOptions((PrintOptions)reader.LoadCurrentElement(), ws);
-                else if (reader.ElementType == typeof(PageMargins))
-                    LoadPageMargins((PageMargins)reader.LoadCurrentElement(), ws);
-                else if (reader.ElementType == typeof(PageSetup))
-                    LoadPageSetup((PageSetup)reader.LoadCurrentElement(), ws, pageSetupProperties);
-                else if (reader.ElementType == typeof(HeaderFooter))
-                    LoadHeaderFooter((HeaderFooter)reader.LoadCurrentElement(), ws);
-                else if (reader.ElementType == typeof(SheetProperties))
-                    LoadSheetProperties((SheetProperties)reader.LoadCurrentElement(), ws, out pageSetupProperties);
-                else if (reader.ElementType == typeof(RowBreaks))
-                    LoadRowBreaks((RowBreaks)reader.LoadCurrentElement(), ws);
-                else if (reader.ElementType == typeof(ColumnBreaks))
-                    LoadColumnBreaks((ColumnBreaks)reader.LoadCurrentElement(), ws);
-                else if (reader.ElementType == typeof(WorksheetExtensionList))
-                    LoadExtensions((WorksheetExtensionList)reader.LoadCurrentElement(), ws);
-                else if (reader.ElementType == typeof(LegacyDrawing))
-                    ws.LegacyDrawingId = (reader.LoadCurrentElement() as LegacyDrawing).Id.Value;
+                reader.Read();
+                continue;
             }
-            reader.Close();
+
+            if (reader.NamespaceURI == OpenXmlConst.MarkupCompatibilityNs &&
+                reader.LocalName is "AlternateContent" or "Choice" or "Fallback")
+            {
+                reader.Read();
+                continue;
+            }
+
+            if (reader.NamespaceURI != ns)
+            {
+                reader.Skip();
+                continue;
+            }
+
+            // Keep the cell stream independent of the DOM used by the remaining worksheet metadata handlers.
+            switch (reader.LocalName)
+            {
+                case "sheetFormatPr":
+                    LoadSheetFormat((XElement)XNode.ReadFrom(reader), ws);
+                    break;
+                case "sheetViews":
+                    LoadSheetViews(new SheetViews(reader.ReadOuterXml()), ws);
+                    break;
+                case "mergeCells":
+                    foreach (var cell in new MergeCells(reader.ReadOuterXml()).Elements<MergeCell>())
+                        ws.Range(cell.Reference).Merge(false);
+                    break;
+                case "cols":
+                    LoadColumns(ws, new Columns(reader.ReadOuterXml()));
+                    break;
+                case "sheetData":
+                    using (var subtree = reader.ReadSubtree())
+                    using (var tree = new XmlTreeReader(subtree, XmlToEnumMapper.Instance, ws.Workbook.StrictAttributeParsing, leaveOpen: true))
+                        new SheetDataReader(tree, ws, ws.Workbook.Styles, sst, ns).ParseCtSheetData("sheetData", ns);
+                    reader.Read();
+                    break;
+                case "autoFilter":
+                    AutoFilterReader.LoadAutoFilter(new AutoFilter(reader.ReadOuterXml()), ws);
+                    break;
+                case "sheetProtection":
+                    LoadSheetProtection((XElement)XNode.ReadFrom(reader), ws);
+                    break;
+                case "dataValidations":
+                    LoadDataValidations(new DataValidations(reader.ReadOuterXml()), ws);
+                    break;
+                case "conditionalFormatting":
+                    LoadConditionalFormatting(new ConditionalFormatting(reader.ReadOuterXml()), ws, context);
+                    break;
+                case "hyperlinks":
+                    LoadHyperlinks(new Hyperlinks(reader.ReadOuterXml()), worksheetPart, ws);
+                    break;
+                case "printOptions":
+                    LoadPrintOptions((XElement)XNode.ReadFrom(reader), ws);
+                    break;
+                case "pageMargins":
+                    LoadPageMargins((XElement)XNode.ReadFrom(reader), ws);
+                    break;
+                case "pageSetup":
+                    LoadPageSetup((XElement)XNode.ReadFrom(reader), ws, pageSetupProperties);
+                    break;
+                case "headerFooter":
+                    LoadHeaderFooter(new HeaderFooter(reader.ReadOuterXml()), ws);
+                    break;
+                case "sheetPr":
+                    LoadSheetProperties(new SheetProperties(reader.ReadOuterXml()), ws, out pageSetupProperties);
+                    break;
+                case "rowBreaks":
+                    LoadRowBreaks(new RowBreaks(reader.ReadOuterXml()), ws);
+                    break;
+                case "colBreaks":
+                    LoadColumnBreaks(new ColumnBreaks(reader.ReadOuterXml()), ws);
+                    break;
+                case "extLst":
+                    LoadExtensions(new WorksheetExtensionList(reader.ReadOuterXml()), ws);
+                    break;
+                case "legacyDrawing":
+                    ws.LegacyDrawingId = reader.GetAttribute("id", OpenXmlConst.RelationshipsNs)
+                        ?? reader.GetAttribute("id", "http://purl.oclc.org/ooxml/officeDocument/relationships");
+                    reader.Skip();
+                    break;
+                default:
+                    reader.Skip();
+                    break;
+            }
         }
     }
 
-    // TODO: Replace temporary method to read <SheetData>, so it doesn't have to touch the OpenXmlPartReader internals
-    private static void LoadSheetData(XLWorksheet ws, List<StringItem> sst, OpenXmlPartReader reader)
+    private static void LoadSheetFormat(XElement format, XLWorksheet ws)
     {
-        var xmlReader = (XmlReader)OpenXmlPartXmlReaderField.GetValue(reader);
+        if ((double?)format.Attribute("defaultRowHeight") is { } rowHeight)
+            ws.RowHeight = rowHeight;
 
-        // Empty <sheetData/> is already consumed by OpenXmlPartReader (LeafStart).
-        if (xmlReader.NodeType != XmlNodeType.Element || xmlReader.IsEmptyElement)
-            return;
+        ws.RowHeightChanged = (bool?)format.Attribute("customHeight") ?? false;
 
-        using (var treeReader = new XmlTreeReader(xmlReader, XmlToEnumMapper.Instance, ws.Workbook.StrictAttributeParsing, leaveOpen: true))
-        {
-            var sheetDataReader = new SheetDataReader(treeReader, ws, ws.Workbook.Styles, sst);
-            sheetDataReader.ParseCtSheetData("sheetData", OpenXmlConst.Main2006SsNs);
-        }
-
-        if (xmlReader.NodeType == XmlNodeType.EndElement)
-            xmlReader.Read();
-
-        OpenXmlPartElementStateField.SetValue(reader, OpenXmlLoadEndState);
+        if ((double?)format.Attribute("defaultColWidth") is { } width)
+            ws.ColumnWidth = XLHelper.ConvertWidthToNoC(width, ws.Style.Font, ws.Workbook);
+        else if ((uint?)format.Attribute("baseColWidth") is { } baseWidth)
+            ws.ColumnWidth = XLHelper.CalculateColumnWidth(baseWidth, ws.Style.Font, ws.Workbook);
     }
 
     private static void LoadSheetProperties(SheetProperties sheetProperty, XLWorksheet ws, out PageSetupProperties pageSetupProperties)
@@ -263,42 +276,44 @@ internal class WorksheetPartReader
             ws.SheetView.TopLeftCellAddress = ws.Cell(sheetView.TopLeftCell.Value).Address;
     }
 
-    private static void LoadSheetProtection(SheetProtection sp, XLWorksheet ws)
+    private static void LoadSheetProtection(XElement sp, XLWorksheet ws)
     {
-        if (sp == null) return;
+        ws.Protection.IsProtected = (bool?)sp.Attribute("sheet") ?? false;
 
-        ws.Protection.IsProtected = OpenXmlHelper.GetBooleanValueAsBool(sp.Sheet, false);
-
-        var algorithmName = sp.AlgorithmName?.Value ?? string.Empty;
+        var algorithmName = (string)sp.Attribute("algorithmName") ?? string.Empty;
         if (String.IsNullOrEmpty(algorithmName))
         {
-            ws.Protection.PasswordHash = sp.Password?.Value ?? string.Empty;
+            ws.Protection.PasswordHash = (string)sp.Attribute("password") ?? string.Empty;
             ws.Protection.Base64EncodedSalt = string.Empty;
         }
         else if (DescribedEnumParser<XLProtectionAlgorithm.Algorithm>.IsValidDescription(algorithmName))
         {
             ws.Protection.Algorithm = DescribedEnumParser<XLProtectionAlgorithm.Algorithm>.FromDescription(algorithmName);
-            ws.Protection.PasswordHash = sp.HashValue?.Value ?? string.Empty;
-            ws.Protection.SpinCount = sp.SpinCount?.Value ?? 0;
-            ws.Protection.Base64EncodedSalt = sp.SaltValue?.Value ?? string.Empty;
+            ws.Protection.PasswordHash = (string)sp.Attribute("hashValue") ?? string.Empty;
+            ws.Protection.SpinCount = (uint?)sp.Attribute("spinCount") ?? 0;
+            ws.Protection.Base64EncodedSalt = (string)sp.Attribute("saltValue") ?? string.Empty;
         }
 
-        ws.Protection.AllowElement(XLSheetProtectionElements.FormatCells, !OpenXmlHelper.GetBooleanValueAsBool(sp.FormatCells, true));
-        ws.Protection.AllowElement(XLSheetProtectionElements.FormatColumns, !OpenXmlHelper.GetBooleanValueAsBool(sp.FormatColumns, true));
-        ws.Protection.AllowElement(XLSheetProtectionElements.FormatRows, !OpenXmlHelper.GetBooleanValueAsBool(sp.FormatRows, true));
-        ws.Protection.AllowElement(XLSheetProtectionElements.InsertColumns, !OpenXmlHelper.GetBooleanValueAsBool(sp.InsertColumns, true));
-        ws.Protection.AllowElement(XLSheetProtectionElements.InsertHyperlinks, !OpenXmlHelper.GetBooleanValueAsBool(sp.InsertHyperlinks, true));
-        ws.Protection.AllowElement(XLSheetProtectionElements.InsertRows, !OpenXmlHelper.GetBooleanValueAsBool(sp.InsertRows, true));
-        ws.Protection.AllowElement(XLSheetProtectionElements.DeleteColumns, !OpenXmlHelper.GetBooleanValueAsBool(sp.DeleteColumns, true));
-        ws.Protection.AllowElement(XLSheetProtectionElements.DeleteRows, !OpenXmlHelper.GetBooleanValueAsBool(sp.DeleteRows, true));
-        ws.Protection.AllowElement(XLSheetProtectionElements.AutoFilter, !OpenXmlHelper.GetBooleanValueAsBool(sp.AutoFilter, true));
-        ws.Protection.AllowElement(XLSheetProtectionElements.PivotTables, !OpenXmlHelper.GetBooleanValueAsBool(sp.PivotTables, true));
-        ws.Protection.AllowElement(XLSheetProtectionElements.Sort, !OpenXmlHelper.GetBooleanValueAsBool(sp.Sort, true));
-        ws.Protection.AllowElement(XLSheetProtectionElements.EditScenarios, !OpenXmlHelper.GetBooleanValueAsBool(sp.Scenarios, true));
+        Allow("formatCells", XLSheetProtectionElements.FormatCells);
+        Allow("formatColumns", XLSheetProtectionElements.FormatColumns);
+        Allow("formatRows", XLSheetProtectionElements.FormatRows);
+        Allow("insertColumns", XLSheetProtectionElements.InsertColumns);
+        Allow("insertHyperlinks", XLSheetProtectionElements.InsertHyperlinks);
+        Allow("insertRows", XLSheetProtectionElements.InsertRows);
+        Allow("deleteColumns", XLSheetProtectionElements.DeleteColumns);
+        Allow("deleteRows", XLSheetProtectionElements.DeleteRows);
+        Allow("autoFilter", XLSheetProtectionElements.AutoFilter);
+        Allow("pivotTables", XLSheetProtectionElements.PivotTables);
+        Allow("sort", XLSheetProtectionElements.Sort);
+        Allow("scenarios", XLSheetProtectionElements.EditScenarios);
+        Allow("objects", XLSheetProtectionElements.EditObjects, false);
+        Allow("selectLockedCells", XLSheetProtectionElements.SelectLockedCells, false);
+        Allow("selectUnlockedCells", XLSheetProtectionElements.SelectUnlockedCells, false);
 
-        ws.Protection.AllowElement(XLSheetProtectionElements.EditObjects, !OpenXmlHelper.GetBooleanValueAsBool(sp.Objects, false));
-        ws.Protection.AllowElement(XLSheetProtectionElements.SelectLockedCells, !OpenXmlHelper.GetBooleanValueAsBool(sp.SelectLockedCells, false));
-        ws.Protection.AllowElement(XLSheetProtectionElements.SelectUnlockedCells, !OpenXmlHelper.GetBooleanValueAsBool(sp.SelectUnlockedCells, false));
+        void Allow(string attribute, XLSheetProtectionElements element, bool defaultProtected = true)
+        {
+            ws.Protection.AllowElement(element, !((bool?)sp.Attribute(attribute) ?? defaultProtected));
+        }
     }
 
     /// <summary>
@@ -522,74 +537,56 @@ internal class WorksheetPartReader
         }
     }
 
-    private static void LoadPrintOptions(PrintOptions printOptions, XLWorksheet ws)
+    private static void LoadPrintOptions(XElement options, XLWorksheet ws)
     {
-        if (printOptions == null) return;
-
-        if (printOptions.GridLines != null)
-            ws.PageSetup.ShowGridlines = printOptions.GridLines;
-        if (printOptions.HorizontalCentered != null)
-            ws.PageSetup.CenterHorizontally = printOptions.HorizontalCentered;
-        if (printOptions.VerticalCentered != null)
-            ws.PageSetup.CenterVertically = printOptions.VerticalCentered;
-        if (printOptions.Headings != null)
-            ws.PageSetup.ShowRowAndColumnHeadings = printOptions.Headings;
+        var setup = ws.PageSetup;
+        setup.ShowGridlines = (bool?)options.Attribute("gridLines") ?? setup.ShowGridlines;
+        setup.CenterHorizontally = (bool?)options.Attribute("horizontalCentered") ?? setup.CenterHorizontally;
+        setup.CenterVertically = (bool?)options.Attribute("verticalCentered") ?? setup.CenterVertically;
+        setup.ShowRowAndColumnHeadings = (bool?)options.Attribute("headings") ?? setup.ShowRowAndColumnHeadings;
     }
 
-    private static void LoadPageMargins(PageMargins pageMargins, XLWorksheet ws)
+    private static void LoadPageMargins(XElement margins, XLWorksheet ws)
     {
-        if (pageMargins == null) return;
-
-        if (pageMargins.Bottom != null)
-            ws.PageSetup.Margins.Bottom = pageMargins.Bottom;
-        if (pageMargins.Footer != null)
-            ws.PageSetup.Margins.Footer = pageMargins.Footer;
-        if (pageMargins.Header != null)
-            ws.PageSetup.Margins.Header = pageMargins.Header;
-        if (pageMargins.Left != null)
-            ws.PageSetup.Margins.Left = pageMargins.Left;
-        if (pageMargins.Right != null)
-            ws.PageSetup.Margins.Right = pageMargins.Right;
-        if (pageMargins.Top != null)
-            ws.PageSetup.Margins.Top = pageMargins.Top;
+        var target = ws.PageSetup.Margins;
+        target.Bottom = (double?)margins.Attribute("bottom") ?? target.Bottom;
+        target.Footer = (double?)margins.Attribute("footer") ?? target.Footer;
+        target.Header = (double?)margins.Attribute("header") ?? target.Header;
+        target.Left = (double?)margins.Attribute("left") ?? target.Left;
+        target.Right = (double?)margins.Attribute("right") ?? target.Right;
+        target.Top = (double?)margins.Attribute("top") ?? target.Top;
     }
 
-    private static void LoadPageSetup(PageSetup pageSetup, XLWorksheet ws, PageSetupProperties pageSetupProperties)
+    private static void LoadPageSetup(XElement source, XLWorksheet ws, PageSetupProperties properties)
     {
-        if (pageSetup == null) return;
-
-        if (pageSetup.PaperSize != null)
-            ws.PageSetup.PaperSize = (XLPaperSize)Int32.Parse(pageSetup.PaperSize.InnerText);
-        if (pageSetup.Scale != null)
-            ws.PageSetup.Scale = Int32.Parse(pageSetup.Scale.InnerText);
-        if (pageSetupProperties != null && pageSetupProperties.FitToPage != null && pageSetupProperties.FitToPage.Value)
+        var setup = ws.PageSetup;
+        if ((int?)source.Attribute("paperSize") is { } paperSize)
+            setup.PaperSize = (XLPaperSize)paperSize;
+        if ((int?)source.Attribute("scale") is { } scale)
+            setup.Scale = scale;
+        if (properties?.FitToPage?.Value == true)
         {
-            if (pageSetup.FitToWidth == null)
-                ws.PageSetup.PagesWide = 1;
-            else
-                ws.PageSetup.PagesWide = Int32.Parse(pageSetup.FitToWidth.InnerText);
-
-            if (pageSetup.FitToHeight == null)
-                ws.PageSetup.PagesTall = 1;
-            else
-                ws.PageSetup.PagesTall = Int32.Parse(pageSetup.FitToHeight.InnerText);
+            setup.PagesWide = (int?)source.Attribute("fitToWidth") ?? 1;
+            setup.PagesTall = (int?)source.Attribute("fitToHeight") ?? 1;
         }
-        if (pageSetup.PageOrder != null)
-            ws.PageSetup.PageOrder = pageSetup.PageOrder.Value.ToXlsx();
-        if (pageSetup.Orientation != null)
-            ws.PageSetup.PageOrientation = pageSetup.Orientation.Value.ToXlsx();
-        if (pageSetup.BlackAndWhite != null)
-            ws.PageSetup.BlackAndWhite = pageSetup.BlackAndWhite;
-        if (pageSetup.Draft != null)
-            ws.PageSetup.DraftQuality = pageSetup.Draft;
-        if (pageSetup.CellComments != null)
-            ws.PageSetup.ShowComments = pageSetup.CellComments.Value.ToXlsx();
-        if (pageSetup.Errors != null)
-            ws.PageSetup.PrintErrorValue = pageSetup.Errors.Value.ToXlsx();
-        if (pageSetup.HorizontalDpi != null) ws.PageSetup.HorizontalDpi = (Int32)pageSetup.HorizontalDpi.Value;
-        if (pageSetup.VerticalDpi != null) ws.PageSetup.VerticalDpi = (Int32)pageSetup.VerticalDpi.Value;
-        if (pageSetup.FirstPageNumber?.HasValue ?? false)
-            ws.PageSetup.FirstPageNumber = (int)pageSetup.FirstPageNumber.Value;
+
+        if ((string)source.Attribute("pageOrder") is { } order)
+            setup.PageOrder = new EnumValue<PageOrderValues> { InnerText = order }.Value.ToXlsx();
+        if ((string)source.Attribute("orientation") is { } orientation)
+            setup.PageOrientation = new EnumValue<OrientationValues> { InnerText = orientation }.Value.ToXlsx();
+        if ((string)source.Attribute("cellComments") is { } comments)
+            setup.ShowComments = new EnumValue<CellCommentsValues> { InnerText = comments }.Value.ToXlsx();
+        if ((string)source.Attribute("errors") is { } errors)
+            setup.PrintErrorValue = new EnumValue<PrintErrorValues> { InnerText = errors }.Value.ToXlsx();
+
+        setup.BlackAndWhite = (bool?)source.Attribute("blackAndWhite") ?? setup.BlackAndWhite;
+        setup.DraftQuality = (bool?)source.Attribute("draft") ?? setup.DraftQuality;
+        if ((uint?)source.Attribute("horizontalDpi") is { } horizontalDpi)
+            setup.HorizontalDpi = unchecked((int)horizontalDpi);
+        if ((uint?)source.Attribute("verticalDpi") is { } verticalDpi)
+            setup.VerticalDpi = unchecked((int)verticalDpi);
+        if (uint.TryParse((string)source.Attribute("firstPageNumber"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var firstPageNumber))
+            setup.FirstPageNumber = unchecked((int)firstPageNumber);
     }
 
     private static void LoadHeaderFooter(HeaderFooter headerFooter, XLWorksheet ws)

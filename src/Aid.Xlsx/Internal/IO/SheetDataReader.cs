@@ -40,7 +40,7 @@ internal partial class SheetDataReader
         "yyyy-MM-ddTHH:mm", "yyyy-MM-dd" // Formats accepted by Excel.
     };
 
-    private readonly string _ns = OpenXmlConst.Main2006SsNs;
+    private readonly string _ns;
     private readonly XmlTreeReader _reader;
     private readonly XLWorksheet _ws;
     private readonly XLWorkbookStyles _styles;
@@ -63,12 +63,13 @@ internal partial class SheetDataReader
     private bool _formulaCa;
     private uint? _formulaSi;
 
-    internal SheetDataReader(XmlTreeReader reader, XLWorksheet ws, XLWorkbookStyles styles, List<StringItem> sst)
+    internal SheetDataReader(XmlTreeReader reader, XLWorksheet ws, XLWorkbookStyles styles, List<StringItem> sst, string ns = OpenXmlConst.Main2006SsNs)
     {
         _reader = reader;
         _ws = ws;
         _styles = styles;
-        _rstReader = new RstReader(reader, styles);
+        _ns = ns;
+        _rstReader = new RstReader(reader, styles, ns);
         _sst = sst;
     }
 

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 using Aid.Xlsx.Opc;
 using NUnit.Framework;
@@ -11,6 +12,39 @@ namespace Aid.Xlsx.Tests.IO;
 public sealed class WorkbookOpcRoundTripTests
 {
     private const string OfficeRelationships = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/";
+
+    [TestCase("http://schemas.openxmlformats.org/spreadsheetml/2006/main")]
+    [TestCase("http://purl.oclc.org/ooxml/spreadsheetml/main")]
+    public void WorksheetStreamsCellsAndContinuesReadingTheNextSibling(string spreadsheetNamespace)
+    {
+        using var original = new MemoryStream();
+        using (var workbook = new XLWorkbook())
+        {
+            workbook.AddWorksheet("Data");
+            workbook.SaveAs(original, validate: false);
+        }
+
+        using var updated = new MemoryStream();
+        using (var package = OpcPackage.Open(original))
+        {
+            var workbookPart = package.GetPart(package.Relationships.Single(rel => rel.Type == OfficeRelationships + "officeDocument").TargetPartName);
+            var worksheet = package.GetPart(workbookPart.Relationships.Single(rel => rel.Type == OfficeRelationships + "worksheet").TargetPartName);
+            worksheet.ReplaceContent(Encoding.UTF8.GetBytes($"""
+                <worksheet xmlns="{spreadsheetNamespace}">
+                  <sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>abc</t></is></c></row></sheetData>
+                  <mergeCells><mergeCell ref="A1:B1"/></mergeCells>
+                  <pageMargins left="0.4" right="0.5" top="0.6" bottom="0.7" header="0.2" footer="0.3"/>
+                </worksheet>
+                """));
+            package.Save(updated);
+        }
+
+        using var loaded = new XLWorkbook(updated);
+        var sheet = loaded.Worksheet("Data");
+        Assert.That(sheet.Cell("A1").GetString(), Is.EqualTo("abc"));
+        Assert.That(sheet.MergedRanges.Select(range => range.RangeAddress.ToString()), Is.EqualTo(new[] { "A1:B1" }));
+        Assert.That(sheet.PageSetup.Margins.Left, Is.EqualTo(0.4));
+    }
 
     [Test]
     public void NewThemeRetainsCustomRgbAndSystemFallbackColors()
