@@ -24,6 +24,20 @@ fonts, indexed or custom palette colors, alignment, borders, fills, and cell pro
 The converted values from formulas are static. Named styles, rich text runs, conditional
 formatting, images, charts, macros, and encrypted files are outside the converter's supported scope.
 
+## Spreadsheet application checks
+
+Export the workbook corpus used by CI into a directory for checking in spreadsheet applications.
+
+```sh
+dotnet run --project tests/Aid.Xlsx.ApiCompat -c Release -- --save-corpus artifacts/workbook-corpus
+```
+
+Excel 2021 for Windows (16.0.14332.20303) and LibreOffice Calc for Windows (26.2.7.3)
+opened and resaved the ten corpus files and the NativeAOT smoke workbook. In Excel,
+the checks also verified the pivot table, embedded chart, picture, conditional format
+and validation rule. VBA execution was disabled during the Excel check. The library's
+tests separately compare the VBA project bytes before and after saving with Aid.Xlsx.
+
 ## Public API comparison
 
 CI compares workbook API declarations against the published ClosedXML 0.105.1 package.

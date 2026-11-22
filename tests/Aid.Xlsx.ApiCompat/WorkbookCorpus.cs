@@ -8,11 +8,13 @@ using Upstream = ClosedXML.Excel;
 
 internal static class WorkbookCorpus
 {
-    internal static bool Verify()
+    internal static bool Verify(string? outputDirectory)
     {
         var fixtures = Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "Corpus"));
-        if (fixtures.Length != 8)
-            throw new InvalidOperationException($"Expected eight workbook fixtures, found {fixtures.Length}.");
+        if (fixtures.Length != 10)
+            throw new InvalidOperationException($"Expected ten workbook fixtures, found {fixtures.Length}.");
+        if (outputDirectory is not null)
+            Directory.CreateDirectory(outputDirectory);
 
         var passed = true;
         foreach (var fixture in fixtures.Order(StringComparer.Ordinal))
@@ -26,6 +28,13 @@ internal static class WorkbookCorpus
             // The default save omits formula caches and leaves evaluation to the spreadsheet application.
             using var saved = new MemoryStream();
             workbook.SaveAs(saved, new SaveOptions { ValidatePackage = true });
+            if (outputDirectory is not null)
+            {
+                // Use a distinct name so that spreadsheet applications can open both versions together.
+                var outputName = $"{Path.GetFileNameWithoutExtension(fileName)}-roundtrip{Path.GetExtension(fileName)}";
+                using var file = File.Create(Path.Combine(outputDirectory, outputName));
+                saved.WriteTo(file);
+            }
             saved.Position = 0;
             using var reopened = new Upstream.XLWorkbook(saved);
             passed &= Compare(fileName, "save", Capture(baseline, includeFormulaCache: false), Capture(reopened, includeFormulaCache: false));

@@ -19,5 +19,9 @@
                    ..\Aid.Xlsx.Tests\Resource\TryToLoad\TableHeadersWithLineBreaks.xlsx;
                    ..\Aid.Xlsx.Tests\Resource\TryToLoad\LO\xlsm\vba-user-function.xlsm"
           Link="Corpus\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\Aid.Xlsx.Tests\Resource\Other\Charts\PreserveCharts\inputfile.xlsx"
+          Link="Corpus\WorkbookWithChart.xlsx" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\Aid.Xlsx.Tests\Resource\Other\Pictures\ImageShapeZOrder-Input.xlsx"
+          Link="Corpus\WorkbookWithImageAndShapes.xlsx" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
