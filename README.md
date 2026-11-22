@@ -78,15 +78,14 @@ eng/                            build and release scripts
 
 ## Building
 
-The planned build toolchain pins the .NET SDK in `global.json` (`10.0.403`) and is started
-from the repository root:
+Use the .NET SDK pinned in `global.json` (`10.0.403`) from the repository root.
 
 ```powershell
 dotnet build Aid.Xlsx.slnx -c Release
 ```
 
-> `dotnet restore` needs network access on first run. The build is expected to be green
-> for the imported projects; the remaining projects arrive in later phases.
+The first restore needs network access. See the [migration guide](docs/migration-from-closedxml.md),
+[compatibility notes](docs/compatibility.md), and [NativeAOT guide](docs/native-aot.md).
 
 ## Relationship to ClosedXML
 
