@@ -88,18 +88,7 @@ as a dry run. The build uploads the NuGet and symbol packages, a CycloneDX depen
 and SHA-256 checksums. Publication requires an owner-created version tag and the
 `nuget-production` environment.
 
-## Relationship to ClosedXML
-
-Aid.Xlsx is an independent project derived from
-[ClosedXML](https://github.com/ClosedXML/ClosedXML) at commit
-`057f5976c788d97e8eac86d1a528bd5411d9386e`. It is not affiliated with, endorsed by, or
-sponsored by the ClosedXML project.
-
-ClosedXML is distributed under the MIT License; the original copyright notice is
-preserved in `LICENSE`. Attribution details and the list of third-party components are
-in `NOTICE`.
-
 ## License
 
-MIT, see [LICENSE](LICENSE). Attribution and third-party components are listed in
-[NOTICE](NOTICE); third-party license texts live in `third-party/`.
+Aid.Xlsx is an independent MIT-licensed project derived from ClosedXML. See [LICENSE](LICENSE)
+and [NOTICE](NOTICE) for license and attribution details.
