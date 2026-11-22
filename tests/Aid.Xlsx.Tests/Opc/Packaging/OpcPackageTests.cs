@@ -70,6 +70,28 @@ public class OpcPackageTests
         Assert.That(relationships.Select(link => link.Id), Is.EqualTo(new[] { "rId2" }));
     }
 
+    [Test]
+    public void ReplacesLazyPartContentsWhenTheWriteStreamCloses()
+    {
+        using var zip = MakeZip($"<Types xmlns='{Types}'><Default Extension='xml' ContentType='application/xml'/></Types>",
+            ("source.xml", "<old-content/>"));
+        using var package = OpcPackage.Open(zip);
+        var part = package.GetPart("/source.xml");
+        using (var writer = part.OpenWrite())
+        {
+            writer.Write("<new/>"u8);
+            Assert.That(part.Length, Is.EqualTo("<old-content/>".Length));
+        }
+
+        Assert.That(part.Length, Is.EqualTo("<new/>".Length));
+        using var saved = new MemoryStream();
+        package.Save(saved);
+        saved.Position = 0;
+        using var reopened = OpcPackage.Open(saved);
+        using var reader = new StreamReader(reopened.GetPart("/source.xml").OpenRead());
+        Assert.That(reader.ReadToEnd(), Is.EqualTo("<new/>"));
+    }
+
     [TestCase("../payload.xml")]
     [TestCase("xl/%2fpart.xml")]
     [TestCase("xl/%2e%2e/payload.xml")]

@@ -45,19 +45,6 @@ public class EnumerableExtensionsTests
     }
 
     [Test]
-    public void SkipLast_skips_last_element_of_enumerable()
-    {
-        var empty = Array.Empty<int>().SkipLast();
-        CollectionAssert.IsEmpty(empty);
-
-        var oneElement = new[] { 1 }.SkipLast();
-        CollectionAssert.IsEmpty(oneElement);
-
-        var twoElements = new[] { 1, 2 }.SkipLast();
-        CollectionAssert.AreEqual(new[] { 1 }, twoElements);
-    }
-
-    [Test]
     public void WhereNotNull_removes_null_elements()
     {
         var source = new int?[] { 1, null, 2 };

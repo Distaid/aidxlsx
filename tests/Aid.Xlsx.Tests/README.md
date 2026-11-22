@@ -5,9 +5,10 @@ Namespaces follow the directory path under `Aid.Xlsx.Tests`.
 
 | Directory | Coverage |
 | --- | --- |
+| `Contracts/` | Public API naming and namespace conventions |
 | `Model/` | Workbook, worksheet, grid, and feature behavior |
 | `Calculation/` | Formula evaluation, functions, references, and recalculation |
-| `DataImport/` | Row readers and import paths |
+| `DataImport/` | Row readers and source-generated table mapping |
 | `Conversion/Biff8/` | Excel 97–2003 workbook conversion |
 | `SpreadsheetML/` | XLSX/XLSM part readers, writers, and workbook round-trips |
 | `Opc/` | Package container, relationships, and XML readers |

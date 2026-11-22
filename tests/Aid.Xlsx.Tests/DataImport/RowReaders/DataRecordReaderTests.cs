@@ -1,4 +1,3 @@
-using System.Data.SqlClient;
 using System.Data;
 using NUnit.Framework;
 using Aid.Xlsx.DataImport.RowReaders;
@@ -7,37 +6,18 @@ namespace Aid.Xlsx.Tests.DataImport.RowReaders;
 
 public class DataRecordReaderTests
 {
-    private readonly string _connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Integrated Security=True;Connect Timeout=1";
-
-    private IEnumerable<IDataRecord> GetData()
+    private static IEnumerable<IDataRecord> GetData()
     {
-        const string queryString = @"
-            select 'Value 1' as StringValue, 100 as NumericValue
-            union all
-            select 'Value 2', 200
-            union all
-            select 'Value 3', 300";
+        using var table = new DataTable();
+        table.Columns.Add("StringValue", typeof(string));
+        table.Columns.Add("NumericValue", typeof(int));
+        table.Rows.Add("Value 1", 100);
+        table.Rows.Add("Value 2", DBNull.Value);
+        table.Rows.Add("Value 3", 300);
 
-        using (var connection = new SqlConnection(_connectionString))
-        using (var command = new SqlCommand(queryString, connection))
-        {
-            try
-            {
-                connection.Open();
-            }
-            catch
-            {
-                Assert.Ignore("Could not connect to localdb");
-            }
-
-            using (var reader = command.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    yield return reader;
-                }
-            }
-        }
+        using var reader = table.CreateDataReader();
+        while (reader.Read())
+            yield return reader;
     }
 
     [Test]
@@ -70,6 +50,7 @@ public class DataRecordReaderTests
 
         Assert.AreEqual("Value 1", result.First().First());
         Assert.AreEqual(100, result.First().Last());
+        Assert.That(result[1].Last().GetText(), Is.Empty);
         Assert.AreEqual("Value 3", result.Last().First());
         Assert.AreEqual(300, result.Last().Last());
     }

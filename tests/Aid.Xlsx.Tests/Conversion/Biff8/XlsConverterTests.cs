@@ -199,6 +199,18 @@ public class XlsConverterTests
         Assert.That(destination.ToArray(), Is.EqualTo(new byte[] { 42 }));
     }
 
+    [Test]
+    public void InvalidSourceLeavesTheInferredDestinationFileIntact()
+    {
+        using var source = new TemporaryFile(Path.Combine(Path.GetTempPath(), Path.ChangeExtension(Path.GetRandomFileName(), ".xls")));
+        using var destination = new TemporaryFile(Path.ChangeExtension(source.Path, ".xlsx"));
+        File.WriteAllBytes(source.Path, [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]);
+        File.WriteAllText(destination.Path, "Existing file");
+
+        Assert.That(() => XlsConverter.Convert(source.Path), Throws.TypeOf<InvalidDataException>());
+        Assert.That(File.ReadAllText(destination.Path), Is.EqualTo("Existing file"));
+    }
+
     // This fixture was written with xlwt 1.3.0. The long strings force BIFF CONTINUE records.
     private static Stream OpenFixture() => TestHelper.GetStreamFromResource("Biff8.biff8-generated.xls");
 }
