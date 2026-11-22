@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Read theme colors and generate default themes from XML. The streaming worksheet data reader uses its own cell and formula types.
 - Stream worksheet cells directly from XML without reflecting into the Open XML SDK reader.
 - Read and write table definitions and auto-filters directly through XML.
+- Read and write worksheet conditional formatting rules and data bar settings directly through XML.
 - Read comment text with the same XML parser as rich text in cells.
 - Write legacy comment shapes directly through XML while preserving the drawing's other shapes.
 - Read and write workbook settings, sheets, views, and defined names directly through SpreadsheetML.

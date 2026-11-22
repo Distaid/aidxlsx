@@ -19,6 +19,33 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
                 @"Other\StyleReferenceFiles\ConditionalFormattingOrder\ConditionalFormattingOrder.xlsx");
         }
 
+        [Test]
+        public void DataBarKeepsItsNegativeColorAndIdOnRepeatedSave()
+        {
+            using var first = new MemoryStream();
+            using (var workbook = new XlsxWorkbook())
+            {
+                var sheet = workbook.AddWorksheet("Bars");
+                sheet.Range("B2:B5").AddConditionalFormat()
+                    .DataBar(XlsxColor.Blue, XlsxColor.Red, showBarOnly: true).LowestValue().HighestValue();
+                workbook.SaveAs(first, validate: true);
+            }
+
+            using var second = new MemoryStream();
+            Guid originalId;
+            using (var workbook = new XlsxWorkbook(first))
+            {
+                originalId = ((XlsxConditionalFormat)workbook.Worksheet("Bars").ConditionalFormats.Single()).Id;
+                workbook.SaveAs(second, validate: true);
+            }
+
+            using var loaded = new XlsxWorkbook(second);
+            var format = (XlsxConditionalFormat)loaded.Worksheet("Bars").ConditionalFormats.Single();
+            Assert.That(format.Id, Is.EqualTo(originalId));
+            Assert.That(format.Colors.Values, Is.EqualTo(new[] { XlsxColor.Blue, XlsxColor.Red }));
+            Assert.That(format.ShowBarOnly, Is.True);
+        }
+
         [TestCase(true, 7)]
         [TestCase(false, 8)]
         public void SaveOptionAffectsConsolidationConditionalFormatRanges(bool consolidateConditionalFormatRanges, int expectedCount)

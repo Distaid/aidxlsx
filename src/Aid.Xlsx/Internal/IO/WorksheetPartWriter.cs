@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Xml;
 using Aid.Xlsx.Cells;
 using Aid.Xlsx.Columns;
-using Aid.Xlsx.ConditionalFormats.Save;
 using Aid.Xlsx.ConditionalFormats;
 using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.DataValidation;
@@ -34,7 +33,11 @@ using SpreadsheetDataValidation = DocumentFormat.OpenXml.Spreadsheet.DataValidat
 using SpreadsheetHyperlinks = DocumentFormat.OpenXml.Spreadsheet.Hyperlinks;
 using SpreadsheetPageSetup = DocumentFormat.OpenXml.Spreadsheet.PageSetup;
 using X14 = DocumentFormat.OpenXml.Office2010.Excel;
+using XAttribute = System.Xml.Linq.XAttribute;
 using Xdr = DocumentFormat.OpenXml.Drawing.Spreadsheet;
+using XElement = System.Xml.Linq.XElement;
+using XName = System.Xml.Linq.XName;
+using XNamespace = System.Xml.Linq.XNamespace;
 using static Aid.Xlsx.Internal.IO.OpenXmlConst;
 using static Aid.Xlsx.Workbooks.XlsxWorkbook;
 
@@ -665,17 +668,8 @@ namespace Aid.Xlsx.Internal.IO
                     )
                     )
                 {
-                    var conditionalFormatting = new ConditionalFormatting
-                    {
-                        SequenceOfReferences =
-                            new ListValue<StringValue> { InnerText = cfGroup.SeqRefs },
-                        Pivot = cfGroup.IsPivot ? true : null,
-                    };
-                    foreach (var cf in cfGroup.CfList)
-                    {
-                        var xlCf = XlsxCFConverters.Convert(cf, cf.Priority, context);
-                        conditionalFormatting.Append(xlCf);
-                    }
+                    var xml = ConditionalFormattingXml.WriteGroup(cfGroup.SeqRefs, cfGroup.IsPivot, cfGroup.CfList, context);
+                    var conditionalFormatting = new ConditionalFormatting(xml.ToString(System.Xml.Linq.SaveOptions.DisableFormatting));
                     worksheet.InsertAfter(conditionalFormatting, previousElement);
                     previousElement = conditionalFormatting;
                     cm.SetElement(XlsxWorksheetContents.ConditionalFormatting, conditionalFormatting);
@@ -694,44 +688,19 @@ namespace Aid.Xlsx.Internal.IO
                 WorksheetExtensionList worksheetExtensionList = worksheet.Elements<WorksheetExtensionList>().First();
                 cm.SetElement(XlsxWorksheetContents.WorksheetExtensionList, worksheetExtensionList);
 
-                var conditionalFormattings = worksheetExtensionList.Descendants<DocumentFormat.OpenXml.Office2010.Excel.ConditionalFormattings>().SingleOrDefault();
-                if (conditionalFormattings == null || !conditionalFormattings.Any())
-                {
-                    WorksheetExtension worksheetExtension1 = new WorksheetExtension { Uri = "{78C0D931-6437-407d-A8EE-F0AAD7539E65}" };
-                    worksheetExtension1.AddNamespaceDeclaration("x14", X14Main2009SsNs);
-                    worksheetExtensionList.Append(worksheetExtension1);
+                var previous = worksheetExtensionList.Elements<WorksheetExtension>()
+                    .FirstOrDefault(element => string.Equals(element.Uri, ConditionalFormattingXml.DataBarsExtensionUri, StringComparison.OrdinalIgnoreCase));
+                var extension = previous is null
+                    ? new XElement(XName.Get("ext", Main2006SsNs), new XAttribute("uri", ConditionalFormattingXml.DataBarsExtensionUri),
+                        new XAttribute(XNamespace.Xmlns + "x14", X14Main2009SsNs))
+                    : XElement.Parse(previous.OuterXml);
+                ConditionalFormattingXml.UpdateDataBarExtensions(extension, exlst);
 
-                    conditionalFormattings = new DocumentFormat.OpenXml.Office2010.Excel.ConditionalFormattings();
-                    worksheetExtension1.Append(conditionalFormattings);
-                }
-
-                foreach (var cfGroup in exlst
-                    .GroupBy(
-                        c => string.Join(" ", c.Ranges.Select(r => r.RangeAddress.ToStringRelative(false))),
-                        c => c,
-                        (key, g) => new { RangeId = key, CfList = g.ToList<IXlsxConditionalFormat>() }
-                        )
-                    )
-                {
-                    foreach (var xlConditionalFormat in cfGroup.CfList.Cast<XlsxConditionalFormat>())
-                    {
-                        var conditionalFormattingRule = conditionalFormattings.Descendants<DocumentFormat.OpenXml.Office2010.Excel.ConditionalFormattingRule>()
-                                .SingleOrDefault(r => r.Id == xlConditionalFormat.Id.WrapInBraces());
-                        if (conditionalFormattingRule != null)
-                        {
-                            var conditionalFormat = conditionalFormattingRule.Ancestors<DocumentFormat.OpenXml.Office2010.Excel.ConditionalFormatting>().SingleOrDefault();
-                            conditionalFormattings.RemoveChild<DocumentFormat.OpenXml.Office2010.Excel.ConditionalFormatting>(conditionalFormat);
-                        }
-
-                        var conditionalFormatting = new DocumentFormat.OpenXml.Office2010.Excel.ConditionalFormatting();
-                        conditionalFormatting.AddNamespaceDeclaration("xm", XmMain2006);
-                        conditionalFormatting.Append(XlsxCFConvertersExtension.Convert(xlConditionalFormat, context));
-                        var referenceSequence = new DocumentFormat.OpenXml.Office.Excel.ReferenceSequence { Text = cfGroup.RangeId };
-                        conditionalFormatting.Append(referenceSequence);
-
-                        conditionalFormattings.Append(conditionalFormatting);
-                    }
-                }
+                var updated = new WorksheetExtension(extension.ToString(System.Xml.Linq.SaveOptions.DisableFormatting));
+                if (previous is null)
+                    worksheetExtensionList.Append(updated);
+                else
+                    worksheetExtensionList.ReplaceChild(updated, previous);
             }
 
             #endregion Conditional Formatting
