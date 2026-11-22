@@ -12,6 +12,7 @@ namespace Aid.Xlsx.Tests
     public static class StreamHelper
     {
         private static readonly XName colTagName = XName.Get("col", @"http://schemas.openxmlformats.org/spreadsheetml/2006/main");
+        private static readonly XName workbookTagName = XName.Get("workbook", colTagName.NamespaceName);
         private static readonly XName widthAttrName = XName.Get("width");
 
         private static readonly IEnumerable<(string PartSubstring, XName NodeName)> ignoredNodes = new List<(string PartSubstring, XName NodeName)>
@@ -116,11 +117,11 @@ namespace Aid.Xlsx.Tests
 
             var leftXml = XDocument.Parse(leftString);
             RemoveIgnoredParts(leftXml, partUri, stripColumnWidths);
-            NormalizeCoreProperties(leftXml, left.ContentType);
+            NormalizeNamespaceDeclarations(leftXml, left.ContentType);
             Normalize(leftXml);
             var rightXml = XDocument.Parse(rightString);
             RemoveIgnoredParts(rightXml, partUri, stripColumnWidths);
-            NormalizeCoreProperties(rightXml, right.ContentType);
+            NormalizeNamespaceDeclarations(rightXml, right.ContentType);
             Normalize(rightXml);
 
             return XNode.DeepEquals(leftXml, rightXml);
@@ -138,13 +139,13 @@ namespace Aid.Xlsx.Tests
                 document.Descendants(colTagName).Attributes(widthAttrName).Remove();
         }
 
-        private static void NormalizeCoreProperties(XDocument document, string contentType)
+        private static void NormalizeNamespaceDeclarations(XDocument document, string contentType)
         {
-            if (contentType != "application/vnd.openxmlformats-package.core-properties+xml")
+            if (contentType != "application/vnd.openxmlformats-package.core-properties+xml" && document.Root?.Name != workbookTagName)
                 return;
 
-            // Excel and the package writer use different namespace prefixes for core metadata.
-            // The two date properties with QName attributes have already been removed.
+            // The XML writers use different namespace declarations from those in the fixtures.
+            // The core metadata date properties with QName attributes have already been removed.
             document.Descendants().Attributes().Where(attribute => attribute.IsNamespaceDeclaration).Remove();
         }
 

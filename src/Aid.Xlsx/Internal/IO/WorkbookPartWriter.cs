@@ -1,362 +1,241 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 using Aid.Xlsx.Utils;
-using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Spreadsheet;
 
-namespace Aid.Xlsx.Internal.IO
+namespace Aid.Xlsx.Internal.IO;
+
+internal static class WorkbookPartWriter
 {
-    internal class WorkbookPartWriter
+    private static readonly string[] ChildOrder =
+    [
+        "fileVersion", "fileSharing", "workbookPr", "workbookProtection", "bookViews", "sheets",
+        "functionGroups", "externalReferences", "definedNames", "calcPr", "oleSize", "customWorkbookViews",
+        "pivotCaches", "smartTagPr", "smartTagTypes", "webPublishing", "fileRecoveryPr", "webPublishObjects", "extLst"
+    ];
+
+    internal static XElement CreateRoot()
     {
-        internal static void GenerateContent(WorkbookPart workbookPart, XLWorkbook xlWorkbook, SaveOptions options, XLWorkbook.SaveContext context)
+        XNamespace ns = OpenXmlConst.Main2006SsNs;
+        return new XElement(ns + "workbook",
+            new XAttribute(XNamespace.Xmlns + "r", OpenXmlConst.RelationshipsNs),
+            new XAttribute(XNamespace.Xmlns + "x", ns));
+    }
+
+    internal static void GenerateContent(XElement root, XLWorkbook workbook, SaveOptions options, XLWorkbook.SaveContext context)
+    {
+        var ns = root.Name.Namespace;
+        var relationship = RelationshipId(root);
+        if (root.GetPrefixOfNamespace(relationship.Namespace) is null)
+            root.SetAttributeValue(XNamespace.Xmlns + "r", relationship.NamespaceName);
+
+        var properties = GetOrAdd(root, "workbookPr");
+        properties.SetAttributeValue("codeName", (string?)properties.Attribute("codeName") ?? "ThisWorkbook");
+        properties.SetAttributeValue("date1904", workbook.Use1904DateSystem ? "1" : null);
+        if (options.FilterPrivacy is { } privacy)
+            properties.SetAttributeValue("filterPrivacy", privacy ? "1" : null);
+
+        var sharing = GetOrAdd(root, "fileSharing");
+        sharing.SetAttributeValue("readOnlyRecommended", workbook.FileSharing.ReadOnlyRecommended ? "1" : null);
+        sharing.SetAttributeValue("userName", string.IsNullOrWhiteSpace(workbook.FileSharing.UserName) ? null : workbook.FileSharing.UserName);
+        if (!sharing.HasElements && !sharing.Attributes().Any(attribute => !attribute.IsNamespaceDeclaration))
+            sharing.Remove();
+
+        WriteProtection(root, workbook);
+
+        var sheets = GetOrAdd(root, "sheets");
+        var sheetById = sheets.Elements(ns + "sheet").ToDictionary(sheet => WorkbookXml.ReadSheet(sheet).SheetId);
+        var ordered = new SortedDictionary<int, XElement>();
+        foreach (var unsupported in workbook.UnsupportedSheets)
+            ordered.Add(unsupported.Position, sheetById[unsupported.SheetId]);
+
+        foreach (var worksheet in workbook.WorksheetsInternal.Cast<XLWorksheet>().OrderBy(sheet => sheet.Position))
         {
-            if (workbookPart.Workbook == null)
-                workbookPart.Workbook = new Workbook();
+            if (!sheetById.TryGetValue(worksheet.SheetId, out var sheet))
+                sheet = new XElement(ns + "sheet", new XAttribute("name", worksheet.Name), new XAttribute("sheetId", worksheet.SheetId));
 
-            var workbook = workbookPart.Workbook;
-            if (
-                !workbook.NamespaceDeclarations.Contains(new KeyValuePair<string, string>("r",
-                    "http://schemas.openxmlformats.org/officeDocument/2006/relationships")))
+            var originalId = WorkbookXml.ReadSheet(sheet).Id;
+            var id = string.IsNullOrWhiteSpace(originalId) ? worksheet.RelId : originalId;
+            if (string.IsNullOrWhiteSpace(id))
+                id = context.RelIdGenerator.GetNext(XLWorkbook.RelType.Workbook);
+            worksheet.RelId = id;
+
+            sheet.SetAttributeValue("name", worksheet.Name);
+            sheet.SetAttributeValue("state", worksheet.Visibility switch
             {
-                workbook.AddNamespaceDeclaration("r",
-                    "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
-            }
-
-            #region WorkbookProperties
-
-            if (workbook.WorkbookProperties == null)
-                workbook.WorkbookProperties = new WorkbookProperties();
-
-            if (workbook.WorkbookProperties.CodeName == null)
-                workbook.WorkbookProperties.CodeName = "ThisWorkbook";
-
-            workbook.WorkbookProperties.Date1904 = OpenXmlHelper.GetBooleanValue(xlWorkbook.Use1904DateSystem, false);
-
-            if (options.FilterPrivacy.HasValue)
-                workbook.WorkbookProperties.FilterPrivacy = OpenXmlHelper.GetBooleanValue(options.FilterPrivacy.Value, false);
-
-            #endregion WorkbookProperties
-
-            #region FileSharing
-
-            if (workbook.FileSharing == null)
-                workbook.FileSharing = new FileSharing();
-
-            workbook.FileSharing.ReadOnlyRecommended = OpenXmlHelper.GetBooleanValue(xlWorkbook.FileSharing.ReadOnlyRecommended, false);
-            workbook.FileSharing.UserName = String.IsNullOrWhiteSpace(xlWorkbook.FileSharing.UserName) ? null : StringValue.FromString(xlWorkbook.FileSharing.UserName);
-
-            if (!workbook.FileSharing.HasChildren && !workbook.FileSharing.HasAttributes)
-                workbook.FileSharing = null;
-
-            #endregion FileSharing
-
-            #region WorkbookProtection
-
-            if (xlWorkbook.Protection.IsProtected)
-            {
-                if (workbook.WorkbookProtection == null)
-                    workbook.WorkbookProtection = new WorkbookProtection();
-
-                var workbookProtection = workbook.WorkbookProtection;
-
-                var protection = xlWorkbook.Protection;
-
-                workbookProtection.WorkbookPassword = null;
-                workbookProtection.WorkbookAlgorithmName = null;
-                workbookProtection.WorkbookHashValue = null;
-                workbookProtection.WorkbookSpinCount = null;
-                workbookProtection.WorkbookSaltValue = null;
-
-                if (protection.Algorithm == XLProtectionAlgorithm.Algorithm.SimpleHash)
-                {
-                    if (!String.IsNullOrWhiteSpace(protection.PasswordHash))
-                        workbookProtection.WorkbookPassword = protection.PasswordHash;
-                }
-                else
-                {
-                    workbookProtection.WorkbookAlgorithmName = DescribedEnumParser<XLProtectionAlgorithm.Algorithm>.ToDescription(protection.Algorithm);
-                    workbookProtection.WorkbookHashValue = protection.PasswordHash;
-                    workbookProtection.WorkbookSpinCount = protection.SpinCount;
-                    workbookProtection.WorkbookSaltValue = protection.Base64EncodedSalt;
-                }
-
-                workbookProtection.LockStructure = OpenXmlHelper.GetBooleanValue(!protection.AllowedElements.HasFlag(XLWorkbookProtectionElements.Structure), false);
-                workbookProtection.LockWindows = OpenXmlHelper.GetBooleanValue(!protection.AllowedElements.HasFlag(XLWorkbookProtectionElements.Windows), false);
-            }
-            else
-            {
-                workbook.WorkbookProtection = null;
-            }
-
-            #endregion WorkbookProtection
-
-            if (workbook.BookViews == null)
-                workbook.BookViews = new BookViews();
-
-            if (workbook.Sheets == null)
-                workbook.Sheets = new Sheets();
-
-            var worksheets = xlWorkbook.WorksheetsInternal;
-            workbook.Sheets.Elements<Sheet>().Where(s => worksheets.Deleted.Contains(s.Id)).ToList().ForEach(
-                s => s.Remove());
-
-            foreach (var sheet in workbook.Sheets.Elements<Sheet>())
-            {
-                var sheetId = (Int32)sheet.SheetId.Value;
-
-                if (xlWorkbook.WorksheetsInternal.All<XLWorksheet>(w => w.SheetId != sheetId)) continue;
-
-                var wks = xlWorkbook.WorksheetsInternal.Single<XLWorksheet>(w => w.SheetId == sheetId);
-                wks.RelId = sheet.Id;
-                sheet.Name = wks.Name;
-            }
-
-            foreach (var xlSheet in xlWorkbook.WorksheetsInternal.OrderBy<XLWorksheet, int>(w => w.Position))
-            {
-                string rId;
-                if (String.IsNullOrWhiteSpace(xlSheet.RelId))
-                {
-                    // Sheet isn't from loaded file and hasn't been saved yet.
-                    rId = xlSheet.RelId = context.RelIdGenerator.GetNext(XLWorkbook.RelType.Workbook);
-                }
-                else
-                {
-                    // Keep same r:id from previous file
-                    rId = xlSheet.RelId;
-                }
-
-                if (workbook.Sheets.Cast<Sheet>().All(s => s.Id != rId))
-                {
-                    var newSheet = new Sheet
-                    {
-                        Name = xlSheet.Name,
-                        Id = rId,
-                        SheetId = xlSheet.SheetId
-                    };
-
-                    workbook.Sheets.AppendChild(newSheet);
-                }
-            }
-
-            var sheetElements = from sheet in workbook.Sheets.Elements<Sheet>()
-                                join worksheet in ((IEnumerable<XLWorksheet>)xlWorkbook.WorksheetsInternal) on sheet.Id.Value
-                                    equals worksheet.RelId
-                                orderby worksheet.Position
-                                select sheet;
-
-            UInt32 firstSheetVisible = 0;
-            var activeTab =
-                (from us in xlWorkbook.UnsupportedSheets where us.IsActive select (UInt32)us.Position - 1).FirstOrDefault();
-            var foundVisible = false;
-
-            var totalSheets = sheetElements.Count() + xlWorkbook.UnsupportedSheets.Count;
-            for (var p = 1; p <= totalSheets; p++)
-            {
-                if (xlWorkbook.UnsupportedSheets.All(us => us.Position != p))
-                {
-                    var sheet = sheetElements.ElementAt(p - xlWorkbook.UnsupportedSheets.Count(us => us.Position <= p) - 1);
-                    workbook.Sheets.RemoveChild(sheet);
-                    workbook.Sheets.AppendChild(sheet);
-                    var xlSheet = xlWorkbook.Worksheet(sheet.Name);
-                    if (xlSheet.Visibility != XLWorksheetVisibility.Visible)
-                        sheet.State = xlSheet.Visibility.ToOpenXml();
-                    else
-                        sheet.State = null;
-
-                    if (foundVisible) continue;
-
-                    if (sheet.State == null || sheet.State == SheetStateValues.Visible)
-                        foundVisible = true;
-                    else
-                        firstSheetVisible++;
-                }
-                else
-                {
-                    var sheetId = xlWorkbook.UnsupportedSheets.First(us => us.Position == p).SheetId;
-                    var sheet = workbook.Sheets.Elements<Sheet>().First(s => s.SheetId == sheetId);
-                    workbook.Sheets.RemoveChild(sheet);
-                    workbook.Sheets.AppendChild(sheet);
-                }
-            }
-
-            var workbookView = workbook.BookViews.Elements<WorkbookView>().FirstOrDefault();
-
-            if (activeTab == 0)
-            {
-                UInt32? firstActiveTab = null;
-                UInt32? firstSelectedTab = null;
-                foreach (var ws in worksheets)
-                {
-                    if (ws.TabActive)
-                    {
-                        firstActiveTab = (UInt32)(ws.Position - 1);
-                        break;
-                    }
-
-                    if (ws.TabSelected)
-                    {
-                        firstSelectedTab = (UInt32)(ws.Position - 1);
-                    }
-                }
-
-                activeTab = firstActiveTab
-                         ?? firstSelectedTab
-                         ?? firstSheetVisible;
-            }
-
-            if (workbookView == null)
-            {
-                workbookView = new WorkbookView { ActiveTab = activeTab, FirstSheet = firstSheetVisible };
-                workbook.BookViews.AppendChild(workbookView);
-            }
-            else
-            {
-                workbookView.ActiveTab = activeTab;
-                workbookView.FirstSheet = firstSheetVisible;
-            }
-
-            var definedNames = new DefinedNames();
-            foreach (var worksheet in xlWorkbook.WorksheetsInternal)
-            {
-                var wsSheetId = worksheet.SheetId;
-                UInt32 sheetId = 0;
-                foreach (var s in workbook.Sheets.Elements<Sheet>().TakeWhile(s => s.SheetId != wsSheetId))
-                {
-                    sheetId++;
-                }
-
-                if (worksheet.PageSetup.PrintAreas.Any())
-                {
-                    var definedName = new DefinedName { Name = "_xlnm.Print_Area", LocalSheetId = sheetId };
-                    var worksheetName = worksheet.Name;
-                    var definedNameText = worksheet.PageSetup.PrintAreas.Aggregate(String.Empty,
-                        (current, printArea) =>
-                            current +
-                            (worksheetName.EscapeSheetName() + "!" +
-                             printArea.RangeAddress.
-                                 FirstAddress.ToStringFixed(
-                                     XLReferenceStyle.A1) +
-                             ":" +
-                             printArea.RangeAddress.
-                                 LastAddress.ToStringFixed(
-                                     XLReferenceStyle.A1) +
-                             ","));
-                    definedName.Text = definedNameText.Substring(0, definedNameText.Length - 1);
-                    definedNames.AppendChild(definedName);
-                }
-
-                if (worksheet.AutoFilter.IsEnabled)
-                {
-                    var definedName = new DefinedName
-                    {
-                        Name = "_xlnm._FilterDatabase",
-                        LocalSheetId = sheetId,
-                        Text = worksheet.Name.EscapeSheetName() + "!" +
-                               worksheet.AutoFilter.Range.RangeAddress.FirstAddress.ToStringFixed(
-                                   XLReferenceStyle.A1) +
-                               ":" +
-                               worksheet.AutoFilter.Range.RangeAddress.LastAddress.ToStringFixed(
-                                   XLReferenceStyle.A1),
-                        Hidden = BooleanValue.FromBoolean(true)
-                    };
-                    definedNames.AppendChild(definedName);
-                }
-
-                foreach (var xlDefinedName in worksheet.DefinedNames.Where<XLDefinedName>(n => n.Name != "_xlnm._FilterDatabase"))
-                {
-                    var definedName = new DefinedName
-                    {
-                        Name = xlDefinedName.Name,
-                        LocalSheetId = sheetId,
-                        Text = xlDefinedName.ToString()
-                    };
-
-                    if (!xlDefinedName.Visible)
-                        definedName.Hidden = BooleanValue.FromBoolean(true);
-
-                    if (!String.IsNullOrWhiteSpace(xlDefinedName.Comment))
-                        definedName.Comment = xlDefinedName.Comment;
-                    definedNames.AppendChild(definedName);
-                }
-
-                var definedNameTextRow = String.Empty;
-                var definedNameTextColumn = String.Empty;
-                if (worksheet.PageSetup.FirstRowToRepeatAtTop > 0)
-                {
-                    definedNameTextRow = worksheet.Name.EscapeSheetName() + "!" + worksheet.PageSetup.FirstRowToRepeatAtTop
-                                         + ":" + worksheet.PageSetup.LastRowToRepeatAtTop;
-                }
-                if (worksheet.PageSetup.FirstColumnToRepeatAtLeft > 0)
-                {
-                    var minColumn = worksheet.PageSetup.FirstColumnToRepeatAtLeft;
-                    var maxColumn = worksheet.PageSetup.LastColumnToRepeatAtLeft;
-                    definedNameTextColumn = worksheet.Name.EscapeSheetName() + "!" +
-                                            XLHelper.GetColumnLetterFromNumber(minColumn)
-                                            + ":" + XLHelper.GetColumnLetterFromNumber(maxColumn);
-                }
-
-                string titles;
-                if (definedNameTextColumn.Length > 0)
-                {
-                    titles = definedNameTextColumn;
-                    if (definedNameTextRow.Length > 0)
-                        titles += "," + definedNameTextRow;
-                }
-                else
-                    titles = definedNameTextRow;
-
-                if (titles.Length <= 0) continue;
-
-                var definedName2 = new DefinedName
-                {
-                    Name = "_xlnm.Print_Titles",
-                    LocalSheetId = sheetId,
-                    Text = titles
-                };
-
-                definedNames.AppendChild(definedName2);
-            }
-
-            foreach (var xlDefinedName in xlWorkbook.DefinedNamesInternal)
-            {
-                var definedName = new DefinedName
-                {
-                    Name = xlDefinedName.Name,
-                    Text = xlDefinedName.RefersTo
-                };
-
-                if (!xlDefinedName.Visible)
-                    definedName.Hidden = BooleanValue.FromBoolean(true);
-
-                if (!String.IsNullOrWhiteSpace(xlDefinedName.Comment))
-                    definedName.Comment = xlDefinedName.Comment;
-                definedNames.AppendChild(definedName);
-            }
-
-            workbook.DefinedNames = definedNames;
-
-            if (workbook.CalculationProperties == null)
-                workbook.CalculationProperties = new CalculationProperties { CalculationId = 125725U };
-
-            if (xlWorkbook.CalculateMode == XLCalculateMode.Default)
-                workbook.CalculationProperties.CalculationMode = null;
-            else
-                workbook.CalculationProperties.CalculationMode = xlWorkbook.CalculateMode.ToOpenXml();
-
-            if (xlWorkbook.ReferenceStyle == XLReferenceStyle.Default)
-                workbook.CalculationProperties.ReferenceMode = null;
-            else
-                workbook.CalculationProperties.ReferenceMode = xlWorkbook.ReferenceStyle.ToOpenXml();
-
-            if (xlWorkbook.CalculationOnSave) workbook.CalculationProperties.CalculationOnSave = xlWorkbook.CalculationOnSave;
-            if (xlWorkbook.ForceFullCalculation) workbook.CalculationProperties.ForceFullCalculation = xlWorkbook.ForceFullCalculation;
-            if (xlWorkbook.FullCalculationOnLoad) workbook.CalculationProperties.FullCalculationOnLoad = xlWorkbook.FullCalculationOnLoad;
-            if (xlWorkbook.FullPrecision) workbook.CalculationProperties.FullPrecision = xlWorkbook.FullPrecision;
+                XLWorksheetVisibility.Visible => null,
+                XLWorksheetVisibility.Hidden => "hidden",
+                XLWorksheetVisibility.VeryHidden => "veryHidden",
+                _ => throw new ArgumentOutOfRangeException(nameof(workbook), "Invalid worksheet visibility.")
+            });
+            sheet.SetAttributeValue(relationship, id);
+            ordered.Add(worksheet.Position, sheet);
         }
 
+        sheets.Elements(ns + "sheet").Remove();
+        sheets.Add(ordered.Values);
+        WriteView(root, workbook, ordered.Values);
+        WriteDefinedNames(root, workbook, ordered.Values);
+        WriteCalculation(root, workbook);
+    }
+
+    internal static void WritePivotCaches(XElement root, IReadOnlyList<XLPivotCache> caches)
+    {
+        var ns = root.Name.Namespace;
+        root.Element(ns + "pivotCaches")?.Remove();
+        if (caches.Count == 0)
+            return;
+
+        var list = GetOrAdd(root, "pivotCaches");
+        var relationship = RelationshipId(root);
+        for (var index = 0; index < caches.Count; index++)
+        {
+            var cache = caches[index];
+            cache.CacheId = (uint)index;
+            var id = cache.WorkbookCacheRelId ?? throw new InvalidOperationException("A pivot cache has no workbook relationship.");
+            list.Add(new XElement(ns + "pivotCache", new XAttribute("cacheId", cache.CacheId), new XAttribute(relationship, id)));
+        }
+    }
+
+    private static void WriteProtection(XElement root, XLWorkbook workbook)
+    {
+        var protection = workbook.Protection;
+        if (!protection.IsProtected)
+        {
+            root.Element(root.Name.Namespace + "workbookProtection")?.Remove();
+            return;
+        }
+
+        var element = GetOrAdd(root, "workbookProtection");
+        var simpleHash = protection.Algorithm == XLProtectionAlgorithm.Algorithm.SimpleHash;
+        element.SetAttributeValue("workbookPassword", simpleHash && !string.IsNullOrWhiteSpace(protection.PasswordHash) ? protection.PasswordHash : null);
+        element.SetAttributeValue("lockStructure", protection.AllowedElements.HasFlag(XLWorkbookProtectionElements.Structure) ? null : "1");
+        element.SetAttributeValue("lockWindows", protection.AllowedElements.HasFlag(XLWorkbookProtectionElements.Windows) ? null : "1");
+        element.SetAttributeValue("workbookAlgorithmName", simpleHash ? null : DescribedEnumParser<XLProtectionAlgorithm.Algorithm>.ToDescription(protection.Algorithm));
+        element.SetAttributeValue("workbookHashValue", simpleHash ? null : protection.PasswordHash);
+        element.SetAttributeValue("workbookSaltValue", simpleHash ? null : protection.Base64EncodedSalt);
+        element.SetAttributeValue("workbookSpinCount", simpleHash ? null : protection.SpinCount);
+    }
+
+    private static void WriteView(XElement root, XLWorkbook workbook, IEnumerable<XElement> sheets)
+    {
+        var unsupported = workbook.UnsupportedSheets.Select(sheet => sheet.SheetId).ToHashSet();
+        var firstVisible = sheets.Select(WorkbookXml.ReadSheet).Where(sheet => !unsupported.Contains(sheet.SheetId))
+            .TakeWhile(sheet => sheet.Visibility != XLWorksheetVisibility.Visible).Count();
+        var active = workbook.UnsupportedSheets.Where(sheet => sheet.IsActive).Select(sheet => (int?)sheet.Position - 1).FirstOrDefault();
+        if (!active.HasValue)
+        {
+            var worksheets = workbook.WorksheetsInternal.Cast<XLWorksheet>();
+            active = (worksheets.FirstOrDefault(sheet => sheet.TabActive)?.Position - 1)
+                ?? (worksheets.LastOrDefault(sheet => sheet.TabSelected)?.Position - 1)
+                ?? firstVisible;
+        }
+
+        var bookViews = GetOrAdd(root, "bookViews");
+        var name = root.Name.Namespace + "workbookView";
+        var view = bookViews.Element(name);
+        if (view is null)
+        {
+            view = new XElement(name);
+            bookViews.Add(view);
+        }
+
+        view.SetAttributeValue("firstSheet", firstVisible);
+        view.SetAttributeValue("activeTab", active);
+    }
+
+    private static void WriteDefinedNames(XElement root, XLWorkbook workbook, IEnumerable<XElement> sheets)
+    {
+        var ns = root.Name.Namespace;
+        var indexes = sheets.Select((sheet, index) => (Sheet: WorkbookXml.ReadSheet(sheet), Index: index))
+            .ToDictionary(item => item.Sheet.SheetId, item => item.Index);
+        var names = GetOrAdd(root, "definedNames");
+        names.Elements(ns + "definedName").Remove();
+        foreach (var worksheet in workbook.WorksheetsInternal.Cast<XLWorksheet>())
+        {
+            var sheetIndex = indexes[worksheet.SheetId];
+            var prefix = worksheet.Name.EscapeSheetName() + "!";
+            var setup = worksheet.PageSetup;
+            if (setup.PrintAreas.Any())
+                AddName("_xlnm.Print_Area", string.Join(",", setup.PrintAreas.Select(range => prefix + FixedRange(range.RangeAddress))), sheetIndex);
+
+            if (worksheet.AutoFilter.IsEnabled)
+                AddName("_xlnm._FilterDatabase", prefix + FixedRange(worksheet.AutoFilter.Range.RangeAddress), sheetIndex, hidden: true);
+
+            foreach (var name in worksheet.DefinedNames.Cast<XLDefinedName>().Where(name => name.Name != "_xlnm._FilterDatabase"))
+                AddName(name.Name, name.ToString(), sheetIndex, !name.Visible, name.Comment);
+
+            var titles = new List<string>(2);
+            if (setup.FirstColumnToRepeatAtLeft > 0)
+                titles.Add(prefix + XLHelper.GetColumnLetterFromNumber(setup.FirstColumnToRepeatAtLeft) + ":" + XLHelper.GetColumnLetterFromNumber(setup.LastColumnToRepeatAtLeft));
+            if (setup.FirstRowToRepeatAtTop > 0)
+                titles.Add(prefix + FormattableString.Invariant($"{setup.FirstRowToRepeatAtTop}:{setup.LastRowToRepeatAtTop}"));
+            if (titles.Count > 0)
+                AddName("_xlnm.Print_Titles", string.Join(",", titles), sheetIndex);
+        }
+
+        foreach (var name in workbook.DefinedNamesInternal)
+            AddName(name.Name, name.RefersTo, hidden: !name.Visible, comment: name.Comment);
+
+        void AddName(string name, string text, int? sheetIndex = null, bool hidden = false, string? comment = null)
+        {
+            names.Add(new XElement(ns + "definedName", new XAttribute("name", name),
+                string.IsNullOrWhiteSpace(comment) ? null : new XAttribute("comment", comment),
+                sheetIndex.HasValue ? new XAttribute("localSheetId", sheetIndex.Value) : null,
+                hidden ? new XAttribute("hidden", "1") : null, text));
+        }
+
+        static string FixedRange(IXLRangeAddress range) => range.FirstAddress.ToStringFixed(XLReferenceStyle.A1) + ":" + range.LastAddress.ToStringFixed(XLReferenceStyle.A1);
+    }
+
+    private static void WriteCalculation(XElement root, XLWorkbook workbook)
+    {
+        var calculation = root.Element(root.Name.Namespace + "calcPr");
+        if (calculation is null)
+        {
+            calculation = GetOrAdd(root, "calcPr");
+            calculation.SetAttributeValue("calcId", 125725);
+        }
+
+        calculation.SetAttributeValue("calcMode", workbook.CalculateMode switch
+        {
+            XLCalculateMode.Default => null,
+            XLCalculateMode.Auto => "auto",
+            XLCalculateMode.AutoNoTable => "autoNoTable",
+            XLCalculateMode.Manual => "manual",
+            _ => throw new ArgumentOutOfRangeException(nameof(workbook), "Invalid workbook calculation mode.")
+        });
+        calculation.SetAttributeValue("refMode", workbook.ReferenceStyle switch
+        {
+            XLReferenceStyle.Default => null,
+            XLReferenceStyle.A1 => "A1",
+            XLReferenceStyle.R1C1 => "R1C1",
+            _ => throw new ArgumentOutOfRangeException(nameof(workbook), "Invalid workbook reference style.")
+        });
+        if (workbook.FullCalculationOnLoad) calculation.SetAttributeValue("fullCalcOnLoad", "1");
+        if (workbook.FullPrecision) calculation.SetAttributeValue("fullPrecision", "1");
+        if (workbook.CalculationOnSave) calculation.SetAttributeValue("calcOnSave", "1");
+        if (workbook.ForceFullCalculation) calculation.SetAttributeValue("forceFullCalc", "1");
+    }
+
+    private static XName RelationshipId(XElement root) => XName.Get("id",
+        root.Name.NamespaceName == OpenXmlConst.StrictSpreadsheetNs ? OpenXmlConst.StrictRelationshipsNs : OpenXmlConst.RelationshipsNs);
+
+    private static XElement GetOrAdd(XElement root, string localName)
+    {
+        var ns = root.Name.Namespace;
+        var existing = root.Element(ns + localName);
+        if (existing is not null)
+            return existing;
+
+        var position = Array.IndexOf(ChildOrder, localName);
+        var next = root.Elements().FirstOrDefault(element => element.Name.Namespace == ns && Array.IndexOf(ChildOrder, element.Name.LocalName) > position);
+        var added = new XElement(ns + localName);
+        if (next is null)
+            root.Add(added);
+        else
+            next.AddBeforeSelf(added);
+        return added;
     }
 }

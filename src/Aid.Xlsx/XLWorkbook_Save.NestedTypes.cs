@@ -20,7 +20,6 @@ namespace Aid.Xlsx
                 RelIdGenerator = new RelIdGenerator();
                 TableId = 0;
                 TableNames = new HashSet<String>();
-                PivotSourceCacheId = 0;
             }
 
             public RelIdGenerator RelIdGenerator { get; }
@@ -46,7 +45,6 @@ namespace Aid.Xlsx
             /// The <c>PivotCaches</c> element in a workbook connects the parts with pivot
             /// cache parts.
             /// </summary>
-            public uint PivotSourceCacheId { get; set; }
 
             /// <summary>
             /// A map of shared string ids. The index is the actual index from sharedStringId and

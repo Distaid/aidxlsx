@@ -107,57 +107,18 @@ namespace Aid.Xlsx
             output.CopyTo(stream);
         }
 
-        // http://blogs.msdn.com/b/vsod/archive/2010/02/05/how-to-delete-a-worksheet-from-excel-using-open-xml-sdk-2-0.aspx
-        private void DeleteSheetAndDependencies(WorkbookPart wbPart, string sheetId)
+        private static void DeleteSheetAndDependencies(WorkbookPart workbookPart, WorksheetPart worksheetPart, string sheetName)
         {
-            //Get the SheetToDelete from workbook.xml
-            Sheet worksheet = wbPart.Workbook.Descendants<Sheet>().FirstOrDefault(s => s.Id == sheetId);
-            if (worksheet == null)
-                return;
-
-            string sheetName = worksheet.Name;
-            // Get the pivot Table Parts
-            var pvtTableCacheParts = wbPart.PivotTableCacheDefinitionParts;
-            var pvtTableCacheDefinitionPart = new Dictionary<PivotTableCacheDefinitionPart, string>();
-            foreach (PivotTableCacheDefinitionPart Item in pvtTableCacheParts)
+            if (sheetName is not null)
             {
-                PivotCacheDefinition pvtCacheDef = Item.PivotCacheDefinition;
-                //Check if this CacheSource is linked to SheetToDelete
-                if (pvtCacheDef.Descendants<CacheSource>().Any(cacheSource => cacheSource.WorksheetSource?.Sheet == sheetName))
-                {
-                    pvtTableCacheDefinitionPart.Add(Item, Item.ToString());
-                }
-            }
-            foreach (var Item in pvtTableCacheDefinitionPart)
-            {
-                wbPart.DeletePart(Item.Key);
+                var cachesFromDeletedSheet = workbookPart.PivotTableCacheDefinitionParts
+                    .Where(part => part.PivotCacheDefinition.CacheSource?.WorksheetSource?.Sheet == sheetName)
+                    .ToList();
+                foreach (var cache in cachesFromDeletedSheet)
+                    workbookPart.DeletePart(cache);
             }
 
-            // Remove the sheet reference from the workbook.
-            WorksheetPart worksheetPart = (WorksheetPart)(wbPart.GetPartById(sheetId));
-            worksheet.Remove();
-
-            // Delete the worksheet part.
-            wbPart.DeletePart(worksheetPart);
-
-            //Get the DefinedNames
-            var definedNames = wbPart.Workbook.Descendants<DefinedNames>().FirstOrDefault();
-            if (definedNames != null)
-            {
-                List<DefinedName> defNamesToDelete = new List<DefinedName>();
-
-                foreach (var Item in definedNames.OfType<DefinedName>())
-                {
-                    // This condition checks to delete only those names which are part of Sheet in question
-                    if (Item.Text.Contains(worksheet.Name + "!"))
-                        defNamesToDelete.Add(Item);
-                }
-
-                foreach (DefinedName Item in defNamesToDelete)
-                {
-                    Item.Remove();
-                }
-            }
+            workbookPart.DeletePart(worksheetPart);
         }
 
         // Adds child parts and generates content of the specified part.
@@ -166,21 +127,19 @@ namespace Aid.Xlsx
             var context = new SaveContext();
 
             var workbookPart = document.WorkbookPart ?? document.AddWorkbookPart();
+            XElement workbookRoot;
+            using (var existing = workbookPart.GetStream(FileMode.OpenOrCreate, FileAccess.Read))
+                workbookRoot = existing.Length == 0 ? WorkbookPartWriter.CreateRoot() : WorkbookXml.ReadRoot(existing);
 
             var worksheets = WorksheetsInternal;
-
             var partsToRemove = workbookPart.Parts.Where(s => worksheets.Deleted.Contains(s.RelationshipId)).ToList();
-
-            var pivotCacheDefinitionsToRemove = partsToRemove.SelectMany(s => ((WorksheetPart)s.OpenXmlPart).PivotTableParts.Select(pt => pt.PivotTableCacheDefinitionPart)).Distinct().ToList();
-            pivotCacheDefinitionsToRemove.ForEach(c => workbookPart.DeletePart(c));
-
-            if (workbookPart.Workbook != null && workbookPart.Workbook.PivotCaches != null)
+            var originalSheets = workbookRoot.Element(workbookRoot.Name.Namespace + "sheets")?.Elements(workbookRoot.Name.Namespace + "sheet")
+                .Select(WorkbookXml.ReadSheet).Where(sheet => !string.IsNullOrEmpty(sheet.Id)).ToDictionary(sheet => sheet.Id) ?? [];
+            foreach (var part in partsToRemove)
             {
-                var pivotCachesToRemove = workbookPart.Workbook.PivotCaches.Where(pc => pivotCacheDefinitionsToRemove.Select(pcd => workbookPart.GetIdOfPart(pcd)).ToList().Contains(((PivotCache)pc).Id)).Distinct().ToList();
-                pivotCachesToRemove.ForEach(c => workbookPart.Workbook.PivotCaches.RemoveChild(c));
+                if (part.OpenXmlPart is WorksheetPart worksheetPart)
+                    DeleteSheetAndDependencies(workbookPart, worksheetPart, originalSheets.GetValueOrDefault(part.RelationshipId).Name);
             }
-
-            worksheets.Deleted.ToList().ForEach(ws => DeleteSheetAndDependencies(workbookPart, ws));
 
             // Ensure all RelId's have been added to the context
             context.RelIdGenerator.AddExistingValues(workbookPart, this);
@@ -188,7 +147,7 @@ namespace Aid.Xlsx
             // Keep existing relationship numbering while the workbook and root parts share an ID generator.
             var newExtendedRelationshipId = hasExtendedProperties ? null : context.RelIdGenerator.GetNext(RelType.Workbook);
 
-            WorkbookPartWriter.GenerateContent(workbookPart, this, options, context);
+            WorkbookPartWriter.GenerateContent(workbookRoot, this, options, context);
 
             var workbookStylesPart = workbookPart.WorkbookStylesPart ??
                                      workbookPart.AddNewPart<WorkbookStylesPart>(
@@ -211,7 +170,7 @@ namespace Aid.Xlsx
 
             foreach (var relId in cacheRelIds)
             {
-                if (workbookPart.GetPartById(relId) is PivotTableCacheDefinitionPart pivotTableCacheDefinitionPart)
+                if (workbookPart.TryGetPartById(relId, out var part) && part is PivotTableCacheDefinitionPart pivotTableCacheDefinitionPart)
                     pivotTableCacheDefinitionPart.PivotCacheDefinition.CacheFields.RemoveAllChildren();
             }
 
@@ -222,6 +181,9 @@ namespace Aid.Xlsx
             // ids are set (in this case `Workbook.PivotCaches` relationship table).
             // Only sources that are used by a table are saved.
             SynchronizePivotTableParts(workbookPart, allPivotTables, context);
+            WorkbookPartWriter.WritePivotCaches(workbookRoot, allPivotTables.Select(table => table.PivotCache).Distinct().Cast<XLPivotCache>().ToList());
+            using (var target = workbookPart.GetStream(FileMode.Create, FileAccess.Write))
+                new XDocument(workbookRoot).Save(target, System.Xml.Linq.SaveOptions.DisableFormatting);
 
             // Phase 2 - All parts and relationships are set, fill in the parts.
             if (allPivotTables.Any())
@@ -359,36 +321,6 @@ namespace Aid.Xlsx
             RemoveUnusedPivotCacheDefinitionParts(workbookPart, allPivotTables);
             AddUsedPivotCacheDefinitionParts(workbookPart, allPivotTables, context);
 
-            // Ensure this in workbook.xml:
-            //  <pivotCaches>
-            //    <pivotCache cacheId="13" r:id="rId3"/>
-            //  </pivotCaches>
-
-            context.PivotSourceCacheId = 0;
-            var xlUsedCaches = allPivotTables.Select(pt => pt.PivotCache).Distinct().Cast<XLPivotCache>().ToList();
-            if (xlUsedCaches.Any())
-            {
-                // Recreate the workbook pivot cache references to remove previous gunk
-                var pivotCaches = new PivotCaches();
-                workbookPart.Workbook.PivotCaches = pivotCaches;
-
-                foreach (var source in xlUsedCaches)
-                {
-                    var cacheId = context.PivotSourceCacheId++;
-                    source.CacheId = cacheId;
-                    var pivotCache = new PivotCache { CacheId = cacheId, Id = source.WorkbookCacheRelId };
-                    pivotCaches.AppendChild(pivotCache);
-                }
-            }
-            else
-            {
-                // Remove empty pivot cache part
-                if (workbookPart.Workbook.PivotCaches is not null)
-                {
-                    workbookPart.Workbook.RemoveChild(workbookPart.Workbook.PivotCaches);
-                }
-            }
-
             // Remove pivot cache parts that are a part of the loaded document, but aren't used by a pivot table of the xlWorkbook
             // part of the first phase of saving
             static void RemoveUnusedPivotCacheDefinitionParts(WorkbookPart workbookPart, IReadOnlyList<IXLPivotTable> allPivotTables)
@@ -409,14 +341,6 @@ namespace Aid.Xlsx
                     workbookPart.DeletePart(orphanPart);
                 }
 
-                // Remove deleted pivot cache parts
-                if (workbookPart.Workbook.PivotCaches is not null)
-                {
-                    workbookPart.Workbook.PivotCaches.Elements<PivotCache>()
-                        .Where(pc => !workbookPart.HasPartWithId(pc.Id))
-                        .ToList()
-                        .ForEach(pc => pc.Remove());
-                }
             }
 
             static void AddUsedPivotCacheDefinitionParts(WorkbookPart workbookPart, IReadOnlyList<IXLPivotTable> allPivotTables, SaveContext context)
@@ -446,7 +370,6 @@ namespace Aid.Xlsx
             var xlPivotCaches = pivotTables.Select(pt => pt.PivotCache).Distinct();
             foreach (var xlPivotCache in xlPivotCaches)
             {
-                Debug.Assert(workbookPart.Workbook.PivotCaches is not null);
                 Debug.Assert(!string.IsNullOrEmpty(xlPivotCache.WorkbookCacheRelId));
 
                 var pivotTableCacheDefinitionPart = (PivotTableCacheDefinitionPart)workbookPart.GetPartById(xlPivotCache.WorkbookCacheRelId);
