@@ -19,6 +19,7 @@
 + workbook.MappedDataExtensions method public static workbook.IXlsxTable InsertMappedTable<!!0>(workbook.IXlsxCell cell, System.Collections.Generic.IEnumerable`1<!!0?> data, System.String? tableName = null) [!!0 0 ] [ExtensionAttribute()]
 + workbook.TableMapperRegistry method public static System.Void Register<!!0>(System.String? tableName, System.String[] headers, System.String?[] formats, System.Func`3<!!0?,System.Int32,workbook.XlsxCellValue> read) [!!0 0 ]
 + workbook.XlsConverter method public static System.Void Convert(System.IO.Stream source, System.IO.Stream destination)
++ workbook.XlsConverter method public static System.Void Convert(System.String sourcePath)
 + workbook.XlsConverter method public static System.Void Convert(System.String sourcePath, System.String destinationPath)
 + workbook.XlsxColor method public virtual System.Boolean Equals(System.Object? obj)
 + workbook.XlsxColor method public virtual final System.Boolean Equals(workbook.XlsxColor? other)

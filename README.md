@@ -50,14 +50,14 @@ internal record Sale(string Item, [property: XlsxColumn(Format = "0.00")] decima
 ```csharp
 using Aid.Xlsx.Conversion;
 
-XlsConverter.Convert("legacy.xls", "converted.xlsx");
+XlsConverter.Convert("legacy.xls"); // Writes legacy.xlsx next to legacy.xls.
 ```
 
-The converter reads BIFF8 directly and also accepts streams. It carries over worksheet
-values, cell formatting, row and column dimensions, visibility, and merged cells. It preserves
-formulas that use supported operators, references within the workbook, and common worksheet functions,
-along with their cached results. Other formulas become static values. See the compatibility
-guide for conversion limits.
+The converter reads BIFF8 directly. You can also specify a destination path or pass streams.
+It carries over worksheet values, cell formatting, row and column dimensions, visibility, and
+merged cells. It preserves formulas that use supported operators, references within the workbook,
+and common worksheet functions, along with their cached results. Other formulas become static
+values. See the compatibility guide for conversion limits.
 
 ## Repository layout
 

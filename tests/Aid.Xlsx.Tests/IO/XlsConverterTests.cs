@@ -145,6 +145,32 @@ public class XlsConverterTests
     }
 
     [Test]
+    public void ConvertsToAnXlsxWithTheSameBaseNameInTheSourceDirectory()
+    {
+        var directory = Directory.CreateTempSubdirectory("aidxlsx-conversion-");
+        try
+        {
+            var sourcePath = Path.Combine(directory.FullName, "quarter.1.XLS");
+            var destinationPath = Path.Combine(directory.FullName, "quarter.1.xlsx");
+            using (var fixture = OpenFixture())
+            using (var file = File.Create(sourcePath))
+                fixture.CopyTo(file);
+
+            File.WriteAllText(destinationPath, "Existing file");
+
+            XlsConverter.Convert(sourcePath);
+
+            using var workbook = new XlsxWorkbook(destinationPath);
+            Assert.That(workbook.Worksheet("Hidden").Cell("A1").GetDouble(), Is.EqualTo(42));
+            Assert.That(File.Exists(sourcePath), Is.True);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Test]
     public void UsesTheSourceStreamPosition()
     {
         using var fixture = OpenFixture();

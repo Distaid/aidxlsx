@@ -7,6 +7,14 @@ namespace Aid.Xlsx.Conversion;
 /// <remarks>Imports cell values, supported formulas and cached results, cell formatting, dimensions, visibility, and merged cells.</remarks>
 public static class XlsConverter
 {
+    /// <summary>Converts a BIFF8 file to an XLSX file with the same base name in the same directory.</summary>
+    /// <remarks>Replaces an existing destination after the conversion succeeds.</remarks>
+    public static void Convert(string sourcePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
+        Convert(sourcePath, Path.ChangeExtension(sourcePath, ".xlsx"));
+    }
+
     /// <summary>Converts an existing BIFF8 file to an XLSX file at a different path.</summary>
     public static void Convert(string sourcePath, string destinationPath)
     {
