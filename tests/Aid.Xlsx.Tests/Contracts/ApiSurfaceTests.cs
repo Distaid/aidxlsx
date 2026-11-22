@@ -1,0 +1,20 @@
+using NUnit.Framework;
+using Aid.Xlsx.Model.Workbooks;
+
+namespace Aid.Xlsx.Tests.Contracts;
+
+public class ApiSurfaceTests
+{
+    [Test]
+    public void LibraryExportsOnlyDomainTypesWithCurrentNames()
+    {
+        var legacyTypes = typeof(XlsxWorkbook).Assembly.GetExportedTypes()
+            .Where(type => type.Namespace == "Aid.Xlsx" ||
+                           type.Name.StartsWith("XL", StringComparison.Ordinal) ||
+                           type.Name.StartsWith("IXL", StringComparison.Ordinal) ||
+                           type.Name.StartsWith("ClosedXML", StringComparison.Ordinal))
+            .Select(type => type.FullName);
+
+        Assert.That(legacyTypes, Is.Empty);
+    }
+}

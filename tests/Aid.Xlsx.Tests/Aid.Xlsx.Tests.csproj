@@ -21,7 +21,7 @@
   <ItemGroup>
     <EmbeddedResource Include="**\*.xlsx" Exclude="**\~$*.xlsx;bin\**" />
     <EmbeddedResource Include="**\*.xlsm" Exclude="**\~$*.xlsm;bin\**" />
-    <EmbeddedResource Include="IO\biff8-*.xls" />
+    <EmbeddedResource Include="Resource\Biff8\*.xls" />
     <EmbeddedResource Include="Resource\Images\**\*.*" />
     <EmbeddedResource Include="Resource\Fonts\*.*" />
     <EmbeddedResource Include="Resource\Other\**\*.txt" />
@@ -48,6 +48,7 @@
   <ItemGroup>
     <!-- Custom global usings added in the csproj file -->
     <Using Include="NUnit.Framework.Legacy" />
+    <Using Include="Aid.Xlsx.Tests.TestSupport" />
   </ItemGroup>
 
   <ItemGroup>
