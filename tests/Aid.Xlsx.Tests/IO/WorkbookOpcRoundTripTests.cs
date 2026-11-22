@@ -1,6 +1,8 @@
 using System.Text;
 using System.Xml.Linq;
+using Aid.Xlsx.DataValidation;
 using Aid.Xlsx.Opc;
+using Aid.Xlsx.PageSetup;
 using Aid.Xlsx.Styles.Colors;
 using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
@@ -40,9 +42,13 @@ public sealed class WorkbookOpcRoundTripTests
                 """));
             worksheet.ReplaceContent(Encoding.UTF8.GetBytes($"""
                 <worksheet xmlns="{spreadsheetNamespace}">
+                  <sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>
+                  <sheetViews><sheetView showGridLines="0" workbookViewId="0"><pane xSplit="2" ySplit="1" state="frozen"/></sheetView></sheetViews>
                   <sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>abc</t></is></c></row></sheetData>
                   <mergeCells><mergeCell ref="A1:B1"/></mergeCells>
+                  <dataValidations count="1"><dataValidation type="whole" operator="greaterThanOrEqual" sqref="C1"><formula1>10</formula1></dataValidation></dataValidations>
                   <pageMargins left="0.4" right="0.5" top="0.6" bottom="0.7" header="0.2" footer="0.3"/>
+                  <pageSetup orientation="landscape" fitToWidth="2" fitToHeight="3"/>
                 </worksheet>
                 """));
             package.Save(updated);
@@ -60,8 +66,18 @@ public sealed class WorkbookOpcRoundTripTests
         Assert.That(name.Visible, Is.False);
         var sheet = loaded.Worksheet("Data");
         Assert.That(sheet.Cell("A1").GetString(), Is.EqualTo("abc"));
+        Assert.That(sheet.ShowGridLines, Is.False);
+        Assert.That(sheet.SheetView.SplitColumn, Is.EqualTo(2));
+        Assert.That(sheet.SheetView.SplitRow, Is.EqualTo(1));
         Assert.That(sheet.MergedRanges.Select(range => range.RangeAddress.ToString()), Is.EqualTo(new[] { "A1:B1" }));
+        var validation = sheet.Cell("C1").GetDataValidation();
+        Assert.That(validation.AllowedValues, Is.EqualTo(XlsxAllowedValues.WholeNumber));
+        Assert.That(validation.Operator, Is.EqualTo(XlsxOperator.EqualOrGreaterThan));
+        Assert.That(validation.MinValue, Is.EqualTo("10"));
         Assert.That(sheet.PageSetup.Margins.Left, Is.EqualTo(0.4));
+        Assert.That(sheet.PageSetup.PageOrientation, Is.EqualTo(XlsxPageOrientation.Landscape));
+        Assert.That(sheet.PageSetup.PagesWide, Is.EqualTo(2));
+        Assert.That(sheet.PageSetup.PagesTall, Is.EqualTo(3));
     }
 
     [Test]

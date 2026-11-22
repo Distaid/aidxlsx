@@ -176,7 +176,7 @@ internal static class ConditionalFormattingXml
         }
 
         foreach (var color in source.Elements(ns + "color"))
-            format.Colors.Add(ReadColor(color));
+            format.Colors.Add(SpreadsheetColorXml.Read(color));
     }
 
     internal static void LoadDataBarExtensions(XElement source, XlsxWorksheet worksheet)
@@ -189,20 +189,8 @@ internal static class ConditionalFormattingXml
                 continue;
 
             var format = worksheet.ConditionalFormats.SingleOrDefault<XlsxConditionalFormat>(candidate => candidate.Id == id);
-            format?.Colors.Add(ReadColor(negativeFill));
+            format?.Colors.Add(SpreadsheetColorXml.Read(negativeFill));
         }
-    }
-
-    private static XlsxColor ReadColor(XElement color)
-    {
-        if ((string?)color.Attribute("rgb") is { } rgb)
-            return XlsxColor.FromColor(ColorStringParser.ParseFromArgb(rgb.AsSpan()));
-        if ((uint?)color.Attribute("indexed") is <= 64 and { } indexed)
-            return XlsxColor.FromIndex((int)indexed);
-        if ((uint?)color.Attribute("theme") is { } theme)
-            return XlsxColor.FromTheme((XlsxThemeColor)theme, (double?)color.Attribute("tint") ?? 0);
-
-        return XlsxColor.Automatic;
     }
 
     internal static XElement WriteGroup(string references, bool pivot, IEnumerable<XlsxConditionalFormat> formats, XlsxWorkbook.SaveContext context)

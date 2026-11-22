@@ -207,8 +207,11 @@ namespace Aid.Xlsx.Workbooks
                     continue;
                 }
 
-                var worksheetPartReader = new WorksheetPartReader();
-                worksheetPartReader.LoadWorksheet(ws, worksheetPart, sst, context);
+                using (var worksheetStream = worksheetPart.GetStream(FileMode.Open, FileAccess.Read))
+                {
+                    var hyperlinks = worksheetPart.HyperlinkRelationships.ToDictionary(relationship => relationship.Id, relationship => relationship.Uri);
+                    WorksheetPartReader.LoadWorksheet(ws, worksheetStream, hyperlinks, sst, context);
+                }
 
                 ws.ConditionalFormats.ReorderAccordingToOriginalPriority();
 

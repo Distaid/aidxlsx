@@ -1,39 +1,36 @@
 using System.Globalization;
-using System.Xml.Linq;
 using System.Xml;
+using System.Xml.Linq;
 using Aid.Xlsx.CalcEngine;
 using Aid.Xlsx.Cells;
 using Aid.Xlsx.Columns;
 using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.DataValidation;
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Hyperlinks;
 using Aid.Xlsx.Opc;
 using Aid.Xlsx.PageSetup;
 using Aid.Xlsx.Protection;
 using Aid.Xlsx.Sparklines;
-using Aid.Xlsx.Styles.Colors;
 using Aid.Xlsx.Styles;
+using Aid.Xlsx.Styles.Colors;
 using Aid.Xlsx.Utils;
 using Aid.Xlsx.Worksheets;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Spreadsheet;
-using DocumentFormat.OpenXml;
-using SpreadsheetColumns = DocumentFormat.OpenXml.Spreadsheet.Columns;
-using SpreadsheetDataValidation = DocumentFormat.OpenXml.Spreadsheet.DataValidation;
-using SpreadsheetHyperlinks = DocumentFormat.OpenXml.Spreadsheet.Hyperlinks;
 using StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.RichText.XlsxImmutableRichText>;
-using X14 = DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace Aid.Xlsx.Internal.IO;
 
 #nullable disable
 
-internal class WorksheetPartReader
+internal static class WorksheetPartReader
 {
-    internal void LoadWorksheet(XlsxWorksheet ws, WorksheetPart worksheetPart, List<StringItem> sst, LoadContext context)
+    private static readonly XNamespace Extended = OpenXmlConst.X14Main2009SsNs;
+    private static readonly XNamespace Excel = OpenXmlConst.XmMain2006;
+
+    internal static void LoadWorksheet(XlsxWorksheet ws, Stream stream, IReadOnlyDictionary<string, Uri> hyperlinks,
+        List<StringItem> sst, LoadContext context)
     {
-        PageSetupProperties pageSetupProperties = null;
-        using var stream = worksheetPart.GetStream(FileMode.Open, FileAccess.Read);
+        var fitToPage = false;
         using var reader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
         if (reader.MoveToContent() != XmlNodeType.Element)
             throw new InvalidDataException("The worksheet part is empty.");
@@ -66,21 +63,20 @@ internal class WorksheetPartReader
                 continue;
             }
 
-            // Keep the cell stream independent of the DOM used by the remaining worksheet metadata handlers.
             switch (reader.LocalName)
             {
                 case "sheetFormatPr":
                     LoadSheetFormat((XElement)XNode.ReadFrom(reader), ws);
                     break;
                 case "sheetViews":
-                    LoadSheetViews(new SheetViews(reader.ReadOuterXml()), ws);
+                    LoadSheetViews((XElement)XNode.ReadFrom(reader), ws);
                     break;
                 case "mergeCells":
-                    foreach (var cell in new MergeCells(reader.ReadOuterXml()).Elements<MergeCell>())
-                        ws.Range(cell.Reference).Merge(false);
+                    foreach (var merge in ((XElement)XNode.ReadFrom(reader)).Elements(XName.Get("mergeCell", ns)))
+                        ws.Range((string)merge.Attribute("ref")).Merge(false);
                     break;
                 case "cols":
-                    LoadColumns(ws, new SpreadsheetColumns(reader.ReadOuterXml()));
+                    LoadColumns(ws, (XElement)XNode.ReadFrom(reader));
                     break;
                 case "sheetData":
                     using (var subtree = reader.ReadSubtree())
@@ -95,13 +91,14 @@ internal class WorksheetPartReader
                     LoadSheetProtection((XElement)XNode.ReadFrom(reader), ws);
                     break;
                 case "dataValidations":
-                    LoadDataValidations(new DataValidations(reader.ReadOuterXml()), ws);
+                    foreach (var validation in ((XElement)XNode.ReadFrom(reader)).Elements(XName.Get("dataValidation", ns)))
+                        LoadDataValidation(validation, (string)validation.Attribute("sqref"), ws);
                     break;
                 case "conditionalFormatting":
                     ConditionalFormattingXml.Load((XElement)XNode.ReadFrom(reader), ws, context);
                     break;
                 case "hyperlinks":
-                    LoadHyperlinks(new SpreadsheetHyperlinks(reader.ReadOuterXml()), worksheetPart, ws);
+                    LoadHyperlinks((XElement)XNode.ReadFrom(reader), hyperlinks, ws);
                     break;
                 case "printOptions":
                     LoadPrintOptions((XElement)XNode.ReadFrom(reader), ws);
@@ -110,24 +107,24 @@ internal class WorksheetPartReader
                     LoadPageMargins((XElement)XNode.ReadFrom(reader), ws);
                     break;
                 case "pageSetup":
-                    LoadPageSetup((XElement)XNode.ReadFrom(reader), ws, pageSetupProperties);
+                    LoadPageSetup((XElement)XNode.ReadFrom(reader), ws, fitToPage);
                     break;
                 case "headerFooter":
-                    LoadHeaderFooter(new HeaderFooter(reader.ReadOuterXml()), ws);
+                    LoadHeaderFooter((XElement)XNode.ReadFrom(reader), ws);
                     break;
                 case "sheetPr":
-                    LoadSheetProperties(new SheetProperties(reader.ReadOuterXml()), ws, out pageSetupProperties);
+                    fitToPage = LoadSheetProperties((XElement)XNode.ReadFrom(reader), ws);
                     break;
                 case "rowBreaks":
-                    LoadRowBreaks(new RowBreaks(reader.ReadOuterXml()), ws);
+                    LoadBreaks((XElement)XNode.ReadFrom(reader), ws.PageSetup.RowBreaks);
                     break;
                 case "colBreaks":
-                    LoadColumnBreaks(new ColumnBreaks(reader.ReadOuterXml()), ws);
+                    LoadBreaks((XElement)XNode.ReadFrom(reader), ws.PageSetup.ColumnBreaks);
                     break;
                 case "extLst":
                     var extensions = (XElement)XNode.ReadFrom(reader);
                     ConditionalFormattingXml.LoadDataBarExtensions(extensions, ws);
-                    LoadExtensions(new WorksheetExtensionList(extensions.ToString(System.Xml.Linq.SaveOptions.DisableFormatting)), ws);
+                    LoadExtensions(extensions, ws);
                     break;
                 case "legacyDrawing":
                     ws.LegacyDrawingId = reader.GetAttribute("id", OpenXmlConst.RelationshipsNs)
@@ -154,49 +151,33 @@ internal class WorksheetPartReader
             ws.ColumnWidth = XlsxHelper.CalculateColumnWidth(baseWidth, ws.Style.Font, ws.Workbook);
     }
 
-    private static void LoadSheetProperties(SheetProperties sheetProperty, XlsxWorksheet ws, out PageSetupProperties pageSetupProperties)
+    private static bool LoadSheetProperties(XElement properties, XlsxWorksheet ws)
     {
-        pageSetupProperties = null;
-        if (sheetProperty == null) return;
+        var ns = properties.Name.Namespace;
+        if (properties.Element(ns + "tabColor") is { } tabColor)
+            ws.TabColor = SpreadsheetColorXml.Read(tabColor);
 
-        if (sheetProperty.TabColor != null)
-            ws.TabColor = sheetProperty.TabColor.ToXlsxColor();
+        var outline = properties.Element(ns + "outlinePr");
+        if ((bool?)outline?.Attribute("summaryBelow") is { } below)
+            ws.Outline.SummaryVLocation = below ? XlsxOutlineSummaryVLocation.Bottom : XlsxOutlineSummaryVLocation.Top;
+        if ((bool?)outline?.Attribute("summaryRight") is { } right)
+            ws.Outline.SummaryHLocation = right ? XlsxOutlineSummaryHLocation.Right : XlsxOutlineSummaryHLocation.Left;
 
-        if (sheetProperty.OutlineProperties != null)
-        {
-            if (sheetProperty.OutlineProperties.SummaryBelow != null)
-            {
-                ws.Outline.SummaryVLocation = sheetProperty.OutlineProperties.SummaryBelow
-                    ? XlsxOutlineSummaryVLocation.Bottom
-                    : XlsxOutlineSummaryVLocation.Top;
-            }
-
-            if (sheetProperty.OutlineProperties.SummaryRight != null)
-            {
-                ws.Outline.SummaryHLocation = sheetProperty.OutlineProperties.SummaryRight
-                    ? XlsxOutlineSummaryHLocation.Right
-                    : XlsxOutlineSummaryHLocation.Left;
-            }
-        }
-
-        if (sheetProperty.PageSetupProperties != null)
-            pageSetupProperties = sheetProperty.PageSetupProperties;
+        return (bool?)properties.Element(ns + "pageSetUpPr")?.Attribute("fitToPage") ?? false;
     }
 
-    private static void LoadColumns(XlsxWorksheet ws, SpreadsheetColumns columns)
+    private static void LoadColumns(XlsxWorksheet ws, XElement columns)
     {
-        if (columns == null) return;
+        var spans = columns.Elements(columns.Name.Namespace + "col");
+        var defaultColumn = spans.FirstOrDefault(col => (uint?)col.Attribute("max") == XlsxHelper.MaxColumnNumber);
 
-        var wsDefaultColumn =
-            columns.Elements<Column>().FirstOrDefault(c => c.Max == XlsxHelper.MaxColumnNumber);
-
-        if (wsDefaultColumn != null && wsDefaultColumn.Width != null)
-            ws.ColumnWidth = wsDefaultColumn.Width - XlsxConstants.ColumnWidthOffset;
+        if ((double?)defaultColumn?.Attribute("width") is { } defaultWidth)
+            ws.ColumnWidth = defaultWidth - XlsxConstants.ColumnWidthOffset;
 
         // Sheet doesn't have a format, only column spans have format. When whole sheet is selected
         // to change format, Excel will mark all cols spans as having a particular format. Format
         // is considered a sheet format when all columns have a format and it's in the last column.
-        var colSpanFormats = columns.Elements<Column>().Select(c => (MinColumn: c.Min?.Value, MaxColumn: c.Max?.Value, XfId: c.Style?.Value ?? 0)).ToArray();
+        var colSpanFormats = spans.Select(col => (MinColumn: (uint?)col.Attribute("min"), MaxColumn: (uint?)col.Attribute("max"), XfId: (uint?)col.Attribute("style") ?? 0)).ToArray();
         var allColsHaveFormat = colSpanFormats.Sum(x => x.MaxColumn - x.MinColumn + 1) == XlsxHelper.MaxColumnNumber;
         if (allColsHaveFormat)
         {
@@ -204,89 +185,68 @@ internal class WorksheetPartReader
             ApplyStyle(ws, checked((int)lastColumnXfId), ws.Workbook.Styles);
         }
 
-        foreach (Column col in columns.Elements<Column>())
+        foreach (var col in spans)
         {
-            //IXlsxStylized toApply;
-            if (col.Max == XlsxHelper.MaxColumnNumber) continue;
+            var max = (int)col.Attribute("max");
+            if (max == XlsxHelper.MaxColumnNumber)
+                continue;
 
-            var xlColumns = (XlsxColumns)ws.Columns(col.Min, col.Max);
-            if (col.Width != null)
-            {
-                Double width = col.Width - XlsxConstants.ColumnWidthOffset;
-                //if (width < 0) width = 0;
-                xlColumns.Width = width;
-            }
-            else
-                xlColumns.Width = ws.ColumnWidth;
-
-            if (col.Hidden != null && col.Hidden)
+            var xlColumns = (XlsxColumns)ws.Columns((int)col.Attribute("min"), max);
+            xlColumns.Width = (double?)col.Attribute("width") is { } width ? width - XlsxConstants.ColumnWidthOffset : ws.ColumnWidth;
+            if ((bool?)col.Attribute("hidden") == true)
                 xlColumns.Hide();
-
-            if (col.Collapsed != null && col.Collapsed)
+            if ((bool?)col.Attribute("collapsed") == true)
                 xlColumns.CollapseOnly();
-
-            if (col.OutlineLevel != null)
-            {
-                var outlineLevel = col.OutlineLevel;
+            if ((int?)col.Attribute("outlineLevel") is { } outlineLevel)
                 xlColumns.ForEach(c => c.OutlineLevel = outlineLevel);
-            }
-
-            if (col.Style?.Value is { } styleIndex)
-            {
+            if ((uint?)col.Attribute("style") is { } styleIndex)
                 ApplyStyle(xlColumns, checked((int)styleIndex), ws.Workbook.Styles);
-            }
         }
     }
 
-    private static void LoadSheetViews(SheetViews sheetViews, XlsxWorksheet ws)
+    private static void LoadSheetViews(XElement views, XlsxWorksheet ws)
     {
-        if (sheetViews == null) return;
+        var ns = views.Name.Namespace;
+        var view = views.Element(ns + "sheetView");
+        if (view is null)
+            return;
 
-        var sheetView = sheetViews.Elements<SheetView>().FirstOrDefault();
+        ws.RightToLeft = (bool?)view.Attribute("rightToLeft") ?? ws.RightToLeft;
+        ws.ShowFormulas = (bool?)view.Attribute("showFormulas") ?? ws.ShowFormulas;
+        ws.ShowGridLines = (bool?)view.Attribute("showGridLines") ?? ws.ShowGridLines;
+        ws.ShowOutlineSymbols = (bool?)view.Attribute("showOutlineSymbols") ?? ws.ShowOutlineSymbols;
+        ws.ShowRowColHeaders = (bool?)view.Attribute("showRowColHeaders") ?? ws.ShowRowColHeaders;
+        ws.ShowRuler = (bool?)view.Attribute("showRuler") ?? ws.ShowRuler;
+        ws.ShowWhiteSpace = (bool?)view.Attribute("showWhiteSpace") ?? ws.ShowWhiteSpace;
+        ws.ShowZeros = (bool?)view.Attribute("showZeros") ?? ws.ShowZeros;
+        ws.TabSelected = (bool?)view.Attribute("tabSelected") ?? ws.TabSelected;
 
-        if (sheetView == null) return;
+        var selection = view.Element(ns + "selection");
+        if ((string)selection?.Attribute("sqref") is { } references)
+            ws.Ranges(references.Replace(' ', ',')).Select();
+        if ((string)selection?.Attribute("activeCell") is { } activeCell)
+            ws.Cell(activeCell).SetActive();
 
-        if (sheetView.RightToLeft != null) ws.RightToLeft = sheetView.RightToLeft.Value;
-        if (sheetView.ShowFormulas != null) ws.ShowFormulas = sheetView.ShowFormulas.Value;
-        if (sheetView.ShowGridLines != null) ws.ShowGridLines = sheetView.ShowGridLines.Value;
-        if (sheetView.ShowOutlineSymbols != null)
-            ws.ShowOutlineSymbols = sheetView.ShowOutlineSymbols.Value;
-        if (sheetView.ShowRowColHeaders != null) ws.ShowRowColHeaders = sheetView.ShowRowColHeaders.Value;
-        if (sheetView.ShowRuler != null) ws.ShowRuler = sheetView.ShowRuler.Value;
-        if (sheetView.ShowWhiteSpace != null) ws.ShowWhiteSpace = sheetView.ShowWhiteSpace.Value;
-        if (sheetView.ShowZeros != null) ws.ShowZeros = sheetView.ShowZeros.Value;
-        if (sheetView.TabSelected != null) ws.TabSelected = sheetView.TabSelected.Value;
+        if ((uint?)view.Attribute("zoomScale") is { } zoom)
+            ws.SheetView.ZoomScale = unchecked((int)zoom);
+        if ((uint?)view.Attribute("zoomScaleNormal") is { } normalZoom)
+            ws.SheetView.ZoomScaleNormal = unchecked((int)normalZoom);
+        if ((uint?)view.Attribute("zoomScalePageLayoutView") is { } pageZoom)
+            ws.SheetView.ZoomScalePageLayoutView = unchecked((int)pageZoom);
+        if ((uint?)view.Attribute("zoomScaleSheetLayoutView") is { } sheetZoom)
+            ws.SheetView.ZoomScaleSheetLayoutView = unchecked((int)sheetZoom);
 
-        var selection = sheetView.Elements<Selection>().FirstOrDefault();
-        if (selection != null)
+        var pane = view.Element(ns + "pane");
+        if ((string)pane?.Attribute("state") is "frozen" or "frozenSplit")
         {
-            if (selection.SequenceOfReferences != null)
-                ws.Ranges(selection.SequenceOfReferences.InnerText.Replace(" ", ",")).Select();
-
-            if (selection.ActiveCell != null)
-                ws.Cell(selection.ActiveCell).SetActive();
+            if ((double?)pane.Attribute("xSplit") is { } xSplit)
+                ws.SheetView.SplitColumn = (int)xSplit;
+            if ((double?)pane.Attribute("ySplit") is { } ySplit)
+                ws.SheetView.SplitRow = (int)ySplit;
         }
 
-        if (sheetView.ZoomScale != null)
-            ws.SheetView.ZoomScale = (int)UInt32Value.ToUInt32(sheetView.ZoomScale);
-        if (sheetView.ZoomScaleNormal != null)
-            ws.SheetView.ZoomScaleNormal = (int)UInt32Value.ToUInt32(sheetView.ZoomScaleNormal);
-        if (sheetView.ZoomScalePageLayoutView != null)
-            ws.SheetView.ZoomScalePageLayoutView = (int)UInt32Value.ToUInt32(sheetView.ZoomScalePageLayoutView);
-        if (sheetView.ZoomScaleSheetLayoutView != null)
-            ws.SheetView.ZoomScaleSheetLayoutView = (int)UInt32Value.ToUInt32(sheetView.ZoomScaleSheetLayoutView);
-
-        var pane = sheetView.Elements<Pane>().FirstOrDefault();
-        if (new[] { PaneStateValues.Frozen, PaneStateValues.FrozenSplit }.Contains(pane?.State?.Value ?? PaneStateValues.Split))
-        {
-            if (pane.HorizontalSplit != null)
-                ws.SheetView.SplitColumn = (Int32)pane.HorizontalSplit.Value;
-            if (pane.VerticalSplit != null)
-                ws.SheetView.SplitRow = (Int32)pane.VerticalSplit.Value;
-        }
-
-        if (XlsxHelper.IsValidA1Address(sheetView.TopLeftCell))
-            ws.SheetView.TopLeftCellAddress = ws.Cell(sheetView.TopLeftCell.Value).Address;
+        if ((string)view.Attribute("topLeftCell") is { } topLeft && XlsxHelper.IsValidA1Address(topLeft))
+            ws.SheetView.TopLeftCellAddress = ws.Cell(topLeft).Address;
     }
 
     private static void LoadSheetProtection(XElement sp, XlsxWorksheet ws)
@@ -329,59 +289,75 @@ internal class WorksheetPartReader
         }
     }
 
-    /// <summary>
-    /// Loads the conditional formatting.
-    /// </summary>
-    // https://msdn.microsoft.com/en-us/library/documentformat.openxml.spreadsheet.conditionalformattingrule%28v=office.15%29.aspx?f=255&MSPPError=-2147217396
-    private static void LoadDataValidations(DataValidations dataValidations, XlsxWorksheet ws)
+    private static void LoadDataValidation(XElement validation, string references, XlsxWorksheet ws)
     {
-        if (dataValidations == null) return;
+        if (string.IsNullOrWhiteSpace(references))
+            return;
 
-        foreach (SpreadsheetDataValidation dvs in dataValidations.Elements<SpreadsheetDataValidation>())
+        var ns = validation.Name.Namespace;
+        foreach (var rangeAddress in references.Split((char[])null, StringSplitOptions.RemoveEmptyEntries))
         {
-            String txt = dvs.SequenceOfReferences.InnerText;
-            if (String.IsNullOrWhiteSpace(txt)) continue;
-            foreach (var rangeAddress in txt.Split(' '))
+            var rule = ws.DataValidations.Create(Area.Parse(rangeAddress));
+            rule.IgnoreBlanks = (bool?)validation.Attribute("allowBlank") ?? rule.IgnoreBlanks;
+            if ((bool?)validation.Attribute("showDropDown") is { } hideDropdown)
+                rule.InCellDropdown = !hideDropdown;
+            rule.ShowErrorMessage = (bool?)validation.Attribute("showErrorMessage") ?? rule.ShowErrorMessage;
+            rule.ShowInputMessage = (bool?)validation.Attribute("showInputMessage") ?? rule.ShowInputMessage;
+            rule.InputTitle = (string)validation.Attribute("promptTitle") ?? rule.InputTitle;
+            rule.InputMessage = (string)validation.Attribute("prompt") ?? rule.InputMessage;
+            rule.ErrorTitle = (string)validation.Attribute("errorTitle") ?? rule.ErrorTitle;
+            rule.ErrorMessage = (string)validation.Attribute("error") ?? rule.ErrorMessage;
+            rule.ErrorStyle = (string)validation.Attribute("errorStyle") switch
             {
-                var dvt = ws.DataValidations.Create(Area.Parse(rangeAddress));
-                if (dvs.AllowBlank != null) dvt.IgnoreBlanks = dvs.AllowBlank;
-                if (dvs.ShowDropDown != null) dvt.InCellDropdown = !dvs.ShowDropDown.Value;
-                if (dvs.ShowErrorMessage != null) dvt.ShowErrorMessage = dvs.ShowErrorMessage;
-                if (dvs.ShowInputMessage != null) dvt.ShowInputMessage = dvs.ShowInputMessage;
-                if (dvs.PromptTitle != null) dvt.InputTitle = dvs.PromptTitle;
-                if (dvs.Prompt != null) dvt.InputMessage = dvs.Prompt;
-                if (dvs.ErrorTitle != null) dvt.ErrorTitle = dvs.ErrorTitle;
-                if (dvs.Error != null) dvt.ErrorMessage = dvs.Error;
-                if (dvs.ErrorStyle != null) dvt.ErrorStyle = dvs.ErrorStyle.Value.ToXlsx();
-                if (dvs.Type != null) dvt.AllowedValues = dvs.Type.Value.ToXlsx();
-                if (dvs.Operator != null) dvt.Operator = dvs.Operator.Value.ToXlsx();
-                if (dvs.Formula1 != null) dvt.MinValue = dvs.Formula1.Text;
-                if (dvs.Formula2 != null) dvt.MaxValue = dvs.Formula2.Text;
-            }
+                "stop" => XlsxErrorStyle.Stop,
+                "warning" => XlsxErrorStyle.Warning,
+                "information" => XlsxErrorStyle.Information,
+                _ => rule.ErrorStyle,
+            };
+            rule.AllowedValues = (string)validation.Attribute("type") switch
+            {
+                "none" => XlsxAllowedValues.AnyValue,
+                "whole" => XlsxAllowedValues.WholeNumber,
+                "decimal" => XlsxAllowedValues.Decimal,
+                "list" => XlsxAllowedValues.List,
+                "date" => XlsxAllowedValues.Date,
+                "time" => XlsxAllowedValues.Time,
+                "textLength" => XlsxAllowedValues.TextLength,
+                "custom" => XlsxAllowedValues.Custom,
+                _ => rule.AllowedValues,
+            };
+            rule.Operator = (string)validation.Attribute("operator") switch
+            {
+                "between" => XlsxOperator.Between,
+                "notBetween" => XlsxOperator.NotBetween,
+                "equal" => XlsxOperator.EqualTo,
+                "notEqual" => XlsxOperator.NotEqualTo,
+                "greaterThan" => XlsxOperator.GreaterThan,
+                "lessThan" => XlsxOperator.LessThan,
+                "greaterThanOrEqual" => XlsxOperator.EqualOrGreaterThan,
+                "lessThanOrEqual" => XlsxOperator.EqualOrLessThan,
+                _ => rule.Operator,
+            };
+            rule.MinValue = (string)validation.Element(ns + "formula1") ?? rule.MinValue;
+            rule.MaxValue = (string)validation.Element(ns + "formula2") ?? rule.MaxValue;
         }
     }
 
-    private static void LoadHyperlinks(SpreadsheetHyperlinks hyperlinks, WorksheetPart worksheetPart, XlsxWorksheet ws)
+    private static void LoadHyperlinks(XElement hyperlinks, IReadOnlyDictionary<string, Uri> targets, XlsxWorksheet ws)
     {
-        var hyperlinkDictionary = new Dictionary<String, Uri>();
-        if (worksheetPart.HyperlinkRelationships != null)
-            hyperlinkDictionary = worksheetPart.HyperlinkRelationships.ToDictionary(hr => hr.Id, hr => hr.Uri);
-
-        if (hyperlinks == null) return;
-
-        foreach (Hyperlink hl in hyperlinks.Elements<Hyperlink>())
+        foreach (var link in hyperlinks.Elements(hyperlinks.Name.Namespace + "hyperlink"))
         {
-            if (hl.Reference.Value.Equals("#REF")) continue;
-            String tooltip = hl.Tooltip != null ? hl.Tooltip.Value : String.Empty;
-            var xlRange = ws.Range(hl.Reference.Value);
-            foreach (XlsxCell xlCell in xlRange.Cells())
+            var reference = (string)link.Attribute("ref");
+            if (string.IsNullOrEmpty(reference) || reference == "#REF")
+                continue;
+
+            var tooltip = (string)link.Attribute("tooltip") ?? string.Empty;
+            var id = (string)link.Attribute(XName.Get("id", OpenXmlConst.RelationshipsNs))
+                ?? (string)link.Attribute(XName.Get("id", OpenXmlConst.StrictRelationshipsNs));
+            var location = (string)link.Attribute("location") ?? reference;
+            foreach (XlsxCell cell in ws.Range(reference).Cells())
             {
-                if (hl.Id != null)
-                    xlCell.SetCellHyperlink(new XlsxHyperlink(hyperlinkDictionary[hl.Id], tooltip));
-                else if (hl.Location != null)
-                    xlCell.SetCellHyperlink(new XlsxHyperlink(hl.Location.Value, tooltip));
-                else
-                    xlCell.SetCellHyperlink(new XlsxHyperlink(hl.Reference.Value, tooltip));
+                cell.SetCellHyperlink(id is null ? new XlsxHyperlink(location, tooltip) : new XlsxHyperlink(targets[id], tooltip));
             }
         }
     }
@@ -406,27 +382,47 @@ internal class WorksheetPartReader
         target.Top = (double?)margins.Attribute("top") ?? target.Top;
     }
 
-    private static void LoadPageSetup(XElement source, XlsxWorksheet ws, PageSetupProperties properties)
+    private static void LoadPageSetup(XElement source, XlsxWorksheet ws, bool fitToPage)
     {
         var setup = ws.PageSetup;
         if ((int?)source.Attribute("paperSize") is { } paperSize)
             setup.PaperSize = (XlsxPaperSize)paperSize;
         if ((int?)source.Attribute("scale") is { } scale)
             setup.Scale = scale;
-        if (properties?.FitToPage?.Value == true)
+        if (fitToPage)
         {
             setup.PagesWide = (int?)source.Attribute("fitToWidth") ?? 1;
             setup.PagesTall = (int?)source.Attribute("fitToHeight") ?? 1;
         }
 
-        if ((string)source.Attribute("pageOrder") is { } order)
-            setup.PageOrder = new EnumValue<PageOrderValues> { InnerText = order }.Value.ToXlsx();
-        if ((string)source.Attribute("orientation") is { } orientation)
-            setup.PageOrientation = new EnumValue<OrientationValues> { InnerText = orientation }.Value.ToXlsx();
-        if ((string)source.Attribute("cellComments") is { } comments)
-            setup.ShowComments = new EnumValue<CellCommentsValues> { InnerText = comments }.Value.ToXlsx();
-        if ((string)source.Attribute("errors") is { } errors)
-            setup.PrintErrorValue = new EnumValue<PrintErrorValues> { InnerText = errors }.Value.ToXlsx();
+        setup.PageOrder = (string)source.Attribute("pageOrder") switch
+        {
+            "downThenOver" => XlsxPageOrderValues.DownThenOver,
+            "overThenDown" => XlsxPageOrderValues.OverThenDown,
+            _ => setup.PageOrder,
+        };
+        setup.PageOrientation = (string)source.Attribute("orientation") switch
+        {
+            "default" => XlsxPageOrientation.Default,
+            "portrait" => XlsxPageOrientation.Portrait,
+            "landscape" => XlsxPageOrientation.Landscape,
+            _ => setup.PageOrientation,
+        };
+        setup.ShowComments = (string)source.Attribute("cellComments") switch
+        {
+            "none" => XlsxShowCommentsValues.None,
+            "asDisplayed" => XlsxShowCommentsValues.AsDisplayed,
+            "atEnd" => XlsxShowCommentsValues.AtEnd,
+            _ => setup.ShowComments,
+        };
+        setup.PrintErrorValue = (string)source.Attribute("errors") switch
+        {
+            "blank" => XlsxPrintErrorValues.Blank,
+            "dash" => XlsxPrintErrorValues.Dash,
+            "displayed" => XlsxPrintErrorValues.Displayed,
+            "NA" => XlsxPrintErrorValues.NA,
+            _ => setup.PrintErrorValue,
+        };
 
         setup.BlackAndWhite = (bool?)source.Attribute("blackAndWhite") ?? setup.BlackAndWhite;
         setup.DraftQuality = (bool?)source.Attribute("draft") ?? setup.DraftQuality;
@@ -438,147 +434,116 @@ internal class WorksheetPartReader
             setup.FirstPageNumber = unchecked((int)firstPageNumber);
     }
 
-    private static void LoadHeaderFooter(HeaderFooter headerFooter, XlsxWorksheet ws)
+    private static void LoadHeaderFooter(XElement headerFooter, XlsxWorksheet ws)
     {
-        if (headerFooter == null) return;
+        var setup = ws.PageSetup;
+        setup.AlignHFWithMargins = (bool?)headerFooter.Attribute("alignWithMargins") ?? setup.AlignHFWithMargins;
+        setup.ScaleHFWithDocument = (bool?)headerFooter.Attribute("scaleWithDoc") ?? setup.ScaleHFWithDocument;
+        setup.DifferentFirstPageOnHF = (bool?)headerFooter.Attribute("differentFirst") ?? setup.DifferentFirstPageOnHF;
+        setup.DifferentOddEvenPagesOnHF = (bool?)headerFooter.Attribute("differentOddEven") ?? setup.DifferentOddEvenPagesOnHF;
 
-        if (headerFooter.AlignWithMargins != null)
-            ws.PageSetup.AlignHFWithMargins = headerFooter.AlignWithMargins;
-        if (headerFooter.ScaleWithDoc != null)
-            ws.PageSetup.ScaleHFWithDocument = headerFooter.ScaleWithDoc;
+        LoadText((XlsxHeaderFooter)setup.Header, "Header");
+        LoadText((XlsxHeaderFooter)setup.Footer, "Footer");
 
-        if (headerFooter.DifferentFirst != null)
-            ws.PageSetup.DifferentFirstPageOnHF = headerFooter.DifferentFirst;
-        if (headerFooter.DifferentOddEven != null)
-            ws.PageSetup.DifferentOddEvenPagesOnHF = headerFooter.DifferentOddEven;
-
-        // Footers
-        var xlFooter = (XlsxHeaderFooter)ws.PageSetup.Footer;
-        var evenFooter = headerFooter.EvenFooter;
-        if (evenFooter != null)
-            xlFooter.SetInnerText(XlsxHFOccurrence.EvenPages, evenFooter.Text);
-        var oddFooter = headerFooter.OddFooter;
-        if (oddFooter != null)
-            xlFooter.SetInnerText(XlsxHFOccurrence.OddPages, oddFooter.Text);
-        var firstFooter = headerFooter.FirstFooter;
-        if (firstFooter != null)
-            xlFooter.SetInnerText(XlsxHFOccurrence.FirstPage, firstFooter.Text);
-        // Headers
-        var xlHeader = (XlsxHeaderFooter)ws.PageSetup.Header;
-        var evenHeader = headerFooter.EvenHeader;
-        if (evenHeader != null)
-            xlHeader.SetInnerText(XlsxHFOccurrence.EvenPages, evenHeader.Text);
-        var oddHeader = headerFooter.OddHeader;
-        if (oddHeader != null)
-            xlHeader.SetInnerText(XlsxHFOccurrence.OddPages, oddHeader.Text);
-        var firstHeader = headerFooter.FirstHeader;
-        if (firstHeader != null)
-            xlHeader.SetInnerText(XlsxHFOccurrence.FirstPage, firstHeader.Text);
-
-        ((XlsxHeaderFooter)ws.PageSetup.Header).SetAsInitial();
-        ((XlsxHeaderFooter)ws.PageSetup.Footer).SetAsInitial();
-    }
-
-    private static void LoadRowBreaks(RowBreaks rowBreaks, XlsxWorksheet ws)
-    {
-        if (rowBreaks == null) return;
-
-        foreach (Break rowBreak in rowBreaks.Elements<Break>())
-            ws.PageSetup.RowBreaks.Add(Int32.Parse(rowBreak.Id.InnerText));
-    }
-
-    private static void LoadColumnBreaks(ColumnBreaks columnBreaks, XlsxWorksheet ws)
-    {
-        if (columnBreaks == null) return;
-
-        foreach (Break columnBreak in columnBreaks.Elements<Break>().Where(columnBreak => columnBreak.Id != null))
+        void LoadText(XlsxHeaderFooter target, string suffix)
         {
-            ws.PageSetup.ColumnBreaks.Add(Int32.Parse(columnBreak.Id.InnerText));
+            var ns = headerFooter.Name.Namespace;
+            if ((string)headerFooter.Element(ns + ("odd" + suffix)) is { } odd)
+                target.SetInnerText(XlsxHFOccurrence.OddPages, odd);
+            if ((string)headerFooter.Element(ns + ("even" + suffix)) is { } even)
+                target.SetInnerText(XlsxHFOccurrence.EvenPages, even);
+            if ((string)headerFooter.Element(ns + ("first" + suffix)) is { } first)
+                target.SetInnerText(XlsxHFOccurrence.FirstPage, first);
+            target.SetAsInitial();
         }
     }
 
-    private static void LoadExtensions(WorksheetExtensionList extensions, XlsxWorksheet ws)
+    private static void LoadBreaks(XElement breaks, ICollection<int> target)
     {
-        if (extensions == null)
+        foreach (var pageBreak in breaks.Elements(breaks.Name.Namespace + "brk"))
         {
-            return;
+            if ((int?)pageBreak.Attribute("id") is { } id)
+                target.Add(id);
         }
+    }
 
-        foreach (var dvs in extensions
-                     .Descendants<X14.DataValidations>()
-                     .SelectMany(dataValidations => dataValidations.Descendants<X14.DataValidation>()))
+    private static void LoadExtensions(XElement extensions, XlsxWorksheet ws)
+    {
+        foreach (var validation in extensions.Descendants(Extended + "dataValidations").Elements(Extended + "dataValidation"))
+            LoadDataValidation(validation, (string)validation.Element(Excel + "sqref"), ws);
+
+        foreach (var source in extensions.Descendants(Extended + "sparklineGroups").Elements(Extended + "sparklineGroup"))
         {
-            String txt = dvs.ReferenceSequence.InnerText;
-            if (String.IsNullOrWhiteSpace(txt)) continue;
-            foreach (var rangeAddress in txt.Split(' '))
+            var group = ws.SparklineGroupsInternal.Add();
+            if ((string)source.Element(Excel + "f") is { } dates)
+                group.DateRange = ws.Workbook.Range(dates);
+
+            var style = group.Style;
+            style.FirstMarkerColor = ReadColor("colorFirst", style.FirstMarkerColor);
+            style.LastMarkerColor = ReadColor("colorLast", style.LastMarkerColor);
+            style.HighMarkerColor = ReadColor("colorHigh", style.HighMarkerColor);
+            style.LowMarkerColor = ReadColor("colorLow", style.LowMarkerColor);
+            style.SeriesColor = ReadColor("colorSeries", style.SeriesColor);
+            style.NegativeColor = ReadColor("colorNegative", style.NegativeColor);
+            style.MarkersColor = ReadColor("colorMarkers", style.MarkersColor);
+            group.Style = style;
+
+            group.DisplayHidden = (bool?)source.Attribute("displayHidden") ?? group.DisplayHidden;
+            group.LineWeight = (double?)source.Attribute("lineWeight") ?? group.LineWeight;
+            group.Type = (string)source.Attribute("type") switch
             {
-                var dvt = ws.DataValidations.Create(Area.Parse(rangeAddress));
-                if (dvs.AllowBlank != null) dvt.IgnoreBlanks = dvs.AllowBlank;
-                if (dvs.ShowDropDown != null) dvt.InCellDropdown = !dvs.ShowDropDown.Value;
-                if (dvs.ShowErrorMessage != null) dvt.ShowErrorMessage = dvs.ShowErrorMessage;
-                if (dvs.ShowInputMessage != null) dvt.ShowInputMessage = dvs.ShowInputMessage;
-                if (dvs.PromptTitle != null) dvt.InputTitle = dvs.PromptTitle;
-                if (dvs.Prompt != null) dvt.InputMessage = dvs.Prompt;
-                if (dvs.ErrorTitle != null) dvt.ErrorTitle = dvs.ErrorTitle;
-                if (dvs.Error != null) dvt.ErrorMessage = dvs.Error;
-                if (dvs.ErrorStyle != null) dvt.ErrorStyle = dvs.ErrorStyle.Value.ToXlsx();
-                if (dvs.Type != null) dvt.AllowedValues = dvs.Type.Value.ToXlsx();
-                if (dvs.Operator != null) dvt.Operator = dvs.Operator.Value.ToXlsx();
-                if (dvs.DataValidationForumla1 != null) dvt.MinValue = dvs.DataValidationForumla1.InnerText;
-                if (dvs.DataValidationForumla2 != null) dvt.MaxValue = dvs.DataValidationForumla2.InnerText;
-            }
-        }
-
-        foreach (var slg in extensions
-                     .Descendants<X14.SparklineGroups>()
-                     .SelectMany(sparklineGroups => sparklineGroups.Descendants<X14.SparklineGroup>()))
-        {
-            var xlSparklineGroup = ws.SparklineGroupsInternal.Add();
-
-            if (slg.Formula != null)
-                xlSparklineGroup.DateRange = ws.Workbook.Range(slg.Formula.Text);
-
-            var xlSparklineStyle = xlSparklineGroup.Style;
-            if (slg.FirstMarkerColor != null) xlSparklineStyle.FirstMarkerColor = slg.FirstMarkerColor.ToXlsxColor();
-            if (slg.LastMarkerColor != null) xlSparklineStyle.LastMarkerColor = slg.LastMarkerColor.ToXlsxColor();
-            if (slg.HighMarkerColor != null) xlSparklineStyle.HighMarkerColor = slg.HighMarkerColor.ToXlsxColor();
-            if (slg.LowMarkerColor != null) xlSparklineStyle.LowMarkerColor = slg.LowMarkerColor.ToXlsxColor();
-            if (slg.SeriesColor != null) xlSparklineStyle.SeriesColor = slg.SeriesColor.ToXlsxColor();
-            if (slg.NegativeColor != null) xlSparklineStyle.NegativeColor = slg.NegativeColor.ToXlsxColor();
-            if (slg.MarkersColor != null) xlSparklineStyle.MarkersColor = slg.MarkersColor.ToXlsxColor();
-            xlSparklineGroup.Style = xlSparklineStyle;
-
-            if (slg.DisplayHidden != null) xlSparklineGroup.DisplayHidden = slg.DisplayHidden;
-            if (slg.LineWeight != null) xlSparklineGroup.LineWeight = slg.LineWeight;
-            if (slg.Type != null) xlSparklineGroup.Type = slg.Type.Value.ToXlsx();
-            if (slg.DisplayEmptyCellsAs != null) xlSparklineGroup.DisplayEmptyCellsAs = slg.DisplayEmptyCellsAs.Value.ToXlsx();
-
-            xlSparklineGroup.ShowMarkers = XlsxSparklineMarkers.None;
-            if (OpenXmlHelper.GetBooleanValueAsBool(slg.Markers, false)) xlSparklineGroup.ShowMarkers |= XlsxSparklineMarkers.Markers;
-            if (OpenXmlHelper.GetBooleanValueAsBool(slg.High, false)) xlSparklineGroup.ShowMarkers |= XlsxSparklineMarkers.HighPoint;
-            if (OpenXmlHelper.GetBooleanValueAsBool(slg.Low, false)) xlSparklineGroup.ShowMarkers |= XlsxSparklineMarkers.LowPoint;
-            if (OpenXmlHelper.GetBooleanValueAsBool(slg.First, false)) xlSparklineGroup.ShowMarkers |= XlsxSparklineMarkers.FirstPoint;
-            if (OpenXmlHelper.GetBooleanValueAsBool(slg.Last, false)) xlSparklineGroup.ShowMarkers |= XlsxSparklineMarkers.LastPoint;
-            if (OpenXmlHelper.GetBooleanValueAsBool(slg.Negative, false)) xlSparklineGroup.ShowMarkers |= XlsxSparklineMarkers.NegativePoints;
-
-            if (slg.AxisColor != null) xlSparklineGroup.HorizontalAxis.Color = XlsxColor.FromHtml(slg.AxisColor.Rgb.Value);
-            if (slg.DisplayXAxis != null) xlSparklineGroup.HorizontalAxis.IsVisible = slg.DisplayXAxis;
-            if (slg.RightToLeft != null) xlSparklineGroup.HorizontalAxis.RightToLeft = slg.RightToLeft;
-
-            if (slg.ManualMax != null) xlSparklineGroup.VerticalAxis.ManualMax = slg.ManualMax;
-            if (slg.ManualMin != null) xlSparklineGroup.VerticalAxis.ManualMin = slg.ManualMin;
-            if (slg.MinAxisType != null) xlSparklineGroup.VerticalAxis.MinAxisType = slg.MinAxisType.Value.ToXlsx();
-            if (slg.MaxAxisType != null) xlSparklineGroup.VerticalAxis.MaxAxisType = slg.MaxAxisType.Value.ToXlsx();
-
-            foreach (var sparkline in slg.Descendants<X14.Sparklines>().SelectMany(sparklines => sparklines.Descendants<X14.Sparkline>()))
+                "line" => XlsxSparklineType.Line,
+                "column" => XlsxSparklineType.Column,
+                "stacked" => XlsxSparklineType.Stacked,
+                _ => group.Type,
+            };
+            group.DisplayEmptyCellsAs = (string)source.Attribute("displayEmptyCellsAs") switch
             {
-                // The sqlref must contain exactly one ref [MS-XLSX]. Excel ignores everything after the first one.
-                var refText = (sparkline.ReferenceSequence?.Text ?? string.Empty).Trim().Split(' ')[0];
-                var location = Point.Parse(refText);
+                "span" => XlsxDisplayBlanksAsValues.Interpolate,
+                "gap" => XlsxDisplayBlanksAsValues.NotPlotted,
+                "zero" => XlsxDisplayBlanksAsValues.Zero,
+                _ => group.DisplayEmptyCellsAs,
+            };
 
-                // Technically, there could be more than one sparkline per cell, so use Set instead of Add.
-                xlSparklineGroup.SetSparkline(location, sparkline.Formula?.Text);
+            group.ShowMarkers = ReadMarker("markers", XlsxSparklineMarkers.Markers)
+                | ReadMarker("high", XlsxSparklineMarkers.HighPoint)
+                | ReadMarker("low", XlsxSparklineMarkers.LowPoint)
+                | ReadMarker("first", XlsxSparklineMarkers.FirstPoint)
+                | ReadMarker("last", XlsxSparklineMarkers.LastPoint)
+                | ReadMarker("negative", XlsxSparklineMarkers.NegativePoints);
+
+            group.HorizontalAxis.Color = ReadColor("colorAxis", group.HorizontalAxis.Color);
+            group.HorizontalAxis.IsVisible = (bool?)source.Attribute("displayXAxis") ?? group.HorizontalAxis.IsVisible;
+            group.HorizontalAxis.RightToLeft = (bool?)source.Attribute("rightToLeft") ?? group.HorizontalAxis.RightToLeft;
+            if ((double?)source.Attribute("manualMax") is { } manualMax)
+                group.VerticalAxis.ManualMax = manualMax;
+            if ((double?)source.Attribute("manualMin") is { } manualMin)
+                group.VerticalAxis.ManualMin = manualMin;
+            group.VerticalAxis.MinAxisType = ReadAxisType("minAxisType", group.VerticalAxis.MinAxisType);
+            group.VerticalAxis.MaxAxisType = ReadAxisType("maxAxisType", group.VerticalAxis.MaxAxisType);
+
+            foreach (var sparkline in source.Elements(Extended + "sparklines").Elements(Extended + "sparkline"))
+            {
+                // Excel uses the first reference when a sparkline lists multiple cells.
+                var references = ((string)sparkline.Element(Excel + "sqref") ?? string.Empty).Trim().Split(' ');
+                group.SetSparkline(Point.Parse(references[0]), (string)sparkline.Element(Excel + "f"));
             }
+
+            XlsxColor ReadColor(string name, XlsxColor fallback) => source.Element(Extended + name) is { } color
+                ? SpreadsheetColorXml.Read(color)
+                : fallback;
+
+            XlsxSparklineMarkers ReadMarker(string name, XlsxSparklineMarkers flag) => (bool?)source.Attribute(name) == true
+                ? flag
+                : XlsxSparklineMarkers.None;
+
+            XlsxSparklineAxisMinMax ReadAxisType(string name, XlsxSparklineAxisMinMax fallback) => (string)source.Attribute(name) switch
+            {
+                "individual" => XlsxSparklineAxisMinMax.Automatic,
+                "group" => XlsxSparklineAxisMinMax.SameForAll,
+                "custom" => XlsxSparklineAxisMinMax.Custom,
+                _ => fallback,
+            };
         }
     }
 
