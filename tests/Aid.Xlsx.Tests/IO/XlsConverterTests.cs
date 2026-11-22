@@ -1,4 +1,6 @@
 using Aid.Xlsx.Conversion;
+using Aid.Xlsx.Styles;
+using Aid.Xlsx.Styles.Colors;
 using Aid.Xlsx.Workbooks;
 using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
@@ -39,6 +41,40 @@ public class XlsConverterTests
             Assert.That(sheet.Column(3).Width, Is.EqualTo(22).Within(0.01));
             Assert.That(workbook.Worksheet("Hidden").Visibility, Is.EqualTo(XlsxWorksheetVisibility.Hidden));
             Assert.That(workbook.Worksheet("Hidden").Cell("A1").GetDouble(), Is.EqualTo(42));
+        });
+    }
+
+    [Test]
+    public void PreservesCellFormattingFromAnIndependentBiff8Writer()
+    {
+        // Generated with xlwt 1.3.0.
+        using var source = typeof(XlsConverterTests).Assembly.GetManifestResourceStream("Aid.Xlsx.Tests.IO.biff8-styles.xls");
+        using var destination = new MemoryStream();
+        XlsConverter.Convert(source, destination);
+
+        destination.Position = 0;
+        using var workbook = new XlsxWorkbook(destination);
+        var sheet = workbook.Worksheet(1);
+        var style = sheet.Cell("A1").Style;
+        Assert.Multiple(() =>
+        {
+            Assert.That(sheet.Cell("A1").GetDouble(), Is.EqualTo(12.5));
+            Assert.That(style.Font.FontName, Is.EqualTo("Arial"));
+            Assert.That(style.Font.FontSize, Is.EqualTo(14));
+            Assert.That(style.Font.Bold, Is.True);
+            Assert.That(style.Font.Italic, Is.True);
+            Assert.That(style.Font.Underline, Is.EqualTo(XlsxFontUnderlineValues.Double));
+            Assert.That(style.Font.FontColor, Is.EqualTo(XlsxColor.FromArgb(25, 50, 75)));
+            Assert.That(style.Alignment.Horizontal, Is.EqualTo(XlsxAlignmentHorizontalValues.Center));
+            Assert.That(style.Alignment.Vertical, Is.EqualTo(XlsxAlignmentVerticalValues.Top));
+            Assert.That(style.Alignment.TextRotation, Is.EqualTo(-30));
+            Assert.That(style.Alignment.WrapText, Is.True);
+            Assert.That(style.Border.BottomBorder, Is.EqualTo(XlsxBorderStyleValues.Double));
+            Assert.That(style.Border.BottomBorderColor, Is.EqualTo(XlsxColor.FromArgb(0, 0, 255)));
+            Assert.That(style.Fill.PatternType, Is.EqualTo(XlsxFillPatternValues.Solid));
+            Assert.That(style.Fill.PatternColor, Is.EqualTo(XlsxColor.FromArgb(255, 255, 0)));
+            Assert.That(style.Protection.Locked, Is.False);
+            Assert.That(style.Protection.Hidden, Is.True);
         });
     }
 

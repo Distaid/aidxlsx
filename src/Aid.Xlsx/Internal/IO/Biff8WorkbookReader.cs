@@ -1,13 +1,14 @@
 using System.Buffers.Binary;
 using Aid.Xlsx.CalcEngine;
 using Aid.Xlsx.Cells;
+using Aid.Xlsx.Styles.Formatting;
 using Aid.Xlsx.Workbooks;
 using Aid.Xlsx.Worksheets;
 using Array = System.Array;
 
 namespace Aid.Xlsx.Internal.IO;
 
-internal sealed class Biff8WorkbookReader(byte[] data)
+internal sealed partial class Biff8WorkbookReader(byte[] data)
 {
     private const ushort Bof = 0x0809;
     private const ushort Eof = 0x000A;
@@ -17,8 +18,6 @@ internal sealed class Biff8WorkbookReader(byte[] data)
     private const int MaxSharedStrings = 1_000_000;
     private const int MaxMaterializedCells = 5_000_000;
     private readonly List<SheetInfo> _sheets = [];
-    private readonly List<ushort> _formatsByXf = [];
-    private readonly Dictionary<ushort, string> _customFormats = [];
     private string[] _strings = [];
     private int _materializedCells;
 
@@ -43,7 +42,13 @@ internal sealed class Biff8WorkbookReader(byte[] data)
                     ReadSheetInfo(record);
                     break;
                 case 0x00E0: // XF
-                    _formatsByXf.Add(U16(record[2..]));
+                    ReadCellFormat(record);
+                    break;
+                case 0x0031: // FONT
+                    ReadFont(record);
+                    break;
+                case 0x0092: // PALETTE
+                    ReadPalette(record);
                     break;
                 case 0x041E: // FORMAT
                     _customFormats[U16(record)] = ReadUnicodeString(record[2..], ref offset);
@@ -57,6 +62,7 @@ internal sealed class Biff8WorkbookReader(byte[] data)
         if (_sheets.Count == 0)
             throw new InvalidDataException("The .xls workbook contains no worksheets.");
 
+        _cellFormats = new XlsxCellFormatValue?[_rawCellFormats.Count];
         var boundaries = _sheets.Select(sheet => sheet.Offset).Order().ToArray();
         for (var i = 0; i < boundaries.Length; i++)
         {
@@ -68,7 +74,7 @@ internal sealed class Biff8WorkbookReader(byte[] data)
         {
             var index = Array.BinarySearch(boundaries, sheet.Offset);
             var end = index + 1 < boundaries.Length ? boundaries[index + 1] : data.Length;
-            var worksheet = workbook.Worksheets.Add(sheet.Name);
+            var worksheet = (XlsxWorksheet)workbook.Worksheets.Add(sheet.Name);
             worksheet.Visibility = sheet.Visibility;
             ReadWorksheet(worksheet, sheet.Offset, end);
         }
@@ -97,7 +103,7 @@ internal sealed class Biff8WorkbookReader(byte[] data)
         _sheets.Add(new SheetInfo((int)offset, name, visibility));
     }
 
-    private void ReadWorksheet(IXlsxWorksheet sheet, int offset, int end)
+    private void ReadWorksheet(XlsxWorksheet sheet, int offset, int end)
     {
         ReadBof(ref offset, 0x0010);
         while (offset < end)
@@ -205,7 +211,7 @@ internal sealed class Biff8WorkbookReader(byte[] data)
         }
     }
 
-    private void ReadMultipleCells(IXlsxWorksheet sheet, ReadOnlySpan<byte> record, bool hasValues)
+    private void ReadMultipleCells(XlsxWorksheet sheet, ReadOnlySpan<byte> record, bool hasValues)
     {
         var row = U16(record);
         var first = U16(record[2..]);
@@ -221,21 +227,17 @@ internal sealed class Biff8WorkbookReader(byte[] data)
         }
     }
 
-    private void SetCell(IXlsxWorksheet sheet, ReadOnlySpan<byte> record, XlsxCellValue value)
+    private void SetCell(XlsxWorksheet sheet, ReadOnlySpan<byte> record, XlsxCellValue value)
         => SetCell(sheet, U16(record), U16(record[2..]), U16(record[4..]), value);
 
-    private void SetCell(IXlsxWorksheet sheet, int row, int column, int xf, XlsxCellValue value)
+    private void SetCell(XlsxWorksheet sheet, int row, int column, int xf, XlsxCellValue value)
     {
-        if (column > 255 || xf >= _formatsByXf.Count || ++_materializedCells > MaxMaterializedCells)
+        if (column > 255 || xf >= _cellFormats.Length || ++_materializedCells > MaxMaterializedCells)
             throw new InvalidDataException("Invalid BIFF cell index or workbook cell limit exceeded.");
 
         var cell = sheet.Cell(row + 1, column + 1);
         cell.Value = value;
-        var format = _formatsByXf[xf];
-        if (_customFormats.TryGetValue(format, out var custom))
-            cell.Style.NumberFormat.Format = custom;
-        else if (format is > 0 and < 164)
-            cell.Style.NumberFormat.NumberFormatId = format;
+        cell.FormatValue = _cellFormats[xf] ??= BuildCellFormat(sheet.Workbook.Styles, _rawCellFormats[xf]);
     }
 
     private static void ReadRowInfo(IXlsxWorksheet sheet, ReadOnlySpan<byte> record)

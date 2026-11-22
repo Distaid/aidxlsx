@@ -19,9 +19,10 @@ validation for generated fixtures. The runtime package checks the OPC structure 
 its own implementation.
 
 `XlsConverter` accepts Excel 97–2003 BIFF8 workbooks. It copies values, cached formula
-results, number formats, dimensions, visibility, and merged ranges. The converted values
-from formulas are static. General formatting, images, charts, macros, and encrypted files
-are outside the converter's supported scope.
+results, dimensions, visibility, and merged ranges. Cell formatting includes number formats,
+fonts, indexed or custom palette colors, alignment, borders, fills, and cell protection flags.
+The converted values from formulas are static. Named styles, rich text runs, conditional
+formatting, images, charts, macros, and encrypted files are outside the converter's supported scope.
 
 ## Public API comparison
 

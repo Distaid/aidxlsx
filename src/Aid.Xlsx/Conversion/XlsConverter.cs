@@ -4,7 +4,7 @@ using Aid.Xlsx.Workbooks;
 namespace Aid.Xlsx.Conversion;
 
 /// <summary>Converts Excel 97–2003 binary workbooks to XLSX.</summary>
-/// <remarks>Imports cell values, cached formula results, number formats, dimensions, visibility, and merged cells.</remarks>
+/// <remarks>Imports cell values, cached formula results, cell formatting, dimensions, visibility, and merged cells.</remarks>
 public static class XlsConverter
 {
     /// <summary>Converts an existing BIFF8 file to an XLSX file at a different path.</summary>
