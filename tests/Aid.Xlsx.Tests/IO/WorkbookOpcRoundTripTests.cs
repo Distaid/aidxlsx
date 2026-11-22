@@ -15,6 +15,38 @@ public sealed class WorkbookOpcRoundTripTests
     private const string OfficeRelationships = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/";
 
     [Test]
+    public void ReadsPivotTableDefinitionInStrictNamespace()
+    {
+        const string transitional = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+        const string strict = "http://purl.oclc.org/ooxml/spreadsheetml/main";
+        using var original = new MemoryStream();
+        using (var workbook = new XlsxWorkbook())
+        {
+            var source = workbook.AddWorksheet("Data");
+            source.Cell("A1").Value = "Name";
+            source.Cell("A2").Value = "Record";
+            var report = workbook.AddWorksheet("Report");
+            report.PivotTables.Add("ReportPivot", report.Cell("B3"), source.Range("A1:A2")).RowLabels.Add("Name");
+            workbook.SaveAs(original, validate: true);
+        }
+
+        using var edited = new MemoryStream();
+        using (var package = OpcPackage.Open(original))
+        {
+            var pivot = package.Parts.Values.Single(part => part.ContentType.EndsWith(".pivotTable+xml", StringComparison.Ordinal));
+            using var reader = new StreamReader(pivot.OpenRead());
+            pivot.ReplaceContent(Encoding.UTF8.GetBytes(reader.ReadToEnd().Replace(transitional, strict, StringComparison.Ordinal)));
+            package.Save(edited);
+        }
+
+        using var reloaded = new XlsxWorkbook(edited);
+        var table = reloaded.Worksheet("Report").PivotTables.Single();
+        Assert.That(table.Name, Is.EqualTo("ReportPivot"));
+        Assert.That(table.TargetCell.Address.ToString(), Is.EqualTo("B3"));
+        Assert.That(table.RowLabels.Single().SourceName, Is.EqualTo("Name"));
+    }
+
+    [Test]
     public void RewritingPivotCacheKeepsItsRecordsRelationshipAndExtension()
     {
         XNamespace spreadsheet = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";

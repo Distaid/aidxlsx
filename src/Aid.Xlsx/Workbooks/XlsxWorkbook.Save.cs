@@ -424,7 +424,8 @@ namespace Aid.Xlsx.Workbooks
                     pivotTablePart.CreateRelationshipToPart(workbookPart.GetPartById(pivotSource.WorkbookCacheRelId), context.RelIdGenerator.GetNext(XlsxWorkbook.RelType.Workbook));
                 }
 
-                PivotTableDefinitionPartWriter2.WriteContent(pivotTablePart, pt, context);
+                using var stream = pivotTablePart.GetStream(FileMode.Create);
+                PivotTableXml.Write(stream, pt, context);
             }
         }
 

@@ -296,7 +296,25 @@ namespace Aid.Xlsx.Workbooks
 
                     foreach (var pivotTablePart in worksheetPart.PivotTableParts)
                     {
-                        PivotTableDefinitionPartReader.Load(workbookPart, pivotTablePart, worksheetPart, ws, context);
+                        if (pivotTablePart.PivotTableCacheDefinitionPart is not { } cachePart)
+                            continue;
+
+                        var cacheId = workbookPart.GetIdOfPart(cachePart);
+                        var cache = PivotCachesInternal.FirstOrDefault<XlsxPivotCache>(candidate => candidate.WorkbookCacheRelId == cacheId);
+                        if (cache is null)
+                        {
+                            // A producer may use distinct caches for the same source range or table.
+                            using var cacheStream = cachePart.GetStream(FileMode.Open, FileAccess.Read);
+                            var source = PivotCacheDefinitionXml.ReadSource(PivotCacheDefinitionXml.Read(cacheStream));
+                            cache = PivotCachesInternal.FirstOrDefault<XlsxPivotCache>(candidate => candidate.Source.Equals(source));
+                        }
+
+                        if (cache is not null)
+                        {
+                            using var partStream = pivotTablePart.GetStream(FileMode.Open, FileAccess.Read);
+                            PivotTableXml.Load(PivotTableXml.Read(partStream), ws, cache, worksheetPart.GetIdOfPart(pivotTablePart),
+                                pivotTablePart.GetIdOfPart(cachePart), context);
+                        }
                     }
                 }
             }

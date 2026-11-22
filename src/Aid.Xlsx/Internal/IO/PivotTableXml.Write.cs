@@ -5,24 +5,22 @@ using Aid.Xlsx.PivotTables.Areas;
 using Aid.Xlsx.PivotTables.PivotValues;
 using Aid.Xlsx.PivotTables;
 using Aid.Xlsx.Utils;
-using DocumentFormat.OpenXml.Packaging;
 using Array = System.Array;
 using static Aid.Xlsx.Internal.IO.OpenXmlConst;
 using static Aid.Xlsx.Workbooks.XlsxWorkbook;
 
 namespace Aid.Xlsx.Internal.IO;
 
-internal class PivotTableDefinitionPartWriter2
+internal static partial class PivotTableXml
 {
-    internal static void WriteContent(PivotTablePart pivotTablePart, XlsxPivotTable pt, SaveContext context)
+    internal static void Write(Stream stream, XlsxPivotTable pt, SaveContext context)
     {
         var settings = new XmlWriterSettings
         {
             Encoding = XlsxHelper.NoBomUTF8
         };
 
-        using var partStream = pivotTablePart.GetStream(FileMode.Create);
-        using var xml = XmlWriter.Create(partStream, settings);
+        using var xml = XmlWriter.Create(stream, settings);
 
         xml.WriteStartDocument();
         xml.WriteStartElement("pivotTableDefinition", Main2006SsNs);

@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stream worksheet cells directly through XML readers and writers without SDK reflection.
 - Read and write worksheet layout, print settings, hyperlinks, validations, and sparklines directly through XML.
 - Read and write table definitions and auto-filters directly through XML.
-- Read and write pivot cache definitions directly through XML.
+- Read and write pivot table and cache definitions directly through XML.
 - Read and write worksheet conditional formatting rules and data bar settings directly through XML.
 - Read comment text with the same XML parser as rich text in cells.
 - Write legacy comment shapes directly through XML while preserving the drawing's other shapes.
