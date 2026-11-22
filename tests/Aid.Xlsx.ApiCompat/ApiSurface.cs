@@ -10,14 +10,6 @@ internal sealed class ApiSurface(Assembly assembly)
 
     public static HashSet<string> Read(Assembly assembly) => new ApiSurface(assembly).Read();
 
-    public static string Normalize(string name) => name switch
-    {
-        "ClosedXMLException" => "XlsxException",
-        _ when name.StartsWith("IXL", StringComparison.Ordinal) => "IXlsx" + name[3..],
-        _ when name.StartsWith("XL", StringComparison.Ordinal) => "Xlsx" + name[2..],
-        _ => name,
-    };
-
     private HashSet<string> Read()
     {
         var declarations = new HashSet<string>(StringComparer.Ordinal);
@@ -93,15 +85,12 @@ internal sealed class ApiSurface(Assembly assembly)
             return (type.DeclaringMethod is null ? "!" : "!!") + type.GenericParameterPosition + suffix;
 
         var definition = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
-        var prefix = definition.Assembly == assembly ? "workbook." : definition.Namespace + ".";
-        var name = definition.IsNested ? (definition.DeclaringType!.Name + "+" + definition.Name) : definition.Name;
-        if (definition.Assembly == assembly)
-            name = string.Join('+', name.Split('+').Select(Normalize));
+        var name = definition.FullName ?? definition.Name;
 
         var arguments = type.IsGenericType
             ? "<" + string.Join(",", type.GetGenericArguments().Select((argument, i) => TypeName(argument, nullability?.GenericTypeArguments.ElementAtOrDefault(i)))) + ">"
             : "";
-        return prefix + name + arguments + suffix;
+        return name + arguments + suffix;
     }
 
     private static string Attributes(IEnumerable<CustomAttributeData> attributes) => string.Concat(attributes

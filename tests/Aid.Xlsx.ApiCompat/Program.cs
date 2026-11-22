@@ -1,38 +1,27 @@
 using Aid.Xlsx.Workbooks;
 
 var current = ApiSurface.Read(typeof(XlsxWorkbook).Assembly);
-var upstream = ApiSurface.Read(typeof(ClosedXML.Excel.XLWorkbook).Assembly);
-var differences = upstream.Except(current).Select(line => $"- {line}")
-    .Concat(current.Except(upstream).Select(line => $"+ {line}"))
-    .Order(StringComparer.Ordinal)
-    .ToArray();
-
-if (args is ["--print-differences"])
+if (args is ["--print-api"])
 {
-    foreach (var line in differences)
-        Console.WriteLine(line);
+    Console.Write(string.Join('\n', current.Order(StringComparer.Ordinal)) + "\n");
     return 0;
 }
 
-var accepted = File.ReadLines(Path.Combine(AppContext.BaseDirectory, "AcceptedDifferences.txt"))
-    .Where(line => line.StartsWith("+ ", StringComparison.Ordinal) || line.StartsWith("- ", StringComparison.Ordinal))
+var baseline = File.ReadLines(Path.Combine(AppContext.BaseDirectory, "Baselines", "PublicApi.txt"))
     .ToHashSet(StringComparer.Ordinal);
-var unexpected = differences.Where(line => !accepted.Contains(line)).ToArray();
-var resolved = accepted.Except(differences).Order(StringComparer.Ordinal).ToArray();
-foreach (var line in unexpected)
-    Console.Error.WriteLine($"Unexpected API difference {line}");
-foreach (var line in resolved)
-    Console.Error.WriteLine($"Resolved API difference {line}");
+var added = current.Except(baseline).Order(StringComparer.Ordinal).ToArray();
+var removed = baseline.Except(current).Order(StringComparer.Ordinal).ToArray();
+foreach (var line in added)
+    Console.Error.WriteLine($"Added API declaration {line}");
+foreach (var line in removed)
+    Console.Error.WriteLine($"Removed API declaration {line}");
 
-var invalid = typeof(XlsxWorkbook).Assembly.GetExportedTypes()
-    .Where(type => type.Namespace == "Aid.Xlsx" || ApiSurface.Normalize(type.Name) != type.Name)
-    .Select(type => type.FullName)
-    .Concat(current.Where(line => line.Contains("DocumentFormat.OpenXml.", StringComparison.Ordinal)))
+var invalid = current.Where(line => line.Contains("DocumentFormat.OpenXml.", StringComparison.Ordinal))
     .ToArray();
 foreach (var line in invalid)
     Console.Error.WriteLine($"Unexpected public API {line}");
 
-Console.WriteLine($"Compared {current.Count} Aid.Xlsx API declarations with {upstream.Count} upstream declarations. Accepted differences {accepted.Count}.");
+Console.WriteLine($"Compared {current.Count} Aid.Xlsx API declarations with {baseline.Count} checked-in declarations.");
 var outputDirectory = args is ["--save-corpus", var directory] ? directory : null;
 var corpusPassed = WorkbookCorpus.Verify(outputDirectory);
-return corpusPassed && unexpected.Length + resolved.Length + invalid.Length == 0 ? 0 : 1;
+return corpusPassed && added.Length + removed.Length + invalid.Length == 0 ? 0 : 1;

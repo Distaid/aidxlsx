@@ -7,6 +7,5 @@
   <Project Path="tests/Aid.Xlsx.Tests/Aid.Xlsx.Tests.csproj" />
   <Project Path="tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj" />
   <Project Path="tests/Aid.Xlsx.ApiCompat/Aid.Xlsx.ApiCompat.csproj" />
-  <Project Path="tests/Aid.Xlsx.Benchmarks/Aid.Xlsx.Benchmarks.csproj" />
   <Project Path="tests/Aid.Xlsx.Fuzzing/Aid.Xlsx.Fuzzing.csproj" />
 </Solution>

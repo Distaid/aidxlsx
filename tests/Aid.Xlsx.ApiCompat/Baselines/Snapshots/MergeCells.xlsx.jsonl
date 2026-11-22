@@ -1,0 +1,8 @@
+["sheet","Merge Cells","F8"]
+["merge","B2:D2"]
+["merge","B4:D6"]
+["merge","F2:F8"]
+["cell","B2","Text","Merged Row(1) of Range (B2:D3)","",0,null,false,false,"General",null,null,null]
+["cell","F2","Text","Merged Column(1) of Range (F2:G8)","",0,null,false,false,"General",null,null,null]
+["cell","B4","Text","Merged Range (B4:D6)","",0,null,false,false,"Center",null,null,null]
+["cell","B8","Text","Unmerged","",0,null,false,false,"General",null,null,null]

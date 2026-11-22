@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Use checked-in compatibility baselines and isolate the optional comparison benchmark from the main solution.
 - Generate built-in table theme and protection algorithm lookups at compile time.
 - Resolve and write workbook parts and relationships through the OPC container.
 - Remove the runtime Open XML SDK dependency. `SaveOptions.ValidatePackage` checks

@@ -42,11 +42,15 @@ the checks also verified the pivot table, embedded chart, picture, conditional f
 and validation rule. VBA execution was disabled during the Excel check. The library's
 tests separately compare the VBA project bytes before and after saving with Aid.Xlsx.
 
-## Public API comparison
+## Compatibility checks in CI
 
-CI compares workbook API declarations against the published ClosedXML 0.105.1 package.
-The comparison maps the namespace and type renames, checks signatures and declared
-members, and records the existing differences in `tests/Aid.Xlsx.ApiCompat/AcceptedDifferences.txt`.
+CI compares the public API, including domain namespaces, with the checked-in Aid.Xlsx baseline
+in `tests/Aid.Xlsx.ApiCompat/Baselines/PublicApi.txt`. Run the compatibility project with
+`--print-api` to capture the declarations for review when changing the public API intentionally.
+The tests also compare loading and reopening the ten saved workbooks against checked-in
+reference snapshots. Open XML SDK schema validation checks the saved packages independently.
+
+## Migration differences
 
 - Package and DrawingML helpers that exposed SDK types are absent from the workbook API.
 - The imported workbook model differs on a few low-level types, including style cache

@@ -1,6 +1,6 @@
 # Workbook I/O performance
 
-The benchmark compares Aid.Xlsx with ClosedXML 0.105.1. Both libraries load the same XLSX and save an equivalent workbook to a new memory stream. Source workbooks are loaded before each save measurement. The input contains one worksheet with five columns of numbers, repeated text, dates, and formulas. Validation and formula calculation are disabled during saving.
+The standalone benchmark compares Aid.Xlsx with ClosedXML 0.105.1. Run its project directly. Both libraries load the same XLSX and save an equivalent workbook to a new memory stream. Source workbooks are loaded before each save measurement. The input contains one worksheet with five columns of numbers, repeated text, dates, and formulas. Validation and formula calculation are disabled during saving.
 
 ```sh
 dotnet run --project tests/Aid.Xlsx.Benchmarks -c Release -- --filter '*' --artifacts artifacts/benchmarks
