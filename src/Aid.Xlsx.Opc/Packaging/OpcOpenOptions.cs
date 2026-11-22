@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Packaging;
 
 /// <summary>Resource limits for opening an OPC container.</summary>
 public sealed class OpcOpenOptions

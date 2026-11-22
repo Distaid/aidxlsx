@@ -1,39 +1,38 @@
 #nullable disable
 
 using System.Drawing;
-using Aid.Xlsx.Drawings;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Drawings;
 
-namespace Aid.Xlsx.Graphics
+namespace Aid.Xlsx.Rendering.Images;
+
+/// <summary>
+/// Read info about a GIF file. Gif file has no DPI, only pixel ratio.
+/// Specification: https://www.w3.org/Graphics/GIF/spec-gif89a.txt
+/// </summary>
+internal class GifInfoReader : ImageInfoReader
 {
-    /// <summary>
-    /// Read info about a GIF file. Gif file has no DPI, only pixel ratio.
-    /// Specification: https://www.w3.org/Graphics/GIF/spec-gif89a.txt
-    /// </summary>
-    internal class GifInfoReader : ImageInfoReader
+    protected override bool CheckHeader(Stream stream)
     {
-        protected override bool CheckHeader(Stream stream)
-        {
-            Span<byte> s = stackalloc byte[6];
-            if (stream.Read(s) != s.Length)
-                return false;
+        Span<byte> s = stackalloc byte[6];
+        if (stream.Read(s) != s.Length)
+            return false;
 
-            var hasSignature =
-                s[0] == 0x47 && // 'G'
-                s[1] == 0x49 && // 'I'
-                s[2] == 0x46 && // 'F'
-                s[3] == 0x38 && // '8'
-                (s[4] == 0x37 || s[4] == 0x39) && // '7' or '9'
-                s[5] == 0x61; // 'a'
-            return hasSignature;
-        }
+        var hasSignature =
+            s[0] == 0x47 && // 'G'
+            s[1] == 0x49 && // 'I'
+            s[2] == 0x46 && // 'F'
+            s[3] == 0x38 && // '8'
+            (s[4] == 0x37 || s[4] == 0x39) && // '7' or '9'
+            s[5] == 0x61; // 'a'
+        return hasSignature;
+    }
 
-        protected override XlsxPictureInfo ReadInfo(Stream stream)
-        {
-            stream.Position += 6; // header length
-            var width = stream.ReadU16LE();
-            var height = stream.ReadU16LE();
-            return new XlsxPictureInfo(XlsxPictureFormat.Gif, new Size(width, height), Size.Empty);
-        }
+    protected override XlsxPictureInfo ReadInfo(Stream stream)
+    {
+        stream.Position += 6; // header length
+        var width = stream.ReadU16LE();
+        var height = stream.ReadU16LE();
+        return new XlsxPictureInfo(XlsxPictureFormat.Gif, new Size(width, height), Size.Empty);
     }
 }

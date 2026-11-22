@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Opc.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Xml;
 
 /// <summary>
 /// A helper methods for patterns and types commonly found in OOXML. Reading concrete types is not

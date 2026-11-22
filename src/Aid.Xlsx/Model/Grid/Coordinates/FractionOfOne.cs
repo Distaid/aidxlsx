@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Coordinates;
+namespace Aid.Xlsx.Model.Grid.Coordinates;
 
 /// <summary>
 /// Represents a percentage position from 0 to 1 represented as a double (=inherently imprecise).

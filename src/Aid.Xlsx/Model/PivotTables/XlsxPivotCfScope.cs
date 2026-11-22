@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.PivotTables;
+namespace Aid.Xlsx.Model.PivotTables;
 
 /// <summary>
 /// Defines a scope of conditional formatting applied to <see cref="XlsxPivotTable"/>. The scope is

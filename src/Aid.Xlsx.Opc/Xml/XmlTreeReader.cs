@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Xml;
-using static Aid.Xlsx.Opc.XmlTreeNodeType;
+using static Aid.Xlsx.Opc.Xml.XmlTreeNodeType;
+using Aid.Xlsx.Opc.Xml.Compatibility;
 
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Xml;
 
 /// <summary>
 /// <para>

@@ -4,7 +4,7 @@ using System.IO.Compression;
 using System.Net.Http;
 using System.Security.Cryptography;
 
-namespace Aid.Xlsx.CodeGen;
+namespace Aid.Xlsx.CodeGen.Schema;
 
 internal static class OoxmlSchema
 {

@@ -1,209 +1,208 @@
 using System.Collections;
-using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.InsertData;
 using NUnit.Framework;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.DataImport.RowReaders;
 
-namespace Aid.Xlsx.Tests.Excel.InsertData
+namespace Aid.Xlsx.Tests.Excel.InsertData;
+
+public class ObjectReaderTests
 {
-    public class ObjectReaderTests
+    private static readonly TablesTests.TestObjectWithAttributes[] ObjectWithAttributes =
     {
-        private static readonly TablesTests.TestObjectWithAttributes[] ObjectWithAttributes =
+        new()
         {
-            new()
-            {
-                Column1 = "Value 1",
-                Column2 = "Value 2",
-                UnOrderedColumn = 3,
-                MyField = 4,
-            },
-            new()
-            {
-                Column1 = "Value 5",
-                Column2 = "Value 6",
-                UnOrderedColumn = 7,
-                MyField = 8,
-            }
-        };
-
-        private static readonly TablesTests.TestObjectWithoutAttributes[] ObjectWithoutAttributes =
+            Column1 = "Value 1",
+            Column2 = "Value 2",
+            UnOrderedColumn = 3,
+            MyField = 4,
+        },
+        new()
         {
-            new()
-            {
-                Column1 = "Value 9",
-                Column2 = "Value 10"
-            },
-            new()
-            {
-                Column1 = "Value 11",
-                Column2 = "Value 12"
-            }
-        };
-
-        private static readonly TestPoint[] Structs =
-        {
-            new()
-            {
-                X = 1,
-                Y = 2,
-                Z = 3
-            },
-            new(),
-        };
-
-        private static readonly TestPoint?[] NullableStructs =
-        {
-            new TestPoint
-            {
-                X = 1,
-                Y = 2,
-                Z = 3
-            },
-            new TestPoint(),
-            null
-        };
-
-        [TestCaseSource(nameof(ObjectSourceNames))]
-        public string CanGetPropertyName<T>(IEnumerable<T> data, int propertyIndex)
-        {
-            var reader = InsertDataReaderFactory.Instance.CreateReader(data);
-            return reader.GetPropertyName(propertyIndex);
+            Column1 = "Value 5",
+            Column2 = "Value 6",
+            UnOrderedColumn = 7,
+            MyField = 8,
         }
+    };
 
-        private static IEnumerable<TestCaseData> ObjectSourceNames
+    private static readonly TablesTests.TestObjectWithoutAttributes[] ObjectWithoutAttributes =
+    {
+        new()
         {
-            get
-            {
-                IEnumerable data = ObjectWithoutAttributes;
-                yield return new TestCaseData(data, 0).Returns("Column1");
-                yield return new TestCaseData(data, 1).Returns("Column2");
-
-                data = ObjectWithAttributes;
-                yield return new TestCaseData(data, 0).Returns("FirstColumn");
-                yield return new TestCaseData(data, 1).Returns("SecondColumn");
-                yield return new TestCaseData(data, 2).Returns("SomeFieldNotProperty");
-                yield return new TestCaseData(data, 3).Returns("UnOrderedColumn");
-
-                data = Structs;
-                yield return new TestCaseData(data, 0).Returns("X");
-                yield return new TestCaseData(data, 1).Returns("Y");
-                yield return new TestCaseData(data, 2).Returns("Z");
-
-                data = NullableStructs;
-                yield return new TestCaseData(data, 0).Returns("X");
-                yield return new TestCaseData(data, 1).Returns("Y");
-                yield return new TestCaseData(data, 2).Returns("Z");
-            }
-        }
-
-        [TestCaseSource(nameof(PropertyCounts))]
-        public int CanGetPropertiesCount(IEnumerable data)
+            Column1 = "Value 9",
+            Column2 = "Value 10"
+        },
+        new()
         {
-            var reader = InsertDataReaderFactory.Instance.CreateReader(data);
-            return reader.GetPropertiesCount();
+            Column1 = "Value 11",
+            Column2 = "Value 12"
         }
+    };
 
-        private static IEnumerable<TestCaseData> PropertyCounts
+    private static readonly TestPoint[] Structs =
+    {
+        new()
         {
-            get
-            {
-                IEnumerable data = ObjectWithoutAttributes;
-                yield return new TestCaseData(data).Returns(2);
+            X = 1,
+            Y = 2,
+            Z = 3
+        },
+        new(),
+    };
 
-                data = ObjectWithAttributes;
-                yield return new TestCaseData(data).Returns(4);
-
-                data = Structs;
-                yield return new TestCaseData(data).Returns(3);
-
-                data = NullableStructs;
-                yield return new TestCaseData(data).Returns(3);
-            }
-        }
-
-        [Test]
-        public void CanGetRecordsCount()
+    private static readonly TestPoint?[] NullableStructs =
+    {
+        new TestPoint
         {
-            var reader = InsertDataReaderFactory.Instance.CreateReader(ObjectWithAttributes);
-            Assert.AreEqual(2, reader.GetRecords().Count());
-        }
+            X = 1,
+            Y = 2,
+            Z = 3
+        },
+        new TestPoint(),
+        null
+    };
 
-        [Test]
-        public void CanReadValues_FromObject()
+    [TestCaseSource(nameof(ObjectSourceNames))]
+    public string CanGetPropertyName<T>(IEnumerable<T> data, int propertyIndex)
+    {
+        var reader = InsertDataReaderFactory.Instance.CreateReader(data);
+        return reader.GetPropertyName(propertyIndex);
+    }
+
+    private static IEnumerable<TestCaseData> ObjectSourceNames
+    {
+        get
         {
-            var reader = InsertDataReaderFactory.Instance.CreateReader(ObjectWithAttributes);
-            var result = reader.GetRecords();
+            IEnumerable data = ObjectWithoutAttributes;
+            yield return new TestCaseData(data, 0).Returns("Column1");
+            yield return new TestCaseData(data, 1).Returns("Column2");
 
-            var firstRecord = result.First().ToArray();
-            var lastRecord = result.Last().ToArray();
+            data = ObjectWithAttributes;
+            yield return new TestCaseData(data, 0).Returns("FirstColumn");
+            yield return new TestCaseData(data, 1).Returns("SecondColumn");
+            yield return new TestCaseData(data, 2).Returns("SomeFieldNotProperty");
+            yield return new TestCaseData(data, 3).Returns("UnOrderedColumn");
 
-            Assert.AreEqual("Value 2", firstRecord[0]);
-            Assert.AreEqual("Value 1", firstRecord[1]);
-            Assert.AreEqual(4, firstRecord[2]);
-            Assert.AreEqual(3, firstRecord[3]);
+            data = Structs;
+            yield return new TestCaseData(data, 0).Returns("X");
+            yield return new TestCaseData(data, 1).Returns("Y");
+            yield return new TestCaseData(data, 2).Returns("Z");
 
-            Assert.AreEqual("Value 6", lastRecord[0]);
-            Assert.AreEqual("Value 5", lastRecord[1]);
-            Assert.AreEqual(8, lastRecord[2]);
-            Assert.AreEqual(7, lastRecord[3]);
+            data = NullableStructs;
+            yield return new TestCaseData(data, 0).Returns("X");
+            yield return new TestCaseData(data, 1).Returns("Y");
+            yield return new TestCaseData(data, 2).Returns("Z");
         }
+    }
 
-        [Test]
-        public void CanReadValues_FromStruct()
+    [TestCaseSource(nameof(PropertyCounts))]
+    public int CanGetPropertiesCount(IEnumerable data)
+    {
+        var reader = InsertDataReaderFactory.Instance.CreateReader(data);
+        return reader.GetPropertiesCount();
+    }
+
+    private static IEnumerable<TestCaseData> PropertyCounts
+    {
+        get
         {
-            var reader = InsertDataReaderFactory.Instance.CreateReader(Structs);
-            var result = reader.GetRecords();
+            IEnumerable data = ObjectWithoutAttributes;
+            yield return new TestCaseData(data).Returns(2);
 
-            var firstRecord = result.First().ToArray();
-            var lastRecord = result.Last().ToArray();
+            data = ObjectWithAttributes;
+            yield return new TestCaseData(data).Returns(4);
 
-            Assert.AreEqual(1, firstRecord[0]);
-            Assert.AreEqual(2, firstRecord[1]);
-            Assert.AreEqual(3, firstRecord[2]);
+            data = Structs;
+            yield return new TestCaseData(data).Returns(3);
 
-            Assert.AreEqual(0, lastRecord[0]);
-            Assert.AreEqual(0, lastRecord[1]);
-            Assert.AreEqual(Blank.Value, lastRecord[2]);
+            data = NullableStructs;
+            yield return new TestCaseData(data).Returns(3);
         }
+    }
 
-        [Test]
-        public void CanReadValues_FromNullableStruct()
-        {
-            var reader = InsertDataReaderFactory.Instance.CreateReader(NullableStructs);
-            var result = reader.GetRecords();
+    [Test]
+    public void CanGetRecordsCount()
+    {
+        var reader = InsertDataReaderFactory.Instance.CreateReader(ObjectWithAttributes);
+        Assert.AreEqual(2, reader.GetRecords().Count());
+    }
 
-            var firstRecord = result.First().ToArray();
-            var lastRecord = result.Last().ToArray();
+    [Test]
+    public void CanReadValues_FromObject()
+    {
+        var reader = InsertDataReaderFactory.Instance.CreateReader(ObjectWithAttributes);
+        var result = reader.GetRecords();
 
-            Assert.AreEqual(1, firstRecord[0]);
-            Assert.AreEqual(2, firstRecord[1]);
-            Assert.AreEqual(3, firstRecord[2]);
+        var firstRecord = result.First().ToArray();
+        var lastRecord = result.Last().ToArray();
 
-            Assert.AreEqual(Blank.Value, lastRecord[0]);
-            Assert.AreEqual(Blank.Value, lastRecord[1]);
-            Assert.AreEqual(Blank.Value, lastRecord[2]);
-        }
+        Assert.AreEqual("Value 2", firstRecord[0]);
+        Assert.AreEqual("Value 1", firstRecord[1]);
+        Assert.AreEqual(4, firstRecord[2]);
+        Assert.AreEqual(3, firstRecord[3]);
 
-        [Test]
-        public void IgnoresIndexers()
-        {
-            var data = new[] { new TestClassWithIndexer() };
-            var reader = InsertDataReaderFactory.Instance.CreateReader(data);
+        Assert.AreEqual("Value 6", lastRecord[0]);
+        Assert.AreEqual("Value 5", lastRecord[1]);
+        Assert.AreEqual(8, lastRecord[2]);
+        Assert.AreEqual(7, lastRecord[3]);
+    }
 
-            Assert.AreEqual(1, reader.GetPropertiesCount());
-            Assert.AreEqual(nameof(TestClassWithIndexer.Value), reader.GetPropertyName(0));
-        }
+    [Test]
+    public void CanReadValues_FromStruct()
+    {
+        var reader = InsertDataReaderFactory.Instance.CreateReader(Structs);
+        var result = reader.GetRecords();
 
-        private record TestClassWithIndexer
-        {
-            public int Value => 0;
-            public int this[int i] => 0;
-        }
+        var firstRecord = result.First().ToArray();
+        var lastRecord = result.Last().ToArray();
 
-        private struct TestPoint
-        {
-            public double X { get; set; }
-            public double Y { get; set; }
-            public double? Z { get; set; }
-        }
+        Assert.AreEqual(1, firstRecord[0]);
+        Assert.AreEqual(2, firstRecord[1]);
+        Assert.AreEqual(3, firstRecord[2]);
+
+        Assert.AreEqual(0, lastRecord[0]);
+        Assert.AreEqual(0, lastRecord[1]);
+        Assert.AreEqual(Blank.Value, lastRecord[2]);
+    }
+
+    [Test]
+    public void CanReadValues_FromNullableStruct()
+    {
+        var reader = InsertDataReaderFactory.Instance.CreateReader(NullableStructs);
+        var result = reader.GetRecords();
+
+        var firstRecord = result.First().ToArray();
+        var lastRecord = result.Last().ToArray();
+
+        Assert.AreEqual(1, firstRecord[0]);
+        Assert.AreEqual(2, firstRecord[1]);
+        Assert.AreEqual(3, firstRecord[2]);
+
+        Assert.AreEqual(Blank.Value, lastRecord[0]);
+        Assert.AreEqual(Blank.Value, lastRecord[1]);
+        Assert.AreEqual(Blank.Value, lastRecord[2]);
+    }
+
+    [Test]
+    public void IgnoresIndexers()
+    {
+        var data = new[] { new TestClassWithIndexer() };
+        var reader = InsertDataReaderFactory.Instance.CreateReader(data);
+
+        Assert.AreEqual(1, reader.GetPropertiesCount());
+        Assert.AreEqual(nameof(TestClassWithIndexer.Value), reader.GetPropertyName(0));
+    }
+
+    private record TestClassWithIndexer
+    {
+        public int Value => 0;
+        public int this[int i] => 0;
+    }
+
+    private struct TestPoint
+    {
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double? Z { get; set; }
     }
 }

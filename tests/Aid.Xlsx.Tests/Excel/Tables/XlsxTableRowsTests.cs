@@ -1,5 +1,9 @@
-using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Tables;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Tests.Excel.Tables;
 

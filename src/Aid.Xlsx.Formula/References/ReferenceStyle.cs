@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.References;
 
 /// <summary>
 /// Style of referencing areas in a worksheet.

@@ -1,9 +1,10 @@
 // Keep this file CodeMaid organised and cleaned
 using System.Collections;
 using System.Diagnostics;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Coordinates;
 
-namespace Aid.Xlsx.PivotTables.Areas;
+namespace Aid.Xlsx.Model.PivotTables.Areas;
 
 /// <summary>
 /// Page/filter fields of a <see cref="XlsxPivotTable"/>. It determines filter values and layout.

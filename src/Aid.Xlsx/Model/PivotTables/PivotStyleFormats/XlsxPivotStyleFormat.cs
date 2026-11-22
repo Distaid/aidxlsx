@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.PivotTables.PivotStyleFormats;
+namespace Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 
 internal class XlsxPivotStyleFormat : XlsxPivotStyleFormatBase
 {

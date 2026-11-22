@@ -1,8 +1,7 @@
-namespace Aid.Xlsx.AutoFilters
+namespace Aid.Xlsx.Model.AutoFilters;
+
+public interface IXlsxFilterConnector
 {
-    public interface IXlsxFilterConnector
-    {
-        IXlsxCustomFilteredColumn And { get; }
-        IXlsxCustomFilteredColumn Or { get; }
-    }
+    IXlsxCustomFilteredColumn And { get; }
+    IXlsxCustomFilteredColumn Or { get; }
 }

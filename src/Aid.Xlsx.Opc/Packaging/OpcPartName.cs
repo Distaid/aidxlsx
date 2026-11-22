@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Packaging;
 
 internal static class OpcPartName
 {

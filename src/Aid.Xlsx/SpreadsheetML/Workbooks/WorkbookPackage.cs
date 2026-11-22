@@ -1,8 +1,8 @@
 using System.Globalization;
-using Aid.Xlsx.Drawings;
-using Aid.Xlsx.Opc;
+using Aid.Xlsx.Model.Drawings;
+using Aid.Xlsx.Opc.Packaging;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Workbooks;
 
 internal sealed partial class WorkbookPackage(OpcPackage package)
 {

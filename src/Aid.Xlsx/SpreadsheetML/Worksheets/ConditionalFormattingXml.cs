@@ -1,16 +1,19 @@
 using System.Globalization;
 using System.Xml.Linq;
-using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.ConditionalFormats;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.ConditionalFormats;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Styles;
+using Aid.Xlsx.SpreadsheetML.Workbooks;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Worksheets;
 
 internal static class ConditionalFormattingXml
 {

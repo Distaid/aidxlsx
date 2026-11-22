@@ -1,8 +1,8 @@
 using System;
 using System.Text;
-using static Aid.Xlsx.Formulas.ReferenceAxisType;
+using static Aid.Xlsx.Formulas.References.ReferenceAxisType;
 
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.References;
 
 /// <summary>
 /// <para>

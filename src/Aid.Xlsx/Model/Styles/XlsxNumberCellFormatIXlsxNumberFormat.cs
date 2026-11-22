@@ -1,6 +1,6 @@
-using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Model.Styles.Formatting;
 
-namespace Aid.Xlsx.Styles;
+namespace Aid.Xlsx.Model.Styles;
 
 internal sealed partial class XlsxNumberCellFormat : IXlsxNumberFormat
 {

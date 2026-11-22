@@ -1,11 +1,11 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.Coordinates;
+namespace Aid.Xlsx.Model.Grid.Coordinates;
 
 /// <summary>
 /// An immutable collection of areas. An equivalent of <c>ST_Sqref</c> (sequence of references).

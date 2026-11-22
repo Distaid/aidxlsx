@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Styles;
+namespace Aid.Xlsx.Model.Styles;
 
 /// <summary>
 /// A type gradient fill.

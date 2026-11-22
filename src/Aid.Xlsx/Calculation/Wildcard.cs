@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.CalcEngine;
+namespace Aid.Xlsx.Calculation;
 
 /// <summary>
 /// A wildcard is at most 255 chars long text. It can contain <c>*</c> which indicates any number characters (including zero)

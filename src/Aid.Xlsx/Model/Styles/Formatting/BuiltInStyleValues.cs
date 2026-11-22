@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Styles.Formatting;
+namespace Aid.Xlsx.Model.Styles.Formatting;
 
 /// <summary>
 /// List of built-in cell styles. The built-in style RowLevel_* is expanded from builtIn 1

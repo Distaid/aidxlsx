@@ -1,11 +1,11 @@
 using System.Diagnostics;
-using Aid.Xlsx.PivotTables;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles.Formatting;
-using Aid.Xlsx.Tables;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.PivotTables;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Formatting;
+using Aid.Xlsx.Model.Tables;
 
-namespace Aid.Xlsx.Styles;
+namespace Aid.Xlsx.Model.Styles;
 
 /// <summary>
 /// A container for styles and formatting records in a workbook.

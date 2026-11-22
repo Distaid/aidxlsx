@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System;
 
-namespace Aid.Xlsx.Formulas.Rolex;
+namespace Aid.Xlsx.Formulas.Lexing.Automata;
 
 internal class RolexLexer
 {

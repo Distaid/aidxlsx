@@ -1,7 +1,7 @@
-using Aid.Xlsx.Cells;
-using static Aid.Xlsx.Styles.XlsxPredefinedFormat.DateTime;
+using static Aid.Xlsx.Model.Styles.XlsxPredefinedFormat.DateTime;
+using Aid.Xlsx.Model.Grid.Cells;
 
-namespace Aid.Xlsx.Styles.Formatting;
+namespace Aid.Xlsx.Model.Styles.Formatting;
 
 /// <summary>
 /// A strongly typed number format.

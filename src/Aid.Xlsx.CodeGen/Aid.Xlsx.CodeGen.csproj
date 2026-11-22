@@ -13,11 +13,6 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <!-- The generator uses types from the OPC layer (the Aid.Xlsx.Opc namespace). -->
-  <ItemGroup>
-    <Using Include="Aid.Xlsx.Opc" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Aid.Xlsx.Opc\Aid.Xlsx.Opc.csproj" />
   </ItemGroup>

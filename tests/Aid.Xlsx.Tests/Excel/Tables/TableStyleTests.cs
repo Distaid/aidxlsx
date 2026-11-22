@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Tests.Excel;
 

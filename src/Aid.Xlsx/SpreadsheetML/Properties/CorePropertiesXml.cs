@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Xml.Linq;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.Workbooks;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Properties;
 
 internal static class CorePropertiesXml
 {

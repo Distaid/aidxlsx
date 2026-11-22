@@ -1,5 +1,5 @@
 // Keep this file CodeMaid organised and cleaned
-namespace Aid.Xlsx.PivotTables.PivotStyleFormats;
+namespace Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 
 internal class XlsxPivotTableStyleFormats : IXlsxPivotTableStyleFormats
 {

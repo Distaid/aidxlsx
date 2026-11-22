@@ -1,9 +1,9 @@
 #nullable disable
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.PivotTables.PivotStyleFormats;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 
-namespace Aid.Xlsx.PivotTables.Areas;
+namespace Aid.Xlsx.Model.PivotTables.Areas;
 
 /// <summary>
 /// A fluent API for one field in <see cref="XlsxPivotTableAxis"/>, either

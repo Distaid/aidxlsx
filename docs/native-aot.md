@@ -7,9 +7,9 @@ become columns. `[XlsxColumn]` controls heading, order, and number format. `[Xls
 omits a member.
 
 ```csharp
-using Aid.Xlsx.Attributes;
-using Aid.Xlsx.InsertData;
-using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.DataImport.Attributes;
+using Aid.Xlsx.DataImport.Mapping;
+using Aid.Xlsx.Model.Workbooks;
 
 using var workbook = new XlsxWorkbook();
 var sheet = workbook.Worksheets.Add("Orders");

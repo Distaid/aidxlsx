@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.AutoFilters;
+namespace Aid.Xlsx.Model.AutoFilters;
 
 internal class XlsxFilterConnector : IXlsxFilterConnector
 {

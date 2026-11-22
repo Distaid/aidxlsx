@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Compression;
 
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Packaging;
 
 /// <summary>An Open Packaging Conventions container backed by a ZIP archive.</summary>
 /// <remarks>Package operations and streams over the original ZIP archive are not thread safe.</remarks>

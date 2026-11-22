@@ -1,9 +1,9 @@
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Columns;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Rows;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Columns;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Grid.Rows;
 
-namespace Aid.Xlsx.Worksheets;
+namespace Aid.Xlsx.Model.Worksheets;
 
 internal sealed class XlsxWorksheetInternals : IDisposable
 {

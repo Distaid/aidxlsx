@@ -1,13 +1,12 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-namespace Aid.Xlsx.Extensions
+namespace Aid.Xlsx.Infrastructure.Extensions;
+
+internal static class GuidExtensions
 {
-    internal static class GuidExtensions
+    internal static String WrapInBraces(this Guid guid)
     {
-        internal static String WrapInBraces(this Guid guid)
-        {
-            return string.Concat('{', guid.ToString(), '}');
-        }
+        return string.Concat('{', guid.ToString(), '}');
     }
 }

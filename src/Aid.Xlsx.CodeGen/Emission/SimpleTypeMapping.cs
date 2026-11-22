@@ -1,6 +1,6 @@
 using System;
 
-namespace Aid.Xlsx.CodeGen;
+namespace Aid.Xlsx.CodeGen.Emission;
 
 public record SimpleTypeMapping
 {

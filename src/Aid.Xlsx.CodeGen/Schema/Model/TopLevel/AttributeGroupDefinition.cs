@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Aid.Xlsx.CodeGen.Model.TopLevel;
+namespace Aid.Xlsx.CodeGen.Schema.Model.TopLevel;
 
 /// <summary>
 /// <c><![CDATA[<xsd:attributeGroup/>]]></c> inside <c><![CDATA[<xsd:schema/>]]></c>.

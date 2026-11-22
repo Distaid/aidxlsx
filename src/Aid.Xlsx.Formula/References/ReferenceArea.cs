@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.References;
 
 /// <summary>
 /// Due to frequency of an area in formulas, the grammar has a token that represents

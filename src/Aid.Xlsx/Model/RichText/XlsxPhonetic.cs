@@ -1,26 +1,25 @@
-namespace Aid.Xlsx.RichText
+namespace Aid.Xlsx.Model.RichText;
+
+internal class XlsxPhonetic : IXlsxPhonetic
 {
-    internal class XlsxPhonetic : IXlsxPhonetic
+    public XlsxPhonetic(String text, Int32 start, Int32 end)
     {
-        public XlsxPhonetic(String text, Int32 start, Int32 end)
-        {
-            Text = text;
-            Start = start;
-            End = end;
-        }
-        public String Text { get; }
-        public Int32 Start { get; }
-        public Int32 End { get; }
+        Text = text;
+        Start = start;
+        End = end;
+    }
+    public String Text { get; }
+    public Int32 Start { get; }
+    public Int32 End { get; }
 
-        public bool Equals(IXlsxPhonetic? other)
-        {
-            if (other is null)
-                return false;
+    public bool Equals(IXlsxPhonetic? other)
+    {
+        if (other is null)
+            return false;
 
-            if (ReferenceEquals(this, other))
-                return true;
+        if (ReferenceEquals(this, other))
+            return true;
 
-            return Text == other.Text && Start == other.Start && End == other.End;
-        }
+        return Text == other.Text && Start == other.Start && End == other.End;
     }
 }

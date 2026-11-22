@@ -1,273 +1,272 @@
-using Aid.Xlsx.Columns;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Patterns;
-using Aid.Xlsx.Rows;
-using Aid.Xlsx.Tables;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Infrastructure.Patterns;
+using Aid.Xlsx.Model.Grid.Columns;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Rows;
+using Aid.Xlsx.Model.Tables;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.Ranges.Index
+namespace Aid.Xlsx.Model.Grid.Ranges.Index;
+
+/// <summary>
+/// Implementation of <see cref="IXlsxRangeIndex"/> internally using QuadTree.
+/// </summary>
+internal abstract class XlsxRangeIndex : IXlsxRangeIndex
 {
-    /// <summary>
-    /// Implementation of <see cref="IXlsxRangeIndex"/> internally using QuadTree.
-    /// </summary>
-    internal abstract class XlsxRangeIndex : IXlsxRangeIndex
+    #region Public Constructors
+
+    public XlsxRangeIndex(IXlsxWorksheet worksheet)
     {
-        #region Public Constructors
-
-        public XlsxRangeIndex(IXlsxWorksheet worksheet)
-        {
-            _worksheet = worksheet;
-            _rangeList = new List<IXlsxAddressable>();
-            ((XlsxWorksheet)_worksheet).RegisterRangeIndex(this);
-        }
-
-        #endregion Public Constructors
-
-        #region Public Methods
-
-        public abstract bool MatchesType(XlsxRangeType rangeType);
-
-        public bool Add(IXlsxAddressable range)
-        {
-            if (range == null)
-                throw new ArgumentNullException(nameof(range));
-
-            if (!range.RangeAddress.IsValid)
-                throw new ArgumentException("Range is invalid");
-
-            CheckWorksheet(range.RangeAddress.Worksheet);
-
-            _count++;
-            if (_count < MinimumCountForIndexing)
-            {
-                if (_rangeList.Any(r => r == range))
-                    return false;
-
-                _rangeList.Add(range);
-                return true;
-            }
-
-            if (_quadTree == null)
-                InitializeTree();
-
-            return _quadTree!.Add(range);
-        }
-
-        public bool Contains(in XlsxAddress address)
-        {
-            CheckWorksheet(address.Worksheet);
-
-            if (_quadTree == null)
-            {
-                var addr = address;
-                return _rangeList.Any(r => r.RangeAddress.Contains(addr));
-            }
-
-            return _quadTree.GetIntersectedRanges(address).Any();
-        }
-
-        public IEnumerable<IXlsxAddressable> GetAll()
-        {
-            if (_quadTree == null)
-            {
-                return _rangeList.AsEnumerable();
-            }
-
-            return _quadTree.GetAll();
-        }
-
-        public IEnumerable<IXlsxAddressable> GetIntersectedRanges(XlsxRangeAddress rangeAddress)
-        {
-            CheckWorksheet(rangeAddress.Worksheet);
-
-            if (_quadTree == null)
-            {
-                return _rangeList.Where(r => r.RangeAddress.Intersects(rangeAddress));
-            }
-
-            return _quadTree.GetIntersectedRanges(rangeAddress);
-        }
-
-        public IEnumerable<IXlsxAddressable> GetIntersectedRanges(XlsxAddress address)
-        {
-            CheckWorksheet(address.Worksheet);
-
-            if (_quadTree == null)
-            {
-                return _rangeList.Where(r => r.RangeAddress.Contains(address));
-            }
-
-            return _quadTree.GetIntersectedRanges(address);
-        }
-
-        public bool Intersects(in XlsxRangeAddress rangeAddress)
-        {
-            CheckWorksheet(rangeAddress.Worksheet);
-
-            if (_quadTree == null)
-            {
-                var addr = rangeAddress;
-                return _rangeList.Any(r => r.RangeAddress.Intersects(addr));
-            }
-
-            return _quadTree.GetIntersectedRanges(rangeAddress).Any();
-        }
-
-        public bool Remove(IXlsxRangeAddress rangeAddress)
-        {
-            if (rangeAddress == null)
-                throw new ArgumentNullException(nameof(rangeAddress));
-
-            CheckWorksheet(rangeAddress.Worksheet);
-
-            if (_quadTree == null)
-            {
-                return _rangeList.RemoveAll(r => Equals(r.RangeAddress, rangeAddress)) > 0;
-            }
-
-            return _quadTree.Remove(rangeAddress);
-        }
-
-        public int RemoveAll(Predicate<IXlsxAddressable>? predicate = null)
-        {
-            predicate = predicate ?? (_ => true);
-
-            if (_quadTree == null)
-            {
-                return _rangeList.RemoveAll(predicate);
-            }
-
-            return _quadTree.RemoveAll(predicate).Count();
-        }
-
-        #endregion Public Methods
-
-        #region Private Fields
-
-        /// <summary>
-        /// The minimum number of ranges to be included into a QuadTree. Until it is reached the ranges
-        /// are added into a simple list to minimize the overhead of searching intersections on small collections.
-        /// </summary>
-        private const int MinimumCountForIndexing = 20;
-
-        /// <summary>
-        /// A collection of ranges used before the QuadTree is initialized (until <see cref="MinimumCountForIndexing"/>
-        /// is reached.
-        /// </summary>
-        protected readonly List<IXlsxAddressable> _rangeList;
-
-        private readonly IXlsxWorksheet _worksheet;
-        private int _count = 0;
-        protected Quadrant? _quadTree;
-
-        #endregion Private Fields
-
-        #region Private Methods
-
-        private void CheckWorksheet(IXlsxWorksheet? worksheet)
-        {
-            if (worksheet != _worksheet)
-                throw new ArgumentException("Range belongs to a different worksheet");
-        }
-
-        private void InitializeTree()
-        {
-            _quadTree = CreateQuadTree();
-            _rangeList.ForEach(r => _quadTree.Add(r));
-            _rangeList.Clear();
-        }
-
-        protected virtual Quadrant CreateQuadTree()
-        {
-            return new Quadrant();
-        }
-
-        #endregion Private Methods
+        _worksheet = worksheet;
+        _rangeList = new List<IXlsxAddressable>();
+        ((XlsxWorksheet)_worksheet).RegisterRangeIndex(this);
     }
 
-    /// <summary>
-    /// Generic version of <see cref="XlsxRangeIndex"/>.
-    /// </summary>
-    internal class XlsxRangeIndex<T> : XlsxRangeIndex, IXlsxRangeIndex<T>
-        where T : IXlsxAddressable
+    #endregion Public Constructors
+
+    #region Public Methods
+
+    public abstract bool MatchesType(XlsxRangeType rangeType);
+
+    public bool Add(IXlsxAddressable range)
     {
-        public XlsxRangeIndex(IXlsxWorksheet worksheet) : base(worksheet)
+        if (range == null)
+            throw new ArgumentNullException(nameof(range));
+
+        if (!range.RangeAddress.IsValid)
+            throw new ArgumentException("Range is invalid");
+
+        CheckWorksheet(range.RangeAddress.Worksheet);
+
+        _count++;
+        if (_count < MinimumCountForIndexing)
         {
+            if (_rangeList.Any(r => r == range))
+                return false;
+
+            _rangeList.Add(range);
+            return true;
         }
 
-        public bool Add(T range)
+        if (_quadTree == null)
+            InitializeTree();
+
+        return _quadTree!.Add(range);
+    }
+
+    public bool Contains(in XlsxAddress address)
+    {
+        CheckWorksheet(address.Worksheet);
+
+        if (_quadTree == null)
         {
-            return base.Add(range);
+            var addr = address;
+            return _rangeList.Any(r => r.RangeAddress.Contains(addr));
         }
 
-        public int RemoveAll(Predicate<T>? predicate)
-        {
-            predicate = predicate ?? (_ => true);
+        return _quadTree.GetIntersectedRanges(address).Any();
+    }
 
-            return base.RemoveAll(r => predicate((T)r));
+    public IEnumerable<IXlsxAddressable> GetAll()
+    {
+        if (_quadTree == null)
+        {
+            return _rangeList.AsEnumerable();
         }
 
-        public new IEnumerable<T> GetIntersectedRanges(XlsxRangeAddress rangeAddress)
+        return _quadTree.GetAll();
+    }
+
+    public IEnumerable<IXlsxAddressable> GetIntersectedRanges(XlsxRangeAddress rangeAddress)
+    {
+        CheckWorksheet(rangeAddress.Worksheet);
+
+        if (_quadTree == null)
         {
-            return base.GetIntersectedRanges(rangeAddress).Cast<T>();
+            return _rangeList.Where(r => r.RangeAddress.Intersects(rangeAddress));
         }
 
-        public new IEnumerable<T> GetIntersectedRanges(XlsxAddress address)
+        return _quadTree.GetIntersectedRanges(rangeAddress);
+    }
+
+    public IEnumerable<IXlsxAddressable> GetIntersectedRanges(XlsxAddress address)
+    {
+        CheckWorksheet(address.Worksheet);
+
+        if (_quadTree == null)
         {
-            return base.GetIntersectedRanges(address).Cast<T>();
+            return _rangeList.Where(r => r.RangeAddress.Contains(address));
         }
 
-        public override bool MatchesType(XlsxRangeType rangeType)
+        return _quadTree.GetIntersectedRanges(address);
+    }
+
+    public bool Intersects(in XlsxRangeAddress rangeAddress)
+    {
+        CheckWorksheet(rangeAddress.Worksheet);
+
+        if (_quadTree == null)
         {
-            var innerType = typeof(T);
-
-            if (innerType == typeof(IXlsxRangeBase) ||
-                innerType == typeof(XlsxRangeBase))
-                return true;
-
-            switch (rangeType)
-            {
-                case XlsxRangeType.Range:
-                    return innerType == typeof(IXlsxRange) ||
-                           innerType == typeof(XlsxRange);
-
-                case XlsxRangeType.Column:
-                    return innerType == typeof(IXlsxColumn) ||
-                           innerType == typeof(XlsxColumn);
-
-                case XlsxRangeType.Row:
-                    return innerType == typeof(IXlsxRow) ||
-                           innerType == typeof(XlsxRow);
-
-                case XlsxRangeType.RangeColumn:
-                    return innerType == typeof(IXlsxRangeColumn) ||
-                           innerType == typeof(XlsxRangeColumn);
-
-                case XlsxRangeType.RangeRow:
-                    return innerType == typeof(IXlsxRangeRow) ||
-                           innerType == typeof(XlsxRangeRow);
-
-                case XlsxRangeType.Table:
-                    return innerType == typeof(IXlsxTable) ||
-                           innerType == typeof(XlsxTable);
-
-                case XlsxRangeType.Worksheet:
-                    return innerType == typeof(IXlsxWorksheet) ||
-                           innerType == typeof(XlsxWorksheet);
-
-                default:
-                    throw new NotImplementedException(nameof(rangeType));
-            }
+            var addr = rangeAddress;
+            return _rangeList.Any(r => r.RangeAddress.Intersects(addr));
         }
 
-        public new IEnumerable<T> GetAll()
+        return _quadTree.GetIntersectedRanges(rangeAddress).Any();
+    }
+
+    public bool Remove(IXlsxRangeAddress rangeAddress)
+    {
+        if (rangeAddress == null)
+            throw new ArgumentNullException(nameof(rangeAddress));
+
+        CheckWorksheet(rangeAddress.Worksheet);
+
+        if (_quadTree == null)
         {
-            return base.GetAll().Cast<T>();
+            return _rangeList.RemoveAll(r => Equals(r.RangeAddress, rangeAddress)) > 0;
         }
 
-        protected override Quadrant CreateQuadTree()
+        return _quadTree.Remove(rangeAddress);
+    }
+
+    public int RemoveAll(Predicate<IXlsxAddressable>? predicate = null)
+    {
+        predicate = predicate ?? (_ => true);
+
+        if (_quadTree == null)
         {
-            return new Quadrant<T>();
+            return _rangeList.RemoveAll(predicate);
         }
+
+        return _quadTree.RemoveAll(predicate).Count();
+    }
+
+    #endregion Public Methods
+
+    #region Private Fields
+
+    /// <summary>
+    /// The minimum number of ranges to be included into a QuadTree. Until it is reached the ranges
+    /// are added into a simple list to minimize the overhead of searching intersections on small collections.
+    /// </summary>
+    private const int MinimumCountForIndexing = 20;
+
+    /// <summary>
+    /// A collection of ranges used before the QuadTree is initialized (until <see cref="MinimumCountForIndexing"/>
+    /// is reached.
+    /// </summary>
+    protected readonly List<IXlsxAddressable> _rangeList;
+
+    private readonly IXlsxWorksheet _worksheet;
+    private int _count = 0;
+    protected Quadrant? _quadTree;
+
+    #endregion Private Fields
+
+    #region Private Methods
+
+    private void CheckWorksheet(IXlsxWorksheet? worksheet)
+    {
+        if (worksheet != _worksheet)
+            throw new ArgumentException("Range belongs to a different worksheet");
+    }
+
+    private void InitializeTree()
+    {
+        _quadTree = CreateQuadTree();
+        _rangeList.ForEach(r => _quadTree.Add(r));
+        _rangeList.Clear();
+    }
+
+    protected virtual Quadrant CreateQuadTree()
+    {
+        return new Quadrant();
+    }
+
+    #endregion Private Methods
+}
+
+/// <summary>
+/// Generic version of <see cref="XlsxRangeIndex"/>.
+/// </summary>
+internal class XlsxRangeIndex<T> : XlsxRangeIndex, IXlsxRangeIndex<T>
+    where T : IXlsxAddressable
+{
+    public XlsxRangeIndex(IXlsxWorksheet worksheet) : base(worksheet)
+    {
+    }
+
+    public bool Add(T range)
+    {
+        return base.Add(range);
+    }
+
+    public int RemoveAll(Predicate<T>? predicate)
+    {
+        predicate = predicate ?? (_ => true);
+
+        return base.RemoveAll(r => predicate((T)r));
+    }
+
+    public new IEnumerable<T> GetIntersectedRanges(XlsxRangeAddress rangeAddress)
+    {
+        return base.GetIntersectedRanges(rangeAddress).Cast<T>();
+    }
+
+    public new IEnumerable<T> GetIntersectedRanges(XlsxAddress address)
+    {
+        return base.GetIntersectedRanges(address).Cast<T>();
+    }
+
+    public override bool MatchesType(XlsxRangeType rangeType)
+    {
+        var innerType = typeof(T);
+
+        if (innerType == typeof(IXlsxRangeBase) ||
+            innerType == typeof(XlsxRangeBase))
+            return true;
+
+        switch (rangeType)
+        {
+            case XlsxRangeType.Range:
+                return innerType == typeof(IXlsxRange) ||
+                       innerType == typeof(XlsxRange);
+
+            case XlsxRangeType.Column:
+                return innerType == typeof(IXlsxColumn) ||
+                       innerType == typeof(XlsxColumn);
+
+            case XlsxRangeType.Row:
+                return innerType == typeof(IXlsxRow) ||
+                       innerType == typeof(XlsxRow);
+
+            case XlsxRangeType.RangeColumn:
+                return innerType == typeof(IXlsxRangeColumn) ||
+                       innerType == typeof(XlsxRangeColumn);
+
+            case XlsxRangeType.RangeRow:
+                return innerType == typeof(IXlsxRangeRow) ||
+                       innerType == typeof(XlsxRangeRow);
+
+            case XlsxRangeType.Table:
+                return innerType == typeof(IXlsxTable) ||
+                       innerType == typeof(XlsxTable);
+
+            case XlsxRangeType.Worksheet:
+                return innerType == typeof(IXlsxWorksheet) ||
+                       innerType == typeof(XlsxWorksheet);
+
+            default:
+                throw new NotImplementedException(nameof(rangeType));
+        }
+    }
+
+    public new IEnumerable<T> GetAll()
+    {
+        return base.GetAll().Cast<T>();
+    }
+
+    protected override Quadrant CreateQuadTree()
+    {
+        return new Quadrant<T>();
     }
 }

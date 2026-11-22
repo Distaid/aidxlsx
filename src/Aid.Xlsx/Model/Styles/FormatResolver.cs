@@ -1,10 +1,10 @@
-using Aid.Xlsx.Columns;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Rows;
-using Aid.Xlsx.Styles.Formatting;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Model.Grid.Columns;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Rows;
+using Aid.Xlsx.Model.Styles.Formatting;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.Styles;
+namespace Aid.Xlsx.Model.Styles;
 
 /// <summary>
 /// A class to resolve a format of a cell in a worksheet, if the cell doesn't already has format.

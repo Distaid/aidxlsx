@@ -1,16 +1,15 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-using static Aid.Xlsx.Protection.XlsxProtectionAlgorithm;
+using static Aid.Xlsx.Model.Protection.XlsxProtectionAlgorithm;
 
-namespace Aid.Xlsx.Protection
+namespace Aid.Xlsx.Model.Protection;
+
+public interface IXlsxSheetProtection : IXlsxElementProtection<XlsxSheetProtectionElements>
 {
-    public interface IXlsxSheetProtection : IXlsxElementProtection<XlsxSheetProtectionElements>
-    {
-        IXlsxSheetProtection Protect(XlsxSheetProtectionElements allowedElements);
+    IXlsxSheetProtection Protect(XlsxSheetProtectionElements allowedElements);
 
-        IXlsxSheetProtection Protect(Algorithm algorithm, XlsxSheetProtectionElements allowedElements);
+    IXlsxSheetProtection Protect(Algorithm algorithm, XlsxSheetProtectionElements allowedElements);
 
-        IXlsxSheetProtection Protect(String password, Algorithm algorithm = DefaultProtectionAlgorithm, XlsxSheetProtectionElements allowedElements = XlsxSheetProtectionElements.SelectEverything);
-    }
+    IXlsxSheetProtection Protect(String password, Algorithm algorithm = DefaultProtectionAlgorithm, XlsxSheetProtectionElements allowedElements = XlsxSheetProtectionElements.SelectEverything);
 }

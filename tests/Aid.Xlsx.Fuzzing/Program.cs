@@ -1,8 +1,11 @@
 using System.Text;
 using System.Xml;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.Workbooks;
 using SharpFuzz;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.Opc.Packaging;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.Opc.Xml.Compatibility;
 
 const int maxInput = 64 * 1024;
 const string spreadsheetNamespace = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";

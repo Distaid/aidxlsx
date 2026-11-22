@@ -1,6 +1,6 @@
-using Aid.Xlsx.ConditionalFormats;
+using Aid.Xlsx.Model.ConditionalFormats;
 
-namespace Aid.Xlsx.PivotTables;
+namespace Aid.Xlsx.Model.PivotTables;
 
 /// <summary>
 /// Specifies how to apply <see cref="XlsxConditionalFormatType.Top10"/> conditional formatting rule

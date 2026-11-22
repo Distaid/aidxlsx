@@ -1,9 +1,9 @@
 #nullable disable
 
 using System.Diagnostics;
-using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Model.Grid.Ranges;
 
-namespace Aid.Xlsx.CalcEngine;
+namespace Aid.Xlsx.Calculation;
 
 /// <summary>
 /// A base class for an 2D array. Every array is at least 1x1.

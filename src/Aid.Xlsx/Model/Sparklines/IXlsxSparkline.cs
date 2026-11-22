@@ -1,7 +1,7 @@
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Ranges;
 
-namespace Aid.Xlsx.Sparklines;
+namespace Aid.Xlsx.Model.Sparklines;
 
 /// <summary>
 /// A representation of a one sparkline of a <see cref="IXlsxSparklineGroup"/>. Sparkline is

@@ -1,13 +1,12 @@
 #nullable disable
 
-using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Colors;
 
-namespace Aid.Xlsx.ConditionalFormats
+namespace Aid.Xlsx.Model.ConditionalFormats;
+
+public interface IXlsxCFColorScaleMax
 {
-    public interface IXlsxCFColorScaleMax
-    {
-        void Maximum(XlsxCFContentType type, String value, XlsxColor color);
-        void Maximum(XlsxCFContentType type, Double value, XlsxColor color);
-        void HighestValue(XlsxColor color);
-    }
+    void Maximum(XlsxCFContentType type, String value, XlsxColor color);
+    void Maximum(XlsxCFContentType type, Double value, XlsxColor color);
+    void HighestValue(XlsxColor color);
 }

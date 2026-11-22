@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Aid.Xlsx.CodeGen.Model.TopLevel;
+using Aid.Xlsx.CodeGen.Emission;
+using Aid.Xlsx.CodeGen.Schema.Model.TopLevel;
 
-namespace Aid.Xlsx.CodeGen.Model.Elements;
+namespace Aid.Xlsx.CodeGen.Schema.Model.Elements;
 
 /// <summary>
 /// <c><![CDATA[<xsd:group ref="some:group">]]></c> inside <c><![CDATA[<xsd:complexType>]]></c>.

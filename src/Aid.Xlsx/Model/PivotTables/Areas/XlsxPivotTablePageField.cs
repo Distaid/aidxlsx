@@ -1,8 +1,8 @@
 #nullable disable
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.PivotTables.PivotStyleFormats;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 
-namespace Aid.Xlsx.PivotTables.Areas;
+namespace Aid.Xlsx.Model.PivotTables.Areas;
 
 /// <summary>
 /// Fluent API for filter fields of a <see cref="XlsxPivotTable"/>. This class shouldn't contain any

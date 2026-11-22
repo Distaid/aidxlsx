@@ -1,8 +1,8 @@
 using System.Xml;
-using Aid.Xlsx.Opc;
-using static Aid.Xlsx.SpreadsheetML.OpenXmlConst;
+using static Aid.Xlsx.SpreadsheetML.Xml.OpenXmlConst;
+using Aid.Xlsx.Opc.Packaging;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Workbooks;
 
 internal sealed partial class WorkbookPackage
 {

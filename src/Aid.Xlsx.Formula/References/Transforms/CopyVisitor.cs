@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Aid.Xlsx.Formulas.Syntax;
 
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.References.Transforms;
 
 /// <summary>
 /// A visitor that generates the identical formula for the parsed formula based on passed arguments.

@@ -1,6 +1,7 @@
 using System;
+using Aid.Xlsx.Formulas.Syntax;
 
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.References.Transforms;
 
 /// <summary>
 /// Convert between <em>A1</em> and <em>R1C1</em> style formulas.

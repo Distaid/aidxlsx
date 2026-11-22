@@ -1,8 +1,7 @@
-namespace Aid.Xlsx.Drawings.Styles
+namespace Aid.Xlsx.Model.Drawings.Styles;
+
+public interface IXlsxDrawingWeb
 {
-    public interface IXlsxDrawingWeb
-    {
-        String? AlternateText { get; set; }
-        IXlsxDrawingStyle SetAlternateText(String? value);
-    }
+    String? AlternateText { get; set; }
+    IXlsxDrawingStyle SetAlternateText(String? value);
 }

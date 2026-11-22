@@ -1,15 +1,14 @@
 #nullable disable
 
-using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Colors;
 
-namespace Aid.Xlsx.ConditionalFormats
+namespace Aid.Xlsx.Model.ConditionalFormats;
+
+public interface IXlsxCFColorScaleMid
 {
-    public interface IXlsxCFColorScaleMid
-    {
-        IXlsxCFColorScaleMax Midpoint(XlsxCFContentType type, String value, XlsxColor color);
-        IXlsxCFColorScaleMax Midpoint(XlsxCFContentType type, Double value, XlsxColor color);
-        void Maximum(XlsxCFContentType type, String value, XlsxColor color);
-        void Maximum(XlsxCFContentType type, Double value, XlsxColor color);
-        void HighestValue(XlsxColor color);
-    }
+    IXlsxCFColorScaleMax Midpoint(XlsxCFContentType type, String value, XlsxColor color);
+    IXlsxCFColorScaleMax Midpoint(XlsxCFContentType type, Double value, XlsxColor color);
+    void Maximum(XlsxCFContentType type, String value, XlsxColor color);
+    void Maximum(XlsxCFContentType type, Double value, XlsxColor color);
+    void HighestValue(XlsxColor color);
 }

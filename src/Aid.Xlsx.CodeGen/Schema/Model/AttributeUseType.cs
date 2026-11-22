@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.CodeGen.Model;
+namespace Aid.Xlsx.CodeGen.Schema.Model;
 
 /// <summary>
 /// Is attribute optional or does it always has to be specified?

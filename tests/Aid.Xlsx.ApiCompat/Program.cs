@@ -1,8 +1,9 @@
-using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Model.Workbooks;
 
 var current = ApiSurface.Read(typeof(XlsxWorkbook).Assembly);
 if (args is ["--print-api"])
 {
+    Console.OutputEncoding = System.Text.Encoding.UTF8;
     Console.Write(string.Join('\n', current.Order(StringComparer.Ordinal)) + "\n");
     return 0;
 }

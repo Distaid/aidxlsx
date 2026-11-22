@@ -1,33 +1,32 @@
-namespace Aid.Xlsx.Tests.Utils
+namespace Aid.Xlsx.Tests.Utils;
+
+internal class TemporaryFile : IDisposable
 {
-    internal class TemporaryFile : IDisposable
+    internal TemporaryFile()
+        : this(System.IO.Path.ChangeExtension(System.IO.Path.GetTempFileName(), "xlsx"))
+    { }
+
+    internal TemporaryFile(string path)
+        : this(path, false)
+    { }
+
+    internal TemporaryFile(String path, bool preserve)
     {
-        internal TemporaryFile()
-            : this(System.IO.Path.ChangeExtension(System.IO.Path.GetTempFileName(), "xlsx"))
-        { }
+        this.Path = path;
+        this.Preserve = preserve;
+    }
 
-        internal TemporaryFile(string path)
-            : this(path, false)
-        { }
+    public string Path { get; private set; }
+    public bool Preserve { get; private set; }
 
-        internal TemporaryFile(String path, bool preserve)
-        {
-            this.Path = path;
-            this.Preserve = preserve;
-        }
+    public void Dispose()
+    {
+        if (!Preserve)
+            File.Delete(Path);
+    }
 
-        public string Path { get; private set; }
-        public bool Preserve { get; private set; }
-
-        public void Dispose()
-        {
-            if (!Preserve)
-                File.Delete(Path);
-        }
-
-        public override string ToString()
-        {
-            return this.Path;
-        }
+    public override string ToString()
+    {
+        return this.Path;
     }
 }

@@ -1,11 +1,13 @@
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.SpreadsheetML;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles.Formatting;
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Utils;
 using NUnit.Framework;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Formatting;
+using Aid.Xlsx.Model.Tables;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Styles;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
 namespace Aid.Xlsx.Tests.Excel.IO;
 

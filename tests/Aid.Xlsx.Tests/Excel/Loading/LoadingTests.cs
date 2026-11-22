@@ -1,18 +1,21 @@
 using System.Globalization;
-using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.DataValidation;
-using Aid.Xlsx.Drawings;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.PivotTables.Areas;
-using Aid.Xlsx.PivotTables;
-using Aid.Xlsx.Protection;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles;
 using Aid.Xlsx.Tests.Utils;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.DataValidation;
+using Aid.Xlsx.Model.Drawings;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.PivotTables;
+using Aid.Xlsx.Model.PivotTables.Areas;
+using Aid.Xlsx.Model.PivotTables.PivotValues;
+using Aid.Xlsx.Model.Protection;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Tables;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Tests.Excel;
 

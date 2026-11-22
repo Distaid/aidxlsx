@@ -1,10 +1,10 @@
 using System.Diagnostics;
-using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.PivotTables.PivotValues;
-using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.PivotTables.PivotValues;
+using Aid.Xlsx.Model.Styles.Formatting;
 
-namespace Aid.Xlsx.PivotTables.Areas;
+namespace Aid.Xlsx.Model.PivotTables.Areas;
 
 /// <summary>
 /// A field that describes calculation of value to display in the <see cref="XlsxPivotAreaType.Data"/>

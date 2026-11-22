@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Styles;
+namespace Aid.Xlsx.Model.Styles;
 
 /// <summary>
 /// Size of a font stored in twips. Storing font size as double causes various problems with

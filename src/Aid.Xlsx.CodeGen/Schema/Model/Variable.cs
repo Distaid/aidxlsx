@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.CodeGen.Model;
+namespace Aid.Xlsx.CodeGen.Schema.Model;
 
 /// <summary>
 /// A variable in the generated code.

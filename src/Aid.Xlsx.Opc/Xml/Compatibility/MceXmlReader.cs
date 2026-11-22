@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Xml;
 
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Xml.Compatibility;
 
 /// <summary>
 /// Markup Compatibility and Extensibility (MCE) processor per ISO-29500-3:2015.

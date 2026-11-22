@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Aid.Xlsx.Formulas.Rolex;
+using Aid.Xlsx.Formulas.Lexing;
+using Aid.Xlsx.Formulas.Lexing.Automata;
+using Aid.Xlsx.Formulas.References;
+using Aid.Xlsx.Formulas.References.Transforms;
 
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.Syntax;
 
 /// <summary>
 /// A parser of Excel formulas, with main purpose of creating an abstract syntax tree.

@@ -1,14 +1,13 @@
 #nullable disable
 
-namespace Aid.Xlsx.Drawings.Styles
+namespace Aid.Xlsx.Model.Drawings.Styles;
+
+public interface IXlsxDrawingProtection
 {
-    public interface IXlsxDrawingProtection
-    {
-        Boolean Locked { get; set; }
-        Boolean LockText { get; set; }
+    Boolean Locked { get; set; }
+    Boolean LockText { get; set; }
 
-        IXlsxDrawingStyle SetLocked(); IXlsxDrawingStyle SetLocked(Boolean value);
-        IXlsxDrawingStyle SetLockText(); IXlsxDrawingStyle SetLockText(Boolean value);
+    IXlsxDrawingStyle SetLocked(); IXlsxDrawingStyle SetLocked(Boolean value);
+    IXlsxDrawingStyle SetLockText(); IXlsxDrawingStyle SetLockText(Boolean value);
 
-    }
 }

@@ -1,5 +1,5 @@
-using Aid.Xlsx.Coordinates;
 using NUnit.Framework;
+using Aid.Xlsx.Model.Grid.Coordinates;
 
 namespace Aid.Xlsx.Tests.Excel.Coordinates;
 

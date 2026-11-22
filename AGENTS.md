@@ -50,7 +50,8 @@ metadata and the repository conventions described below.
 
 Each source project has a README that describes its directory layout. In `src/Aid.Xlsx`,
 workbook domains live under `Model/` and file-format codecs under `SpreadsheetML/`.
-Keep public namespaces tied to the workbook domain when moving files between source directories.
+In `src/`, use the project root namespace plus the source directory path. Use file-scoped
+namespace declarations throughout the repository.
 
 ## Code conventions
 

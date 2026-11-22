@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.CodeGen.Model.SimpleTypes;
+namespace Aid.Xlsx.CodeGen.Schema.Model.SimpleTypes;
 
 /// <summary>
 /// Length of a <see cref="ISimpleType"/> must have a specified length.

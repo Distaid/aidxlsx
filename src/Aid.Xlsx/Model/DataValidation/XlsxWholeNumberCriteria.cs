@@ -1,13 +1,12 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-namespace Aid.Xlsx.DataValidation
+namespace Aid.Xlsx.Model.DataValidation;
+
+public class XlsxWholeNumberCriteria : XlsxWholeNumberCriteriaBase
 {
-    public class XlsxWholeNumberCriteria : XlsxWholeNumberCriteriaBase
+    public XlsxWholeNumberCriteria(IXlsxDataValidation dataValidation)
+        : base(dataValidation)
     {
-        public XlsxWholeNumberCriteria(IXlsxDataValidation dataValidation)
-            : base(dataValidation)
-        {
-        }
     }
 }

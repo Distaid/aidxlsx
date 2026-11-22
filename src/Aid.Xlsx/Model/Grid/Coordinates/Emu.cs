@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 
-namespace Aid.Xlsx.Coordinates;
+namespace Aid.Xlsx.Model.Grid.Coordinates;
 
 /// <summary>
 /// English metric unit.

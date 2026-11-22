@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Formulas.Rolex;
+namespace Aid.Xlsx.Formulas.Lexing.Automata;
 
 internal struct DfaEntry
 {

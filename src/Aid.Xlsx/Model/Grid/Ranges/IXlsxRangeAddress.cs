@@ -1,113 +1,112 @@
 // Keep this file CodeMaid organised and cleaned
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.Ranges
+namespace Aid.Xlsx.Model.Grid.Ranges;
+
+public interface IXlsxRangeAddress
 {
-    public interface IXlsxRangeAddress
-    {
-        /// <summary>
-        /// Gets the number of columns in the area covered by the range address.
-        /// </summary>
-        int ColumnSpan { get; }
+    /// <summary>
+    /// Gets the number of columns in the area covered by the range address.
+    /// </summary>
+    int ColumnSpan { get; }
 
-        /// <summary>
-        /// Gets or sets the first address in the range.
-        /// </summary>
-        /// <value>
-        /// The first address.
-        /// </value>
-        IXlsxAddress FirstAddress { get; }
+    /// <summary>
+    /// Gets or sets the first address in the range.
+    /// </summary>
+    /// <value>
+    /// The first address.
+    /// </value>
+    IXlsxAddress FirstAddress { get; }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this range is valid.
-        /// </summary>
-        /// <value>
-        /// 	<c>true</c> if this instance is valid; otherwise, <c>false</c>.
-        /// </value>
-        Boolean IsValid { get; }
+    /// <summary>
+    /// Gets or sets a value indicating whether this range is valid.
+    /// </summary>
+    /// <value>
+    /// 	<c>true</c> if this instance is valid; otherwise, <c>false</c>.
+    /// </value>
+    Boolean IsValid { get; }
 
-        /// <summary>
-        /// Gets or sets the last address in the range.
-        /// </summary>
-        /// <value>
-        /// The last address.
-        /// </value>
-        IXlsxAddress LastAddress { get; }
+    /// <summary>
+    /// Gets or sets the last address in the range.
+    /// </summary>
+    /// <value>
+    /// The last address.
+    /// </value>
+    IXlsxAddress LastAddress { get; }
 
-        /// <summary>
-        /// Gets the number of cells in the area covered by the range address.
-        /// </summary>
-        int NumberOfCells { get; }
+    /// <summary>
+    /// Gets the number of cells in the area covered by the range address.
+    /// </summary>
+    int NumberOfCells { get; }
 
-        /// <summary>
-        /// Gets the number of rows in the area covered by the range address.
-        /// </summary>
-        int RowSpan { get; }
+    /// <summary>
+    /// Gets the number of rows in the area covered by the range address.
+    /// </summary>
+    int RowSpan { get; }
 
-        IXlsxWorksheet? Worksheet { get; }
+    IXlsxWorksheet? Worksheet { get; }
 
-        /// <summary>Allocates the current range address in the internal range repository and returns it</summary>
-        /// <returns>Range of the address or null, if the range is not a valid address.</returns>
-        IXlsxRange? AsRange();
+    /// <summary>Allocates the current range address in the internal range repository and returns it</summary>
+    /// <returns>Range of the address or null, if the range is not a valid address.</returns>
+    IXlsxRange? AsRange();
 
-        Boolean Contains(IXlsxAddress address);
+    Boolean Contains(IXlsxAddress address);
 
-        /// <summary>
-        /// Returns the intersection of this range address with another range address on the same worksheet.
-        /// </summary>
-        /// <param name="otherRangeAddress">The other range address.</param>
-        /// <returns>The intersection's range address</returns>
-        IXlsxRangeAddress Intersection(IXlsxRangeAddress otherRangeAddress);
+    /// <summary>
+    /// Returns the intersection of this range address with another range address on the same worksheet.
+    /// </summary>
+    /// <param name="otherRangeAddress">The other range address.</param>
+    /// <returns>The intersection's range address</returns>
+    IXlsxRangeAddress Intersection(IXlsxRangeAddress otherRangeAddress);
 
-        Boolean Intersects(IXlsxRangeAddress otherAddress);
+    Boolean Intersects(IXlsxRangeAddress otherAddress);
 
-        /// <summary>
-        /// Determines whether range address spans the entire column.
-        /// </summary>
-        /// <returns>
-        ///   <c>true</c> if is entire column; otherwise, <c>false</c>.
-        /// </returns>
-        Boolean IsEntireColumn();
+    /// <summary>
+    /// Determines whether range address spans the entire column.
+    /// </summary>
+    /// <returns>
+    ///   <c>true</c> if is entire column; otherwise, <c>false</c>.
+    /// </returns>
+    Boolean IsEntireColumn();
 
-        /// <summary>
-        /// Determines whether range address spans the entire row.
-        /// </summary>
-        /// <returns>
-        ///   <c>true</c> if is entire row; otherwise, <c>false</c>.
-        /// </returns>
-        Boolean IsEntireRow();
+    /// <summary>
+    /// Determines whether range address spans the entire row.
+    /// </summary>
+    /// <returns>
+    ///   <c>true</c> if is entire row; otherwise, <c>false</c>.
+    /// </returns>
+    Boolean IsEntireRow();
 
-        /// <summary>
-        /// Determines whether the range address spans the entire worksheet.
-        /// </summary>
-        /// <returns>
-        ///   <c>true</c> if is entire sheet; otherwise, <c>false</c>.
-        /// </returns>
-        Boolean IsEntireSheet();
+    /// <summary>
+    /// Determines whether the range address spans the entire worksheet.
+    /// </summary>
+    /// <returns>
+    ///   <c>true</c> if is entire sheet; otherwise, <c>false</c>.
+    /// </returns>
+    Boolean IsEntireSheet();
 
-        /// <summary>
-        /// Returns a range address so that its offset from the target base address is equal to the offset of the current range address to the source base address.
-        /// For example, if the current range address is D4:E4, the source base address is A1:C3, then the relative address to the target base address B10:D13 is E14:F14
-        /// </summary>
-        /// <param name="sourceRangeAddress">The source base range address.</param>
-        /// <param name="targetRangeAddress">The target base range address.</param>
-        /// <returns>The relative range</returns>
-        IXlsxRangeAddress Relative(IXlsxRangeAddress sourceRangeAddress, IXlsxRangeAddress targetRangeAddress);
+    /// <summary>
+    /// Returns a range address so that its offset from the target base address is equal to the offset of the current range address to the source base address.
+    /// For example, if the current range address is D4:E4, the source base address is A1:C3, then the relative address to the target base address B10:D13 is E14:F14
+    /// </summary>
+    /// <param name="sourceRangeAddress">The source base range address.</param>
+    /// <param name="targetRangeAddress">The target base range address.</param>
+    /// <returns>The relative range</returns>
+    IXlsxRangeAddress Relative(IXlsxRangeAddress sourceRangeAddress, IXlsxRangeAddress targetRangeAddress);
 
-        String ToString(XlsxReferenceStyle referenceStyle);
+    String ToString(XlsxReferenceStyle referenceStyle);
 
-        String ToString(XlsxReferenceStyle referenceStyle, Boolean includeSheet);
+    String ToString(XlsxReferenceStyle referenceStyle, Boolean includeSheet);
 
-        String ToStringFixed();
+    String ToStringFixed();
 
-        String ToStringFixed(XlsxReferenceStyle referenceStyle);
+    String ToStringFixed(XlsxReferenceStyle referenceStyle);
 
-        String ToStringFixed(XlsxReferenceStyle referenceStyle, Boolean includeSheet);
+    String ToStringFixed(XlsxReferenceStyle referenceStyle, Boolean includeSheet);
 
-        String ToStringRelative();
+    String ToStringRelative();
 
-        String ToStringRelative(Boolean includeSheet);
-    }
+    String ToStringRelative(Boolean includeSheet);
 }

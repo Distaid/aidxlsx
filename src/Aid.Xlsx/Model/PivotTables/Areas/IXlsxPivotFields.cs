@@ -1,7 +1,7 @@
 // Keep this file CodeMaid organised and cleaned
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
 
-namespace Aid.Xlsx.PivotTables.Areas;
+namespace Aid.Xlsx.Model.PivotTables.Areas;
 
 /// <summary>
 /// <para>

@@ -1,15 +1,16 @@
 using System.Diagnostics;
 using System.Xml;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.PivotTables.Areas;
-using Aid.Xlsx.PivotTables.PivotValues;
-using Aid.Xlsx.PivotTables;
-using Aid.Xlsx.Utils;
 using Array = System.Array;
-using static Aid.Xlsx.SpreadsheetML.OpenXmlConst;
-using static Aid.Xlsx.Workbooks.XlsxWorkbook;
+using static Aid.Xlsx.SpreadsheetML.Xml.OpenXmlConst;
+using static Aid.Xlsx.Model.Workbooks.XlsxWorkbook;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.PivotTables;
+using Aid.Xlsx.Model.PivotTables.Areas;
+using Aid.Xlsx.Model.PivotTables.PivotValues;
+using Aid.Xlsx.Model.Workbooks;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Pivots;
 
 internal static partial class PivotTableXml
 {

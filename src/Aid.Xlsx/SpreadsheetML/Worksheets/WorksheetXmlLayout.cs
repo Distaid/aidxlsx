@@ -1,11 +1,12 @@
 using System.Xml.Linq;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.PageSetup;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Columns;
+using Aid.Xlsx.Model.PageSetup;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Worksheets;
 
 internal sealed partial class WorksheetXml
 {

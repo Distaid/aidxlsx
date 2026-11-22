@@ -1,16 +1,17 @@
 using System.Text;
-using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.RichText;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles.Formatting;
-using Aid.Xlsx.Styles;
-using PhoneticProperties = Aid.Xlsx.RichText.XlsxImmutableRichText.PhoneticProperties;
-using PhoneticRun = Aid.Xlsx.RichText.XlsxImmutableRichText.PhoneticRun;
+using PhoneticProperties = Aid.Xlsx.Model.RichText.XlsxImmutableRichText.PhoneticProperties;
+using PhoneticRun = Aid.Xlsx.Model.RichText.XlsxImmutableRichText.PhoneticRun;
 using PhoneticRunDto = (string Text, int StartIndex, int EndIndex);
-using RichTextRun = Aid.Xlsx.RichText.XlsxImmutableRichText.RichTextRun;
+using RichTextRun = Aid.Xlsx.Model.RichText.XlsxImmutableRichText.RichTextRun;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Model.RichText;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Formatting;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Strings;
 
 /// <summary>
 /// A partial stateful reader for reading a string item (it's either text or rich text). The rich

@@ -1,14 +1,14 @@
 using System.Collections;
-using Aid.Xlsx.ConditionalFormats;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.DataValidation;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.ConditionalFormats;
+using Aid.Xlsx.Model.DataValidation;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.Cells;
+namespace Aid.Xlsx.Model.Grid.Cells;
 
 internal class XlsxCells : IXlsxCells, IEnumerable<XlsxCell>
 {

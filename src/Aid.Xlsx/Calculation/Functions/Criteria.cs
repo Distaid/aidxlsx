@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 
-namespace Aid.Xlsx.CalcEngine.Functions;
+namespace Aid.Xlsx.Calculation.Functions;
 
 /// <summary>
 /// A representation of selection criteria used in IFs functions <c>{SUM,AVERAGE,COUNT}{IF,IFS}</c>

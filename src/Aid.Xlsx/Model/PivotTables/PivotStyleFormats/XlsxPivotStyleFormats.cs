@@ -1,7 +1,7 @@
 // Keep this file CodeMaid organised and cleaned
 using System.Collections;
 
-namespace Aid.Xlsx.PivotTables.PivotStyleFormats;
+namespace Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 
 /// <summary>
 /// An API for grand totals from <see cref="XlsxPivotTableStyleFormats"/>.

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Aid.Xlsx.CodeGen.Model.SimpleTypes;
+namespace Aid.Xlsx.CodeGen.Schema.Model.SimpleTypes;
 
 /// <summary>
 /// <c><![CDATA[<xsd:simpleType>]]></c> inside <c><![CDATA[<xsd:schema>]]></c>. The allowed values

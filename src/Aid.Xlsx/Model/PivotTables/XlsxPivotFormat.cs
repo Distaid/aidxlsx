@@ -1,7 +1,7 @@
-using Aid.Xlsx.Styles.Formatting;
-using Aid.Xlsx.Styles;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Formatting;
 
-namespace Aid.Xlsx.PivotTables;
+namespace Aid.Xlsx.Model.PivotTables;
 
 /// <summary>
 /// A description of formatting that should be applied to a <see cref="XlsxPivotTable"/>.

@@ -1,6 +1,5 @@
-namespace Aid.Xlsx.RichText
+namespace Aid.Xlsx.Model.RichText;
+
+public interface IXlsxRichText : IXlsxFormattedText<IXlsxRichText>
 {
-    public interface IXlsxRichText : IXlsxFormattedText<IXlsxRichText>
-    {
-    }
 }

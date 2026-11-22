@@ -1,8 +1,8 @@
-using Aid.Xlsx.ConditionalFormats;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.ConditionalFormats;
+using Aid.Xlsx.Opc.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Workbooks;
 
 internal class LoadContext
 {

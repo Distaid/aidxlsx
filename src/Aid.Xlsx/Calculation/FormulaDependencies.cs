@@ -1,84 +1,83 @@
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Coordinates;
 
-namespace Aid.Xlsx.CalcEngine
+namespace Aid.Xlsx.Calculation;
+
+/// <summary>
+/// A list of objects a cell formula depends on. If one of them changes,
+/// the formula value might no longer be accurate and needs to be recalculated.
+/// </summary>
+internal class FormulaDependencies
 {
+    private readonly HashSet<SheetArea> _areas = new();
+    private readonly HashSet<XlsxName> _names = new();
+
     /// <summary>
-    /// A list of objects a cell formula depends on. If one of them changes,
-    /// the formula value might no longer be accurate and needs to be recalculated.
+    /// List of areas the formula depends on. It is likely a superset of accurate
+    /// result for unusual formulas, but if a value in an areas changes, the dependent
+    /// formula should be marked as dirty.
     /// </summary>
-    internal class FormulaDependencies
+    public IReadOnlyCollection<SheetArea> Areas => _areas;
+
+    /// <summary>
+    /// A collection of names in the formula. If a name changes (added, deleted),
+    /// the formula dependencies should be refreshed, because new name might refer to
+    /// different references (e.g. a name previously referred to <c>A5</c> and is redefined
+    /// to <c>B7</c> or just value <c>7</c> =&gt; formula no longer depends on <c>A5</c>).
+    /// </summary>
+    public IReadOnlyCollection<XlsxName> Names => _names;
+
+    internal void AddAreas(List<SheetArea> sheetAreas)
     {
-        private readonly HashSet<SheetArea> _areas = new();
-        private readonly HashSet<XlsxName> _names = new();
+        _areas.UnionWith(sheetAreas);
+    }
 
-        /// <summary>
-        /// List of areas the formula depends on. It is likely a superset of accurate
-        /// result for unusual formulas, but if a value in an areas changes, the dependent
-        /// formula should be marked as dirty.
-        /// </summary>
-        public IReadOnlyCollection<SheetArea> Areas => _areas;
+    internal void AddName(XlsxName name)
+    {
+        _names.Add(name);
+    }
 
-        /// <summary>
-        /// A collection of names in the formula. If a name changes (added, deleted),
-        /// the formula dependencies should be refreshed, because new name might refer to
-        /// different references (e.g. a name previously referred to <c>A5</c> and is redefined
-        /// to <c>B7</c> or just value <c>7</c> =&gt; formula no longer depends on <c>A5</c>).
-        /// </summary>
-        public IReadOnlyCollection<XlsxName> Names => _names;
-
-        internal void AddAreas(List<SheetArea> sheetAreas)
+    internal void RenameSheet(string oldSheetName, string newSheetName)
+    {
+        // The renaming is done for every formula, so only allocate when needed.
+        List<(SheetArea Original, SheetArea Replacement)>? areasToRename = null;
+        foreach (var areaInFormula in _areas)
         {
-            _areas.UnionWith(sheetAreas);
+            if (XlsxHelper.SheetComparer.Equals(areaInFormula.Name, oldSheetName))
+            {
+                var renamedArea = new SheetArea(newSheetName, areaInFormula.Area);
+                areasToRename ??= new List<(SheetArea Original, SheetArea Replacement)>();
+                areasToRename.Add((areaInFormula, renamedArea));
+            }
         }
 
-        internal void AddName(XlsxName name)
+        if (areasToRename is not null)
         {
-            _names.Add(name);
+            foreach (var (original, replacement) in areasToRename)
+            {
+                _areas.Remove(original);
+                _areas.Add(replacement);
+            }
         }
 
-        internal void RenameSheet(string oldSheetName, string newSheetName)
+        List<(XlsxName Original, XlsxName Replacement)>? namesToRename = null;
+        foreach (var nameInFormula in _names)
         {
-            // The renaming is done for every formula, so only allocate when needed.
-            List<(SheetArea Original, SheetArea Replacement)>? areasToRename = null;
-            foreach (var areaInFormula in _areas)
+            if (nameInFormula.SheetName is not null &&
+                XlsxHelper.SheetComparer.Equals(nameInFormula.SheetName, oldSheetName))
             {
-                if (XlsxHelper.SheetComparer.Equals(areaInFormula.Name, oldSheetName))
-                {
-                    var renamedArea = new SheetArea(newSheetName, areaInFormula.Area);
-                    areasToRename ??= new List<(SheetArea Original, SheetArea Replacement)>();
-                    areasToRename.Add((areaInFormula, renamedArea));
-                }
+                var renamedName = new XlsxName(newSheetName, nameInFormula.Name);
+                namesToRename ??= new List<(XlsxName Original, XlsxName Replacement)>();
+                namesToRename.Add((nameInFormula, renamedName));
             }
+        }
 
-            if (areasToRename is not null)
+        if (namesToRename is not null)
+        {
+            foreach (var (original, replacement) in namesToRename)
             {
-                foreach (var (original, replacement) in areasToRename)
-                {
-                    _areas.Remove(original);
-                    _areas.Add(replacement);
-                }
-            }
-
-            List<(XlsxName Original, XlsxName Replacement)>? namesToRename = null;
-            foreach (var nameInFormula in _names)
-            {
-                if (nameInFormula.SheetName is not null &&
-                    XlsxHelper.SheetComparer.Equals(nameInFormula.SheetName, oldSheetName))
-                {
-                    var renamedName = new XlsxName(newSheetName, nameInFormula.Name);
-                    namesToRename ??= new List<(XlsxName Original, XlsxName Replacement)>();
-                    namesToRename.Add((nameInFormula, renamedName));
-                }
-            }
-
-            if (namesToRename is not null)
-            {
-                foreach (var (original, replacement) in namesToRename)
-                {
-                    _names.Remove(original);
-                    _names.Add(replacement);
-                }
+                _names.Remove(original);
+                _names.Add(replacement);
             }
         }
     }

@@ -1,6 +1,6 @@
 using Aid.Xlsx.Conversion.Biff8;
 using Aid.Xlsx.Conversion.CompoundFile;
-using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Model.Workbooks;
 
 namespace Aid.Xlsx.Conversion;
 

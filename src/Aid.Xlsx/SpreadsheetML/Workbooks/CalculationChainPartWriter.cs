@@ -1,10 +1,11 @@
 using System.Xml.Linq;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Workbooks;
 
 internal static class CalculationChainPartWriter
 {

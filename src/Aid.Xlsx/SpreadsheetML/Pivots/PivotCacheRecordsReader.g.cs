@@ -2,9 +2,10 @@
 #nullable enable
 
 using System.Collections.Generic;
-using Aid.Xlsx.Opc;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Pivots;
 
 internal partial class PivotCacheRecordsReader
 {

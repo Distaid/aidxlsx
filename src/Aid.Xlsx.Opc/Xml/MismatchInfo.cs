@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Xml;
 
 /// <summary>
 /// An info sent to the consuming application in case of a mismatch.

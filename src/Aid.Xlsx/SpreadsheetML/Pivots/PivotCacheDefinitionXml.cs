@@ -1,15 +1,17 @@
 using System.Diagnostics;
 using System.Xml;
 using System.Xml.Linq;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.PivotTables;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.PivotTables;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Pivots;
 
 internal static class PivotCacheDefinitionXml
 {

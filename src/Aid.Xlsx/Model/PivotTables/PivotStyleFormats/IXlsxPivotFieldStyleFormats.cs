@@ -1,7 +1,7 @@
 // Keep this file CodeMaid organised and cleaned
-using Aid.Xlsx.PivotTables.Areas;
+using Aid.Xlsx.Model.PivotTables.Areas;
 
-namespace Aid.Xlsx.PivotTables.PivotStyleFormats;
+namespace Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 
 /// <summary>
 /// Interface to change the style of a <see cref="IXlsxPivotField"/> or its parts.

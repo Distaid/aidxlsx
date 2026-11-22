@@ -1,10 +1,14 @@
 using System.Xml;
-using Aid.Xlsx.Comments;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.Comments;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.RichText;
+using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Strings;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Drawings;
 
 internal static class CommentPartReader
 {

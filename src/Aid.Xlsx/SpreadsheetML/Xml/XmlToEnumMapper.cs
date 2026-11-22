@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.RichText;
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.RichText;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Opc.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Xml;
 
 /// <summary>
 /// A universal two-way mapper of string representation of an enum value in the OOXML to Aid.Xlsx enum.

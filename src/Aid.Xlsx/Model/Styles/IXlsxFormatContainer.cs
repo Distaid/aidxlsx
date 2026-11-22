@@ -1,6 +1,6 @@
-using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Model.Styles.Formatting;
 
-namespace Aid.Xlsx.Styles;
+namespace Aid.Xlsx.Model.Styles;
 
 /// <summary>
 /// An interface for objects that have a cell format, for example cell or a row. This is used by

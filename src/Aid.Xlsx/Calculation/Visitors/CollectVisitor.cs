@@ -1,6 +1,8 @@
-using Aid.Xlsx.Formulas;
+using Aid.Xlsx.Formulas.References;
+using Aid.Xlsx.Formulas.References.Transforms;
+using Aid.Xlsx.Formulas.Syntax;
 
-namespace Aid.Xlsx.CalcEngine.Visitors;
+namespace Aid.Xlsx.Calculation.Visitors;
 
 internal abstract class CollectVisitor<TContext> : IAstFactory<object?, object?, TContext>
 {

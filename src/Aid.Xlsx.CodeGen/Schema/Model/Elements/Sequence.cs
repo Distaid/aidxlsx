@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Aid.Xlsx.CodeGen.Model.Elements;
+namespace Aid.Xlsx.CodeGen.Schema.Model.Elements;
 
 /// <summary>
 /// <c><![CDATA[<xsd:sequence>]]></c> inside <c><![CDATA[<xsd:complexType>]]></c>.

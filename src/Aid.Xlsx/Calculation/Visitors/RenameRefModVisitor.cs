@@ -1,7 +1,7 @@
-using Aid.Xlsx.Formulas;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Formulas.References.Transforms;
+using Aid.Xlsx.Infrastructure.Utilities;
 
-namespace Aid.Xlsx.CalcEngine.Visitors;
+namespace Aid.Xlsx.Calculation.Visitors;
 
 /// <summary>
 /// A factory to rename named reference object (sheets, tables ect.).

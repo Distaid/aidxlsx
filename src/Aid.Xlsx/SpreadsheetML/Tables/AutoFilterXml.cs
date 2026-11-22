@@ -1,12 +1,13 @@
 using System.Globalization;
 using System.Xml.Linq;
-using Aid.Xlsx.AutoFilters;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Ranges.Sort;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Model.AutoFilters;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Grid.Ranges.Sort;
+using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Tables;
 
 internal static class AutoFilterXml
 {

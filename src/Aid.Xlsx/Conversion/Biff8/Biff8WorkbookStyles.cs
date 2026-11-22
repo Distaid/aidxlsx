@@ -1,6 +1,6 @@
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Formatting;
 
 namespace Aid.Xlsx.Conversion.Biff8;
 

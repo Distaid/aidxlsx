@@ -1,6 +1,7 @@
 using System.Diagnostics;
+using Aid.Xlsx.CodeGen.Emission;
 
-namespace Aid.Xlsx.CodeGen.Model;
+namespace Aid.Xlsx.CodeGen.Schema.Model;
 
 /// <summary>
 /// <![CDATA[<xsd:attribute>]]> inside <![CDATA[<xsd:complexType>]]> or <![CDATA[<xsd:attributeGroup>]]>

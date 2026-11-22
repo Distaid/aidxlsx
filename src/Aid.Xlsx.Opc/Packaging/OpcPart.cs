@@ -1,6 +1,6 @@
 using System.IO.Compression;
 
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Packaging;
 
 /// <summary>A named component of an OPC container.</summary>
 public sealed class OpcPart

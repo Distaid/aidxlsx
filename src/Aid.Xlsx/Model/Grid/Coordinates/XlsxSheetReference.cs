@@ -1,7 +1,7 @@
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
 
-namespace Aid.Xlsx.Coordinates;
+namespace Aid.Xlsx.Model.Grid.Coordinates;
 
 /// <summary>
 /// <see cref="XlsxReference"/> that includes a sheet. It can represent cell

@@ -1,7 +1,7 @@
-using Aid.Xlsx.Workbooks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using ClosedXML.Excel;
+using Aid.Xlsx.Model.Workbooks;
 
 namespace Aid.Xlsx.Benchmarks;
 
@@ -9,7 +9,7 @@ namespace Aid.Xlsx.Benchmarks;
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
 public class WorkbookIoBenchmarks
 {
-    private static readonly Aid.Xlsx.Workbooks.SaveOptions AidSaveOptions = new() { ValidatePackage = false };
+    private static readonly Aid.Xlsx.Model.Workbooks.SaveOptions AidSaveOptions = new() { ValidatePackage = false };
     private static readonly ClosedXML.Excel.SaveOptions BaselineSaveOptions = new() { ValidatePackage = false };
     private XlsxWorkbook? _workbook;
     private XLWorkbook? _baseline;

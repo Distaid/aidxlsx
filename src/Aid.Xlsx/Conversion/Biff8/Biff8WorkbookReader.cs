@@ -1,11 +1,13 @@
 using System.Buffers.Binary;
-using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Styles.Formatting;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
 using Array = System.Array;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Columns;
+using Aid.Xlsx.Model.Grid.Rows;
+using Aid.Xlsx.Model.Styles.Formatting;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Conversion.Biff8;
 

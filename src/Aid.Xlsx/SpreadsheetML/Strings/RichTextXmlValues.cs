@@ -1,7 +1,7 @@
-using Aid.Xlsx.RichText;
-using Aid.Xlsx.Styles;
+using Aid.Xlsx.Model.RichText;
+using Aid.Xlsx.Model.Styles;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Strings;
 
 internal static class RichTextXmlValues
 {

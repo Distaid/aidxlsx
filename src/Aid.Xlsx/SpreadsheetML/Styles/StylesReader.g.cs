@@ -2,13 +2,14 @@
 #nullable enable
 
 using System.Collections.Generic;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Formatting;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Styles;
 
 internal partial class StylesReader
 {

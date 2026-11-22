@@ -2,15 +2,16 @@
 #nullable enable
 
 using System.Collections.Generic;
-using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.RichText;
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Styles.Formatting;
-using PhoneticProperties = Aid.Xlsx.RichText.XlsxImmutableRichText.PhoneticProperties;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Model.RichText;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Formatting;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Xml;
+using PhoneticProperties = Aid.Xlsx.Model.RichText.XlsxImmutableRichText.PhoneticProperties;
 using PhoneticRunDto = (string Text, int StartIndex, int EndIndex);
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Strings;
 
 internal partial class RstReader
 {

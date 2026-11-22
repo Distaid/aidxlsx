@@ -2,7 +2,7 @@ using System.Buffers.Binary;
 using System.Globalization;
 using System.Text;
 using System.Xml;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
 
 namespace Aid.Xlsx.Conversion.Biff8;
 

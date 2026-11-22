@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.References.Transforms;
 
 /// <summary>
 /// A range of a symbol in formula text.

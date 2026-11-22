@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Styles.Formatting;
+namespace Aid.Xlsx.Model.Styles.Formatting;
 
 internal record XlsxDifferentialAlignmentValue
 {

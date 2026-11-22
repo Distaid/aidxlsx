@@ -1,11 +1,10 @@
 #nullable disable
 
-namespace Aid.Xlsx.ConditionalFormats
+namespace Aid.Xlsx.Model.ConditionalFormats;
+
+public interface IXlsxCFDataBarMin
 {
-    public interface IXlsxCFDataBarMin
-    {
-        IXlsxCFDataBarMax Minimum(XlsxCFContentType type, String value);
-        IXlsxCFDataBarMax Minimum(XlsxCFContentType type, Double value);
-        IXlsxCFDataBarMax LowestValue();
-    }
+    IXlsxCFDataBarMax Minimum(XlsxCFContentType type, String value);
+    IXlsxCFDataBarMax Minimum(XlsxCFContentType type, Double value);
+    IXlsxCFDataBarMax LowestValue();
 }

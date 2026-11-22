@@ -1,8 +1,10 @@
 using System;
 using System.Diagnostics;
-using static Aid.Xlsx.Formulas.ReferenceAxisType;
+using static Aid.Xlsx.Formulas.References.ReferenceAxisType;
+using Aid.Xlsx.Formulas.Lexing;
+using Aid.Xlsx.Formulas.References;
 
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.Syntax;
 
 internal static class TokenParser
 {

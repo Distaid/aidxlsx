@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using Aid.Xlsx.CodeGen.Emission;
 
-namespace Aid.Xlsx.CodeGen.Model.TopLevel;
+namespace Aid.Xlsx.CodeGen.Schema.Model.TopLevel;
 
 /// <summary>
 /// <c><![CDATA[<xsd:complexType/>]]></c> inside <c><![CDATA[<xsd:schema/>]]></c>. It doesn't have

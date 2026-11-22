@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Xml;
 
 /// <summary>
 /// Extension methods to make reading from <see cref="XmlTreeReader"/> simpler and keep the reader slim.

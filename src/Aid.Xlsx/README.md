@@ -16,8 +16,8 @@ This project provides the workbook API, calculation engine, and format conversio
 
 Loading and saving start in `Model/Workbooks/`. The SpreadsheetML codecs populate or serialize
 the model. The OPC project handles ZIP storage and relationships, and the formula project
-supplies parsed formulas to the calculation engine. Public namespaces follow workbook domains
-such as `Aid.Xlsx.Cells`, `Aid.Xlsx.Styles`, and `Aid.Xlsx.Workbooks`.
+supplies parsed formulas to the calculation engine. Namespaces match the source directories,
+including `Aid.Xlsx.Model.Grid.Cells`, `Aid.Xlsx.Model.Styles`, and `Aid.Xlsx.Model.Workbooks`.
 
 Run `dotnet build src/Aid.Xlsx -c Release` from the repository root. The repository README covers
 package usage and directs contributors to the test and NativeAOT guides. [Repository README](../../README.md)

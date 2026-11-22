@@ -1,11 +1,10 @@
 #nullable disable
 
-namespace Aid.Xlsx.Drawings.Styles
-{
-    public interface IXlsxDrawingProperties
-    {
-        XlsxDrawingAnchor Positioning { get; set; }
-        IXlsxDrawingStyle SetPositioning(XlsxDrawingAnchor value);
+namespace Aid.Xlsx.Model.Drawings.Styles;
 
-    }
+public interface IXlsxDrawingProperties
+{
+    XlsxDrawingAnchor Positioning { get; set; }
+    IXlsxDrawingStyle SetPositioning(XlsxDrawingAnchor value);
+
 }

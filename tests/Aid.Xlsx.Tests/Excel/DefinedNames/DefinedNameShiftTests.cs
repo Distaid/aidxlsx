@@ -1,7 +1,8 @@
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
+using Aid.Xlsx.Model.DefinedNames;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Tests.Excel.NamedRanges;
 

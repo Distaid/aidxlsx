@@ -1,20 +1,21 @@
 using System.Collections.Generic;
 using System.Text;
 using System;
-using Aid.Xlsx.CodeGen.Model;
+using Aid.Xlsx.CodeGen.Schema.Model;
+using Aid.Xlsx.CodeGen.Schema.Model.TopLevel;
 
-namespace Aid.Xlsx.CodeGen;
+namespace Aid.Xlsx.CodeGen.Emission;
 
 public class ParserGenerator
 {
-    private readonly Schema _schema;
+    private readonly XsdSchema _schema;
     private readonly string _readerName;
     private readonly List<ParsletName> _parseMethods = new();
     private readonly SchemeTypeMap _typeMap;
     private readonly List<string> _usings = new();
     private string _targetNamespace = "Aid.Xlsx.SpreadsheetML";
 
-    public ParserGenerator(Schema schema, SchemeTypeMap typeMap, string readerField)
+    public ParserGenerator(XsdSchema schema, SchemeTypeMap typeMap, string readerField)
     {
         _schema = schema;
         _typeMap = typeMap;

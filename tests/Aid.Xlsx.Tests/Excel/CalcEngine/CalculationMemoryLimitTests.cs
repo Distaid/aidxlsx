@@ -1,8 +1,9 @@
 using System.Runtime.CompilerServices;
-using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.Exceptions;
-using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Model.Exceptions;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine;
 

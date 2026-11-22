@@ -1,14 +1,17 @@
 using System.Xml.Linq;
-using Aid.Xlsx.DefinedNames;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.PivotTables;
-using Aid.Xlsx.Protection;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.DefinedNames;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.PageSetup;
+using Aid.Xlsx.Model.PivotTables;
+using Aid.Xlsx.Model.Protection;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.SpreadsheetML.Xml;
+using SaveOptions = Aid.Xlsx.Model.Workbooks.SaveOptions;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Workbooks;
 
 internal static class WorkbookPartWriter
 {
@@ -27,7 +30,7 @@ internal static class WorkbookPartWriter
             new XAttribute(XNamespace.Xmlns + "x", ns));
     }
 
-    internal static void GenerateContent(XElement root, XlsxWorkbook workbook, Workbooks.SaveOptions options, XlsxWorkbook.SaveContext context)
+    internal static void GenerateContent(XElement root, XlsxWorkbook workbook, SaveOptions options, XlsxWorkbook.SaveContext context)
     {
         var ns = root.Name.Namespace;
         var relationship = RelationshipId(root);

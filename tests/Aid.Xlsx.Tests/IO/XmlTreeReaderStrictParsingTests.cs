@@ -1,14 +1,14 @@
 using System.Text;
 using System.Xml.Linq;
-using Aid.Xlsx.SpreadsheetML;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.Styles;
 using NUnit.Framework;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
 namespace Aid.Xlsx.Tests.IO;
 
 /// <summary>
-/// Test that <see cref="XmlTreeReader"/> reads attributes per <see cref="Aid.Xlsx.Workbooks.LoadOptions.StrictAttributeParsing"/>
+/// Test that <see cref="XmlTreeReader"/> reads attributes per <see cref="Aid.Xlsx.Model.Workbooks.LoadOptions.StrictAttributeParsing"/>
 /// option. The invalid attribute values are either interpreted as a missing or throw an exception.
 /// </summary>
 [TestFixture]

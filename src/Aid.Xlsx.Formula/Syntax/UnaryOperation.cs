@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.Syntax;
 
 /// <summary>
 /// Unary operations of a formula.

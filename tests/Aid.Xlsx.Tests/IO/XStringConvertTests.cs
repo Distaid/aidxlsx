@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using Aid.Xlsx.Opc;
+using Aid.Xlsx.Opc.Xml;
 
 namespace Aid.Xlsx.Tests.IO;
 

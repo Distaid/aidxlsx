@@ -1,17 +1,22 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Formulas;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.Styles.Formatting;
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Worksheets;
-using StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.RichText.XlsxImmutableRichText>;
+using StringItem = Aid.Xlsx.Calculation.OneOf<string, Aid.Xlsx.Model.RichText.XlsxImmutableRichText>;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Formulas.References.Transforms;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Rows;
+using Aid.Xlsx.Model.RichText;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Formatting;
+using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Strings;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Worksheets;
 
 /// <summary>
 /// A state based reader for <c>CT_SheetData</c>.

@@ -32,9 +32,9 @@ creates, saves and reloads a workbook after a fully trimmed or NativeAOT publish
 package includes the generator.
 
 ```csharp
-using Aid.Xlsx.Attributes;
-using Aid.Xlsx.InsertData;
-using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.DataImport.Attributes;
+using Aid.Xlsx.DataImport.Mapping;
+using Aid.Xlsx.Model.Workbooks;
 
 using var workbook = new XlsxWorkbook();
 var sheet = workbook.Worksheets.Add("Sales");

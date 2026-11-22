@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.CodeGen.Model.SimpleTypes;
+namespace Aid.Xlsx.CodeGen.Schema.Model.SimpleTypes;
 
 /// <summary>
 /// Value of <see cref="ISimpleType"/> can be the <paramref name="Value"/>.

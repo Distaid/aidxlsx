@@ -1,30 +1,29 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-using Aid.Xlsx.Cells;
+using Aid.Xlsx.Model.Grid.Cells;
 
-namespace Aid.Xlsx.Tables
+namespace Aid.Xlsx.Model.Tables;
+
+public interface IXlsxTables : IEnumerable<IXlsxTable>
 {
-    public interface IXlsxTables : IEnumerable<IXlsxTable>
-    {
-        void Add(IXlsxTable table);
+    void Add(IXlsxTable table);
 
-        /// <summary>
-        /// Clears the contents of these tables.
-        /// </summary>
-        /// <param name="clearOptions">Specify what you want to clear.</param>
-        IXlsxTables Clear(XlsxClearOptions clearOptions = XlsxClearOptions.All);
+    /// <summary>
+    /// Clears the contents of these tables.
+    /// </summary>
+    /// <param name="clearOptions">Specify what you want to clear.</param>
+    IXlsxTables Clear(XlsxClearOptions clearOptions = XlsxClearOptions.All);
 
-        Boolean Contains(String name);
+    Boolean Contains(String name);
 
-        void Remove(Int32 index);
+    void Remove(Int32 index);
 
-        void Remove(String name);
+    void Remove(String name);
 
-        IXlsxTable Table(Int32 index);
+    IXlsxTable Table(Int32 index);
 
-        IXlsxTable Table(String name);
+    IXlsxTable Table(String name);
 
-        Boolean TryGetTable(String tableName, out IXlsxTable table);
-    }
+    Boolean TryGetTable(String tableName, out IXlsxTable table);
 }

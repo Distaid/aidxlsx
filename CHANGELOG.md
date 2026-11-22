@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove the runtime Open XML SDK dependency. `SaveOptions.ValidatePackage` checks
   workbook relationships and supported XML parts. The tests validate output against the SDK schemas.
 - Rename `XL*` and `IXL*` types to `Xlsx*` and `IXlsx*`. Public types now live in
-  domain namespaces such as `Aid.Xlsx.Workbooks`, `Aid.Xlsx.Worksheets`, and `Aid.Xlsx.Cells`.
+  directory-based namespaces such as `Aid.Xlsx.Model.Workbooks`, `Aid.Xlsx.Model.Worksheets`,
+  and `Aid.Xlsx.Model.Grid.Cells`.
   Existing consumers must update their imports and type names.
 - Write formula calculation chains, styles, shared strings, comments and pivot cache records through XML streams.
 - Read and write core, custom and extended workbook properties directly through OPC, retaining metadata outside the workbook model.

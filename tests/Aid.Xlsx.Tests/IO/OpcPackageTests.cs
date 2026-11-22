@@ -1,7 +1,7 @@
 using System.IO.Compression;
 using System.Text;
-using Aid.Xlsx.Opc;
 using NUnit.Framework;
+using Aid.Xlsx.Opc.Packaging;
 
 namespace Aid.Xlsx.Tests.IO;
 

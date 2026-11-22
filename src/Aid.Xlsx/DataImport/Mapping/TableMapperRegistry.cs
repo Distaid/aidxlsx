@@ -1,8 +1,9 @@
 using System.ComponentModel;
-using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.Cells;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.DataImport.RowReaders;
+using Aid.Xlsx.Model.Grid.Cells;
 
-namespace Aid.Xlsx.InsertData;
+namespace Aid.Xlsx.DataImport.Mapping;
 
 /// <summary>Registers row mappers emitted by the Aid.Xlsx source generator.</summary>
 [EditorBrowsable(EditorBrowsableState.Never)]

@@ -1,9 +1,9 @@
 // Keep this file CodeMaid organised and cleaned
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.PivotTables.Areas;
-using Aid.Xlsx.PivotTables.PivotValues;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.PivotTables.Areas;
+using Aid.Xlsx.Model.PivotTables.PivotValues;
 
-namespace Aid.Xlsx.PivotTables.PivotStyleFormats;
+namespace Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 
 /// <summary>
 /// A fluent API for styling a <see cref="IXlsxPivotValue"/> field of a <see cref="IXlsxPivotTable"/>.

@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Styles;
+namespace Aid.Xlsx.Model.Styles;
 
 public interface IXlsxNumberFormatBase
 {

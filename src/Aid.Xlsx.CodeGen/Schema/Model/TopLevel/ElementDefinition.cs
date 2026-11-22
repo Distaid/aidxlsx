@@ -1,6 +1,6 @@
-using Aid.Xlsx.CodeGen.Model.Elements;
+using Aid.Xlsx.CodeGen.Schema.Model.Elements;
 
-namespace Aid.Xlsx.CodeGen.Model.TopLevel;
+namespace Aid.Xlsx.CodeGen.Schema.Model.TopLevel;
 
 /// <summary>
 /// <c><![CDATA[<xsd:element/>]]></c> inside <c><![CDATA[<xsd:schema/>]]></c>.

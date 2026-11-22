@@ -1,10 +1,13 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Aid.Xlsx.Workbooks;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
+using Aid.Xlsx.Model.Comments;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Hyperlinks;
+using Aid.Xlsx.Model.Workbooks;
 
 internal static class WorkbookCorpus
 {

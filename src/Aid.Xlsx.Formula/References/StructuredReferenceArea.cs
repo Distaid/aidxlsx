@@ -1,6 +1,6 @@
 using System;
 
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.References;
 
 /// <summary>
 /// Structure reference is basically a set of cells in an area of an intersection between a range of columns

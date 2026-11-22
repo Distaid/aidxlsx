@@ -1,5 +1,5 @@
 #nullable enable
-using Aid.Xlsx.Opc;
+using Aid.Xlsx.Opc.Xml;
 
 namespace Aid.Xlsx.Tests.IO;
 

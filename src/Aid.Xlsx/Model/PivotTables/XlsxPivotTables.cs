@@ -1,108 +1,107 @@
 #nullable disable
 
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Tables;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Tables;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.PivotTables
+namespace Aid.Xlsx.Model.PivotTables;
+
+internal class XlsxPivotTables : IXlsxPivotTables, IEnumerable<XlsxPivotTable>
 {
-    internal class XlsxPivotTables : IXlsxPivotTables, IEnumerable<XlsxPivotTable>
+    private readonly Dictionary<String, XlsxPivotTable> _pivotTables = new(StringComparer.OrdinalIgnoreCase);
+
+    public XlsxPivotTables(XlsxWorksheet worksheet)
     {
-        private readonly Dictionary<String, XlsxPivotTable> _pivotTables = new(StringComparer.OrdinalIgnoreCase);
+        Worksheet = worksheet ?? throw new ArgumentNullException(nameof(worksheet));
+    }
 
-        public XlsxPivotTables(XlsxWorksheet worksheet)
+    internal XlsxWorksheet Worksheet { get; }
+
+    public void Add(XlsxPivotTable pivotTable)
+    {
+        var pivotCache = pivotTable.PivotCache;
+        if (!pivotCache.FieldNames.Any())
+            pivotCache.Refresh();
+
+        _pivotTables.Add(pivotTable.Name, pivotTable);
+    }
+
+    public IXlsxPivotTable Add(string name, IXlsxCell targetCell, IXlsxPivotCache pivotCache)
+    {
+        var pivotTable = new XlsxPivotTable(Worksheet, (XlsxPivotCache)pivotCache)
         {
-            Worksheet = worksheet ?? throw new ArgumentNullException(nameof(worksheet));
-        }
+            Name = name,
+            Area = new Area(Point.FromAddress(targetCell.Address)),
+        };
+        Add(pivotTable);
+        pivotTable.UpdateCacheFields(Array.Empty<string>());
+        return pivotTable;
+    }
 
-        internal XlsxWorksheet Worksheet { get; }
+    public IXlsxPivotTable Add(string name, IXlsxCell targetCell, IXlsxRange range)
+    {
+        var area = SheetArea.From(range);
+        var pivotCaches = Worksheet.Workbook.PivotCachesInternal;
+        var existingPivotCache = pivotCaches.Find(area);
+        var pivotCache = existingPivotCache ?? pivotCaches.Add(area);
+        return Add(name, targetCell, pivotCache);
+    }
 
-        public void Add(XlsxPivotTable pivotTable)
-        {
-            var pivotCache = pivotTable.PivotCache;
-            if (!pivotCache.FieldNames.Any())
-                pivotCache.Refresh();
+    public IXlsxPivotTable Add(string name, IXlsxCell targetCell, IXlsxTable table)
+    {
+        return Add(name, targetCell, (IXlsxRange)table);
+    }
 
-            _pivotTables.Add(pivotTable.Name, pivotTable);
-        }
+    public Boolean Contains(String name)
+    {
+        return _pivotTables.ContainsKey(name);
+    }
 
-        public IXlsxPivotTable Add(string name, IXlsxCell targetCell, IXlsxPivotCache pivotCache)
-        {
-            var pivotTable = new XlsxPivotTable(Worksheet, (XlsxPivotCache)pivotCache)
-            {
-                Name = name,
-                Area = new Area(Point.FromAddress(targetCell.Address)),
-            };
-            Add(pivotTable);
-            pivotTable.UpdateCacheFields(Array.Empty<string>());
-            return pivotTable;
-        }
+    public void Delete(String name)
+    {
+        _pivotTables.Remove(name);
+    }
 
-        public IXlsxPivotTable Add(string name, IXlsxCell targetCell, IXlsxRange range)
-        {
-            var area = SheetArea.From(range);
-            var pivotCaches = Worksheet.Workbook.PivotCachesInternal;
-            var existingPivotCache = pivotCaches.Find(area);
-            var pivotCache = existingPivotCache ?? pivotCaches.Add(area);
-            return Add(name, targetCell, pivotCache);
-        }
+    public void DeleteAll()
+    {
+        _pivotTables.Clear();
+    }
 
-        public IXlsxPivotTable Add(string name, IXlsxCell targetCell, IXlsxTable table)
-        {
-            return Add(name, targetCell, (IXlsxRange)table);
-        }
+    IXlsxPivotTable IXlsxPivotTables.PivotTable(String name)
+    {
+        return PivotTable(name);
+    }
 
-        public Boolean Contains(String name)
-        {
-            return _pivotTables.ContainsKey(name);
-        }
+    IEnumerator<IXlsxPivotTable> IEnumerable<IXlsxPivotTable>.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
 
-        public void Delete(String name)
-        {
-            _pivotTables.Remove(name);
-        }
+    IEnumerator<XlsxPivotTable> IEnumerable<XlsxPivotTable>.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
 
-        public void DeleteAll()
-        {
-            _pivotTables.Clear();
-        }
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
 
-        IXlsxPivotTable IXlsxPivotTables.PivotTable(String name)
-        {
-            return PivotTable(name);
-        }
+    public Dictionary<string, XlsxPivotTable>.ValueCollection.Enumerator GetEnumerator()
+    {
+        return _pivotTables.Values.GetEnumerator();
+    }
 
-        IEnumerator<IXlsxPivotTable> IEnumerable<IXlsxPivotTable>.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+    internal void Add(String name, IXlsxPivotTable pivotTable)
+    {
+        _pivotTables.Add(name, (XlsxPivotTable)pivotTable);
+    }
 
-        IEnumerator<XlsxPivotTable> IEnumerable<XlsxPivotTable>.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        public Dictionary<string, XlsxPivotTable>.ValueCollection.Enumerator GetEnumerator()
-        {
-            return _pivotTables.Values.GetEnumerator();
-        }
-
-        internal void Add(String name, IXlsxPivotTable pivotTable)
-        {
-            _pivotTables.Add(name, (XlsxPivotTable)pivotTable);
-        }
-
-        /// <inheritdoc cref="IXlsxPivotTables.PivotTable"/>
-        internal XlsxPivotTable PivotTable(String name)
-        {
-            return _pivotTables[name];
-        }
+    /// <inheritdoc cref="IXlsxPivotTables.PivotTable"/>
+    internal XlsxPivotTable PivotTable(String name)
+    {
+        return _pivotTables[name];
     }
 }

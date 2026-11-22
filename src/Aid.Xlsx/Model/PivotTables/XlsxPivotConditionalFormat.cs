@@ -1,6 +1,6 @@
-using Aid.Xlsx.ConditionalFormats;
+using Aid.Xlsx.Model.ConditionalFormats;
 
-namespace Aid.Xlsx.PivotTables;
+namespace Aid.Xlsx.Model.PivotTables;
 
 /// <summary>
 /// Specification of conditional formatting of a pivot table.

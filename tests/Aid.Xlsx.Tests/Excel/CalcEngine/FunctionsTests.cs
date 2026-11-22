@@ -1,8 +1,9 @@
-using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine;
 

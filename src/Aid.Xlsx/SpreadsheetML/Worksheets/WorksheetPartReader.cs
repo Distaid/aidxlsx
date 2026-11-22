@@ -1,24 +1,28 @@
 using System.Globalization;
 using System.Xml;
 using System.Xml.Linq;
-using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Columns;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.DataValidation;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Hyperlinks;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.PageSetup;
-using Aid.Xlsx.Protection;
-using Aid.Xlsx.Sparklines;
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Worksheets;
-using StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.RichText.XlsxImmutableRichText>;
+using StringItem = Aid.Xlsx.Calculation.OneOf<string, Aid.Xlsx.Model.RichText.XlsxImmutableRichText>;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.DataValidation;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Columns;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Hyperlinks;
+using Aid.Xlsx.Model.PageSetup;
+using Aid.Xlsx.Model.Protection;
+using Aid.Xlsx.Model.Sparklines;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Styles;
+using Aid.Xlsx.SpreadsheetML.Tables;
+using Aid.Xlsx.SpreadsheetML.Workbooks;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Worksheets;
 
 #nullable disable
 

@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Coordinates;
+namespace Aid.Xlsx.Model.Grid.Coordinates;
 
 /// <summary>
 /// An offset of a cell in a sheet.

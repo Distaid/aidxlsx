@@ -3,86 +3,85 @@
 // Keep this file CodeMaid organised and cleaned
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using Aid.Xlsx.Cells;
+using Aid.Xlsx.Model.Grid.Cells;
 
-namespace Aid.Xlsx.InsertData
+namespace Aid.Xlsx.DataImport.RowReaders;
+
+internal class UntypedObjectReader : IInsertDataReader
 {
-    internal class UntypedObjectReader : IInsertDataReader
+    private readonly IEnumerable<object> _data;
+    private readonly IEnumerable<IInsertDataReader> _readers;
+
+    [RequiresUnreferencedCode("A sequence with mixed runtime item types is split by type and dispatched to reflection-based readers. Use a homogeneous typed sequence or a DataTable to stay trim-compatible.")]
+    public UntypedObjectReader(IEnumerable data)
     {
-        private readonly IEnumerable<object> _data;
-        private readonly IEnumerable<IInsertDataReader> _readers;
+        _data = (data ?? new object[0]).Cast<object>();
+        _readers = CreateReaders().ToList();
 
-        [RequiresUnreferencedCode("A sequence with mixed runtime item types is split by type and dispatched to reflection-based readers. Use a homogeneous typed sequence or a DataTable to stay trim-compatible.")]
-        public UntypedObjectReader(IEnumerable data)
+        IEnumerable<IInsertDataReader> CreateReaders()
         {
-            _data = (data ?? new object[0]).Cast<object>();
-            _readers = CreateReaders().ToList();
+            if (!_data.Any())
+                yield break;
 
-            IEnumerable<IInsertDataReader> CreateReaders()
+            List<object> itemsOfSameType = new List<object>();
+            Type previousType = null;
+
+            foreach (var item in _data)
             {
-                if (!_data.Any())
-                    yield break;
+                var currentType = item?.GetType();
 
-                List<object> itemsOfSameType = new List<object>();
-                Type previousType = null;
-
-                foreach (var item in _data)
-                {
-                    var currentType = item?.GetType();
-
-                    if (previousType != currentType && itemsOfSameType.Count > 0)
-                    {
-                        yield return CreateReader(itemsOfSameType, previousType);
-                        itemsOfSameType.Clear();
-                    }
-                    itemsOfSameType.Add(item);
-                    previousType = currentType;
-                }
-
-                if (itemsOfSameType.Count > 0)
+                if (previousType != currentType && itemsOfSameType.Count > 0)
                 {
                     yield return CreateReader(itemsOfSameType, previousType);
+                    itemsOfSameType.Clear();
                 }
+                itemsOfSameType.Add(item);
+                previousType = currentType;
             }
 
-            IInsertDataReader CreateReader(List<object> itemsOfSameType, Type itemType)
+            if (itemsOfSameType.Count > 0)
             {
-                // Snapshot the group: the source list is reused for the next group of items, while
-                // the created reader enumerates its data lazily. Without a copy the reader would see
-                // the items of the following groups (with possibly different runtime types).
-                var items = new List<object>(itemsOfSameType);
-
-                if (itemType == null)
-                    return new NullDataReader(items);
-
-                return InsertDataReaderFactory.Instance.CreateReader(items, itemType);
+                yield return CreateReader(itemsOfSameType, previousType);
             }
         }
 
-        public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
+        IInsertDataReader CreateReader(List<object> itemsOfSameType, Type itemType)
         {
-            foreach (var reader in _readers)
+            // Snapshot the group: the source list is reused for the next group of items, while
+            // the created reader enumerates its data lazily. Without a copy the reader would see
+            // the items of the following groups (with possibly different runtime types).
+            var items = new List<object>(itemsOfSameType);
+
+            if (itemType == null)
+                return new NullDataReader(items);
+
+            return InsertDataReaderFactory.Instance.CreateReader(items, itemType);
+        }
+    }
+
+    public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
+    {
+        foreach (var reader in _readers)
+        {
+            foreach (var item in reader.GetRecords())
             {
-                foreach (var item in reader.GetRecords())
-                {
-                    yield return item;
-                }
+                yield return item;
             }
         }
+    }
 
-        public int GetPropertiesCount()
-        {
-            return GetFirstNonNullReader()?.GetPropertiesCount() ?? 0;
-        }
+    public int GetPropertiesCount()
+    {
+        return GetFirstNonNullReader()?.GetPropertiesCount() ?? 0;
+    }
 
-        public string GetPropertyName(int propertyIndex)
-        {
-            return GetFirstNonNullReader()?.GetPropertyName(propertyIndex);
-        }
+    public string GetPropertyName(int propertyIndex)
+    {
+        return GetFirstNonNullReader()?.GetPropertyName(propertyIndex);
+    }
 
-        private IInsertDataReader GetFirstNonNullReader()
-        {
-            return _readers.FirstOrDefault(r => !(r is NullDataReader));
-        }
+    private IInsertDataReader GetFirstNonNullReader()
+    {
+        return _readers.FirstOrDefault(r => !(r is NullDataReader));
     }
 }

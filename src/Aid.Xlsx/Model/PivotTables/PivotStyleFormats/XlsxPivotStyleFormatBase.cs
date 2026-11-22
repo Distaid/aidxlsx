@@ -1,6 +1,6 @@
-using Aid.Xlsx.Styles;
+using Aid.Xlsx.Model.Styles;
 
-namespace Aid.Xlsx.PivotTables.PivotStyleFormats;
+namespace Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 
 /// <summary>
 /// A base class for pivot styling API. It has takes a selected <see cref="XlsxPivotArea"/>

@@ -1,147 +1,147 @@
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.Tests.Excel.Ranges
+namespace Aid.Xlsx.Tests.Excel.Ranges;
+
+public class RangeShiftingTests
 {
-    public class RangeShiftingTests
+    [Test]
+    public void CellsContentShiftedAfterColumnDeleted()
     {
-        [Test]
-        public void CellsContentShiftedAfterColumnDeleted()
+        using (var wb = new XlsxWorkbook())
         {
-            using (var wb = new XlsxWorkbook())
-            {
-                var ws = wb.AddWorksheet();
-                SetContent(ws.Cell("D4"));
-
-                ws.Column("C").Delete();
-
-                AssertContent(ws.Cell("C4"), "D4");
-            }
-        }
-
-        [Test]
-        public void CellsContentShiftedAfterRowDeleted()
-        {
-            using (var wb = new XlsxWorkbook())
-            {
-                var ws = wb.AddWorksheet();
-                SetContent(ws.Cell("D4"));
-
-                ws.Row(3).Delete();
-
-                AssertContent(ws.Cell("D3"), "D4");
-            }
-        }
-
-        [Test]
-        public void CellsContentShiftedAfterColumnInserted()
-        {
-            using (var wb = new XlsxWorkbook())
-            {
-                var ws = wb.AddWorksheet();
-                SetContent(ws.Cell("D4"));
-
-                ws.Column("C").InsertColumnsBefore(1);
-
-                AssertContent(ws.Cell("E4"), "D4");
-            }
-        }
-
-        [Test]
-        public void CellsContentShiftedAfterRowInserted()
-        {
-            using (var wb = new XlsxWorkbook())
-            {
-                var ws = wb.AddWorksheet();
-                SetContent(ws.Cell("D4"));
-
-                ws.Row(3).InsertRowsAbove(1);
-
-                AssertContent(ws.Cell("D5"), "D4");
-            }
-        }
-
-        [Test]
-        public void CellsContentShiftAfterRangeDeleted()
-        {
-            using (var wb = new XlsxWorkbook())
-            {
-                var ws = wb.AddWorksheet();
-                SetContent(ws.Cell("D4"));
-                SetContent(ws.Cell("F8"));
-
-                ws.Range("B2:C5").Delete(XlsxShiftDeletedCells.ShiftCellsLeft);
-                ws.Range("E5:F7").Delete(XlsxShiftDeletedCells.ShiftCellsUp);
-
-                AssertContent(ws.Cell("B4"), "D4");
-                AssertContent(ws.Cell("F5"), "F8");
-            }
-        }
-
-        [Theory]
-        [TestCase("A5:F5")]
-        [TestCase("A5:F6")]
-        public void RangesBelowStayMergedAfterRangeDeleted(string deletedRangeAddress)
-        {
-            //There is an edge case when a merged range of same size as the deleted range got unmerged (see #2358)
-            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
-            var deletedRange = ws.Range(deletedRangeAddress);
-            var rangeHeight = deletedRange.LastRow().RowNumber() - deletedRange.FirstRow().RowNumber() + 1;
-            var mergedRange = ws.Range(
-                deletedRange.LastRow().RowNumber() + 1,
-                deletedRange.FirstColumn().ColumnNumber(),
-                deletedRange.LastRow().RowNumber() + rangeHeight,
-                deletedRange.LastColumn().ColumnNumber()
-            );
-            mergedRange.Merge();
+            SetContent(ws.Cell("D4"));
 
-            deletedRange.Delete(XlsxShiftDeletedCells.ShiftCellsUp);
+            ws.Column("C").Delete();
 
-            Assert.IsTrue(mergedRange.IsMerged());
-            Assert.AreEqual(deletedRangeAddress, mergedRange.RangeAddress.ToString());
+            AssertContent(ws.Cell("C4"), "D4");
         }
+    }
 
-        [Theory]
-        [TestCase("A5:A8")]
-        [TestCase("A5:B8")]
-        public void RangesToTheRightStayMergedAfterRangeDeleted(string deletedRangeAddress)
+    [Test]
+    public void CellsContentShiftedAfterRowDeleted()
+    {
+        using (var wb = new XlsxWorkbook())
         {
-            //There is an edge case when a merged range of same size as the deleted range got unmerged (see #2358)
-            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
-            var deletedRange = ws.Range(deletedRangeAddress);
-            var rangeWidth = deletedRange.LastColumn().ColumnNumber() - deletedRange.FirstColumn().ColumnNumber() + 1;
-            var mergedRange = ws.Range(
-                deletedRange.FirstRow().RowNumber(),
-                deletedRange.LastColumn().ColumnNumber() + 1,
-                deletedRange.LastRow().RowNumber(),
-                deletedRange.LastColumn().ColumnNumber() + rangeWidth
-            );
-            mergedRange.Merge();
+            SetContent(ws.Cell("D4"));
 
-            deletedRange.Delete(XlsxShiftDeletedCells.ShiftCellsLeft);
+            ws.Row(3).Delete();
 
-            Assert.IsTrue(mergedRange.IsMerged());
-            Assert.AreEqual(deletedRangeAddress, mergedRange.RangeAddress.ToString());
+            AssertContent(ws.Cell("D3"), "D4");
         }
+    }
 
-        private void SetContent(IXlsxCell cell)
+    [Test]
+    public void CellsContentShiftedAfterColumnInserted()
+    {
+        using (var wb = new XlsxWorkbook())
         {
-            cell.FormulaA1 = $"\"Formula \" & \"{cell.Address}\"";
-            cell.Style.Fill.SetBackgroundColor(XlsxColor.Green);
-            cell.CreateComment().AddText("Some comment " + cell.Address);
-        }
+            var ws = wb.AddWorksheet();
+            SetContent(ws.Cell("D4"));
 
-        private void AssertContent(IXlsxCell cell, string originalAddress)
-        {
-            Assert.AreEqual($"\"Formula \" & \"{originalAddress}\"", cell.FormulaA1);
-            Assert.AreEqual(XlsxColor.Green, cell.Style.Fill.BackgroundColor);
-            Assert.True(cell.HasComment);
-            Assert.AreEqual($"Some comment {originalAddress}", cell.GetComment().Text);
+            ws.Column("C").InsertColumnsBefore(1);
+
+            AssertContent(ws.Cell("E4"), "D4");
         }
+    }
+
+    [Test]
+    public void CellsContentShiftedAfterRowInserted()
+    {
+        using (var wb = new XlsxWorkbook())
+        {
+            var ws = wb.AddWorksheet();
+            SetContent(ws.Cell("D4"));
+
+            ws.Row(3).InsertRowsAbove(1);
+
+            AssertContent(ws.Cell("D5"), "D4");
+        }
+    }
+
+    [Test]
+    public void CellsContentShiftAfterRangeDeleted()
+    {
+        using (var wb = new XlsxWorkbook())
+        {
+            var ws = wb.AddWorksheet();
+            SetContent(ws.Cell("D4"));
+            SetContent(ws.Cell("F8"));
+
+            ws.Range("B2:C5").Delete(XlsxShiftDeletedCells.ShiftCellsLeft);
+            ws.Range("E5:F7").Delete(XlsxShiftDeletedCells.ShiftCellsUp);
+
+            AssertContent(ws.Cell("B4"), "D4");
+            AssertContent(ws.Cell("F5"), "F8");
+        }
+    }
+
+    [Theory]
+    [TestCase("A5:F5")]
+    [TestCase("A5:F6")]
+    public void RangesBelowStayMergedAfterRangeDeleted(string deletedRangeAddress)
+    {
+        //There is an edge case when a merged range of same size as the deleted range got unmerged (see #2358)
+        using var wb = new XlsxWorkbook();
+        var ws = wb.AddWorksheet();
+        var deletedRange = ws.Range(deletedRangeAddress);
+        var rangeHeight = deletedRange.LastRow().RowNumber() - deletedRange.FirstRow().RowNumber() + 1;
+        var mergedRange = ws.Range(
+            deletedRange.LastRow().RowNumber() + 1,
+            deletedRange.FirstColumn().ColumnNumber(),
+            deletedRange.LastRow().RowNumber() + rangeHeight,
+            deletedRange.LastColumn().ColumnNumber()
+        );
+        mergedRange.Merge();
+
+        deletedRange.Delete(XlsxShiftDeletedCells.ShiftCellsUp);
+
+        Assert.IsTrue(mergedRange.IsMerged());
+        Assert.AreEqual(deletedRangeAddress, mergedRange.RangeAddress.ToString());
+    }
+
+    [Theory]
+    [TestCase("A5:A8")]
+    [TestCase("A5:B8")]
+    public void RangesToTheRightStayMergedAfterRangeDeleted(string deletedRangeAddress)
+    {
+        //There is an edge case when a merged range of same size as the deleted range got unmerged (see #2358)
+        using var wb = new XlsxWorkbook();
+        var ws = wb.AddWorksheet();
+        var deletedRange = ws.Range(deletedRangeAddress);
+        var rangeWidth = deletedRange.LastColumn().ColumnNumber() - deletedRange.FirstColumn().ColumnNumber() + 1;
+        var mergedRange = ws.Range(
+            deletedRange.FirstRow().RowNumber(),
+            deletedRange.LastColumn().ColumnNumber() + 1,
+            deletedRange.LastRow().RowNumber(),
+            deletedRange.LastColumn().ColumnNumber() + rangeWidth
+        );
+        mergedRange.Merge();
+
+        deletedRange.Delete(XlsxShiftDeletedCells.ShiftCellsLeft);
+
+        Assert.IsTrue(mergedRange.IsMerged());
+        Assert.AreEqual(deletedRangeAddress, mergedRange.RangeAddress.ToString());
+    }
+
+    private void SetContent(IXlsxCell cell)
+    {
+        cell.FormulaA1 = $"\"Formula \" & \"{cell.Address}\"";
+        cell.Style.Fill.SetBackgroundColor(XlsxColor.Green);
+        cell.CreateComment().AddText("Some comment " + cell.Address);
+    }
+
+    private void AssertContent(IXlsxCell cell, string originalAddress)
+    {
+        Assert.AreEqual($"\"Formula \" & \"{originalAddress}\"", cell.FormulaA1);
+        Assert.AreEqual(XlsxColor.Green, cell.Style.Fill.BackgroundColor);
+        Assert.True(cell.HasComment);
+        Assert.AreEqual($"Some comment {originalAddress}", cell.GetComment().Text);
     }
 }

@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Formulas;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Formulas.References.Transforms;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Coordinates;
 
-namespace Aid.Xlsx.CalcEngine.Visitors;
+namespace Aid.Xlsx.Calculation.Visitors;
 
 internal static class FormulaTransformation
 {

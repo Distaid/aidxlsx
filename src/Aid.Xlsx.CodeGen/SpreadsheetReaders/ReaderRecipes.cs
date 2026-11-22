@@ -1,12 +1,14 @@
 using System;
 using System.IO;
 using System.Linq;
-using Aid.Xlsx.CodeGen.Model;
-using Aid.Xlsx.CodeGen.Model.Elements;
-using Aid.Xlsx.CodeGen.Model.TopLevel;
-using Aid.Xlsx.CodeGen.XsdParser;
+using Aid.Xlsx.CodeGen.Emission;
+using Aid.Xlsx.CodeGen.Schema.Model;
+using Aid.Xlsx.CodeGen.Schema.Model.Elements;
+using Aid.Xlsx.CodeGen.Schema.Model.TopLevel;
+using Aid.Xlsx.CodeGen.Schema.Parsing;
+using Aid.Xlsx.Opc.Xml;
 
-namespace Aid.Xlsx.CodeGen;
+namespace Aid.Xlsx.CodeGen.SpreadsheetReaders;
 
 internal static class ReaderRecipes
 {
@@ -44,7 +46,7 @@ internal static class ReaderRecipes
         return 0;
     }
 
-    private static void GenerateStylesReader(Schema schema, string target)
+    private static void GenerateStylesReader(XsdSchema schema, string target)
     {
         var typeMap = new SchemeTypeMap()
             .AddPrimitiveTypes()
@@ -121,12 +123,14 @@ internal static class ReaderRecipes
             ;
 
         var stylesReaderGenerator = new ParserGenerator(schema, typeMap, "StylesReader")
+            .WithNamespace("Aid.Xlsx.SpreadsheetML.Styles")
             .AddUsing("System.Collections.Generic")
-            .AddUsing("Aid.Xlsx.Coordinates")
-            .AddUsing("Aid.Xlsx.Opc")
-            .AddUsing("Aid.Xlsx.Styles")
-            .AddUsing("Aid.Xlsx.Styles.Colors")
-            .AddUsing("Aid.Xlsx.Styles.Formatting")
+            .AddUsing("Aid.Xlsx.Model.Grid.Coordinates")
+            .AddUsing("Aid.Xlsx.Model.Styles")
+            .AddUsing("Aid.Xlsx.Model.Styles.Colors")
+            .AddUsing("Aid.Xlsx.Model.Styles.Formatting")
+            .AddUsing("Aid.Xlsx.Opc.Xml")
+            .AddUsing("Aid.Xlsx.SpreadsheetML.Xml")
             //.AddParseMethod("CT_Stylesheet")
             .AddParseMethod("CT_NumFmts")
             .AddParseMethod("CT_NumFmt")
@@ -162,14 +166,16 @@ internal static class ReaderRecipes
         File.WriteAllText(target, stylesReaderSource);
     }
 
-    private static void GenerateCacheRecords(Schema schema, string target)
+    private static void GenerateCacheRecords(XsdSchema schema, string target)
     {
         var typeMap = new SchemeTypeMap()
             .AddPrimitiveTypes();
 
         var cacheRecordsGenerator = new ParserGenerator(schema, typeMap, "PivotCacheRecordsReader")
+            .WithNamespace("Aid.Xlsx.SpreadsheetML.Pivots")
             .AddUsing("System.Collections.Generic")
-            .AddUsing("Aid.Xlsx.Opc")
+            .AddUsing("Aid.Xlsx.Opc.Xml")
+            .AddUsing("Aid.Xlsx.SpreadsheetML.Xml")
 
             // CT_PivotCacheRecords - hand-coded
             .AddParseMethod("CT_Record")
@@ -192,7 +198,7 @@ internal static class ReaderRecipes
     /// <summary>
     /// Generate a reader to read <c>CT_Rst</c>. It is a partial reader used in other readers.
     /// </summary>
-    private static void GeneratePartialRstReader(Schema schema, string target)
+    private static void GeneratePartialRstReader(XsdSchema schema, string target)
     {
         NormalizeChoicesZeroToOne(schema, "CT_RPrElt");
 
@@ -225,13 +231,15 @@ internal static class ReaderRecipes
             ;
 
         var rstGenerator = new ParserGenerator(schema, typeMap, "RstReader")
+            .WithNamespace("Aid.Xlsx.SpreadsheetML.Strings")
             .AddUsing("System.Collections.Generic")
-            .AddUsing("Aid.Xlsx.CalcEngine")
-            .AddUsing("Aid.Xlsx.Opc")
-            .AddUsing("Aid.Xlsx.RichText")
-            .AddUsing("Aid.Xlsx.Styles")
-            .AddUsing("Aid.Xlsx.Styles.Formatting")
-            .AddUsing("PhoneticProperties = Aid.Xlsx.RichText.XlsxImmutableRichText.PhoneticProperties")
+            .AddUsing("Aid.Xlsx.Calculation")
+            .AddUsing("Aid.Xlsx.Model.RichText")
+            .AddUsing("Aid.Xlsx.Model.Styles")
+            .AddUsing("Aid.Xlsx.Model.Styles.Formatting")
+            .AddUsing("Aid.Xlsx.Opc.Xml")
+            .AddUsing("Aid.Xlsx.SpreadsheetML.Xml")
+            .AddUsing("PhoneticProperties = Aid.Xlsx.Model.RichText.XlsxImmutableRichText.PhoneticProperties")
             .AddUsing("PhoneticRunDto = (string Text, int StartIndex, int EndIndex)")
 
             .AddParseMethod("CT_PhoneticRun") // 1816
@@ -255,7 +263,7 @@ internal static class ReaderRecipes
     /// <summary>
     /// Generate a partial reader to read <c>CT_SheetData</c>.
     /// </summary>
-    private static void GeneratePartialSheetDataReader(Schema schema, string target)
+    private static void GeneratePartialSheetDataReader(XsdSchema schema, string target)
     {
         // Add <row> ac:dyDescent attribute. It's one of few MCE attribute
         var row = schema.Entries.OfType<ComplexTypeSequence>().Single(x => x.Name == "CT_Row");
@@ -309,10 +317,12 @@ internal static class ReaderRecipes
             ;
 
         var sheetDataGenerator = new ParserGenerator(schema, typeMap, "SheetDataReader")
+            .WithNamespace("Aid.Xlsx.SpreadsheetML.Worksheets")
             .AddUsing("System.Collections.Generic")
-            .AddUsing("Aid.Xlsx.Coordinates")
-            .AddUsing("Aid.Xlsx.Opc")
-            .AddUsing("StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.RichText.XlsxImmutableRichText>")
+            .AddUsing("Aid.Xlsx.Model.Grid.Coordinates")
+            .AddUsing("Aid.Xlsx.Opc.Xml")
+            .AddUsing("Aid.Xlsx.SpreadsheetML.Xml")
+            .AddUsing("StringItem = Aid.Xlsx.Calculation.OneOf<string, Aid.Xlsx.Model.RichText.XlsxImmutableRichText>")
 
             .AddParseMethod("CT_SheetData") // 2232
             .AddParseMethod("CT_Row") // 2274
@@ -328,7 +338,7 @@ internal static class ReaderRecipes
     /// Normalize a choice that has multiple elements with 0..1 cardinality into the 1..1
     /// cardinality. Semantically, it's identical.
     /// </summary>
-    private static void NormalizeChoicesZeroToOne(Schema schema, ParsletName name)
+    private static void NormalizeChoicesZeroToOne(XsdSchema schema, ParsletName name)
     {
         foreach (var choice in schema.Entries.OfType<ComplexTypeChoice>().Where(x => name == x.Name))
         {

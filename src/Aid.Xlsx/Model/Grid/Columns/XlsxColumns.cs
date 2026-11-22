@@ -1,281 +1,280 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.Columns
+namespace Aid.Xlsx.Model.Grid.Columns;
+
+internal class XlsxColumns : IXlsxColumns
 {
-    internal class XlsxColumns : IXlsxColumns
+    private readonly List<XlsxColumn> _columnsCollection = new List<XlsxColumn>();
+
+    private readonly XlsxWorkbook _workbook;
+    private readonly XlsxWorksheet? _worksheet;
+    private readonly XlsxWorksheet? _defaultStyleSheet;
+
+    /// <summary>
+    /// This object represents all columns of the worksheet, even non-materialized ones.
+    /// </summary>
+    [MemberNotNullWhen(true, nameof(_worksheet))]
+    private bool AllColumnsOfSheet => _worksheet is not null;
+
+    private bool IsMaterialized => _lazyEnumerable == null;
+
+    private IEnumerable<XlsxColumn>? _lazyEnumerable;
+
+    private IEnumerable<XlsxColumn> Columns => _lazyEnumerable ?? _columnsCollection.AsEnumerable();
+
+    /// <summary>
+    /// Create a new instance of <see cref="XlsxColumns"/>.
+    /// </summary>
+    /// <param name="workbook">Workbook to which all columns belong.</param>
+    /// <param name="worksheet">If worksheet is specified it means that the created instance represents
+    /// all columns on a worksheet so changing its width will affect all columns.</param>
+    /// <param name="defaultStyleSheet">A sheet with a default style to use when initializing child entries.</param>
+    /// <param name="lazyEnumerable">A predefined enumerator of <see cref="XlsxColumn"/> to support lazy initialization.</param>
+    public XlsxColumns(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWorksheet? defaultStyleSheet = null, IEnumerable<XlsxColumn>? lazyEnumerable = null)
     {
-        private readonly List<XlsxColumn> _columnsCollection = new List<XlsxColumn>();
+        _workbook = workbook;
+        _worksheet = worksheet;
+        _defaultStyleSheet = defaultStyleSheet;
+        _lazyEnumerable = lazyEnumerable;
+    }
 
-        private readonly XlsxWorkbook _workbook;
-        private readonly XlsxWorksheet? _worksheet;
-        private readonly XlsxWorksheet? _defaultStyleSheet;
+    #region IXlsxColumns Members
 
-        /// <summary>
-        /// This object represents all columns of the worksheet, even non-materialized ones.
-        /// </summary>
-        [MemberNotNullWhen(true, nameof(_worksheet))]
-        private bool AllColumnsOfSheet => _worksheet is not null;
+    public IEnumerator<IXlsxColumn> GetEnumerator()
+    {
+        return Columns.Cast<IXlsxColumn>().OrderBy(r => r.ColumnNumber()).GetEnumerator();
+    }
 
-        private bool IsMaterialized => _lazyEnumerable == null;
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
 
-        private IEnumerable<XlsxColumn>? _lazyEnumerable;
-
-        private IEnumerable<XlsxColumn> Columns => _lazyEnumerable ?? _columnsCollection.AsEnumerable();
-
-        /// <summary>
-        /// Create a new instance of <see cref="XlsxColumns"/>.
-        /// </summary>
-        /// <param name="workbook">Workbook to which all columns belong.</param>
-        /// <param name="worksheet">If worksheet is specified it means that the created instance represents
-        /// all columns on a worksheet so changing its width will affect all columns.</param>
-        /// <param name="defaultStyleSheet">A sheet with a default style to use when initializing child entries.</param>
-        /// <param name="lazyEnumerable">A predefined enumerator of <see cref="XlsxColumn"/> to support lazy initialization.</param>
-        public XlsxColumns(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWorksheet? defaultStyleSheet = null, IEnumerable<XlsxColumn>? lazyEnumerable = null)
+    public Double Width
+    {
+        set
         {
-            _workbook = workbook;
-            _worksheet = worksheet;
-            _defaultStyleSheet = defaultStyleSheet;
-            _lazyEnumerable = lazyEnumerable;
+            Columns.ForEach(c => c.Width = value);
+
+            if (!AllColumnsOfSheet) return;
+
+            _worksheet.ColumnWidth = value;
+            _worksheet.Internals.ColumnsCollection.ForEach(c => c.Value.Width = value);
         }
+    }
 
-        #region IXlsxColumns Members
-
-        public IEnumerator<IXlsxColumn> GetEnumerator()
+    public void Delete()
+    {
+        if (AllColumnsOfSheet)
         {
-            return Columns.Cast<IXlsxColumn>().OrderBy(r => r.ColumnNumber()).GetEnumerator();
+            _worksheet.Internals.ColumnsCollection.Clear();
+            _worksheet.Internals.CellsCollection.Clear();
         }
-
-        IEnumerator IEnumerable.GetEnumerator()
+        else
         {
-            return GetEnumerator();
-        }
-
-        public Double Width
-        {
-            set
+            var toDelete = new Dictionary<IXlsxWorksheet, List<Int32>>();
+            foreach (XlsxColumn c in Columns)
             {
-                Columns.ForEach(c => c.Width = value);
+                if (!toDelete.TryGetValue(c.Worksheet, out List<Int32>? list))
+                {
+                    list = new List<Int32>();
+                    toDelete.Add(c.Worksheet, list);
+                }
 
-                if (!AllColumnsOfSheet) return;
+                list.Add(c.ColumnNumber());
+            }
 
-                _worksheet.ColumnWidth = value;
-                _worksheet.Internals.ColumnsCollection.ForEach(c => c.Value.Width = value);
+            foreach (KeyValuePair<IXlsxWorksheet, List<int>> kp in toDelete)
+            {
+                foreach (int c in kp.Value.OrderByDescending(c => c))
+                    kp.Key.Column(c).Delete();
             }
         }
+    }
 
-        public void Delete()
+    public IXlsxColumns AdjustToContents()
+    {
+        Columns.ForEach(c => c.AdjustToContents());
+        return this;
+    }
+
+    public IXlsxColumns AdjustToContents(Int32 startRow)
+    {
+        Columns.ForEach(c => c.AdjustToContents(startRow));
+        return this;
+    }
+
+    public IXlsxColumns AdjustToContents(Int32 startRow, Int32 endRow)
+    {
+        Columns.ForEach(c => c.AdjustToContents(startRow, endRow));
+        return this;
+    }
+
+    public IXlsxColumns AdjustToContents(Double minWidth, Double maxWidth)
+    {
+        Columns.ForEach(c => c.AdjustToContents(minWidth, maxWidth));
+        return this;
+    }
+
+    public IXlsxColumns AdjustToContents(Int32 startRow, Double minWidth, Double maxWidth)
+    {
+        Columns.ForEach(c => c.AdjustToContents(startRow, minWidth, maxWidth));
+        return this;
+    }
+
+    public IXlsxColumns AdjustToContents(Int32 startRow, Int32 endRow, Double minWidth, Double maxWidth)
+    {
+        Columns.ForEach(c => c.AdjustToContents(startRow, endRow, minWidth, maxWidth));
+        return this;
+    }
+
+    public void Hide()
+    {
+        Columns.ForEach(c => c.Hide());
+    }
+
+    public void Unhide()
+    {
+        Columns.ForEach(c => c.Unhide());
+    }
+
+    public void Group()
+    {
+        Group(false);
+    }
+
+    public void Group(Int32 outlineLevel)
+    {
+        Group(outlineLevel, false);
+    }
+
+    public void Ungroup()
+    {
+        Ungroup(false);
+    }
+
+    public void Group(Boolean collapse)
+    {
+        Columns.ForEach(c => c.Group(collapse));
+    }
+
+    public void Group(Int32 outlineLevel, Boolean collapse)
+    {
+        Columns.ForEach(c => c.Group(outlineLevel, collapse));
+    }
+
+    public void Ungroup(Boolean ungroupFromAll)
+    {
+        Columns.ForEach(c => c.Ungroup(ungroupFromAll));
+    }
+
+    public void Collapse()
+    {
+        Columns.ForEach(c => c.Collapse());
+    }
+
+    public void Expand()
+    {
+        Columns.ForEach(c => c.Expand());
+    }
+
+    public IXlsxCells Cells()
+    {
+        var cells = new XlsxCells(_workbook, false, XlsxCellsUsedOptions.All);
+        foreach (XlsxColumn container in Columns)
+            cells.Add(container.RangeAddress);
+        return cells;
+    }
+
+    public IXlsxCells CellsUsed()
+    {
+        var cells = new XlsxCells(_workbook, true, XlsxCellsUsedOptions.All);
+        foreach (XlsxColumn container in Columns)
+            cells.Add(container.RangeAddress);
+        return cells;
+    }
+
+    public IXlsxCells CellsUsed(Boolean includeFormats)
+    {
+        return CellsUsed(includeFormats
+            ? XlsxCellsUsedOptions.All
+            : XlsxCellsUsedOptions.AllContents);
+    }
+
+    public IXlsxCells CellsUsed(XlsxCellsUsedOptions options)
+    {
+        var cells = new XlsxCells(_workbook, true, options);
+        foreach (XlsxColumn container in Columns)
+            cells.Add(container.RangeAddress);
+        return cells;
+    }
+
+    /// <summary>
+    ///   Adds a vertical page break after this column.
+    /// </summary>
+    public IXlsxColumns AddVerticalPageBreaks()
+    {
+        foreach (XlsxColumn col in Columns)
+            col.Worksheet.PageSetup.AddVerticalPageBreak(col.ColumnNumber());
+        return this;
+    }
+
+    public IXlsxStyle Style
+    {
+        get => Format;
+        set => Format.SetStyle(value);
+    }
+
+    internal XlsxCellFormat Format
+    {
+        get
         {
             if (AllColumnsOfSheet)
             {
-                _worksheet.Internals.ColumnsCollection.Clear();
-                _worksheet.Internals.CellsCollection.Clear();
+                return XlsxCellFormat.ForWorksheet(_worksheet);
             }
-            else
-            {
-                var toDelete = new Dictionary<IXlsxWorksheet, List<Int32>>();
-                foreach (XlsxColumn c in Columns)
-                {
-                    if (!toDelete.TryGetValue(c.Worksheet, out List<Int32>? list))
-                    {
-                        list = new List<Int32>();
-                        toDelete.Add(c.Worksheet, list);
-                    }
 
-                    list.Add(c.ColumnNumber());
-                }
-
-                foreach (KeyValuePair<IXlsxWorksheet, List<int>> kp in toDelete)
-                {
-                    foreach (int c in kp.Value.OrderByDescending(c => c))
-                        kp.Key.Column(c).Delete();
-                }
-            }
+            return XlsxCellFormat.ForColumns(_workbook, _defaultStyleSheet, Columns);
         }
+    }
 
-        public IXlsxColumns AdjustToContents()
-        {
-            Columns.ForEach(c => c.AdjustToContents());
-            return this;
-        }
+    #endregion IXlsxColumns Members
 
-        public IXlsxColumns AdjustToContents(Int32 startRow)
-        {
-            Columns.ForEach(c => c.AdjustToContents(startRow));
-            return this;
-        }
+    public void Add(XlsxColumn column)
+    {
+        Materialize();
+        _columnsCollection.Add(column);
+    }
 
-        public IXlsxColumns AdjustToContents(Int32 startRow, Int32 endRow)
-        {
-            Columns.ForEach(c => c.AdjustToContents(startRow, endRow));
-            return this;
-        }
+    public void CollapseOnly()
+    {
+        Columns.ForEach(c => c.Collapsed = true);
+    }
 
-        public IXlsxColumns AdjustToContents(Double minWidth, Double maxWidth)
-        {
-            Columns.ForEach(c => c.AdjustToContents(minWidth, maxWidth));
-            return this;
-        }
+    public IXlsxColumns Clear(XlsxClearOptions clearOptions = XlsxClearOptions.All)
+    {
+        Columns.ForEach(c => c.Clear(clearOptions));
+        return this;
+    }
 
-        public IXlsxColumns AdjustToContents(Int32 startRow, Double minWidth, Double maxWidth)
-        {
-            Columns.ForEach(c => c.AdjustToContents(startRow, minWidth, maxWidth));
-            return this;
-        }
+    public void Select()
+    {
+        foreach (var range in this)
+            range.Select();
+    }
 
-        public IXlsxColumns AdjustToContents(Int32 startRow, Int32 endRow, Double minWidth, Double maxWidth)
-        {
-            Columns.ForEach(c => c.AdjustToContents(startRow, endRow, minWidth, maxWidth));
-            return this;
-        }
+    private void Materialize()
+    {
+        if (IsMaterialized)
+            return;
 
-        public void Hide()
-        {
-            Columns.ForEach(c => c.Hide());
-        }
-
-        public void Unhide()
-        {
-            Columns.ForEach(c => c.Unhide());
-        }
-
-        public void Group()
-        {
-            Group(false);
-        }
-
-        public void Group(Int32 outlineLevel)
-        {
-            Group(outlineLevel, false);
-        }
-
-        public void Ungroup()
-        {
-            Ungroup(false);
-        }
-
-        public void Group(Boolean collapse)
-        {
-            Columns.ForEach(c => c.Group(collapse));
-        }
-
-        public void Group(Int32 outlineLevel, Boolean collapse)
-        {
-            Columns.ForEach(c => c.Group(outlineLevel, collapse));
-        }
-
-        public void Ungroup(Boolean ungroupFromAll)
-        {
-            Columns.ForEach(c => c.Ungroup(ungroupFromAll));
-        }
-
-        public void Collapse()
-        {
-            Columns.ForEach(c => c.Collapse());
-        }
-
-        public void Expand()
-        {
-            Columns.ForEach(c => c.Expand());
-        }
-
-        public IXlsxCells Cells()
-        {
-            var cells = new XlsxCells(_workbook, false, XlsxCellsUsedOptions.All);
-            foreach (XlsxColumn container in Columns)
-                cells.Add(container.RangeAddress);
-            return cells;
-        }
-
-        public IXlsxCells CellsUsed()
-        {
-            var cells = new XlsxCells(_workbook, true, XlsxCellsUsedOptions.All);
-            foreach (XlsxColumn container in Columns)
-                cells.Add(container.RangeAddress);
-            return cells;
-        }
-
-        public IXlsxCells CellsUsed(Boolean includeFormats)
-        {
-            return CellsUsed(includeFormats
-                ? XlsxCellsUsedOptions.All
-                : XlsxCellsUsedOptions.AllContents);
-        }
-
-        public IXlsxCells CellsUsed(XlsxCellsUsedOptions options)
-        {
-            var cells = new XlsxCells(_workbook, true, options);
-            foreach (XlsxColumn container in Columns)
-                cells.Add(container.RangeAddress);
-            return cells;
-        }
-
-        /// <summary>
-        ///   Adds a vertical page break after this column.
-        /// </summary>
-        public IXlsxColumns AddVerticalPageBreaks()
-        {
-            foreach (XlsxColumn col in Columns)
-                col.Worksheet.PageSetup.AddVerticalPageBreak(col.ColumnNumber());
-            return this;
-        }
-
-        public IXlsxStyle Style
-        {
-            get => Format;
-            set => Format.SetStyle(value);
-        }
-
-        internal XlsxCellFormat Format
-        {
-            get
-            {
-                if (AllColumnsOfSheet)
-                {
-                    return XlsxCellFormat.ForWorksheet(_worksheet);
-                }
-
-                return XlsxCellFormat.ForColumns(_workbook, _defaultStyleSheet, Columns);
-            }
-        }
-
-        #endregion IXlsxColumns Members
-
-        public void Add(XlsxColumn column)
-        {
-            Materialize();
-            _columnsCollection.Add(column);
-        }
-
-        public void CollapseOnly()
-        {
-            Columns.ForEach(c => c.Collapsed = true);
-        }
-
-        public IXlsxColumns Clear(XlsxClearOptions clearOptions = XlsxClearOptions.All)
-        {
-            Columns.ForEach(c => c.Clear(clearOptions));
-            return this;
-        }
-
-        public void Select()
-        {
-            foreach (var range in this)
-                range.Select();
-        }
-
-        private void Materialize()
-        {
-            if (IsMaterialized)
-                return;
-
-            _columnsCollection.AddRange(Columns);
-            _lazyEnumerable = null;
-        }
+        _columnsCollection.AddRange(Columns);
+        _lazyEnumerable = null;
     }
 }

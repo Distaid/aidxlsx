@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Xml;
 
 /// <summary>
 /// A value that should be returned when nothing should be returned, but <c>void</c> is not an option.

@@ -1,8 +1,10 @@
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.Styles;
-using StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.RichText.XlsxImmutableRichText>;
+using StringItem = Aid.Xlsx.Calculation.OneOf<string, Aid.Xlsx.Model.RichText.XlsxImmutableRichText>;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Strings;
 
 /// <summary>
 /// A reader for shared string table part.

@@ -1,11 +1,11 @@
 using System.Xml.Linq;
 using System.Xml;
-using Aid.Xlsx.Protection;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Model.Protection;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Workbooks;
 
 internal static class WorkbookXml
 {

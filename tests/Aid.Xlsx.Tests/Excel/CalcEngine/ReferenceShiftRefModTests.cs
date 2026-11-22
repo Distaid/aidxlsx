@@ -1,9 +1,10 @@
-using Aid.Xlsx.CalcEngine.Visitors;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Formulas;
-using Aid.Xlsx.Ranges;
 using NUnit.Framework;
+using Aid.Xlsx.Calculation.Visitors;
+using Aid.Xlsx.Formulas.References;
+using Aid.Xlsx.Formulas.References.Transforms;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Ranges;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine;
 

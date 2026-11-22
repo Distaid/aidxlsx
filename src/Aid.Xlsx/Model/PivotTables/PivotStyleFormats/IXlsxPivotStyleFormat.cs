@@ -1,8 +1,8 @@
 // Keep this file CodeMaid organised and cleaned
-using Aid.Xlsx.PivotTables.Areas;
-using Aid.Xlsx.Styles;
+using Aid.Xlsx.Model.PivotTables.Areas;
+using Aid.Xlsx.Model.Styles;
 
-namespace Aid.Xlsx.PivotTables.PivotStyleFormats;
+namespace Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 
 /// <summary>
 /// A interface for styling various parts of a pivot table, e.g. the whole table, specific

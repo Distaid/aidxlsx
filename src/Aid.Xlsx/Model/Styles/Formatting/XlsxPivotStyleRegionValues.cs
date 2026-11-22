@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Styles.Formatting;
+namespace Aid.Xlsx.Model.Styles.Formatting;
 
 /// <summary>
 /// Enum values are ordered based on application priority.

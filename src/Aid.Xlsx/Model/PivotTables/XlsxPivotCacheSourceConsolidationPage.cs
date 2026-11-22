@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.PivotTables;
+namespace Aid.Xlsx.Model.PivotTables;
 
 /// <summary>
 /// A page filter for pivot table that uses <see cref="XlsxPivotSourceConsolidation"/> as the source

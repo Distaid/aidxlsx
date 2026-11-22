@@ -1,8 +1,8 @@
 #nullable disable
 
-using Aid.Xlsx.PivotTables.Areas;
+using Aid.Xlsx.Model.PivotTables.Areas;
 
-namespace Aid.Xlsx.PivotTables.PivotStyleFormats;
+namespace Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 
 internal class XlsxPivotTableAxisFieldStyleFormats : IXlsxPivotFieldStyleFormats
 {

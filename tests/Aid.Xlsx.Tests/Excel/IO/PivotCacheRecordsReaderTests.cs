@@ -1,11 +1,12 @@
-using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.SpreadsheetML;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.PivotTables;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.PivotTables;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Pivots;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
 namespace Aid.Xlsx.Tests.Excel.IO;
 

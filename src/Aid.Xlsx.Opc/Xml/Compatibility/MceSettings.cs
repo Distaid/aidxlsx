@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Xml.Compatibility;
 
 /// <summary>
 /// Settings for <see cref="MceXmlReader"/>.

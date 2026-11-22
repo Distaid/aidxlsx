@@ -1,8 +1,11 @@
-using Aid.Xlsx.PivotTables.PivotStyleFormats;
-using Aid.Xlsx.PivotTables.PivotValues;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles;
 using NUnit.Framework;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.PivotTables;
+using Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
+using Aid.Xlsx.Model.PivotTables.PivotValues;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Tests.Excel.PivotTables.Style;
 

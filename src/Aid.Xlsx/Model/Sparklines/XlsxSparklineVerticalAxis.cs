@@ -1,100 +1,99 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-namespace Aid.Xlsx.Sparklines
+namespace Aid.Xlsx.Model.Sparklines;
+
+internal class XlsxSparklineVerticalAxis : IXlsxSparklineVerticalAxis
 {
-    internal class XlsxSparklineVerticalAxis : IXlsxSparklineVerticalAxis
+    #region Public Properties
+
+    public Double? ManualMax
     {
-        #region Public Properties
+        get => _manualMax;
+        set => SetManualMax(value);
+    }
 
-        public Double? ManualMax
-        {
-            get => _manualMax;
-            set => SetManualMax(value);
-        }
+    public Double? ManualMin
+    {
+        get => _manualMin;
+        set => SetManualMin(value);
+    }
 
-        public Double? ManualMin
-        {
-            get => _manualMin;
-            set => SetManualMin(value);
-        }
+    public XlsxSparklineAxisMinMax MaxAxisType
+    {
+        get => _maxAxisType;
+        set => SetMaxAxisType(value);
+    }
 
-        public XlsxSparklineAxisMinMax MaxAxisType
-        {
-            get => _maxAxisType;
-            set => SetMaxAxisType(value);
-        }
+    public XlsxSparklineAxisMinMax MinAxisType
+    {
+        get => _minAxisType;
+        set => SetMinAxisType(value);
+    }
 
-        public XlsxSparklineAxisMinMax MinAxisType
-        {
-            get => _minAxisType;
-            set => SetMinAxisType(value);
-        }
+    #endregion Public Properties
 
-        #endregion Public Properties
+    #region Public Methods
 
-        #region Public Methods
+    public IXlsxSparklineVerticalAxis SetManualMax(Double? manualMax)
+    {
+        if (manualMax != null)
+            MaxAxisType = XlsxSparklineAxisMinMax.Custom;
 
-        public IXlsxSparklineVerticalAxis SetManualMax(Double? manualMax)
-        {
-            if (manualMax != null)
-                MaxAxisType = XlsxSparklineAxisMinMax.Custom;
+        _manualMax = manualMax;
+        return this;
+    }
 
-            _manualMax = manualMax;
-            return this;
-        }
+    public IXlsxSparklineVerticalAxis SetManualMin(Double? manualMin)
+    {
+        if (manualMin != null)
+            MinAxisType = XlsxSparklineAxisMinMax.Custom;
 
-        public IXlsxSparklineVerticalAxis SetManualMin(Double? manualMin)
-        {
-            if (manualMin != null)
-                MinAxisType = XlsxSparklineAxisMinMax.Custom;
+        _manualMin = manualMin;
+        return this;
+    }
 
-            _manualMin = manualMin;
-            return this;
-        }
+    public IXlsxSparklineVerticalAxis SetMaxAxisType(XlsxSparklineAxisMinMax maxAxisType)
+    {
+        if (maxAxisType != XlsxSparklineAxisMinMax.Custom)
+            _manualMax = null;
 
-        public IXlsxSparklineVerticalAxis SetMaxAxisType(XlsxSparklineAxisMinMax maxAxisType)
-        {
-            if (maxAxisType != XlsxSparklineAxisMinMax.Custom)
-                _manualMax = null;
+        _maxAxisType = maxAxisType;
+        return this;
+    }
 
-            _maxAxisType = maxAxisType;
-            return this;
-        }
+    public IXlsxSparklineVerticalAxis SetMinAxisType(XlsxSparklineAxisMinMax minAxisType)
+    {
+        if (minAxisType != XlsxSparklineAxisMinMax.Custom)
+            _manualMin = null;
 
-        public IXlsxSparklineVerticalAxis SetMinAxisType(XlsxSparklineAxisMinMax minAxisType)
-        {
-            if (minAxisType != XlsxSparklineAxisMinMax.Custom)
-                _manualMin = null;
+        _minAxisType = minAxisType;
+        return this;
+    }
 
-            _minAxisType = minAxisType;
-            return this;
-        }
+    #endregion Public Methods
 
-        #endregion Public Methods
+    #region Private Fields
 
-        #region Private Fields
+    private Double? _manualMax;
+    private Double? _manualMin;
+    private XlsxSparklineAxisMinMax _maxAxisType;
+    private XlsxSparklineAxisMinMax _minAxisType;
 
-        private Double? _manualMax;
-        private Double? _manualMin;
-        private XlsxSparklineAxisMinMax _maxAxisType;
-        private XlsxSparklineAxisMinMax _minAxisType;
+    #endregion Private Fields
 
-        #endregion Private Fields
+    public IXlsxSparklineGroup SparklineGroup { get; }
 
-        public IXlsxSparklineGroup SparklineGroup { get; }
+    public XlsxSparklineVerticalAxis(IXlsxSparklineGroup sparklineGroup)
+    {
+        SparklineGroup = sparklineGroup ?? throw new ArgumentNullException(nameof(sparklineGroup));
+    }
 
-        public XlsxSparklineVerticalAxis(IXlsxSparklineGroup sparklineGroup)
-        {
-            SparklineGroup = sparklineGroup ?? throw new ArgumentNullException(nameof(sparklineGroup));
-        }
-
-        public static void Copy(IXlsxSparklineVerticalAxis from, IXlsxSparklineVerticalAxis to)
-        {
-            to.ManualMax = from.ManualMax;
-            to.ManualMin = from.ManualMin;
-            to.MaxAxisType = from.MaxAxisType;
-            to.MinAxisType = from.MinAxisType;
-        }
+    public static void Copy(IXlsxSparklineVerticalAxis from, IXlsxSparklineVerticalAxis to)
+    {
+        to.ManualMax = from.ManualMax;
+        to.ManualMin = from.ManualMin;
+        to.MaxAxisType = from.MaxAxisType;
+        to.MinAxisType = from.MinAxisType;
     }
 }

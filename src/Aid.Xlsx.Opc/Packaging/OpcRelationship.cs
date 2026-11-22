@@ -1,6 +1,6 @@
 using System.Xml;
 
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Packaging;
 
 /// <summary>A package or part relationship. The original URI reference is preserved.</summary>
 public sealed class OpcRelationship

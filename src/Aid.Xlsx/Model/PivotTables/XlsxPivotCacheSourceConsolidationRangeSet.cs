@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
-using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Model.Grid.Coordinates;
 
-namespace Aid.Xlsx.PivotTables;
+namespace Aid.Xlsx.Model.PivotTables;
 
 /// <summary>
 /// One of ranges that form a <see cref="XlsxPivotSourceConsolidation"/> source for a <see cref="XlsxPivotCache"/>.

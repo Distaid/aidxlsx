@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Xml;
 
 internal static class PolyfillExtensions
 {

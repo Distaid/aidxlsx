@@ -1,8 +1,9 @@
 #nullable enable
 using System.Xml;
-using Aid.Xlsx.Opc;
 using NUnit.Framework;
-using static Aid.Xlsx.Opc.XmlTreeNodeType;
+using static Aid.Xlsx.Opc.Xml.XmlTreeNodeType;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.Opc.Xml.Compatibility;
 
 namespace Aid.Xlsx.Tests.IO;
 

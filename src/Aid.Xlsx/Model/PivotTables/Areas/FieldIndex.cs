@@ -1,7 +1,7 @@
 using System.Diagnostics;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
 
-namespace Aid.Xlsx.PivotTables.Areas;
+namespace Aid.Xlsx.Model.PivotTables.Areas;
 
 /// <summary>
 /// A type for field index, so there is a better idea what is a semantic content of some

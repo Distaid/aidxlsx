@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Utils;
+namespace Aid.Xlsx.Infrastructure.Utilities;
 
 internal interface IReadOnlyBiDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>
     where TKey : notnull

@@ -1,10 +1,11 @@
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Formulas;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Formulas.References;
+using Aid.Xlsx.Formulas.References.Transforms;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Ranges;
 
-namespace Aid.Xlsx.CalcEngine.Visitors;
+namespace Aid.Xlsx.Calculation.Visitors;
 
 /// <summary>
 /// A RefModVisitor that adjusts a reference in a formula when an area is deleted and shifted up/left.

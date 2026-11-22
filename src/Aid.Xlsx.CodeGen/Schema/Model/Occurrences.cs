@@ -1,6 +1,6 @@
 using System;
 
-namespace Aid.Xlsx.CodeGen.Model;
+namespace Aid.Xlsx.CodeGen.Schema.Model;
 
 public readonly record struct Occurrences(int? Min, int? Max)
 {

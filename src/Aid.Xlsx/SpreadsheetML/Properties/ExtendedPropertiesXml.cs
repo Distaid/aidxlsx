@@ -1,10 +1,10 @@
 using System.Xml.Linq;
-using Aid.Xlsx.DefinedNames;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.DefinedNames;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Properties;
 
 internal static class ExtendedPropertiesXml
 {

@@ -1,189 +1,188 @@
 #nullable disable
 
-using Aid.Xlsx.AutoFilters;
-using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.AutoFilters;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.ConditionalFormats
+namespace Aid.Xlsx.Model.ConditionalFormats;
+
+public enum XlsxTimePeriod
 {
-    public enum XlsxTimePeriod
-    {
-        Yesterday,
-        Today,
-        Tomorrow,
-        InTheLast7Days,
-        LastWeek,
-        ThisWeek,
-        NextWeek,
-        LastMonth,
-        ThisMonth,
-        NextMonth
-    }
+    Yesterday,
+    Today,
+    Tomorrow,
+    InTheLast7Days,
+    LastWeek,
+    ThisWeek,
+    NextWeek,
+    LastMonth,
+    ThisMonth,
+    NextMonth
+}
 
-    public enum XlsxIconSetStyle
-    {
-        ThreeArrows,
-        ThreeArrowsGray,
-        ThreeFlags,
-        ThreeTrafficLights1,
-        ThreeTrafficLights2,
-        ThreeSigns,
-        ThreeSymbols,
-        ThreeSymbols2,
-        FourArrows,
-        FourArrowsGray,
-        FourRedToBlack,
-        FourRating,
-        FourTrafficLights,
-        FiveArrows,
-        FiveArrowsGray,
-        FiveRating,
-        FiveQuarters
-    }
+public enum XlsxIconSetStyle
+{
+    ThreeArrows,
+    ThreeArrowsGray,
+    ThreeFlags,
+    ThreeTrafficLights1,
+    ThreeTrafficLights2,
+    ThreeSigns,
+    ThreeSymbols,
+    ThreeSymbols2,
+    FourArrows,
+    FourArrowsGray,
+    FourRedToBlack,
+    FourRating,
+    FourTrafficLights,
+    FiveArrows,
+    FiveArrowsGray,
+    FiveRating,
+    FiveQuarters
+}
 
-    public enum XlsxConditionalFormatType
-    {
-        Expression,
-        CellIs,
-        ColorScale,
-        DataBar,
-        IconSet,
-        Top10,
-        IsUnique,
-        IsDuplicate,
-        ContainsText,
-        NotContainsText,
-        StartsWith,
-        EndsWith,
-        IsBlank,
-        NotBlank,
-        IsError,
-        NotError,
-        TimePeriod,
-        AboveAverage
-    }
+public enum XlsxConditionalFormatType
+{
+    Expression,
+    CellIs,
+    ColorScale,
+    DataBar,
+    IconSet,
+    Top10,
+    IsUnique,
+    IsDuplicate,
+    ContainsText,
+    NotContainsText,
+    StartsWith,
+    EndsWith,
+    IsBlank,
+    NotBlank,
+    IsError,
+    NotError,
+    TimePeriod,
+    AboveAverage
+}
 
-    public enum XlsxCFOperator { Equal, NotEqual, GreaterThan, LessThan, EqualOrGreaterThan, EqualOrLessThan, Between, NotBetween, Contains, NotContains, StartsWith, EndsWith }
+public enum XlsxCFOperator { Equal, NotEqual, GreaterThan, LessThan, EqualOrGreaterThan, EqualOrLessThan, Between, NotBetween, Contains, NotContains, StartsWith, EndsWith }
 
-    public interface IXlsxConditionalFormat
-    {
-        IXlsxStyle Style { get; set; }
+public interface IXlsxConditionalFormat
+{
+    IXlsxStyle Style { get; set; }
 
-        IXlsxStyle WhenIsBlank();
+    IXlsxStyle WhenIsBlank();
 
-        IXlsxStyle WhenNotBlank();
+    IXlsxStyle WhenNotBlank();
 
-        IXlsxStyle WhenIsError();
+    IXlsxStyle WhenIsError();
 
-        IXlsxStyle WhenNotError();
+    IXlsxStyle WhenNotError();
 
-        IXlsxStyle WhenDateIs(XlsxTimePeriod timePeriod);
+    IXlsxStyle WhenDateIs(XlsxTimePeriod timePeriod);
 
-        IXlsxStyle WhenContains(String value);
+    IXlsxStyle WhenContains(String value);
 
-        IXlsxStyle WhenNotContains(String value);
+    IXlsxStyle WhenNotContains(String value);
 
-        IXlsxStyle WhenStartsWith(String value);
+    IXlsxStyle WhenStartsWith(String value);
 
-        IXlsxStyle WhenEndsWith(String value);
+    IXlsxStyle WhenEndsWith(String value);
 
-        IXlsxStyle WhenEquals(String value);
+    IXlsxStyle WhenEquals(String value);
 
-        IXlsxStyle WhenNotEquals(String value);
+    IXlsxStyle WhenNotEquals(String value);
 
-        IXlsxStyle WhenGreaterThan(String value);
+    IXlsxStyle WhenGreaterThan(String value);
 
-        IXlsxStyle WhenLessThan(String value);
+    IXlsxStyle WhenLessThan(String value);
 
-        IXlsxStyle WhenEqualOrGreaterThan(String value);
+    IXlsxStyle WhenEqualOrGreaterThan(String value);
 
-        IXlsxStyle WhenEqualOrLessThan(String value);
+    IXlsxStyle WhenEqualOrLessThan(String value);
 
-        IXlsxStyle WhenBetween(String minValue, String maxValue);
+    IXlsxStyle WhenBetween(String minValue, String maxValue);
 
-        IXlsxStyle WhenNotBetween(String minValue, String maxValue);
+    IXlsxStyle WhenNotBetween(String minValue, String maxValue);
 
-        IXlsxStyle WhenEquals(Double value);
+    IXlsxStyle WhenEquals(Double value);
 
-        IXlsxStyle WhenNotEquals(Double value);
+    IXlsxStyle WhenNotEquals(Double value);
 
-        IXlsxStyle WhenGreaterThan(Double value);
+    IXlsxStyle WhenGreaterThan(Double value);
 
-        IXlsxStyle WhenLessThan(Double value);
+    IXlsxStyle WhenLessThan(Double value);
 
-        IXlsxStyle WhenEqualOrGreaterThan(Double value);
+    IXlsxStyle WhenEqualOrGreaterThan(Double value);
 
-        IXlsxStyle WhenEqualOrLessThan(Double value);
+    IXlsxStyle WhenEqualOrLessThan(Double value);
 
-        IXlsxStyle WhenBetween(Double minValue, Double maxValue);
+    IXlsxStyle WhenBetween(Double minValue, Double maxValue);
 
-        IXlsxStyle WhenNotBetween(Double minValue, Double maxValue);
+    IXlsxStyle WhenNotBetween(Double minValue, Double maxValue);
 
-        IXlsxStyle WhenIsDuplicate();
+    IXlsxStyle WhenIsDuplicate();
 
-        IXlsxStyle WhenIsUnique();
+    IXlsxStyle WhenIsUnique();
 
-        IXlsxStyle WhenIsTrue(String formula);
+    IXlsxStyle WhenIsTrue(String formula);
 
-        IXlsxStyle WhenIsTop(Int32 value, XlsxTopBottomType topBottomType = XlsxTopBottomType.Items);
+    IXlsxStyle WhenIsTop(Int32 value, XlsxTopBottomType topBottomType = XlsxTopBottomType.Items);
 
-        IXlsxStyle WhenIsBottom(Int32 value, XlsxTopBottomType topBottomType);
+    IXlsxStyle WhenIsBottom(Int32 value, XlsxTopBottomType topBottomType);
 
-        IXlsxCFColorScaleMin ColorScale();
+    IXlsxCFColorScaleMin ColorScale();
 
-        IXlsxCFDataBarMin DataBar(XlsxColor color, Boolean showBarOnly = false);
+    IXlsxCFDataBarMin DataBar(XlsxColor color, Boolean showBarOnly = false);
 
-        IXlsxCFDataBarMin DataBar(XlsxColor positiveColor, XlsxColor negativeColor, Boolean showBarOnly = false);
+    IXlsxCFDataBarMin DataBar(XlsxColor positiveColor, XlsxColor negativeColor, Boolean showBarOnly = false);
 
-        IXlsxCFIconSet IconSet(XlsxIconSetStyle iconSetStyle, Boolean reverseIconOrder = false, Boolean showIconOnly = false);
+    IXlsxCFIconSet IconSet(XlsxIconSetStyle iconSetStyle, Boolean reverseIconOrder = false, Boolean showIconOnly = false);
 
-        XlsxConditionalFormatType ConditionalFormatType { get; }
+    XlsxConditionalFormatType ConditionalFormatType { get; }
 
-        XlsxIconSetStyle IconSetStyle { get; }
+    XlsxIconSetStyle IconSetStyle { get; }
 
-        XlsxTimePeriod TimePeriod { get; }
+    XlsxTimePeriod TimePeriod { get; }
 
-        Boolean ReverseIconOrder { get; }
+    Boolean ReverseIconOrder { get; }
 
-        Boolean ShowIconOnly { get; }
+    Boolean ShowIconOnly { get; }
 
-        Boolean ShowBarOnly { get; }
+    Boolean ShowBarOnly { get; }
 
-        Boolean StopIfTrue { get; }
+    Boolean StopIfTrue { get; }
 
-        /// <summary>
-        /// The first of the <see cref="Ranges"/>.
-        /// </summary>
-        IXlsxRange Range { get; set; }
+    /// <summary>
+    /// The first of the <see cref="Ranges"/>.
+    /// </summary>
+    IXlsxRange Range { get; set; }
 
-        /// <summary>
-        /// Get or set all ranges the conditional format applies to.
-        /// </summary>
-        /// <exception cref="ArgumentException">If sequence contains no elements or the range is from different worksheet.</exception>
-        IEnumerable<IXlsxRange> Ranges { get; set; }
+    /// <summary>
+    /// Get or set all ranges the conditional format applies to.
+    /// </summary>
+    /// <exception cref="ArgumentException">If sequence contains no elements or the range is from different worksheet.</exception>
+    IEnumerable<IXlsxRange> Ranges { get; set; }
 
-        XlsxDictionary<XlsxFormula> Values { get; }
+    XlsxDictionary<XlsxFormula> Values { get; }
 
-        XlsxDictionary<XlsxColor> Colors { get; }
+    XlsxDictionary<XlsxColor> Colors { get; }
 
-        XlsxDictionary<XlsxCFContentType> ContentTypes { get; }
+    XlsxDictionary<XlsxCFContentType> ContentTypes { get; }
 
-        XlsxDictionary<XlsxCFIconSetOperator> IconSetOperators { get; }
+    XlsxDictionary<XlsxCFIconSetOperator> IconSetOperators { get; }
 
-        XlsxCFOperator Operator { get; }
+    XlsxCFOperator Operator { get; }
 
-        Boolean Bottom { get; }
+    Boolean Bottom { get; }
 
-        Boolean Percent { get; }
+    Boolean Percent { get; }
 
-        IXlsxConditionalFormat SetStopIfTrue();
+    IXlsxConditionalFormat SetStopIfTrue();
 
-        IXlsxConditionalFormat SetStopIfTrue(Boolean value);
+    IXlsxConditionalFormat SetStopIfTrue(Boolean value);
 
-        IXlsxConditionalFormat CopyTo(IXlsxWorksheet targetSheet);
-    }
+    IXlsxConditionalFormat CopyTo(IXlsxWorksheet targetSheet);
 }

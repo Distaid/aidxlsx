@@ -1,7 +1,7 @@
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Formatting;
 
-namespace Aid.Xlsx.Styles;
+namespace Aid.Xlsx.Model.Styles;
 
 /// <summary>
 /// An API object to modify fill of a cell range.

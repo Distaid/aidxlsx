@@ -1,7 +1,7 @@
 using System;
 using System.Xml;
 
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Xml;
 
 /// <summary>
 /// A simplified XML reader that reads the content and hides full complexity the <see cref="XmlReader"/>.

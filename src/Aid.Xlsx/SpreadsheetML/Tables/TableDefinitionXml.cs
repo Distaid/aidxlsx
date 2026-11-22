@@ -1,9 +1,11 @@
 using System.Xml.Linq;
 using System.Xml;
-using Aid.Xlsx.Tables;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Tables;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Tables;
 
 internal static class TableDefinitionXml
 {

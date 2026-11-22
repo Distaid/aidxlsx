@@ -1,6 +1,6 @@
-using Aid.Xlsx.PivotTables.Areas;
+using Aid.Xlsx.Model.PivotTables.Areas;
 
-namespace Aid.Xlsx.PivotTables;
+namespace Aid.Xlsx.Model.PivotTables;
 
 /// <summary>
 /// A categorization of <see cref="XlsxPivotFieldItem"/> or <see cref="XlsxPivotFieldAxisItem"/>.

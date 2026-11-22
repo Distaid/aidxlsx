@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Xml;
 
 /// <summary>
 /// Information about a position in a document.

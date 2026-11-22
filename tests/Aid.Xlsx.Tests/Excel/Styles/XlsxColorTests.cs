@@ -1,6 +1,6 @@
 using System.Drawing;
-using Aid.Xlsx.Styles.Colors;
 using NUnit.Framework;
+using Aid.Xlsx.Model.Styles.Colors;
 
 namespace Aid.Xlsx.Tests.Excel;
 

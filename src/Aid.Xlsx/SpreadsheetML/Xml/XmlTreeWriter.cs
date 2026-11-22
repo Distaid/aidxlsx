@@ -1,8 +1,8 @@
 using System.Xml;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Opc;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Opc.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Xml;
 
 internal sealed class XmlTreeWriter : IDisposable
 {

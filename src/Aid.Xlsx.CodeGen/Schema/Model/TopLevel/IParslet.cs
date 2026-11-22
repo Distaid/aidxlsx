@@ -1,4 +1,6 @@
-namespace Aid.Xlsx.CodeGen.Model.TopLevel;
+using Aid.Xlsx.CodeGen.Emission;
+
+namespace Aid.Xlsx.CodeGen.Schema.Model.TopLevel;
 
 /// <summary>
 /// A marker interface for elements that can be referenced from other parts of XSD.

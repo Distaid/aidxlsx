@@ -2,68 +2,67 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Aid.Xlsx.Extensions
+namespace Aid.Xlsx.Infrastructure.Extensions;
+
+internal static class EnumerableExtensions
 {
-    internal static class EnumerableExtensions
+    public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
     {
-        public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
+        foreach (T item in source)
+            action(item);
+    }
+
+    [RequiresUnreferencedCode("The item type of the collection is discovered with reflection over its runtime type. Pass a typed sequence or a DataTable to stay trim-compatible.")]
+    public static Type? GetItemType(this IEnumerable source)
+    {
+        return GetGenericArgument(source.GetType());
+
+        Type? GetGenericArgument(Type collectionType)
         {
-            foreach (T item in source)
-                action(item);
+            var ienumerable = collectionType.GetInterfaces()
+                .SingleOrDefault(i => i.GetGenericArguments().Length == 1 &&
+                                      i.Name == "IEnumerable`1");
+
+            return ienumerable?.GetGenericArguments()?.FirstOrDefault();
         }
+    }
 
-        [RequiresUnreferencedCode("The item type of the collection is discovered with reflection over its runtime type. Pass a typed sequence or a DataTable to stay trim-compatible.")]
-        public static Type? GetItemType(this IEnumerable source)
+    /// <summary>
+    /// Skip last element of a sequence.
+    /// </summary>
+    public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> source)
+    {
+        using var enumerator = source.GetEnumerator();
+        if (!enumerator.MoveNext())
+            yield break;
+
+        T prev = enumerator.Current;
+        while (enumerator.MoveNext())
         {
-            return GetGenericArgument(source.GetType());
+            yield return prev;
+            prev = enumerator.Current;
+        }
+    }
 
-            Type? GetGenericArgument(Type collectionType)
+    public static Boolean HasDuplicates<T>(this IEnumerable<T> source)
+    {
+        HashSet<T> distinctItems = new HashSet<T>();
+        foreach (var item in source)
+        {
+            if (!distinctItems.Add(item))
             {
-                var ienumerable = collectionType.GetInterfaces()
-                    .SingleOrDefault(i => i.GetGenericArguments().Length == 1 &&
-                                          i.Name == "IEnumerable`1");
-
-                return ienumerable?.GetGenericArguments()?.FirstOrDefault();
+                return true;
             }
         }
+        return false;
+    }
 
-        /// <summary>
-        /// Skip last element of a sequence.
-        /// </summary>
-        public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> source)
-        {
-            using var enumerator = source.GetEnumerator();
-            if (!enumerator.MoveNext())
-                yield break;
-
-            T prev = enumerator.Current;
-            while (enumerator.MoveNext())
-            {
-                yield return prev;
-                prev = enumerator.Current;
-            }
-        }
-
-        public static Boolean HasDuplicates<T>(this IEnumerable<T> source)
-        {
-            HashSet<T> distinctItems = new HashSet<T>();
-            foreach (var item in source)
-            {
-                if (!distinctItems.Add(item))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Select all <typeparamref name="TItem"/> that are not null.
-        /// </summary>
-        public static IEnumerable<TItem> WhereNotNull<T, TItem>(this IEnumerable<T> source, Func<T, TItem?> property)
-            where TItem : struct
-        {
-            return source.Select(property).Where(x => x.HasValue).Select(x => x!.Value);
-        }
+    /// <summary>
+    /// Select all <typeparamref name="TItem"/> that are not null.
+    /// </summary>
+    public static IEnumerable<TItem> WhereNotNull<T, TItem>(this IEnumerable<T> source, Func<T, TItem?> property)
+        where TItem : struct
+    {
+        return source.Select(property).Where(x => x.HasValue).Select(x => x!.Value);
     }
 }

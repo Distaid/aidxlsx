@@ -1,7 +1,7 @@
 using System;
 using System.Xml;
 
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Xml.Compatibility;
 
 internal class MceThrowHelper
 {

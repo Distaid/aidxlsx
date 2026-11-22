@@ -1,10 +1,10 @@
 using System.Globalization;
 using System.Xml.Linq;
 using System.Xml;
-using Aid.Xlsx.CustomProperties;
-using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.CustomProperties;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Properties;
 
 internal static class CustomPropertiesXml
 {

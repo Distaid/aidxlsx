@@ -1,7 +1,9 @@
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.DataValidation;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Tests.Excel.DataValidations;
 

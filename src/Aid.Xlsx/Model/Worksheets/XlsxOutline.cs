@@ -1,19 +1,18 @@
 #nullable disable
 
 
-namespace Aid.Xlsx.Worksheets
+namespace Aid.Xlsx.Model.Worksheets;
+
+internal class XlsxOutline : IXlsxOutline
 {
-    internal class XlsxOutline : IXlsxOutline
+    public XlsxOutline(IXlsxOutline outline)
     {
-        public XlsxOutline(IXlsxOutline outline)
+        if (outline != null)
         {
-            if (outline != null)
-            {
-                SummaryHLocation = outline.SummaryHLocation;
-                SummaryVLocation = outline.SummaryVLocation;
-            }
+            SummaryHLocation = outline.SummaryHLocation;
+            SummaryVLocation = outline.SummaryVLocation;
         }
-        public XlsxOutlineSummaryVLocation SummaryVLocation { get; set; }
-        public XlsxOutlineSummaryHLocation SummaryHLocation { get; set; }
     }
+    public XlsxOutlineSummaryVLocation SummaryVLocation { get; set; }
+    public XlsxOutlineSummaryHLocation SummaryHLocation { get; set; }
 }

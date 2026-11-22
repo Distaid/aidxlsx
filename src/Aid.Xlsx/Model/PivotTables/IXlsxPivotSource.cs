@@ -1,8 +1,8 @@
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.PivotTables;
+namespace Aid.Xlsx.Model.PivotTables;
 
 /// <summary>
 /// An abstraction of source data for a <see cref="XlsxPivotCache"/>. Implementations must correctly

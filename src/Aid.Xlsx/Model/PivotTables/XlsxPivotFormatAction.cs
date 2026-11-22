@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.PivotTables;
+namespace Aid.Xlsx.Model.PivotTables;
 
 /// <summary>
 /// An enum describing if <see cref="XlsxPivotFormat"/> applies formatting to the cells of pivot

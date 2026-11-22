@@ -1,13 +1,15 @@
-using Aid.Xlsx.Attributes;
-using Aid.Xlsx.ConditionalFormats;
 using Aid.Xlsx.Conversion;
-using Aid.Xlsx.DataValidation;
-using Aid.Xlsx.Hyperlinks;
-using Aid.Xlsx.InsertData;
-using Aid.Xlsx.Protection;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Tables;
-using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.DataImport.Attributes;
+using Aid.Xlsx.DataImport.Mapping;
+using Aid.Xlsx.Model.ConditionalFormats;
+using Aid.Xlsx.Model.DataValidation;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Hyperlinks;
+using Aid.Xlsx.Model.Protection;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Tables;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
 using var file = new MemoryStream();
 

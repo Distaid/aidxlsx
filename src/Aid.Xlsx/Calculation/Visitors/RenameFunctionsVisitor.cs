@@ -1,6 +1,6 @@
-using Aid.Xlsx.Formulas;
+using Aid.Xlsx.Formulas.References.Transforms;
 
-namespace Aid.Xlsx.CalcEngine.Visitors;
+namespace Aid.Xlsx.Calculation.Visitors;
 
 /// <summary>
 /// A visitor for <see cref="FormulaConverter"/> that maps one name of a function to another.

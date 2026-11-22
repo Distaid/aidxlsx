@@ -1,8 +1,10 @@
-using Aid.Xlsx.Formulas.Rolex;
 using System;
 using System.Collections.Generic;
+using Aid.Xlsx.Formulas.Lexing;
+using Aid.Xlsx.Formulas.Lexing.Automata;
+using Aid.Xlsx.Formulas.Syntax;
 
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.References;
 
 /// <summary>
 /// A utility class that parses various types of references.

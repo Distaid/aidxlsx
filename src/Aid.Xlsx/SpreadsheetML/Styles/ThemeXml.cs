@@ -1,9 +1,9 @@
 using System.Xml.Linq;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Colors;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Styles;
 
 internal static class ThemeXml
 {

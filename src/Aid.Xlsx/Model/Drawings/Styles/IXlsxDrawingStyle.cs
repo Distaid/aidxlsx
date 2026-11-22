@@ -1,16 +1,15 @@
 #nullable disable
 
-namespace Aid.Xlsx.Drawings.Styles
+namespace Aid.Xlsx.Model.Drawings.Styles;
+
+public interface IXlsxDrawingStyle
 {
-    public interface IXlsxDrawingStyle
-    {
-        //IXlsxDrawingFont Font { get; }
-        IXlsxDrawingAlignment Alignment { get; }
-        IXlsxDrawingColorsAndLines ColorsAndLines { get; }
-        IXlsxDrawingSize Size { get; }
-        IXlsxDrawingProtection Protection { get; }
-        IXlsxDrawingProperties Properties { get; }
-        IXlsxDrawingMargins Margins { get; }
-        IXlsxDrawingWeb Web { get; }
-    }
+    //IXlsxDrawingFont Font { get; }
+    IXlsxDrawingAlignment Alignment { get; }
+    IXlsxDrawingColorsAndLines ColorsAndLines { get; }
+    IXlsxDrawingSize Size { get; }
+    IXlsxDrawingProtection Protection { get; }
+    IXlsxDrawingProperties Properties { get; }
+    IXlsxDrawingMargins Margins { get; }
+    IXlsxDrawingWeb Web { get; }
 }

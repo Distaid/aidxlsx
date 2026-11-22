@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Aid.Xlsx.Formulas.Rolex;
+namespace Aid.Xlsx.Formulas.Lexing.Automata;
 
 /// <summary>
 /// A class required by a Rolex tool. Never used.

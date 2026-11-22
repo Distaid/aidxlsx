@@ -1,32 +1,31 @@
-using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Model.Workbooks;
 
-namespace Aid.Xlsx.Tables
+namespace Aid.Xlsx.Model.Tables;
+
+internal class TableNameGenerator
 {
-    internal class TableNameGenerator
+    /// <summary>
+    /// Generate a non conflicting table name for the workbook
+    /// </summary>
+    /// <param name="workbook">Workbook to generate name for</param>
+    /// <param name="baseTableName">"Base Table Name</param>
+    /// <returns>Name for the table</returns>
+    internal static string GetNewTableName(IXlsxWorkbook workbook, string baseTableName = "Table")
     {
-        /// <summary>
-        /// Generate a non conflicting table name for the workbook
-        /// </summary>
-        /// <param name="workbook">Workbook to generate name for</param>
-        /// <param name="baseTableName">"Base Table Name</param>
-        /// <returns>Name for the table</returns>
-        internal static string GetNewTableName(IXlsxWorkbook workbook, string baseTableName = "Table")
+        var existingTableNames = new HashSet<String>(
+            workbook.Worksheets
+                .SelectMany(ws => ws.Tables)
+                .Select(t => t.Name),
+            StringComparer.OrdinalIgnoreCase);
+
+        var i = 1;
+        string tableName;
+        do
         {
-            var existingTableNames = new HashSet<String>(
-                workbook.Worksheets
-                    .SelectMany(ws => ws.Tables)
-                    .Select(t => t.Name),
-                StringComparer.OrdinalIgnoreCase);
+            tableName = baseTableName + i;
+            i++;
+        } while (existingTableNames.Contains(tableName));
 
-            var i = 1;
-            string tableName;
-            do
-            {
-                tableName = baseTableName + i;
-                i++;
-            } while (existingTableNames.Contains(tableName));
-
-            return tableName;
-        }
+        return tableName;
     }
 }

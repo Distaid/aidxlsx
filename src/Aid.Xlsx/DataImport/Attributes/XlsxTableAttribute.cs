@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Attributes;
+namespace Aid.Xlsx.DataImport.Attributes;
 
 /// <summary>Generates a reflection-free table row mapper for the annotated type.</summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, Inherited = false)]

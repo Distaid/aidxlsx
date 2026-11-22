@@ -1,15 +1,15 @@
 using System.Diagnostics;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles.Formatting;
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Tables;
-using Aid.Xlsx.Utils;
-using PTS = Aid.Xlsx.Styles.Formatting.XlsxPivotStyleRegionValues;
-using TS = Aid.Xlsx.Styles.Formatting.XlsxTableStyleRegionValues;
+using PTS = Aid.Xlsx.Model.Styles.Formatting.XlsxPivotStyleRegionValues;
+using TS = Aid.Xlsx.Model.Styles.Formatting.XlsxTableStyleRegionValues;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Formatting;
+using Aid.Xlsx.Model.Tables;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Styles;
 
 internal partial class StylesReader
 {

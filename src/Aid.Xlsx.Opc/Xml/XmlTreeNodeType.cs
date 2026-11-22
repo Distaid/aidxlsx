@@ -1,6 +1,6 @@
 using System.Xml;
 
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Xml;
 
 /// <summary>
 /// A node the <see cref="IXmlReader"/> is currently on.

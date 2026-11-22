@@ -1,13 +1,18 @@
 using System.Xml;
 using System.Xml.Linq;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Protection;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Worksheets;
-using static Aid.Xlsx.SpreadsheetML.OpenXmlConst;
+using static Aid.Xlsx.SpreadsheetML.Xml.OpenXmlConst;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Hyperlinks;
+using Aid.Xlsx.Model.Protection;
+using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.SpreadsheetML.Styles;
+using Aid.Xlsx.SpreadsheetML.Tables;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Worksheets;
 
 internal sealed partial class WorksheetXml(XElement root)
 {

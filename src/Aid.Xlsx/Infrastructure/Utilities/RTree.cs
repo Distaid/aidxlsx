@@ -1,7 +1,7 @@
-using Aid.Xlsx.Coordinates;
 using RBush;
+using Aid.Xlsx.Model.Grid.Coordinates;
 
-namespace Aid.Xlsx.Utils;
+namespace Aid.Xlsx.Infrastructure.Utilities;
 
 /// <summary>
 /// R-Tree for <see cref="Area"/> areas and some data associated with the area. The R-Tree

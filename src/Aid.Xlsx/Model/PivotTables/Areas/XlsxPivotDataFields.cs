@@ -1,8 +1,8 @@
 using System.Collections;
-using Aid.Xlsx.PivotTables.PivotValues;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.PivotTables.PivotValues;
 
-namespace Aid.Xlsx.PivotTables.Areas;
+namespace Aid.Xlsx.Model.PivotTables.Areas;
 
 /// <summary>
 /// A collection of <see cref="XlsxPivotDataField"/>.

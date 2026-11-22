@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Aid.Xlsx.Formulas.References;
+using Aid.Xlsx.Formulas.References.Transforms;
 
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.Syntax;
 
 /// <summary>
 /// A factory used to create an AST through <see cref="FormulaParser{TScalarValue,TNode,TContext}"/>.

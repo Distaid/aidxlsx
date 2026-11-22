@@ -1,7 +1,7 @@
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Styles.Formatting;
 
-namespace Aid.Xlsx.Cells;
+namespace Aid.Xlsx.Model.Grid.Cells;
 
 internal class FormatSlice : ISlice
 {

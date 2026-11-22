@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.CodeGen.Model.SimpleTypes;
+namespace Aid.Xlsx.CodeGen.Schema.Model.SimpleTypes;
 
 /// <summary>
 /// Numerical value must be at least the specified value.

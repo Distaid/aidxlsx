@@ -1,8 +1,8 @@
 using System.Diagnostics;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Cells;
 
-namespace Aid.Xlsx.Coordinates;
+namespace Aid.Xlsx.Model.Grid.Coordinates;
 
 /// <summary>
 /// An point (address) in a worksheet, an equivalent of <c>ST_CellRef</c>.

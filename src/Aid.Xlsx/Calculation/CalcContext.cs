@@ -1,18 +1,20 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using Aid.Xlsx.CalcEngine.Exceptions;
-using Aid.Xlsx.CalcEngine.Functions;
-using Aid.Xlsx.CalcEngine.Visitors;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Exceptions;
-using Aid.Xlsx.Formulas;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Calculation.Exceptions;
+using Aid.Xlsx.Calculation.Functions;
+using Aid.Xlsx.Calculation.Visitors;
+using Aid.Xlsx.Formulas.References.Transforms;
+using Aid.Xlsx.Formulas.Syntax;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Exceptions;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Grid.Rows;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.CalcEngine;
+namespace Aid.Xlsx.Calculation;
 
 internal sealed class CalcContext
 {

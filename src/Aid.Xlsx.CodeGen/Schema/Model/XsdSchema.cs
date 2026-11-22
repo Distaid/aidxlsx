@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Aid.Xlsx.CodeGen.Model.TopLevel;
+using Aid.Xlsx.CodeGen.Schema.Model.TopLevel;
 
-namespace Aid.Xlsx.CodeGen.Model;
+namespace Aid.Xlsx.CodeGen.Schema.Model;
 
 /// <summary>
 /// A representation of a one XSD file.
 /// </summary>
-public class Schema
+public class XsdSchema
 {
     /// <summary>
     /// Imports in the file.

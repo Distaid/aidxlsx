@@ -1,8 +1,10 @@
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.PivotTables;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.PivotTables;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Pivots;
 
 internal partial class PivotCacheRecordsReader
 {

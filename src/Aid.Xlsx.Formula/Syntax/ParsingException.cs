@@ -1,6 +1,6 @@
 using System;
 
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.Syntax;
 
 /// <summary>
 /// Indicates an error during parsing. In most cases, unexpected token.

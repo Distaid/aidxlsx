@@ -1,7 +1,7 @@
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Ranges;
 
-namespace Aid.Xlsx.CalcEngine.Functions;
+namespace Aid.Xlsx.Calculation.Functions;
 
 /// <summary>
 /// Tally for <c>{SUM,COUNT,AVERAGE}IF/S</c> and database function. The created tally must contain

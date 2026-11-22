@@ -3,7 +3,7 @@ using System.Collections;
 using System.Linq;
 using System.Text;
 
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.References;
 
 /// <summary>
 /// A class for checking whether an identifier in a formula requires quotes or

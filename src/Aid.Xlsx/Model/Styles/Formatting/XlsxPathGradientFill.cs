@@ -1,7 +1,7 @@
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Styles.Colors;
 
-namespace Aid.Xlsx.Styles.Formatting;
+namespace Aid.Xlsx.Model.Styles.Formatting;
 
 /// <summary>
 /// A path gradient fill format for a cell. The gradient has a shape of two nested rectangles,

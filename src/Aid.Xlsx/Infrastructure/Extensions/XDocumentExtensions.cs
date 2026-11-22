@@ -2,22 +2,21 @@
 using System.Xml.Linq;
 using System.Xml;
 
-namespace Aid.Xlsx.Extensions
+namespace Aid.Xlsx.Infrastructure.Extensions;
+
+internal static class XDocumentExtensions
 {
-    internal static class XDocumentExtensions
+    public static XDocument? Load(Stream stream)
     {
-        public static XDocument? Load(Stream stream)
+        using (XmlReader reader = XmlReader.Create(stream))
         {
-            using (XmlReader reader = XmlReader.Create(stream))
+            try
             {
-                try
-                {
-                    return XDocument.Load(reader);
-                }
-                catch (XmlException)
-                {
-                    return null;
-                }
+                return XDocument.Load(reader);
+            }
+            catch (XmlException)
+            {
+                return null;
             }
         }
     }

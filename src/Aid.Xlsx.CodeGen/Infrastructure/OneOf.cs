@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Aid.Xlsx.CodeGen;
+namespace Aid.Xlsx.CodeGen.Infrastructure;
 
 public readonly record struct OneOf<T1, T2>
 {

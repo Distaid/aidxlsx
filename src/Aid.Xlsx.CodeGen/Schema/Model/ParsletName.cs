@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Aid.Xlsx.CodeGen.Model.TopLevel;
+using Aid.Xlsx.CodeGen.Schema.Model.TopLevel;
 
-namespace Aid.Xlsx.CodeGen;
+namespace Aid.Xlsx.CodeGen.Schema.Model;
 
 /// <summary>
 /// A name for a elements with a type that can be converted to <c>Parse*</c> calls.

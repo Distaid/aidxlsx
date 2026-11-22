@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Styles;
+namespace Aid.Xlsx.Model.Styles;
 
 internal partial class XlsxDxFormat : IXlsxStyle
 {

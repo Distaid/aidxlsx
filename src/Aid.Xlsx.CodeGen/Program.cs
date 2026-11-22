@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using Aid.Xlsx.CodeGen.Schema;
+using Aid.Xlsx.CodeGen.SpreadsheetReaders;
 
 namespace Aid.Xlsx.CodeGen;
 

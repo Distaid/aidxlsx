@@ -1,7 +1,7 @@
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Formatting;
 
-namespace Aid.Xlsx.Styles;
+namespace Aid.Xlsx.Model.Styles;
 
 // TODO Styles: Plan is to have a separate interface for dxf. Implement necessary features to pass tests, then replace.
 /// <summary>

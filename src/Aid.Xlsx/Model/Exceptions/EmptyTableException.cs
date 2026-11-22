@@ -1,19 +1,18 @@
 #nullable disable
 
-namespace Aid.Xlsx.Exceptions
+namespace Aid.Xlsx.Model.Exceptions;
+
+public class EmptyTableException : XlsxException
 {
-    public class EmptyTableException : XlsxException
-    {
-        public EmptyTableException()
-            : base()
-        { }
+    public EmptyTableException()
+        : base()
+    { }
 
-        public EmptyTableException(String message)
-            : base(message)
-        { }
+    public EmptyTableException(String message)
+        : base(message)
+    { }
 
-        public EmptyTableException(String message, Exception innerException)
-            : base(message, innerException)
-        { }
-    }
+    public EmptyTableException(String message, Exception innerException)
+        : base(message, innerException)
+    { }
 }

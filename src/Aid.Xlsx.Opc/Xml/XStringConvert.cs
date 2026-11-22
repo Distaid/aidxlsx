@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Xml;
 
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Xml;
 
 /// <summary>
 /// Class to deal with encoding and decoding XString. XString decoding doesn't depend on the source

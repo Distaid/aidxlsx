@@ -2,13 +2,12 @@
 
 // Keep this file CodeMaid organised and cleaned
 
-namespace Aid.Xlsx.DataValidation
+namespace Aid.Xlsx.Model.DataValidation;
+
+public class XlsxTextLengthCriteria : XlsxWholeNumberCriteriaBase
 {
-    public class XlsxTextLengthCriteria : XlsxWholeNumberCriteriaBase
+    public XlsxTextLengthCriteria(IXlsxDataValidation dataValidation)
+        : base(dataValidation)
     {
-        public XlsxTextLengthCriteria(IXlsxDataValidation dataValidation)
-            : base(dataValidation)
-        {
-        }
     }
 }

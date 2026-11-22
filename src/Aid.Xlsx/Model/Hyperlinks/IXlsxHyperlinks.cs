@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Colors;
 
-namespace Aid.Xlsx.Hyperlinks;
+namespace Aid.Xlsx.Model.Hyperlinks;
 
 public interface IXlsxHyperlinks : IEnumerable<XlsxHyperlink>
 {

@@ -1,12 +1,15 @@
 using System.Text;
 using System.Xml.Linq;
-using Aid.Xlsx.DataValidation;
-using Aid.Xlsx.SpreadsheetML;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.PageSetup;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
+using Aid.Xlsx.Model.DataValidation;
+using Aid.Xlsx.Model.DefinedNames;
+using Aid.Xlsx.Model.PageSetup;
+using Aid.Xlsx.Model.PivotTables;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.Opc.Packaging;
+using Aid.Xlsx.SpreadsheetML.Workbooks;
 
 namespace Aid.Xlsx.Tests.IO;
 
@@ -282,7 +285,7 @@ public sealed class WorkbookOpcRoundTripTests
         using (var workbook = new XlsxWorkbook(withExtras))
         {
             workbook.Worksheet("Sheet").Cell("A1").Value = 2;
-            workbook.Save(new Workbooks.SaveOptions { ValidatePackage = false });
+            workbook.Save(new Aid.Xlsx.Model.Workbooks.SaveOptions { ValidatePackage = false });
         }
 
         using var edited = new XlsxWorkbook(withExtras);
@@ -404,7 +407,7 @@ public sealed class WorkbookOpcRoundTripTests
             workbook.CustomProperties.Delete("Remove");
             workbook.CustomProperties.CustomProperty("Edit").Value = 2.5;
             workbook.CustomProperties.Add("New", true);
-            workbook.Save(new Workbooks.SaveOptions { ValidatePackage = true });
+            workbook.Save(new Aid.Xlsx.Model.Workbooks.SaveOptions { ValidatePackage = true });
         }
 
         using var result = OpcPackage.Open(modified);

@@ -1,10 +1,12 @@
 using System.Collections.Generic;
-using Aid.Xlsx.CodeGen.Model;
-using Aid.Xlsx.CodeGen.Model.Elements;
-using Aid.Xlsx.CodeGen.Model.SimpleTypes;
-using Aid.Xlsx.CodeGen.Model.TopLevel;
+using Aid.Xlsx.CodeGen.Infrastructure;
+using Aid.Xlsx.CodeGen.Schema.Model;
+using Aid.Xlsx.CodeGen.Schema.Model.Elements;
+using Aid.Xlsx.CodeGen.Schema.Model.SimpleTypes;
+using Aid.Xlsx.CodeGen.Schema.Model.TopLevel;
+using Aid.Xlsx.Opc.Xml;
 
-namespace Aid.Xlsx.CodeGen;
+namespace Aid.Xlsx.CodeGen.Schema.Parsing;
 
 /// <summary>
 /// Parser to parse XSD of OOXML. It doesn't have to support anythings not found in the official XSD.
@@ -16,9 +18,9 @@ public class XsdSchemaParser
     /// </summary>
     private const string XsdNs = "http://www.w3.org/2001/XMLSchema";
 
-    public Schema ParseSchema(XmlTreeReader reader)
+    public XsdSchema ParseSchema(XmlTreeReader reader)
     {
-        var file = new Schema();
+        var file = new XsdSchema();
 
         reader.Open("schema", XsdNs);
 

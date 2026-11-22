@@ -1,6 +1,6 @@
-using Aid.Xlsx.Protection;
+using Aid.Xlsx.Model.Protection;
 
-namespace Aid.Xlsx.Styles;
+namespace Aid.Xlsx.Model.Styles;
 
 public interface IXlsxProtection : IEquatable<IXlsxProtection>
 {

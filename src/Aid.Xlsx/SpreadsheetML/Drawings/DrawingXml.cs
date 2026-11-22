@@ -1,11 +1,13 @@
 using System.Drawing;
 using System.Xml;
 using System.Xml.Linq;
-using Aid.Xlsx.Drawings;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Drawings;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Drawings;
 
 internal static class DrawingXml
 {
@@ -22,7 +24,7 @@ internal static class DrawingXml
     internal static XElement Read(Stream stream)
     {
         using var reader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
-        var root = XElement.Load(reader, LoadOptions.PreserveWhitespace);
+        var root = XElement.Load(reader, System.Xml.Linq.LoadOptions.PreserveWhitespace);
         if (root.Name != SpreadsheetDrawing + "wsDr" && root.Name != StrictSpreadsheetDrawing + "wsDr")
             throw new InvalidDataException("The drawing part must contain a worksheet drawing.");
 

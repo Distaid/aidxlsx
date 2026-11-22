@@ -1,4 +1,6 @@
-namespace Aid.Xlsx.PivotTables;
+using Aid.Xlsx.Model.PivotTables.Areas;
+
+namespace Aid.Xlsx.Model.PivotTables;
 
 internal class XlsxPivotAreaComparer : IEqualityComparer<XlsxPivotArea>
 {

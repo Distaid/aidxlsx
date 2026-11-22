@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Globalization;
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Tests.Excel.Styles;
 

@@ -1,6 +1,6 @@
-using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Colors;
 
-namespace Aid.Xlsx.Styles;
+namespace Aid.Xlsx.Model.Styles;
 
 internal sealed partial class XlsxFontCellFormat : IXlsxFont
 {

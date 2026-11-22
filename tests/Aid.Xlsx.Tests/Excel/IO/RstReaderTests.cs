@@ -1,13 +1,14 @@
-using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.SpreadsheetML;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.RichText;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles.Formatting;
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Utils;
 using NUnit.Framework;
-using static Aid.Xlsx.RichText.XlsxImmutableRichText;
+using static Aid.Xlsx.Model.RichText.XlsxImmutableRichText;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.RichText;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Formatting;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Strings;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
 namespace Aid.Xlsx.Tests.Excel.IO;
 

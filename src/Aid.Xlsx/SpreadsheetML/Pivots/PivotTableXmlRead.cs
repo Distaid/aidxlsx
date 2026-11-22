@@ -1,16 +1,19 @@
 using System.Xml;
 using System.Xml.Linq;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.PivotTables.Areas;
-using Aid.Xlsx.PivotTables.PivotValues;
-using Aid.Xlsx.PivotTables;
-using Aid.Xlsx.Styles.Formatting;
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Model.ConditionalFormats;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.PivotTables;
+using Aid.Xlsx.Model.PivotTables.Areas;
+using Aid.Xlsx.Model.PivotTables.PivotValues;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Formatting;
+using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Workbooks;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Pivots;
 
 internal static partial class PivotTableXml
 {

@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Cells;
+namespace Aid.Xlsx.Model.Grid.Cells;
 
 [Flags]
 public enum XlsxCellsUsedOptions

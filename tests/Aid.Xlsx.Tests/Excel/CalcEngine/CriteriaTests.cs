@@ -1,8 +1,8 @@
 using System.Globalization;
-using Aid.Xlsx.CalcEngine.Functions;
-using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.Cells;
 using NUnit.Framework;
+using Aid.Xlsx.Calculation;
+using Aid.Xlsx.Calculation.Functions;
+using Aid.Xlsx.Model.Grid.Cells;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine;
 

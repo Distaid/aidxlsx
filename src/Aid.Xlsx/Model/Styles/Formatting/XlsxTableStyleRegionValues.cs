@@ -1,6 +1,6 @@
-using Aid.Xlsx.Tables;
+using Aid.Xlsx.Model.Tables;
 
-namespace Aid.Xlsx.Styles.Formatting;
+namespace Aid.Xlsx.Model.Styles.Formatting;
 
 /// <summary>
 /// A table region that can have applied a differential formatting through

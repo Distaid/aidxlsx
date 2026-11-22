@@ -1,4 +1,6 @@
-namespace Aid.Xlsx.Styles;
+using Aid.Xlsx.Model.Styles.Formatting;
+
+namespace Aid.Xlsx.Model.Styles;
 
 internal partial class XlsxProtectionCellFormat : IXlsxProtection
 {

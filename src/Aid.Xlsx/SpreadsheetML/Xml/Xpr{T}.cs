@@ -1,6 +1,6 @@
-using Aid.Xlsx.Opc;
+using Aid.Xlsx.Opc.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Xml;
 
 /// <summary>
 /// XML Parse Result. The result of a parsed element, that may contain a value from Parse* method.

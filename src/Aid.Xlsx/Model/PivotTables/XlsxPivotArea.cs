@@ -1,7 +1,7 @@
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.PivotTables.Areas;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.PivotTables.Areas;
 
-namespace Aid.Xlsx.PivotTables;
+namespace Aid.Xlsx.Model.PivotTables;
 
 /// <summary>
 /// A rule describing a subset of pivot table. Used mostly for styling through <see cref="XlsxPivotFormat"/>.

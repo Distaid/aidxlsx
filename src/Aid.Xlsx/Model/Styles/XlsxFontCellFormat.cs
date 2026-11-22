@@ -1,7 +1,7 @@
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Formatting;
 
-namespace Aid.Xlsx.Styles;
+namespace Aid.Xlsx.Model.Styles;
 
 /// <summary>
 /// API object to modify font properties of a cell format of a <see cref="IXlsxFormatContainer"/>.

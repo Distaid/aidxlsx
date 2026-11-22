@@ -1,6 +1,6 @@
 using System;
 
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.References.Transforms;
 
 /// <summary>
 /// A context for modifications of a formula through <see cref="CopyVisitor"/>.

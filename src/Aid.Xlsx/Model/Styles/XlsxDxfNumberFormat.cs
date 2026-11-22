@@ -1,6 +1,6 @@
-using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Model.Styles.Formatting;
 
-namespace Aid.Xlsx.Styles;
+namespace Aid.Xlsx.Model.Styles;
 
 /// <summary>
 /// An API object to modify number format of a dxf.

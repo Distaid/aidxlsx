@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Aid.Xlsx.Formulas.Syntax;
 
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.References.Transforms;
 
 /// <summary>
 /// It's designed to allow modifications of references, e.g. renaming, moving references

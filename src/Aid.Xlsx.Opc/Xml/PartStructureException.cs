@@ -1,6 +1,6 @@
 using System;
 
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Xml;
 
 /// <summary>
 /// An exception thrown from parser when there is a problem with data in XML.

@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Styles.Colors;
+namespace Aid.Xlsx.Model.Styles.Colors;
 
 public partial class XlsxColor
 {

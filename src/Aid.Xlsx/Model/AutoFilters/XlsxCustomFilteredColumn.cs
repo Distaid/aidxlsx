@@ -1,6 +1,6 @@
-using Aid.Xlsx.Cells;
+using Aid.Xlsx.Model.Grid.Cells;
 
-namespace Aid.Xlsx.AutoFilters;
+namespace Aid.Xlsx.Model.AutoFilters;
 
 internal class XlsxCustomFilteredColumn : IXlsxCustomFilteredColumn
 {

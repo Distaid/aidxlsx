@@ -2,11 +2,12 @@
 #nullable enable
 
 using System.Collections.Generic;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Opc;
-using StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.RichText.XlsxImmutableRichText>;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Xml;
+using StringItem = Aid.Xlsx.Calculation.OneOf<string, Aid.Xlsx.Model.RichText.XlsxImmutableRichText>;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Worksheets;
 
 internal partial class SheetDataReader
 {

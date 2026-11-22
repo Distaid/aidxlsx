@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Aid.Xlsx.CodeGen.Emission;
 
-namespace Aid.Xlsx.CodeGen.Model.Elements;
+namespace Aid.Xlsx.CodeGen.Schema.Model.Elements;
 
 /// <summary>
 /// <c><![CDATA[<xsd:choice>]]></c> inside <c><![CDATA[<xsd:complexType>]]></c>.

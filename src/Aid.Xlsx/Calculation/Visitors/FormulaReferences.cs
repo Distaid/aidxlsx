@@ -1,11 +1,14 @@
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Formulas;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Formulas.References;
+using Aid.Xlsx.Formulas.References.Transforms;
+using Aid.Xlsx.Formulas.Syntax;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Tables;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.CalcEngine.Visitors;
+namespace Aid.Xlsx.Calculation.Visitors;
 
 /// <summary>
 /// A collection of all references in the book (not others) found in a formula.

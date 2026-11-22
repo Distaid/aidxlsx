@@ -1,32 +1,31 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Colors;
 
-namespace Aid.Xlsx.Sparklines
+namespace Aid.Xlsx.Model.Sparklines;
+
+public interface IXlsxSparklineHorizontalAxis
 {
-    public interface IXlsxSparklineHorizontalAxis
-    {
-        #region Public Properties
+    #region Public Properties
 
-        XlsxColor Color { get; set; }
+    XlsxColor Color { get; set; }
 
-        Boolean DateAxis { get; }
+    Boolean DateAxis { get; }
 
-        Boolean IsVisible { get; set; }
+    Boolean IsVisible { get; set; }
 
-        Boolean RightToLeft { get; set; }
+    Boolean RightToLeft { get; set; }
 
-        #endregion Public Properties
+    #endregion Public Properties
 
-        #region Public Methods
+    #region Public Methods
 
-        IXlsxSparklineHorizontalAxis SetColor(XlsxColor value);
+    IXlsxSparklineHorizontalAxis SetColor(XlsxColor value);
 
-        IXlsxSparklineHorizontalAxis SetRightToLeft(Boolean value);
+    IXlsxSparklineHorizontalAxis SetRightToLeft(Boolean value);
 
-        IXlsxSparklineHorizontalAxis SetVisible(Boolean value);
+    IXlsxSparklineHorizontalAxis SetVisible(Boolean value);
 
-        #endregion Public Methods
-    }
+    #endregion Public Methods
 }

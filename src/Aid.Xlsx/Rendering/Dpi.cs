@@ -1,26 +1,25 @@
 #nullable disable
 
-namespace Aid.Xlsx.Graphics
+namespace Aid.Xlsx.Rendering;
+
+/// <summary>
+/// A DPI resolution.
+/// </summary>
+public readonly struct Dpi
 {
     /// <summary>
-    /// A DPI resolution.
+    /// Horizontal DPI resolution.
     /// </summary>
-    public readonly struct Dpi
+    public double X { get; }
+
+    /// <summary>
+    /// Vertical DPI resolution.
+    /// </summary>
+    public double Y { get; }
+
+    public Dpi(double dpiX, double dpiY)
     {
-        /// <summary>
-        /// Horizontal DPI resolution.
-        /// </summary>
-        public double X { get; }
-
-        /// <summary>
-        /// Vertical DPI resolution.
-        /// </summary>
-        public double Y { get; }
-
-        public Dpi(double dpiX, double dpiY)
-        {
-            X = dpiX;
-            Y = dpiY;
-        }
+        X = dpiX;
+        Y = dpiY;
     }
 }

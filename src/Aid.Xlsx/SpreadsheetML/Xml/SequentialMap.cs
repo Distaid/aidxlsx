@@ -1,6 +1,6 @@
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Xml;
 
 internal class SequentialMap<TKey, T>
     where TKey : struct

@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Styles.Formatting;
+namespace Aid.Xlsx.Model.Styles.Formatting;
 
 /// <summary>
 /// A key to a named style that is used to connect immutable <see cref="XlsxCellFormatValue"/> to

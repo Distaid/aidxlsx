@@ -1,7 +1,7 @@
-using Aid.Xlsx.SpreadsheetML;
-using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.Extensions;
+namespace Aid.Xlsx.Infrastructure.Extensions;
 
 /// <summary>
 /// Extension methods for <see cref="XmlTreeWriter"/>. Keep the original class reasonably clean

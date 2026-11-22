@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using Aid.Xlsx.CodeGen.Model.TopLevel;
+using Aid.Xlsx.CodeGen.Schema.Model.TopLevel;
 
-namespace Aid.Xlsx.CodeGen.Model.Elements;
+namespace Aid.Xlsx.CodeGen.Schema.Model.Elements;
 
 /// <summary>
 /// An <c><![CDATA[<xsd:attributeGroup>]]></c> inside a <c><![CDATA[<xsd:complexType>]]></c>.

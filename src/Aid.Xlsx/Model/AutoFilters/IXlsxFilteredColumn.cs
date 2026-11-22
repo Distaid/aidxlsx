@@ -1,6 +1,6 @@
-using Aid.Xlsx.Cells;
+using Aid.Xlsx.Model.Grid.Cells;
 
-namespace Aid.Xlsx.AutoFilters;
+namespace Aid.Xlsx.Model.AutoFilters;
 
 /// <summary>
 /// A fluent API interface for adding another values to a <see cref="XlsxFilterType.Regular"/>

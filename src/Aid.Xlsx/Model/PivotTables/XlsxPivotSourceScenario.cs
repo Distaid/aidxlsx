@@ -1,8 +1,8 @@
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.PivotTables;
+namespace Aid.Xlsx.Model.PivotTables;
 
 /// <summary>
 /// Source of data for a <see cref="XlsxPivotCache"/> that takes uses scenarios in the workbook to

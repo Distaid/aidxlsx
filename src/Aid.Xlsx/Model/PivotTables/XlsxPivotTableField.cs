@@ -1,10 +1,10 @@
 using System.Diagnostics;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.PivotTables.Areas;
-using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.PivotTables.Areas;
+using Aid.Xlsx.Model.Styles.Formatting;
 
-namespace Aid.Xlsx.PivotTables;
+namespace Aid.Xlsx.Model.PivotTables;
 
 /// <summary>
 /// One field in a <see cref="XlsxPivotTable"/>. Pivot table must contain field for each entry of

@@ -1,11 +1,10 @@
-namespace Aid.Xlsx.ConditionalFormats
+namespace Aid.Xlsx.Model.ConditionalFormats;
+
+public interface IXlsxConditionalFormats : IEnumerable<IXlsxConditionalFormat>
 {
-    public interface IXlsxConditionalFormats : IEnumerable<IXlsxConditionalFormat>
-    {
-        void Add(IXlsxConditionalFormat conditionalFormat);
+    void Add(IXlsxConditionalFormat conditionalFormat);
 
-        void RemoveAll();
+    void RemoveAll();
 
-        void Remove(Predicate<IXlsxConditionalFormat> predicate);
-    }
+    void Remove(Predicate<IXlsxConditionalFormat> predicate);
 }

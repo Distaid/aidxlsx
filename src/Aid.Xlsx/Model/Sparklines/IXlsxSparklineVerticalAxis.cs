@@ -1,32 +1,31 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-namespace Aid.Xlsx.Sparklines
+namespace Aid.Xlsx.Model.Sparklines;
+
+public interface IXlsxSparklineVerticalAxis
 {
-    public interface IXlsxSparklineVerticalAxis
-    {
-        #region Public Properties
+    #region Public Properties
 
-        Double? ManualMax { get; set; }
+    Double? ManualMax { get; set; }
 
-        Double? ManualMin { get; set; }
+    Double? ManualMin { get; set; }
 
-        XlsxSparklineAxisMinMax MaxAxisType { get; set; }
+    XlsxSparklineAxisMinMax MaxAxisType { get; set; }
 
-        XlsxSparklineAxisMinMax MinAxisType { get; set; }
+    XlsxSparklineAxisMinMax MinAxisType { get; set; }
 
-        #endregion Public Properties
+    #endregion Public Properties
 
-        #region Public Methods
+    #region Public Methods
 
-        IXlsxSparklineVerticalAxis SetManualMax(Double? value);
+    IXlsxSparklineVerticalAxis SetManualMax(Double? value);
 
-        IXlsxSparklineVerticalAxis SetManualMin(Double? value);
+    IXlsxSparklineVerticalAxis SetManualMin(Double? value);
 
-        IXlsxSparklineVerticalAxis SetMaxAxisType(XlsxSparklineAxisMinMax value);
+    IXlsxSparklineVerticalAxis SetMaxAxisType(XlsxSparklineAxisMinMax value);
 
-        IXlsxSparklineVerticalAxis SetMinAxisType(XlsxSparklineAxisMinMax value);
+    IXlsxSparklineVerticalAxis SetMinAxisType(XlsxSparklineAxisMinMax value);
 
-        #endregion Public Methods
-    }
+    #endregion Public Methods
 }

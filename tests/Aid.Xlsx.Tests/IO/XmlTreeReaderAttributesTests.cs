@@ -1,9 +1,9 @@
 using System.Reflection;
 using System.Text;
-using Aid.Xlsx.SpreadsheetML;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.Utils;
 using NUnit.Framework;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
 namespace Aid.Xlsx.Tests.IO;
 

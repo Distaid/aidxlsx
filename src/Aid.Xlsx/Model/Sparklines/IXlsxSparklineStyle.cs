@@ -2,46 +2,45 @@
 
 // Keep this file CodeMaid organised and cleaned
 
-using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Colors;
 
-namespace Aid.Xlsx.Sparklines
+namespace Aid.Xlsx.Model.Sparklines;
+
+public interface IXlsxSparklineStyle
 {
-    public interface IXlsxSparklineStyle
-    {
-        #region Public Properties
+    #region Public Properties
 
-        XlsxColor FirstMarkerColor { get; set; }
+    XlsxColor FirstMarkerColor { get; set; }
 
-        XlsxColor HighMarkerColor { get; set; }
+    XlsxColor HighMarkerColor { get; set; }
 
-        XlsxColor LastMarkerColor { get; set; }
+    XlsxColor LastMarkerColor { get; set; }
 
-        XlsxColor LowMarkerColor { get; set; }
+    XlsxColor LowMarkerColor { get; set; }
 
-        XlsxColor MarkersColor { get; set; }
+    XlsxColor MarkersColor { get; set; }
 
-        XlsxColor NegativeColor { get; set; }
+    XlsxColor NegativeColor { get; set; }
 
-        XlsxColor SeriesColor { get; set; }
+    XlsxColor SeriesColor { get; set; }
 
-        #endregion Public Properties
+    #endregion Public Properties
 
-        #region Public Methods
+    #region Public Methods
 
-        IXlsxSparklineStyle SetFirstMarkerColor(XlsxColor value);
+    IXlsxSparklineStyle SetFirstMarkerColor(XlsxColor value);
 
-        IXlsxSparklineStyle SetHighMarkerColor(XlsxColor value);
+    IXlsxSparklineStyle SetHighMarkerColor(XlsxColor value);
 
-        IXlsxSparklineStyle SetLastMarkerColor(XlsxColor value);
+    IXlsxSparklineStyle SetLastMarkerColor(XlsxColor value);
 
-        IXlsxSparklineStyle SetLowMarkerColor(XlsxColor value);
+    IXlsxSparklineStyle SetLowMarkerColor(XlsxColor value);
 
-        IXlsxSparklineStyle SetMarkersColor(XlsxColor value);
+    IXlsxSparklineStyle SetMarkersColor(XlsxColor value);
 
-        IXlsxSparklineStyle SetNegativeColor(XlsxColor value);
+    IXlsxSparklineStyle SetNegativeColor(XlsxColor value);
 
-        IXlsxSparklineStyle SetSeriesColor(XlsxColor value);
+    IXlsxSparklineStyle SetSeriesColor(XlsxColor value);
 
-        #endregion Public Methods
-    }
+    #endregion Public Methods
 }

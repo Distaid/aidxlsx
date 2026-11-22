@@ -1,28 +1,27 @@
-namespace Aid.Xlsx.Caching
+namespace Aid.Xlsx.Infrastructure.Caching;
+
+/// <summary>
+/// Base interface for an abstract repository.
+/// </summary>
+internal interface IXlsxRepository
 {
     /// <summary>
-    /// Base interface for an abstract repository.
+    /// Clear the repository;
     /// </summary>
-    internal interface IXlsxRepository
-    {
-        /// <summary>
-        /// Clear the repository;
-        /// </summary>
-        void Clear();
-    }
+    void Clear();
+}
 
-    internal interface IXlsxRepository<Tkey, Tvalue> : IXlsxRepository, IEnumerable<Tvalue>
-        where Tkey : struct, IEquatable<Tkey>
-        where Tvalue : class
-    {
-        /// <summary>
-        /// Put the <paramref name="value"/> into the repository under the specified <paramref name="key"/>
-        /// if there is no such key present.
-        /// </summary>
-        /// <param name="key">Key to identify the value.</param>
-        /// <param name="value">Value to put into the repository if key does not exist.</param>
-        /// <returns>Value stored in the repository under the specified <paramref name="key"/>. If key already existed
-        /// returned value may differ from the input one.</returns>
-        Tvalue? Store(ref Tkey key, Tvalue value);
-    }
+internal interface IXlsxRepository<Tkey, Tvalue> : IXlsxRepository, IEnumerable<Tvalue>
+    where Tkey : struct, IEquatable<Tkey>
+    where Tvalue : class
+{
+    /// <summary>
+    /// Put the <paramref name="value"/> into the repository under the specified <paramref name="key"/>
+    /// if there is no such key present.
+    /// </summary>
+    /// <param name="key">Key to identify the value.</param>
+    /// <param name="value">Value to put into the repository if key does not exist.</param>
+    /// <returns>Value stored in the repository under the specified <paramref name="key"/>. If key already existed
+    /// returned value may differ from the input one.</returns>
+    Tvalue? Store(ref Tkey key, Tvalue value);
 }

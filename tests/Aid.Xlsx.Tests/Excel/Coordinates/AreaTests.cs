@@ -1,7 +1,7 @@
 #nullable enable
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Utils;
 using NUnit.Framework;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Coordinates;
 
 namespace Aid.Xlsx.Tests.Excel.Coordinates;
 

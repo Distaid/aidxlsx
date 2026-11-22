@@ -1,18 +1,24 @@
 using System.Xml;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles.Formatting;
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Tables;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Workbooks;
-using PivotRegion = Aid.Xlsx.Styles.Formatting.XlsxPivotStyleRegionValues;
-using TableRegion = Aid.Xlsx.Styles.Formatting.XlsxTableStyleRegionValues;
-using static Aid.Xlsx.SpreadsheetML.OpenXmlConst;
+using PivotRegion = Aid.Xlsx.Model.Styles.Formatting.XlsxPivotStyleRegionValues;
+using TableRegion = Aid.Xlsx.Model.Styles.Formatting.XlsxTableStyleRegionValues;
+using static Aid.Xlsx.SpreadsheetML.Xml.OpenXmlConst;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.ConditionalFormats;
+using Aid.Xlsx.Model.Grid.Columns;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Rows;
+using Aid.Xlsx.Model.PivotTables;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Formatting;
+using Aid.Xlsx.Model.Tables;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.Opc.Xml;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Styles;
 
 internal class StylesWriter
 {

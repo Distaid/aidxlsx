@@ -1,18 +1,17 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-namespace Aid.Xlsx.Extensions
+namespace Aid.Xlsx.Infrastructure.Extensions;
+
+internal static class DictionaryExtensions
 {
-    internal static class DictionaryExtensions
+    public static void RemoveAll<TKey, TValue>(this Dictionary<TKey, TValue> dic,
+        Func<TValue, bool> predicate)
     {
-        public static void RemoveAll<TKey, TValue>(this Dictionary<TKey, TValue> dic,
-            Func<TValue, bool> predicate)
+        var keys = dic.Keys.Where(k => predicate(dic[k])).ToList();
+        foreach (var key in keys)
         {
-            var keys = dic.Keys.Where(k => predicate(dic[k])).ToList();
-            foreach (var key in keys)
-            {
-                dic.Remove(key);
-            }
+            dic.Remove(key);
         }
     }
 }

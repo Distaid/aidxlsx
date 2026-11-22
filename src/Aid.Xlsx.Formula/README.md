@@ -13,5 +13,5 @@ the formula assembly.
 | [References/Transforms](References/Transforms/) | Reference rewriting for copies and A1/R1C1 conversion |
 
 Start with [`FormulaParser`](Syntax/FormulaParser.cs) or [`ReferenceParser`](References/ReferenceParser.cs).
-The project exposes the `Aid.Xlsx.Formulas` namespace. Attribution and licensing for the parser
+The project's namespaces use the `Aid.Xlsx.Formulas` root. Attribution and licensing for the parser
 are documented in the repository. [NOTICE](../../NOTICE) · [License](../../third-party/LICENSE-Formula.txt)

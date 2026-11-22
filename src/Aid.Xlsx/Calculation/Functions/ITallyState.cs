@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.CalcEngine.Functions;
+namespace Aid.Xlsx.Calculation.Functions;
 
 internal interface ITallyState<out TState>
 {

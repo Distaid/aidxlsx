@@ -1,8 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.DataValidation;
+namespace Aid.Xlsx.Model.DataValidation;
 
 public interface IXlsxDataValidations : IEnumerable<IXlsxDataValidation>
 {

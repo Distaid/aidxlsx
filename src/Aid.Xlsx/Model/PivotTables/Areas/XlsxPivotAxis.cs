@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.PivotTables.Areas;
+namespace Aid.Xlsx.Model.PivotTables.Areas;
 
 /// <summary>
 /// Describes an axis of a pivot table. Used to determine which areas should be styled through

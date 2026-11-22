@@ -1,12 +1,14 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Formatting;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.Hyperlinks;
+namespace Aid.Xlsx.Model.Hyperlinks;
 
 internal class XlsxHyperlinks : IXlsxHyperlinks, ISheetListener
 {

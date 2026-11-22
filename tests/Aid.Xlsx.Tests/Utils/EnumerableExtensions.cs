@@ -1,6 +1,6 @@
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Workbooks;
 
 namespace Aid.Xlsx.Tests;
 

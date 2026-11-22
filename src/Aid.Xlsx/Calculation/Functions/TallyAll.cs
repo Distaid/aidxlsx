@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.CalcEngine.Functions;
+namespace Aid.Xlsx.Calculation.Functions;
 
 /// <summary>
 /// A tally function for *A functions (e.g. AverageA, MinA, MaxA). The behavior is buggy in Excel,

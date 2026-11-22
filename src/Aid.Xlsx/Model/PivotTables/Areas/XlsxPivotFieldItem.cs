@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
-using Aid.Xlsx.Cells;
+using Aid.Xlsx.Model.Grid.Cells;
 
-namespace Aid.Xlsx.PivotTables.Areas;
+namespace Aid.Xlsx.Model.PivotTables.Areas;
 
 /// <summary>
 /// Representation of item (basically one value of a field). Each value used somewhere in pivot

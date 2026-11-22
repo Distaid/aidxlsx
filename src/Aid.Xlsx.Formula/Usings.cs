@@ -1,1 +1,1 @@
-global using static Aid.Xlsx.Formulas.ReferenceStyle;
+global using static Aid.Xlsx.Formulas.References.ReferenceStyle;

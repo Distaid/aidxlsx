@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System;
-using Aid.Xlsx.CodeGen.Model;
+using Aid.Xlsx.CodeGen.Schema.Model;
 
-namespace Aid.Xlsx.CodeGen;
+namespace Aid.Xlsx.CodeGen.Emission;
 
 public class SchemeTypeMap
 {

@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.References;
 
 /// <summary>
 /// The type of content stored in a row or column number of a reference.

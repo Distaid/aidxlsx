@@ -1,6 +1,6 @@
-using Aid.Xlsx.PivotTables.Areas;
+using Aid.Xlsx.Model.PivotTables.Areas;
 
-namespace Aid.Xlsx.PivotTables;
+namespace Aid.Xlsx.Model.PivotTables;
 
 /// <summary>
 /// Represents a set of selected fields and selected items within those fields. It's used to select

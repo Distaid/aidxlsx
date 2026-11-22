@@ -1,84 +1,83 @@
-using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Model.Styles.Colors;
 
-namespace Aid.Xlsx.Styles
+namespace Aid.Xlsx.Model.Styles;
+
+public enum XlsxFillPatternValues
 {
-    public enum XlsxFillPatternValues
-    {
-        DarkDown,
-        DarkGray,
-        DarkGrid,
-        DarkHorizontal,
-        DarkTrellis,
-        DarkUp,
-        DarkVertical,
-        Gray0625,
-        Gray125,
-        LightDown,
-        LightGray,
-        LightGrid,
-        LightHorizontal,
-        LightTrellis,
-        LightUp,
-        LightVertical,
-        MediumGray,
-        None,
+    DarkDown,
+    DarkGray,
+    DarkGrid,
+    DarkHorizontal,
+    DarkTrellis,
+    DarkUp,
+    DarkVertical,
+    Gray0625,
+    Gray125,
+    LightDown,
+    LightGray,
+    LightGrid,
+    LightHorizontal,
+    LightTrellis,
+    LightUp,
+    LightVertical,
+    MediumGray,
+    None,
 
-        /// <summary>
-        /// For solid fill, the fill color is taken from the <see cref="IXlsxFill.PatternColor"/>.
-        /// The <see cref="IXlsxFill.BackgroundColor"/> is not used.
-        /// </summary>
-        Solid
-    }
+    /// <summary>
+    /// For solid fill, the fill color is taken from the <see cref="IXlsxFill.PatternColor"/>.
+    /// The <see cref="IXlsxFill.BackgroundColor"/> is not used.
+    /// </summary>
+    Solid
+}
 
-    public interface IXlsxFill : IEquatable<IXlsxFill>
-    {
-        /// <summary>
-        /// Gets or set the background color of a fill.
-        /// </summary>
-        /// <remarks>
-        /// Setter will automatically change the fill to an empty pattern fill if needed (e.g.,
-        /// from a gradient fill). It then sets the background color and updates the pattern type
-        /// if necessary:
-        /// <list type="bullet">
-        ///   <item>If the set color is transparent, and the fill type is <see cref="XlsxFillPatternValues.Solid"/>
-        ///     the fill type becomes <see cref="XlsxFillPatternValues.None"/>.</item>
-        ///   <item>If the set color is not transparent and the fill type is <see cref="XlsxFillPatternValues.None"/>,
-        ///     the fill type is changed to <see cref="XlsxFillPatternValues.Solid"/>.</item>
-        /// </list>
-        /// </remarks>
-        XlsxColor BackgroundColor { get; set; }
+public interface IXlsxFill : IEquatable<IXlsxFill>
+{
+    /// <summary>
+    /// Gets or set the background color of a fill.
+    /// </summary>
+    /// <remarks>
+    /// Setter will automatically change the fill to an empty pattern fill if needed (e.g.,
+    /// from a gradient fill). It then sets the background color and updates the pattern type
+    /// if necessary:
+    /// <list type="bullet">
+    ///   <item>If the set color is transparent, and the fill type is <see cref="XlsxFillPatternValues.Solid"/>
+    ///     the fill type becomes <see cref="XlsxFillPatternValues.None"/>.</item>
+    ///   <item>If the set color is not transparent and the fill type is <see cref="XlsxFillPatternValues.None"/>,
+    ///     the fill type is changed to <see cref="XlsxFillPatternValues.Solid"/>.</item>
+    /// </list>
+    /// </remarks>
+    XlsxColor BackgroundColor { get; set; }
 
-        /// <summary>
-        /// Gets or set the pattern color of a fill.
-        /// </summary>
-        XlsxColor PatternColor { get; set; }
+    /// <summary>
+    /// Gets or set the pattern color of a fill.
+    /// </summary>
+    XlsxColor PatternColor { get; set; }
 
-        /// <summary>
-        /// Change pattern type of a fill.
-        /// </summary>
-        /// <remarks>
-        /// If the pattern type is changed from <see cref="XlsxFillPatternValues.None"/> to
-        /// a different pattern type, the <see cref="BackgroundColor"/> is set to
-        /// a <see cref="XlsxThemeColor.Text1"/> color.
-        /// </remarks>
-        XlsxFillPatternValues PatternType { get; set; }
+    /// <summary>
+    /// Change pattern type of a fill.
+    /// </summary>
+    /// <remarks>
+    /// If the pattern type is changed from <see cref="XlsxFillPatternValues.None"/> to
+    /// a different pattern type, the <see cref="BackgroundColor"/> is set to
+    /// a <see cref="XlsxThemeColor.Text1"/> color.
+    /// </remarks>
+    XlsxFillPatternValues PatternType { get; set; }
 
-        /// <summary>
-        /// Set the background color of a fill.
-        /// </summary>
-        /// <inheritdoc cref="BackgroundColor"/>
-        IXlsxStyle SetBackgroundColor(XlsxColor value);
+    /// <summary>
+    /// Set the background color of a fill.
+    /// </summary>
+    /// <inheritdoc cref="BackgroundColor"/>
+    IXlsxStyle SetBackgroundColor(XlsxColor value);
 
-        /// <summary>
-        /// Set the pattern color of a fill.
-        /// </summary>
-        /// <inheritdoc cref="PatternColor"/>
-        IXlsxStyle SetPatternColor(XlsxColor value);
+    /// <summary>
+    /// Set the pattern color of a fill.
+    /// </summary>
+    /// <inheritdoc cref="PatternColor"/>
+    IXlsxStyle SetPatternColor(XlsxColor value);
 
-        /// <summary>
-        /// Set the pattern type of a fill.
-        /// </summary>
-        /// <inheritdoc cref="PatternType"/>
-        IXlsxStyle SetPatternType(XlsxFillPatternValues value);
-    }
+    /// <summary>
+    /// Set the pattern type of a fill.
+    /// </summary>
+    /// <inheritdoc cref="PatternType"/>
+    IXlsxStyle SetPatternType(XlsxFillPatternValues value);
 }

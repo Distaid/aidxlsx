@@ -1,7 +1,9 @@
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Styles;
-using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
+using Aid.Xlsx.Model.ConditionalFormats;
+using Aid.Xlsx.Model.Styles;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Tests.Excel.Styles;
 

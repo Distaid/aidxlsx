@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Aid.Xlsx.CodeGen.Emission;
 
-namespace Aid.Xlsx.CodeGen.Model.TopLevel;
+namespace Aid.Xlsx.CodeGen.Schema.Model.TopLevel;
 
 /// <summary>
 /// <c><![CDATA[<xsd:complexType/>]]></c> that has <c><![CDATA[<xsd:simpleContent>]]></c> as an element.

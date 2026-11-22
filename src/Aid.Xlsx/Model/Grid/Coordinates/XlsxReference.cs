@@ -1,9 +1,9 @@
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Formulas;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Formulas.References;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.Coordinates;
+namespace Aid.Xlsx.Model.Grid.Coordinates;
 
 /// <summary>
 /// A reference without a sheet. Can represent single cell (<c>A1</c>), area

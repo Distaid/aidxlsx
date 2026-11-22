@@ -1,9 +1,10 @@
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.ConditionalFormats;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Tests.Excel.ConditionalFormats;
 

@@ -1,9 +1,9 @@
 using System.Text;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Formulas;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Formulas.References;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
 
-namespace Aid.Xlsx.Coordinates;
+namespace Aid.Xlsx.Model.Grid.Coordinates;
 
 /// <summary>
 /// An immutable row address within a workbook.

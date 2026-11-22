@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Aid.Xlsx.Opc;
+namespace Aid.Xlsx.Opc.Packaging;
 
 /// <summary>Relationships with IDs unique within their source package or part.</summary>
 public sealed class OpcRelationshipCollection : IReadOnlyCollection<OpcRelationship>

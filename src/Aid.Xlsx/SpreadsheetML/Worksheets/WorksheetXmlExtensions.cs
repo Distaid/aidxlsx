@@ -1,14 +1,15 @@
 using System.Xml.Linq;
-using Aid.Xlsx.ConditionalFormats;
-using Aid.Xlsx.DataValidation;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.PivotTables;
-using Aid.Xlsx.Sparklines;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.ConditionalFormats;
+using Aid.Xlsx.Model.DataValidation;
+using Aid.Xlsx.Model.PivotTables;
+using Aid.Xlsx.Model.Sparklines;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.SpreadsheetML.Styles;
 
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Worksheets;
 
 internal sealed partial class WorksheetXml
 {

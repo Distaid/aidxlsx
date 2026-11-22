@@ -1,40 +1,39 @@
 #nullable disable
 
-using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Infrastructure.Extensions;
 
-namespace Aid.Xlsx.Utils
+namespace Aid.Xlsx.Infrastructure.Utilities;
+
+public class XlsxDictionary<T> : Dictionary<Int32, T>
 {
-    public class XlsxDictionary<T> : Dictionary<Int32, T>
+    public XlsxDictionary()
     {
-        public XlsxDictionary()
-        {
 
-        }
-        public XlsxDictionary(XlsxDictionary<T> other)
-        {
-            other.Values.ForEach(Add);
-        }
+    }
+    public XlsxDictionary(XlsxDictionary<T> other)
+    {
+        other.Values.ForEach(Add);
+    }
 
-        public void Initialize(T value)
-        {
-            if (Count > 0)
-                Clear();
+    public void Initialize(T value)
+    {
+        if (Count > 0)
+            Clear();
 
-            Add(value);
-        }
+        Add(value);
+    }
 
-        public void Add(T value)
-        {
-            Add(Count + 1, value);
-        }
+    public void Add(T value)
+    {
+        Add(Count + 1, value);
+    }
 
-        internal XlsxDictionary<T> CopyDictionary()
-        {
-            var copy = new XlsxDictionary<T>();
-            foreach (var (key, value) in this)
-                copy.Add(key, value);
+    internal XlsxDictionary<T> CopyDictionary()
+    {
+        var copy = new XlsxDictionary<T>();
+        foreach (var (key, value) in this)
+            copy.Add(key, value);
 
-            return copy;
-        }
+        return copy;
     }
 }

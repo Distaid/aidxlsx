@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Aid.Xlsx.CodeGen.Model;
+using Aid.Xlsx.CodeGen.Schema.Model;
+using Aid.Xlsx.Opc.Xml;
 
-namespace Aid.Xlsx.CodeGen.XsdParser;
+namespace Aid.Xlsx.CodeGen.Schema.Parsing;
 
 /// <summary>
 /// Mapper for enums found in XSD of OOXML.

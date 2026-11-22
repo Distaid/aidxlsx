@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Aid.Xlsx.Utils;
+namespace Aid.Xlsx.Infrastructure.Utilities;
 
 /// <summary>
 /// A dictionary that can find value for a key, but also key for a value. The important property is

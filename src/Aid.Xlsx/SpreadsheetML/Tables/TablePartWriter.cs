@@ -1,165 +1,167 @@
 using System.Xml.Linq;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Opc;
-using Aid.Xlsx.Tables;
-using static Aid.Xlsx.Workbooks.XlsxWorkbook;
+using static Aid.Xlsx.Model.Workbooks.XlsxWorkbook;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.Tables;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Opc.Packaging;
+using Aid.Xlsx.SpreadsheetML.Workbooks;
+using Aid.Xlsx.SpreadsheetML.Xml;
 
-namespace Aid.Xlsx.SpreadsheetML
+namespace Aid.Xlsx.SpreadsheetML.Tables;
+
+/// <summary>
+/// A writer for table definition part.
+/// </summary>
+internal class TablePartWriter
 {
-    /// <summary>
-    /// A writer for table definition part.
-    /// </summary>
-    internal class TablePartWriter
+    internal static void SynchronizeTableParts(XlsxTables tables, WorkbookPackage package, OpcPart worksheetPart, SaveContext context)
     {
-        internal static void SynchronizeTableParts(XlsxTables tables, WorkbookPackage package, OpcPart worksheetPart, SaveContext context)
+        // Remove table definition parts that are not a part of workbook
+        foreach (var (partId, _) in package.RelatedParts(worksheetPart, "table").ToList())
         {
-            // Remove table definition parts that are not a part of workbook
-            foreach (var (partId, _) in package.RelatedParts(worksheetPart, "table").ToList())
+            var xlWorkbookContainsTable = tables.Cast<XlsxTable>().Any(t => t.RelId == partId);
+            if (!xlWorkbookContainsTable)
             {
-                var xlWorkbookContainsTable = tables.Cast<XlsxTable>().Any(t => t.RelId == partId);
-                if (!xlWorkbookContainsTable)
-                {
-                    package.Unlink(worksheetPart, partId);
-                }
-            }
-
-            foreach (var xlTable in tables.Cast<XlsxTable>())
-            {
-                if (String.IsNullOrEmpty(xlTable.RelId) || package.RelatedPart(worksheetPart, xlTable.RelId, "table") is null)
-                {
-                    xlTable.RelId = context.RelIdGenerator.GetNext(RelType.Workbook);
-                    package.AddPart(worksheetPart, xlTable.RelId, "table");
-                }
+                package.Unlink(worksheetPart, partId);
             }
         }
 
-        internal static void GenerateTableParts(XlsxTables tables, WorkbookPackage package, OpcPart worksheetPart, SaveContext context)
+        foreach (var xlTable in tables.Cast<XlsxTable>())
         {
-            foreach (var xlTable in tables.Cast<XlsxTable>())
+            if (String.IsNullOrEmpty(xlTable.RelId) || package.RelatedPart(worksheetPart, xlTable.RelId, "table") is null)
             {
-                var relId = xlTable.RelId;
-                var tableDefinitionPart = package.RelatedPart(worksheetPart, relId, "table")!;
-                using var output = tableDefinitionPart.OpenWrite();
-                Write(output, xlTable, context);
+                xlTable.RelId = context.RelIdGenerator.GetNext(RelType.Workbook);
+                package.AddPart(worksheetPart, xlTable.RelId, "table");
             }
         }
+    }
 
-        private static void Write(Stream output, XlsxTable xlTable, SaveContext context)
+    internal static void GenerateTableParts(XlsxTables tables, WorkbookPackage package, OpcPart worksheetPart, SaveContext context)
+    {
+        foreach (var xlTable in tables.Cast<XlsxTable>())
         {
-            XNamespace ns = OpenXmlConst.Main2006SsNs;
-            context.TableId++;
-            var reference = xlTable.RangeAddress.FirstAddress + ":" + xlTable.RangeAddress.LastAddress;
-            var tableName = GetTableName(xlTable.Name, context);
-            var table = new XElement(ns + "table", new XAttribute(XNamespace.Xmlns + "x", ns),
-                new XAttribute("id", context.TableId), new XAttribute("name", tableName),
-                new XAttribute("displayName", tableName), new XAttribute("ref", reference));
+            var relId = xlTable.RelId;
+            var tableDefinitionPart = package.RelatedPart(worksheetPart, relId, "table")!;
+            using var output = tableDefinitionPart.OpenWrite();
+            Write(output, xlTable, context);
+        }
+    }
 
-            if (!xlTable.ShowHeaderRow)
-                table.SetAttributeValue("headerRowCount", 0);
+    private static void Write(Stream output, XlsxTable xlTable, SaveContext context)
+    {
+        XNamespace ns = OpenXmlConst.Main2006SsNs;
+        context.TableId++;
+        var reference = xlTable.RangeAddress.FirstAddress + ":" + xlTable.RangeAddress.LastAddress;
+        var tableName = GetTableName(xlTable.Name, context);
+        var table = new XElement(ns + "table", new XAttribute(XNamespace.Xmlns + "x", ns),
+            new XAttribute("id", context.TableId), new XAttribute("name", tableName),
+            new XAttribute("displayName", tableName), new XAttribute("ref", reference));
+
+        if (!xlTable.ShowHeaderRow)
+            table.SetAttributeValue("headerRowCount", 0);
+
+        if (xlTable.ShowTotalsRow)
+            table.SetAttributeValue("totalsRowCount", 1);
+        else
+            table.SetAttributeValue("totalsRowShown", "0");
+
+        var tableColumns = new XElement(ns + "tableColumns", new XAttribute("count", xlTable.ColumnCount()));
+
+        uint columnId = 0;
+        foreach (var xlField in xlTable.Fields)
+        {
+            columnId++;
+            var fieldName = xlField.Name;
+            var tableColumn = new XElement(ns + "tableColumn", new XAttribute("id", columnId),
+                new XAttribute("name", fieldName.Replace("_x000a_", "_x005f_x000a_").Replace(Environment.NewLine, "_x000a_")));
+
+            // OI-29500: the headerRowDxfId attribute shall be absent if the enclosing table element's headerRow
+            // attribute value is greater than or equal to 1. The header dxf stores the format while the table
+            // doesn't have a header, but user might want to add it back.
+            if (xlField.HeaderFormatValue is { } headerDfx)
+                tableColumn.SetAttributeValue("headerRowDxfId", context.GetDxfId(headerDfx));
+
+            if (xlField.DataFormatValue is { } dataDfx)
+                tableColumn.SetAttributeValue("dataDxfId", context.GetDxfId(dataDfx));
+
+            if (xlField.TotalFormatValue is { } totalsDfx)
+                tableColumn.SetAttributeValue("totalsRowDxfId", context.GetDxfId(totalsDfx));
+
+            if (xlField.IsConsistentFormula())
+            {
+                string formula = xlField.Column.Cells()
+                    .Skip(xlTable.ShowHeaderRow ? 1 : 0)
+                    .First()
+                    .FormulaA1;
+
+                while (formula.StartsWith('=') && formula.Length > 1)
+                    formula = formula.Substring(1);
+
+                if (!String.IsNullOrWhiteSpace(formula))
+                {
+                    tableColumn.Add(new XElement(ns + "calculatedColumnFormula", formula));
+                }
+            }
 
             if (xlTable.ShowTotalsRow)
-                table.SetAttributeValue("totalsRowCount", 1);
-            else
-                table.SetAttributeValue("totalsRowShown", "0");
-
-            var tableColumns = new XElement(ns + "tableColumns", new XAttribute("count", xlTable.ColumnCount()));
-
-            uint columnId = 0;
-            foreach (var xlField in xlTable.Fields)
             {
-                columnId++;
-                var fieldName = xlField.Name;
-                var tableColumn = new XElement(ns + "tableColumn", new XAttribute("id", columnId),
-                    new XAttribute("name", fieldName.Replace("_x000a_", "_x005f_x000a_").Replace(Environment.NewLine, "_x000a_")));
-
-                // OI-29500: the headerRowDxfId attribute shall be absent if the enclosing table element's headerRow
-                // attribute value is greater than or equal to 1. The header dxf stores the format while the table
-                // doesn't have a header, but user might want to add it back.
-                if (xlField.HeaderFormatValue is { } headerDfx)
-                    tableColumn.SetAttributeValue("headerRowDxfId", context.GetDxfId(headerDfx));
-
-                if (xlField.DataFormatValue is { } dataDfx)
-                    tableColumn.SetAttributeValue("dataDxfId", context.GetDxfId(dataDfx));
-
-                if (xlField.TotalFormatValue is { } totalsDfx)
-                    tableColumn.SetAttributeValue("totalsRowDxfId", context.GetDxfId(totalsDfx));
-
-                if (xlField.IsConsistentFormula())
+                if (xlField.TotalsRowFunction != XlsxTotalsRowFunction.None)
                 {
-                    string formula = xlField.Column.Cells()
-                        .Skip(xlTable.ShowHeaderRow ? 1 : 0)
-                        .First()
-                        .FormulaA1;
+                    tableColumn.SetAttributeValue("totalsRowFunction", TableDefinitionXml.FormatTotalsFunction(xlField.TotalsRowFunction));
 
-                    while (formula.StartsWith('=') && formula.Length > 1)
-                        formula = formula.Substring(1);
-
-                    if (!String.IsNullOrWhiteSpace(formula))
-                    {
-                        tableColumn.Add(new XElement(ns + "calculatedColumnFormula", formula));
-                    }
+                    if (xlField.TotalsRowFunction == XlsxTotalsRowFunction.Custom)
+                        tableColumn.Add(new XElement(ns + "totalsRowFormula", xlField.TotalsRowFormulaA1));
                 }
 
-                if (xlTable.ShowTotalsRow)
-                {
-                    if (xlField.TotalsRowFunction != XlsxTotalsRowFunction.None)
-                    {
-                        tableColumn.SetAttributeValue("totalsRowFunction", TableDefinitionXml.FormatTotalsFunction(xlField.TotalsRowFunction));
-
-                        if (xlField.TotalsRowFunction == XlsxTotalsRowFunction.Custom)
-                            tableColumn.Add(new XElement(ns + "totalsRowFormula", xlField.TotalsRowFormulaA1));
-                    }
-
-                    if (!String.IsNullOrWhiteSpace(xlField.TotalsRowLabel))
-                        tableColumn.SetAttributeValue("totalsRowLabel", xlField.TotalsRowLabel);
-                }
-                tableColumns.Add(tableColumn);
+                if (!String.IsNullOrWhiteSpace(xlField.TotalsRowLabel))
+                    tableColumn.SetAttributeValue("totalsRowLabel", xlField.TotalsRowLabel);
             }
-
-            var tableStyleInfo = new XElement(ns + "tableStyleInfo",
-                new XAttribute("showFirstColumn", xlTable.EmphasizeFirstColumn ? "1" : "0"),
-                new XAttribute("showLastColumn", xlTable.EmphasizeLastColumn ? "1" : "0"),
-                new XAttribute("showRowStripes", xlTable.ShowRowStripes ? "1" : "0"),
-                new XAttribute("showColumnStripes", xlTable.ShowColumnStripes ? "1" : "0"));
-
-            if (xlTable.Theme != XlsxTableTheme.None)
-                tableStyleInfo.SetAttributeValue("name", xlTable.Theme.Name);
-
-            if (xlTable.ShowAutoFilter)
-            {
-                if (xlTable.ShowTotalsRow)
-                {
-                    xlTable.AutoFilter.Range = xlTable.Worksheet.Range(
-                        xlTable.RangeAddress.FirstAddress.RowNumber, xlTable.RangeAddress.FirstAddress.ColumnNumber,
-                        xlTable.RangeAddress.LastAddress.RowNumber - 1, xlTable.RangeAddress.LastAddress.ColumnNumber);
-                }
-                else
-                    xlTable.AutoFilter.Range = xlTable.Worksheet.Range(xlTable.RangeAddress);
-
-                table.Add(AutoFilterXml.Write(xlTable.AutoFilter));
-            }
-
-            table.Add(tableColumns, tableStyleInfo);
-            new XDocument(table).Save(output, System.Xml.Linq.SaveOptions.DisableFormatting);
+            tableColumns.Add(tableColumn);
         }
 
-        private static string GetTableName(String originalTableName, SaveContext context)
+        var tableStyleInfo = new XElement(ns + "tableStyleInfo",
+            new XAttribute("showFirstColumn", xlTable.EmphasizeFirstColumn ? "1" : "0"),
+            new XAttribute("showLastColumn", xlTable.EmphasizeLastColumn ? "1" : "0"),
+            new XAttribute("showRowStripes", xlTable.ShowRowStripes ? "1" : "0"),
+            new XAttribute("showColumnStripes", xlTable.ShowColumnStripes ? "1" : "0"));
+
+        if (xlTable.Theme != XlsxTableTheme.None)
+            tableStyleInfo.SetAttributeValue("name", xlTable.Theme.Name);
+
+        if (xlTable.ShowAutoFilter)
         {
-            var tableName = originalTableName.RemoveSpecialCharacters();
-            var name = tableName;
-            if (context.TableNames.Contains(name))
+            if (xlTable.ShowTotalsRow)
             {
-                var i = 1;
-                name = tableName + i.ToInvariantString();
-                while (context.TableNames.Contains(name))
-                {
-                    i++;
-                    name = tableName + i.ToInvariantString();
-                }
+                xlTable.AutoFilter.Range = xlTable.Worksheet.Range(
+                    xlTable.RangeAddress.FirstAddress.RowNumber, xlTable.RangeAddress.FirstAddress.ColumnNumber,
+                    xlTable.RangeAddress.LastAddress.RowNumber - 1, xlTable.RangeAddress.LastAddress.ColumnNumber);
             }
+            else
+                xlTable.AutoFilter.Range = xlTable.Worksheet.Range(xlTable.RangeAddress);
 
-            context.TableNames.Add(name);
-            return name;
+            table.Add(AutoFilterXml.Write(xlTable.AutoFilter));
         }
+
+        table.Add(tableColumns, tableStyleInfo);
+        new XDocument(table).Save(output, System.Xml.Linq.SaveOptions.DisableFormatting);
+    }
+
+    private static string GetTableName(String originalTableName, SaveContext context)
+    {
+        var tableName = originalTableName.RemoveSpecialCharacters();
+        var name = tableName;
+        if (context.TableNames.Contains(name))
+        {
+            var i = 1;
+            name = tableName + i.ToInvariantString();
+            while (context.TableNames.Contains(name))
+            {
+                i++;
+                name = tableName + i.ToInvariantString();
+            }
+        }
+
+        context.TableNames.Add(name);
+        return name;
     }
 }

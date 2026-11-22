@@ -1,7 +1,7 @@
-using Aid.Xlsx.PivotTables.Areas;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.PivotTables.Areas;
 
-namespace Aid.Xlsx.PivotTables;
+namespace Aid.Xlsx.Model.PivotTables;
 
 /// <summary>
 /// A field displayed in the filters part of a pivot table.

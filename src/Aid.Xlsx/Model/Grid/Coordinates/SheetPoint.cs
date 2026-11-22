@@ -1,74 +1,73 @@
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Formulas;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Formulas.References;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
 
-namespace Aid.Xlsx.Coordinates
+namespace Aid.Xlsx.Model.Grid.Coordinates;
+
+/// <summary>
+/// A single point in a workbook. The book point might point to a deleted
+/// worksheet, so it might be invalid. Make sure it is checked when
+/// determining the properties of the actual data of the point.
+/// </summary>
+internal readonly struct SheetPoint : IEquatable<SheetPoint>
 {
-    /// <summary>
-    /// A single point in a workbook. The book point might point to a deleted
-    /// worksheet, so it might be invalid. Make sure it is checked when
-    /// determining the properties of the actual data of the point.
-    /// </summary>
-    internal readonly struct SheetPoint : IEquatable<SheetPoint>
+    internal SheetPoint(string sheetName, int row, int col)
+        : this(sheetName, new Point(row, col))
     {
-        internal SheetPoint(string sheetName, int row, int col)
-            : this(sheetName, new Point(row, col))
+    }
+
+    internal SheetPoint(string sheetName, Point point)
+    {
+        if (string.IsNullOrEmpty(sheetName))
+            throw new ArgumentException(nameof(sheetName));
+
+        SheetName = sheetName;
+        Point = point;
+    }
+
+    /// <summary>
+    /// Name of the sheet. The sheet may be deleted.
+    /// </summary>
+    public string SheetName { get; }
+
+    /// <inheritdoc cref="Aid.Xlsx.Model.Grid.Coordinates.Point.Row"/>
+    public int Row => Point.Column;
+
+    /// <inheritdoc cref="Aid.Xlsx.Model.Grid.Coordinates.Point.Column"/>
+    public int Column => Point.Column;
+
+    /// <summary>
+    /// A point in the sheet.
+    /// </summary>
+    public Point Point { get; }
+
+    public static bool operator ==(SheetPoint lhs, SheetPoint rhs) => lhs.Equals(rhs);
+
+    public static bool operator !=(SheetPoint lhs, SheetPoint rhs) => !(lhs == rhs);
+
+    public bool Equals(SheetPoint other)
+    {
+        return Point.Equals(other.Point) && XlsxHelper.SheetComparer.Equals(SheetName, other.SheetName);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is SheetPoint other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        unchecked
         {
+            return (XlsxHelper.SheetComparer.GetHashCode(SheetName) * 397) ^ Point.GetHashCode();
         }
+    }
 
-        internal SheetPoint(string sheetName, Point point)
-        {
-            if (string.IsNullOrEmpty(sheetName))
-                throw new ArgumentException(nameof(sheetName));
-
-            SheetName = sheetName;
-            Point = point;
-        }
-
-        /// <summary>
-        /// Name of the sheet. The sheet may be deleted.
-        /// </summary>
-        public string SheetName { get; }
-
-        /// <inheritdoc cref="Aid.Xlsx.Coordinates.Point.Row"/>
-        public int Row => Point.Column;
-
-        /// <inheritdoc cref="Aid.Xlsx.Coordinates.Point.Column"/>
-        public int Column => Point.Column;
-
-        /// <summary>
-        /// A point in the sheet.
-        /// </summary>
-        public Point Point { get; }
-
-        public static bool operator ==(SheetPoint lhs, SheetPoint rhs) => lhs.Equals(rhs);
-
-        public static bool operator !=(SheetPoint lhs, SheetPoint rhs) => !(lhs == rhs);
-
-        public bool Equals(SheetPoint other)
-        {
-            return Point.Equals(other.Point) && XlsxHelper.SheetComparer.Equals(SheetName, other.SheetName);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is SheetPoint other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (XlsxHelper.SheetComparer.GetHashCode(SheetName) * 397) ^ Point.GetHashCode();
-            }
-        }
-
-        public override string ToString()
-        {
-            var name = NameUtils.ShouldQuote(SheetName.AsSpan())
-                ? SheetName.AlwaysEscapeSheetName()
-                : SheetName;
-            return $"{name}!{Point}";
-        }
+    public override string ToString()
+    {
+        var name = NameUtils.ShouldQuote(SheetName.AsSpan())
+            ? SheetName.AlwaysEscapeSheetName()
+            : SheetName;
+        return $"{name}!{Point}";
     }
 }

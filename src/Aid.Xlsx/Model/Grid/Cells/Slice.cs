@@ -2,418 +2,417 @@
 
 using System.Collections;
 using System.Diagnostics;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Coordinates;
 
-namespace Aid.Xlsx.Cells
+namespace Aid.Xlsx.Model.Grid.Cells;
+
+/// <summary>
+/// Slice is a sparse array that stores a part of cell information (e.g. only values,
+/// only styles ...). Slice has same size as a worksheet. If some cells are pushed out
+/// of the permitted range, they are gone.
+/// </summary>
+/// <remarks>
+/// This is a ref return, so if the underlaying value
+/// changes, the returned value also changes. To avoid,
+/// just don't use <c>ref</c> and structs will be copied.
+/// </remarks>
+/// <typeparam name="TElement">The type of data stored in the slice.</typeparam>
+internal partial class Slice<TElement> : ISlice
 {
+    private static readonly Lut<TElement> Dummy = new();
+    private readonly TElement _defaultValue = default;
+
     /// <summary>
-    /// Slice is a sparse array that stores a part of cell information (e.g. only values,
-    /// only styles ...). Slice has same size as a worksheet. If some cells are pushed out
-    /// of the permitted range, they are gone.
+    /// The content of the slice. Note that LUT uses index that starts from 0,
+    /// so rows and columns must be adjusted to retrieved the value.
     /// </summary>
-    /// <remarks>
-    /// This is a ref return, so if the underlaying value
-    /// changes, the returned value also changes. To avoid,
-    /// just don't use <c>ref</c> and structs will be copied.
-    /// </remarks>
-    /// <typeparam name="TElement">The type of data stored in the slice.</typeparam>
-    internal partial class Slice<TElement> : ISlice
+    private readonly Lut<Lut<TElement>> _data;
+
+    /// <summary>
+    /// Key is column number, value is number of cells in the column that are used.
+    /// </summary>
+    private readonly Dictionary<int, int> _columnUsage = new();
+
+    internal Slice()
     {
-        private static readonly Lut<TElement> Dummy = new();
-        private readonly TElement _defaultValue = default;
+        _data = new();
+    }
 
-        /// <summary>
-        /// The content of the slice. Note that LUT uses index that starts from 0,
-        /// so rows and columns must be adjusted to retrieved the value.
-        /// </summary>
-        private readonly Lut<Lut<TElement>> _data;
+    /// <summary>
+    /// Get the slice value at the specified point of the sheet.
+    /// </summary>
+    internal ref readonly TElement this[Point point] => ref this[point.Row, point.Column];
 
-        /// <summary>
-        /// Key is column number, value is number of cells in the column that are used.
-        /// </summary>
-        private readonly Dictionary<int, int> _columnUsage = new();
-
-        internal Slice()
-        {
-            _data = new();
-        }
-
-        /// <summary>
-        /// Get the slice value at the specified point of the sheet.
-        /// </summary>
-        internal ref readonly TElement this[Point point] => ref this[point.Row, point.Column];
-
-        /// <summary>
-        /// Get the slice value at the specified point of the sheet.
-        /// </summary>
-        internal ref readonly TElement this[int row, int column]
-        {
-            get
-            {
-                var rowLut = _data.Get(row - 1);
-                if (rowLut is null)
-                    return ref _defaultValue;
-
-                return ref rowLut.Get(column - 1);
-            }
-        }
-
-        /// <inheritdoc />
-        public bool IsEmpty => MaxRow == 0;
-
-        /// <inheritdoc />
-        public int MaxColumn { get; private set; }
-
-        /// <inheritdoc />
-        public int MaxRow => _data.MaxUsedIndex + 1;
-
-        /// <inheritdoc />
-        public IEnumerable<int> UsedRows
-        {
-            get
-            {
-                var rowsEnumerator = new Lut<Lut<TElement>>.LutEnumerator(_data, XlsxHelper.MinRowNumber - 1, XlsxHelper.MaxRowNumber - 1);
-                while (rowsEnumerator.MoveNext())
-                {
-                    if (!rowsEnumerator.Current.IsEmpty)
-                        yield return rowsEnumerator.Index + 1;
-                }
-            }
-        }
-
-        /// <inheritdoc />
-        public Dictionary<int, int>.KeyCollection UsedColumns => _columnUsage.Keys;
-
-        /// <inheritdoc />
-        public void Clear(Area area)
-        {
-            var enumerator = new Enumerator(this, area);
-            while (enumerator.MoveNext())
-            {
-                Set(enumerator.Point, in _defaultValue);
-            }
-        }
-
-        /// <inheritdoc />
-        public void DeleteAreaAndShiftLeft(Area areaToDelete)
-        {
-            Clear(areaToDelete);
-
-            var noCellsToShift = areaToDelete.LastPoint.Column == XlsxHelper.MaxColumnNumber;
-            if (noCellsToShift)
-                return;
-
-            var shiftDistance = areaToDelete.Width;
-            var shiftRange = areaToDelete.RightRange();
-            var cellEnumerator = new Enumerator(this, shiftRange);
-            while (cellEnumerator.MoveNext())
-            {
-                var srcPoint = cellEnumerator.Point;
-                var dstPoint = new Point(srcPoint.Row, srcPoint.Column - shiftDistance);
-                Set(dstPoint, in cellEnumerator.Current);
-                Set(srcPoint, in _defaultValue);
-            }
-        }
-
-        /// <inheritdoc />
-        public void DeleteAreaAndShiftUp(Area areaToDelete)
-        {
-            Clear(areaToDelete);
-
-            var noCellsToShift = areaToDelete.LastPoint.Row == XlsxHelper.MaxRowNumber;
-            if (noCellsToShift)
-                return;
-
-            var shiftDistance = areaToDelete.Height;
-            var shiftRange = areaToDelete.BelowRange();
-
-            // Fast path for deleting full rows
-            if (areaToDelete.HasFullRowWidth)
-            {
-                // Shifting full rows up to an empty space doesn't change column usage or max column and
-                // is thus safe to only move row lookup tables to the new position. Start from top to not
-                // overwrite not-yet moved rows.
-                var rowEnumerator = new Lut<Lut<TElement>>.LutEnumerator(_data, shiftRange.TopRow - 1, shiftRange.BottomRow - 1);
-                while (rowEnumerator.MoveNext())
-                {
-                    // Enumerator is essentially a wrapped index and MoveNext() looks for the next
-                    // used index from current state of LUT, so it's fine to set the values like this.
-                    _data.Set(rowEnumerator.Index - shiftDistance, rowEnumerator.Current);
-                    _data.Set(rowEnumerator.Index, null);
-                }
-
-                return;
-            }
-
-            var cellEnumerator = new Enumerator(this, shiftRange);
-            while (cellEnumerator.MoveNext())
-            {
-                var srcPoint = cellEnumerator.Point;
-                var dstPoint = new Point(srcPoint.Row - shiftDistance, srcPoint.Column);
-                Set(dstPoint, in cellEnumerator.Current);
-                Set(srcPoint, in _defaultValue);
-            }
-        }
-
-        /// <summary>
-        /// Get enumerator over used values of the range.
-        /// </summary>
-        public IEnumerator<Point> GetEnumerator(Area area, bool reverse = false)
-        {
-            return !reverse ? new Enumerator(this, area) : new ReverseEnumerator(this, area);
-        }
-
-        /// <inheritdoc />
-        public void InsertAreaAndShiftDown(Area areaToInsert)
-        {
-            var hasSpaceBelow = areaToInsert.LastPoint.Row < XlsxHelper.MaxRowNumber;
-            if (!hasSpaceBelow)
-            {
-                Clear(areaToInsert);
-                return;
-            }
-
-            var shiftDistance = areaToInsert.Height;
-
-            // Purged range might contain some cells that wouldn't be overwritten during shift => clear.
-            var purgedRange = new Area(
-                new Point(XlsxHelper.MaxRowNumber - shiftDistance + 1, areaToInsert.FirstPoint.Column),
-                new Point(XlsxHelper.MaxRowNumber, areaToInsert.LastPoint.Column));
-            Clear(purgedRange);
-
-            var shiftedRange = new Area(
-                areaToInsert.FirstPoint,
-                new Point(XlsxHelper.MaxRowNumber - shiftDistance, areaToInsert.LastPoint.Column));
-            var cellEnumerator = new ReverseEnumerator(this, shiftedRange);
-            while (cellEnumerator.MoveNext())
-            {
-                var srcPoint = cellEnumerator.Point;
-                var dstPoint = new Point(srcPoint.Row + shiftDistance, srcPoint.Column);
-                Set(dstPoint, in cellEnumerator.Current);
-                Set(srcPoint, in _defaultValue);
-            }
-        }
-
-        /// <inheritdoc />
-        public void InsertAreaAndShiftRight(Area areaToInsert)
-        {
-            var hasSpaceRight = areaToInsert.LastPoint.Column < XlsxHelper.MaxColumnNumber;
-            if (!hasSpaceRight)
-            {
-                Clear(areaToInsert);
-                return;
-            }
-
-            var shiftDistance = areaToInsert.Width;
-
-            // Purged range might contain some cells that wouldn't be overwritten during shift => clear.
-            var purgedRange = new Area(
-                new Point(areaToInsert.FirstPoint.Row, XlsxHelper.MaxColumnNumber - shiftDistance + 1),
-                new Point(areaToInsert.LastPoint.Row, XlsxHelper.MaxColumnNumber));
-            Clear(purgedRange);
-
-            var shiftedRange = new Area(
-                areaToInsert.FirstPoint,
-                new Point(areaToInsert.LastPoint.Row, XlsxHelper.MaxColumnNumber - shiftDistance));
-            var enumerator = new ReverseEnumerator(this, shiftedRange);
-            while (enumerator.MoveNext())
-            {
-                var srcPoint = enumerator.Point;
-                var dstPoint = new Point(srcPoint.Row, srcPoint.Column + shiftDistance);
-                Set(dstPoint, in enumerator.Current);
-                Set(srcPoint, in _defaultValue);
-            }
-        }
-
-        public bool IsUsed(Point address)
-        {
-            var rowLut = _data.Get(address.Row - 1);
-            if (rowLut is null)
-                return false;
-
-            return rowLut.IsUsed(address.Column - 1);
-        }
-
-        public void Swap(Point sp1, Point sp2)
-        {
-            var value1 = this[sp1];
-            var value2 = this[sp2];
-            Set(sp1, in value2);
-            Set(sp2, in value1);
-        }
-
-        internal void SetAll(Area range, in TElement value)
-        {
-            foreach (var point in range)
-            {
-                Set(point, in value);
-            }
-        }
-
-        internal void Set(Point point, in TElement value)
-            => Set(point.Row, point.Column, in value);
-
-        internal void Set(int row, int column, in TElement value)
+    /// <summary>
+    /// Get the slice value at the specified point of the sheet.
+    /// </summary>
+    internal ref readonly TElement this[int row, int column]
+    {
+        get
         {
             var rowLut = _data.Get(row - 1);
             if (rowLut is null)
+                return ref _defaultValue;
+
+            return ref rowLut.Get(column - 1);
+        }
+    }
+
+    /// <inheritdoc />
+    public bool IsEmpty => MaxRow == 0;
+
+    /// <inheritdoc />
+    public int MaxColumn { get; private set; }
+
+    /// <inheritdoc />
+    public int MaxRow => _data.MaxUsedIndex + 1;
+
+    /// <inheritdoc />
+    public IEnumerable<int> UsedRows
+    {
+        get
+        {
+            var rowsEnumerator = new Lut<Lut<TElement>>.LutEnumerator(_data, XlsxHelper.MinRowNumber - 1, XlsxHelper.MaxRowNumber - 1);
+            while (rowsEnumerator.MoveNext())
             {
-                rowLut = new Lut<TElement>();
-                _data.Set(row - 1, rowLut);
-            }
-
-            var wasUsed = rowLut.IsUsed(column - 1);
-            rowLut.Set(column - 1, value);
-            var isUsed = rowLut.IsUsed(column - 1);
-
-            if (wasUsed && !isUsed)
-            {
-                var newCount = DecrementColumnUsage(column);
-                if (newCount == 0 && MaxColumn == column)
-                {
-                    MaxColumn = CalculateMaxColumn();
-                }
-
-                if (rowLut.IsEmpty)
-                    _data.Set(row - 1, null);
-            }
-
-            if (!wasUsed && isUsed)
-            {
-                IncrementColumnUsage(column);
-                if (column > MaxColumn)
-                    MaxColumn = column;
+                if (!rowsEnumerator.Current.IsEmpty)
+                    yield return rowsEnumerator.Index + 1;
             }
         }
+    }
 
-        private int CalculateMaxColumn()
+    /// <inheritdoc />
+    public Dictionary<int, int>.KeyCollection UsedColumns => _columnUsage.Keys;
+
+    /// <inheritdoc />
+    public void Clear(Area area)
+    {
+        var enumerator = new Enumerator(this, area);
+        while (enumerator.MoveNext())
         {
-            var maxColIdx = -1;
-            var rowEnumerator = new Lut<Lut<TElement>>.LutEnumerator(_data, XlsxHelper.MinRowNumber - 1, XlsxHelper.MaxRowNumber - 1);
+            Set(enumerator.Point, in _defaultValue);
+        }
+    }
+
+    /// <inheritdoc />
+    public void DeleteAreaAndShiftLeft(Area areaToDelete)
+    {
+        Clear(areaToDelete);
+
+        var noCellsToShift = areaToDelete.LastPoint.Column == XlsxHelper.MaxColumnNumber;
+        if (noCellsToShift)
+            return;
+
+        var shiftDistance = areaToDelete.Width;
+        var shiftRange = areaToDelete.RightRange();
+        var cellEnumerator = new Enumerator(this, shiftRange);
+        while (cellEnumerator.MoveNext())
+        {
+            var srcPoint = cellEnumerator.Point;
+            var dstPoint = new Point(srcPoint.Row, srcPoint.Column - shiftDistance);
+            Set(dstPoint, in cellEnumerator.Current);
+            Set(srcPoint, in _defaultValue);
+        }
+    }
+
+    /// <inheritdoc />
+    public void DeleteAreaAndShiftUp(Area areaToDelete)
+    {
+        Clear(areaToDelete);
+
+        var noCellsToShift = areaToDelete.LastPoint.Row == XlsxHelper.MaxRowNumber;
+        if (noCellsToShift)
+            return;
+
+        var shiftDistance = areaToDelete.Height;
+        var shiftRange = areaToDelete.BelowRange();
+
+        // Fast path for deleting full rows
+        if (areaToDelete.HasFullRowWidth)
+        {
+            // Shifting full rows up to an empty space doesn't change column usage or max column and
+            // is thus safe to only move row lookup tables to the new position. Start from top to not
+            // overwrite not-yet moved rows.
+            var rowEnumerator = new Lut<Lut<TElement>>.LutEnumerator(_data, shiftRange.TopRow - 1, shiftRange.BottomRow - 1);
             while (rowEnumerator.MoveNext())
-                maxColIdx = Math.Max(maxColIdx, rowEnumerator.Current.MaxUsedIndex);
+            {
+                // Enumerator is essentially a wrapped index and MoveNext() looks for the next
+                // used index from current state of LUT, so it's fine to set the values like this.
+                _data.Set(rowEnumerator.Index - shiftDistance, rowEnumerator.Current);
+                _data.Set(rowEnumerator.Index, null);
+            }
 
-            return maxColIdx + 1;
+            return;
         }
 
-        private int DecrementColumnUsage(int column)
+        var cellEnumerator = new Enumerator(this, shiftRange);
+        while (cellEnumerator.MoveNext())
         {
-            if (!_columnUsage.TryGetValue(column, out var count))
-                return 0;
+            var srcPoint = cellEnumerator.Point;
+            var dstPoint = new Point(srcPoint.Row - shiftDistance, srcPoint.Column);
+            Set(dstPoint, in cellEnumerator.Current);
+            Set(srcPoint, in _defaultValue);
+        }
+    }
 
-            if (count > 1)
-                return _columnUsage[column] = count - 1;
+    /// <summary>
+    /// Get enumerator over used values of the range.
+    /// </summary>
+    public IEnumerator<Point> GetEnumerator(Area area, bool reverse = false)
+    {
+        return !reverse ? new Enumerator(this, area) : new ReverseEnumerator(this, area);
+    }
 
-            _columnUsage.Remove(column);
+    /// <inheritdoc />
+    public void InsertAreaAndShiftDown(Area areaToInsert)
+    {
+        var hasSpaceBelow = areaToInsert.LastPoint.Row < XlsxHelper.MaxRowNumber;
+        if (!hasSpaceBelow)
+        {
+            Clear(areaToInsert);
+            return;
+        }
+
+        var shiftDistance = areaToInsert.Height;
+
+        // Purged range might contain some cells that wouldn't be overwritten during shift => clear.
+        var purgedRange = new Area(
+            new Point(XlsxHelper.MaxRowNumber - shiftDistance + 1, areaToInsert.FirstPoint.Column),
+            new Point(XlsxHelper.MaxRowNumber, areaToInsert.LastPoint.Column));
+        Clear(purgedRange);
+
+        var shiftedRange = new Area(
+            areaToInsert.FirstPoint,
+            new Point(XlsxHelper.MaxRowNumber - shiftDistance, areaToInsert.LastPoint.Column));
+        var cellEnumerator = new ReverseEnumerator(this, shiftedRange);
+        while (cellEnumerator.MoveNext())
+        {
+            var srcPoint = cellEnumerator.Point;
+            var dstPoint = new Point(srcPoint.Row + shiftDistance, srcPoint.Column);
+            Set(dstPoint, in cellEnumerator.Current);
+            Set(srcPoint, in _defaultValue);
+        }
+    }
+
+    /// <inheritdoc />
+    public void InsertAreaAndShiftRight(Area areaToInsert)
+    {
+        var hasSpaceRight = areaToInsert.LastPoint.Column < XlsxHelper.MaxColumnNumber;
+        if (!hasSpaceRight)
+        {
+            Clear(areaToInsert);
+            return;
+        }
+
+        var shiftDistance = areaToInsert.Width;
+
+        // Purged range might contain some cells that wouldn't be overwritten during shift => clear.
+        var purgedRange = new Area(
+            new Point(areaToInsert.FirstPoint.Row, XlsxHelper.MaxColumnNumber - shiftDistance + 1),
+            new Point(areaToInsert.LastPoint.Row, XlsxHelper.MaxColumnNumber));
+        Clear(purgedRange);
+
+        var shiftedRange = new Area(
+            areaToInsert.FirstPoint,
+            new Point(areaToInsert.LastPoint.Row, XlsxHelper.MaxColumnNumber - shiftDistance));
+        var enumerator = new ReverseEnumerator(this, shiftedRange);
+        while (enumerator.MoveNext())
+        {
+            var srcPoint = enumerator.Point;
+            var dstPoint = new Point(srcPoint.Row, srcPoint.Column + shiftDistance);
+            Set(dstPoint, in enumerator.Current);
+            Set(srcPoint, in _defaultValue);
+        }
+    }
+
+    public bool IsUsed(Point address)
+    {
+        var rowLut = _data.Get(address.Row - 1);
+        if (rowLut is null)
+            return false;
+
+        return rowLut.IsUsed(address.Column - 1);
+    }
+
+    public void Swap(Point sp1, Point sp2)
+    {
+        var value1 = this[sp1];
+        var value2 = this[sp2];
+        Set(sp1, in value2);
+        Set(sp2, in value1);
+    }
+
+    internal void SetAll(Area range, in TElement value)
+    {
+        foreach (var point in range)
+        {
+            Set(point, in value);
+        }
+    }
+
+    internal void Set(Point point, in TElement value)
+        => Set(point.Row, point.Column, in value);
+
+    internal void Set(int row, int column, in TElement value)
+    {
+        var rowLut = _data.Get(row - 1);
+        if (rowLut is null)
+        {
+            rowLut = new Lut<TElement>();
+            _data.Set(row - 1, rowLut);
+        }
+
+        var wasUsed = rowLut.IsUsed(column - 1);
+        rowLut.Set(column - 1, value);
+        var isUsed = rowLut.IsUsed(column - 1);
+
+        if (wasUsed && !isUsed)
+        {
+            var newCount = DecrementColumnUsage(column);
+            if (newCount == 0 && MaxColumn == column)
+            {
+                MaxColumn = CalculateMaxColumn();
+            }
+
+            if (rowLut.IsEmpty)
+                _data.Set(row - 1, null);
+        }
+
+        if (!wasUsed && isUsed)
+        {
+            IncrementColumnUsage(column);
+            if (column > MaxColumn)
+                MaxColumn = column;
+        }
+    }
+
+    private int CalculateMaxColumn()
+    {
+        var maxColIdx = -1;
+        var rowEnumerator = new Lut<Lut<TElement>>.LutEnumerator(_data, XlsxHelper.MinRowNumber - 1, XlsxHelper.MaxRowNumber - 1);
+        while (rowEnumerator.MoveNext())
+            maxColIdx = Math.Max(maxColIdx, rowEnumerator.Current.MaxUsedIndex);
+
+        return maxColIdx + 1;
+    }
+
+    private int DecrementColumnUsage(int column)
+    {
+        if (!_columnUsage.TryGetValue(column, out var count))
             return 0;
+
+        if (count > 1)
+            return _columnUsage[column] = count - 1;
+
+        _columnUsage.Remove(column);
+        return 0;
+    }
+
+    private void IncrementColumnUsage(int column)
+    {
+        if (_columnUsage.TryGetValue(column, out var value))
+            _columnUsage[column] = value + 1;
+        else
+            _columnUsage.Add(column, 1);
+    }
+
+    /// <summary>
+    /// Enumerator that returns used values from a specified range.
+    /// </summary>
+    [DebuggerDisplay("{Point}:{Current}")]
+    internal class Enumerator : IEnumerator<Point>
+    {
+        private readonly Area _range;
+        private Lut<TElement>.LutEnumerator _columnsEnumerator;
+        private Lut<Lut<TElement>>.LutEnumerator _rowsEnumerator;
+
+        internal Enumerator(Slice<TElement> slice, Area range)
+        {
+            _range = range;
+
+            _columnsEnumerator = new Lut<TElement>.LutEnumerator(Dummy, XlsxHelper.MaxColumnNumber + 1, XlsxHelper.MaxColumnNumber + 1);
+            _rowsEnumerator = new Lut<Lut<TElement>>.LutEnumerator(
+                slice._data,
+                range.FirstPoint.Row - 1,
+                range.LastPoint.Row - 1);
         }
 
-        private void IncrementColumnUsage(int column)
-        {
-            if (_columnUsage.TryGetValue(column, out var value))
-                _columnUsage[column] = value + 1;
-            else
-                _columnUsage.Add(column, 1);
-        }
+        public ref readonly TElement Current => ref _columnsEnumerator.Current;
+
+        public Point Point => new(_rowsEnumerator.Index + 1, _columnsEnumerator.Index + 1);
 
         /// <summary>
-        /// Enumerator that returns used values from a specified range.
+        /// The movement is columns first, then rows.
         /// </summary>
-        [DebuggerDisplay("{Point}:{Current}")]
-        internal class Enumerator : IEnumerator<Point>
+        public bool MoveNext()
         {
-            private readonly Area _range;
-            private Lut<TElement>.LutEnumerator _columnsEnumerator;
-            private Lut<Lut<TElement>>.LutEnumerator _rowsEnumerator;
-
-            internal Enumerator(Slice<TElement> slice, Area range)
+            while (!_columnsEnumerator.MoveNext())
             {
-                _range = range;
+                if (!_rowsEnumerator.MoveNext())
+                    return false;
 
-                _columnsEnumerator = new Lut<TElement>.LutEnumerator(Dummy, XlsxHelper.MaxColumnNumber + 1, XlsxHelper.MaxColumnNumber + 1);
-                _rowsEnumerator = new Lut<Lut<TElement>>.LutEnumerator(
-                    slice._data,
-                    range.FirstPoint.Row - 1,
-                    range.LastPoint.Row - 1);
+                _columnsEnumerator = new Lut<TElement>.LutEnumerator(
+                    _rowsEnumerator.Current,
+                    _range.FirstPoint.Column - 1,
+                    _range.LastPoint.Column - 1);
             }
 
-            public ref readonly TElement Current => ref _columnsEnumerator.Current;
-
-            public Point Point => new(_rowsEnumerator.Index + 1, _columnsEnumerator.Index + 1);
-
-            /// <summary>
-            /// The movement is columns first, then rows.
-            /// </summary>
-            public bool MoveNext()
-            {
-                while (!_columnsEnumerator.MoveNext())
-                {
-                    if (!_rowsEnumerator.MoveNext())
-                        return false;
-
-                    _columnsEnumerator = new Lut<TElement>.LutEnumerator(
-                        _rowsEnumerator.Current,
-                        _range.FirstPoint.Column - 1,
-                        _range.LastPoint.Column - 1);
-                }
-
-                return true;
-            }
-
-            void IEnumerator.Reset() => throw new NotSupportedException();
-
-            Point IEnumerator<Point>.Current => Point;
-
-            object IEnumerator.Current => Point;
-
-            void IDisposable.Dispose() { }
+            return true;
         }
 
-        [DebuggerDisplay("{Point}:{Current}")]
-        private class ReverseEnumerator : IEnumerator<Point>
+        void IEnumerator.Reset() => throw new NotSupportedException();
+
+        Point IEnumerator<Point>.Current => Point;
+
+        object IEnumerator.Current => Point;
+
+        void IDisposable.Dispose() { }
+    }
+
+    [DebuggerDisplay("{Point}:{Current}")]
+    private class ReverseEnumerator : IEnumerator<Point>
+    {
+        private readonly Area _range;
+        private Lut<TElement>.ReverseLutEnumerator _columnsEnumerator;
+        private Lut<Lut<TElement>>.ReverseLutEnumerator _rowsEnumerator;
+
+        internal ReverseEnumerator(Slice<TElement> slice, Area range)
         {
-            private readonly Area _range;
-            private Lut<TElement>.ReverseLutEnumerator _columnsEnumerator;
-            private Lut<Lut<TElement>>.ReverseLutEnumerator _rowsEnumerator;
-
-            internal ReverseEnumerator(Slice<TElement> slice, Area range)
-            {
-                _range = range;
-                _columnsEnumerator = new Lut<TElement>.ReverseLutEnumerator(Dummy, -1, -1);
-                _rowsEnumerator = new Lut<Lut<TElement>>.ReverseLutEnumerator(
-                    slice._data,
-                    range.FirstPoint.Row - 1,
-                    range.LastPoint.Row - 1);
-            }
-
-            public ref TElement Current => ref _columnsEnumerator.Current;
-
-            public Point Point => new(_rowsEnumerator.Index + 1, _columnsEnumerator.Index + 1);
-
-            public bool MoveNext()
-            {
-                while (!_columnsEnumerator.MoveNext())
-                {
-                    if (!_rowsEnumerator.MoveNext())
-                        return false;
-
-                    _columnsEnumerator = new Lut<TElement>.ReverseLutEnumerator(
-                        _rowsEnumerator.Current,
-                        _range.FirstPoint.Column - 1,
-                        _range.LastPoint.Column - 1);
-                }
-                return true;
-            }
-
-
-            void IEnumerator.Reset() => throw new NotSupportedException();
-
-            Point IEnumerator<Point>.Current => Point;
-
-            object IEnumerator.Current => Point;
-
-            public void Dispose() { }
+            _range = range;
+            _columnsEnumerator = new Lut<TElement>.ReverseLutEnumerator(Dummy, -1, -1);
+            _rowsEnumerator = new Lut<Lut<TElement>>.ReverseLutEnumerator(
+                slice._data,
+                range.FirstPoint.Row - 1,
+                range.LastPoint.Row - 1);
         }
+
+        public ref TElement Current => ref _columnsEnumerator.Current;
+
+        public Point Point => new(_rowsEnumerator.Index + 1, _columnsEnumerator.Index + 1);
+
+        public bool MoveNext()
+        {
+            while (!_columnsEnumerator.MoveNext())
+            {
+                if (!_rowsEnumerator.MoveNext())
+                    return false;
+
+                _columnsEnumerator = new Lut<TElement>.ReverseLutEnumerator(
+                    _rowsEnumerator.Current,
+                    _range.FirstPoint.Column - 1,
+                    _range.LastPoint.Column - 1);
+            }
+            return true;
+        }
+
+
+        void IEnumerator.Reset() => throw new NotSupportedException();
+
+        Point IEnumerator<Point>.Current => Point;
+
+        object IEnumerator.Current => Point;
+
+        public void Dispose() { }
     }
 }

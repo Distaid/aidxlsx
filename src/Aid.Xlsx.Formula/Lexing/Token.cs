@@ -1,7 +1,7 @@
 using System;
 
 // ReSharper disable InconsistentNaming
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.Lexing;
 
 /// <summary>
 /// A token for a formula input.

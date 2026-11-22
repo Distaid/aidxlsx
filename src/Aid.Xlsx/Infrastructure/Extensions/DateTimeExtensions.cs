@@ -1,5 +1,5 @@
 // Keep this file CodeMaid organised and cleaned
-namespace Aid.Xlsx.Extensions;
+namespace Aid.Xlsx.Infrastructure.Extensions;
 
 internal static class DateTimeExtensions
 {

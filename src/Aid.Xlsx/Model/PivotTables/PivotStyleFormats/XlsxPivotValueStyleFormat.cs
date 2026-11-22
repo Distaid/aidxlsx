@@ -1,10 +1,10 @@
 // Keep this file CodeMaid organised and cleaned
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.PivotTables.Areas;
-using Aid.Xlsx.PivotTables.PivotValues;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.PivotTables.Areas;
+using Aid.Xlsx.Model.PivotTables.PivotValues;
 
-namespace Aid.Xlsx.PivotTables.PivotStyleFormats;
+namespace Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 
 internal class XlsxPivotValueStyleFormat : XlsxPivotStyleFormatBase, IXlsxPivotValueStyleFormat
 {

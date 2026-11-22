@@ -1,26 +1,26 @@
-using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.Tests.Excel.Cells
+namespace Aid.Xlsx.Tests.Excel.Cells;
+
+[TestFixture]
+public class XlsxCellFormulaTests
 {
-    [TestFixture]
-    public class XlsxCellFormulaTests
+    [Test]
+    public void CellFormulaIsStrippedOfEqualSign()
     {
-        [Test]
-        public void CellFormulaIsStrippedOfEqualSign()
-        {
-            using var wb = new XlsxWorkbook();
-            var ws = wb.AddWorksheet();
-            ws.Cell(1, 1).FormulaA1 = "=B1";
-            Assert.AreEqual("B1", ws.Cell(1, 1).FormulaA1);
-        }
+        using var wb = new XlsxWorkbook();
+        var ws = wb.AddWorksheet();
+        ws.Cell(1, 1).FormulaA1 = "=B1";
+        Assert.AreEqual("B1", ws.Cell(1, 1).FormulaA1);
+    }
 
-        [Test]
-        public void DataTable_MaintainProperties()
-        {
-            TestHelper.LoadSaveAndCompare(
-                @"Other\Formulas\DataTableFormula-Excel-Input.xlsx",
-                @"Other\Formulas\DataTableFormula-Output.xlsx");
-        }
+    [Test]
+    public void DataTable_MaintainProperties()
+    {
+        TestHelper.LoadSaveAndCompare(
+            @"Other\Formulas\DataTableFormula-Excel-Input.xlsx",
+            @"Other\Formulas\DataTableFormula-Output.xlsx");
     }
 }

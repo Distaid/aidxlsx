@@ -1,6 +1,6 @@
 // Keep this file CodeMaid organised and cleaned
 
-namespace Aid.Xlsx.PivotTables.PivotStyleFormats;
+namespace Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 
 /// <summary>
 /// An API for setting style of parts consisting of <see cref="XlsxPivotStyleFormatElement"/>, e.g. grand

@@ -1,16 +1,16 @@
 using System.Diagnostics;
-using Aid.Xlsx.CalcEngine.Visitors;
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Formulas;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Tables;
-using Aid.Xlsx.Utils;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.Calculation.Visitors;
+using Aid.Xlsx.Formulas.References.Transforms;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Tables;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.DefinedNames;
+namespace Aid.Xlsx.Model.DefinedNames;
 
 [DebuggerDisplay("{_name}:{_formula}")]
 internal class XlsxDefinedName : IXlsxDefinedName, IWorkbookListener

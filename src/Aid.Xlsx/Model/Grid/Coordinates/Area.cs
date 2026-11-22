@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Utils;
+using Aid.Xlsx.Infrastructure.Utilities;
+using Aid.Xlsx.Model.Grid.Ranges;
 
-namespace Aid.Xlsx.Coordinates;
+namespace Aid.Xlsx.Model.Grid.Coordinates;
 
 /// <summary>
 /// A representation of a <c>ST_Ref</c>, i.e. an area in a sheet (no reference to the sheet).

@@ -1,22 +1,21 @@
-namespace Aid.Xlsx.PivotTables
-{
-    /// <summary>
-    /// An area of aspect of pivot table that is part of the <see cref="XlsxPivotArea.Type"/>.
-    /// </summary>
-    /// <remarks>
-    /// [ISO-29500] 18.18.58 ST_PivotAreaType
-    /// </remarks>
-    internal enum XlsxPivotAreaType
-    {
-        None = 0,
-        Normal = 1,
-        Data = 2,
-        All = 3,
-        Origin = 4,
-        Button = 5,
+namespace Aid.Xlsx.Model.PivotTables;
 
-        // Top right has been removed between ISO-29500:2006 and ISO-29500:2016.
-        TopRight = 6,
-        TopEnd = 7
-    }
+/// <summary>
+/// An area of aspect of pivot table that is part of the <see cref="XlsxPivotArea.Type"/>.
+/// </summary>
+/// <remarks>
+/// [ISO-29500] 18.18.58 ST_PivotAreaType
+/// </remarks>
+internal enum XlsxPivotAreaType
+{
+    None = 0,
+    Normal = 1,
+    Data = 2,
+    All = 3,
+    Origin = 4,
+    Button = 5,
+
+    // Top right has been removed between ISO-29500:2006 and ISO-29500:2016.
+    TopRight = 6,
+    TopEnd = 7
 }

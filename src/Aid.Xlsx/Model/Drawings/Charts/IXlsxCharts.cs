@@ -1,9 +1,8 @@
 #nullable disable
 
-namespace Aid.Xlsx.Charts
+namespace Aid.Xlsx.Model.Drawings.Charts;
+
+public interface IXlsxCharts : IEnumerable<IXlsxChart>
 {
-    public interface IXlsxCharts : IEnumerable<IXlsxChart>
-    {
-        void Add(IXlsxChart chart);
-    }
+    void Add(IXlsxChart chart);
 }

@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Workbooks;
 
 internal enum WorkbookPackageType
 {

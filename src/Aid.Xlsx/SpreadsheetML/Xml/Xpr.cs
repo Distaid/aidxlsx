@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.SpreadsheetML;
+namespace Aid.Xlsx.SpreadsheetML.Xml;
 
 /// <summary>
 /// XML Parse Result. Indicated whether element has been successfully parsed or if it was a not.

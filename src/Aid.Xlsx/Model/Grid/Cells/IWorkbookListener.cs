@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.Cells;
+namespace Aid.Xlsx.Model.Grid.Cells;
 
 /// <summary>
 /// Listener for components that need to be notified about structural changes of a workbook

@@ -1,4 +1,4 @@
-namespace Aid.Xlsx.PivotTables.Areas;
+namespace Aid.Xlsx.Model.PivotTables.Areas;
 
 /// <summary>
 /// A representation of a single row/column axis values in a <see cref="XlsxPivotTableAxis"/>.

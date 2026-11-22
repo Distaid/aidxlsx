@@ -1,119 +1,146 @@
 using System.Collections;
-using Aid.Xlsx.Attributes;
-using Aid.Xlsx.Columns;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Tables;
-using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
+using Aid.Xlsx.DataImport.Attributes;
+using Aid.Xlsx.Infrastructure.Extensions;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Tables;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.Tests.Excel.Tables
+namespace Aid.Xlsx.Tests.Excel.Tables;
+
+[TestFixture]
+public class AppendingAndReplacingTableDataTests
 {
-    [TestFixture]
-    public class AppendingAndReplacingTableDataTests
+    public class TestObjectWithoutAttributes
     {
-        public class TestObjectWithoutAttributes
+        public String Column1 { get; set; }
+        public String Column2 { get; set; }
+    }
+
+    public class Person
+    {
+        public int Age { get; set; }
+
+        [XlsxColumn(Header = "Last name", Order = 2)]
+        public String LastName { get; set; }
+
+        [XlsxColumn(Header = "First name", Order = 1)]
+        public String FirstName { get; set; }
+
+        [XlsxColumn(Header = "Full name", Order = 0)]
+        public String FullName { get => string.Concat(FirstName, " ", LastName); }
+
+        [XlsxColumn(Order = 3)]
+        public DateTime DateOfBirth { get; set; }
+
+        [XlsxColumn(Header = "Is active", Order = 4)]
+        public bool IsActive;
+    }
+
+    private XlsxWorkbook PrepareWorkbook()
+    {
+        var wb = new XlsxWorkbook();
+        var ws = wb.AddWorksheet("Tables");
+
+        var data = new[]
         {
-            public String Column1 { get; set; }
-            public String Column2 { get; set; }
-        }
+            new Person{FirstName = "Francois", LastName = "Botha", Age = 39, DateOfBirth = new DateTime(1980,1,1), IsActive = true},
+            new Person{FirstName = "Leon", LastName = "Oosthuizen", Age = 40, DateOfBirth = new DateTime(1979,1,1), IsActive = false},
+            new Person{FirstName = "Rian", LastName = "Prinsloo", Age = 41, DateOfBirth = new DateTime(1978,1,1), IsActive = false}
+        };
 
-        public class Person
+        ws.FirstCell().CellRight().CellBelow().InsertTable(data);
+
+        ws.Columns().AdjustToContents();
+
+        return wb;
+    }
+
+    private XlsxWorkbook PrepareWorkbookWithAdditionalColumns()
+    {
+        var wb = PrepareWorkbook();
+        var ws = wb.Worksheets.First();
+
+        var table = ws.Tables.First();
+        table.HeadersRow()
+            .LastCell().CellRight()
+            .InsertData(new[] { "CumulativeAge", "NameLength", "IsOld", "HardCodedValue" }, transpose: true);
+
+        table.Resize(ws.Range(table.FirstCell(), table.LastCell().CellRight(4)));
+
+        table.Field("CumulativeAge").DataCells.ForEach(c => c.FormulaA1 = $"SUM($G$3:G{c.WorksheetRow().RowNumber()})");
+        table.Field("NameLength").DataCells.ForEach(c => c.FormulaA1 = $"LEN(B{c.WorksheetRow().RowNumber()})");
+        table.Field("IsOld").DataCells.ForEach(c => c.FormulaA1 = $"=G{c.WorksheetRow().RowNumber()}>=40");
+        table.Field("HardCodedValue").DataCells.Value = "40 is not old!";
+
+        return wb;
+    }
+
+    private Person[] NewData
+    {
+        get
         {
-            public int Age { get; set; }
-
-            [XlsxColumn(Header = "Last name", Order = 2)]
-            public String LastName { get; set; }
-
-            [XlsxColumn(Header = "First name", Order = 1)]
-            public String FirstName { get; set; }
-
-            [XlsxColumn(Header = "Full name", Order = 0)]
-            public String FullName { get => string.Concat(FirstName, " ", LastName); }
-
-            [XlsxColumn(Order = 3)]
-            public DateTime DateOfBirth { get; set; }
-
-            [XlsxColumn(Header = "Is active", Order = 4)]
-            public bool IsActive;
-        }
-
-        private XlsxWorkbook PrepareWorkbook()
-        {
-            var wb = new XlsxWorkbook();
-            var ws = wb.AddWorksheet("Tables");
-
-            var data = new[]
+            return new[]
             {
-                new Person{FirstName = "Francois", LastName = "Botha", Age = 39, DateOfBirth = new DateTime(1980,1,1), IsActive = true},
-                new Person{FirstName = "Leon", LastName = "Oosthuizen", Age = 40, DateOfBirth = new DateTime(1979,1,1), IsActive = false},
-                new Person{FirstName = "Rian", LastName = "Prinsloo", Age = 41, DateOfBirth = new DateTime(1978,1,1), IsActive = false}
+                new Person{FirstName = "Michelle", LastName = "de Beer", Age = 35, DateOfBirth = new DateTime(1983,1,1), IsActive = false},
+                new Person{FirstName = "Marichen", LastName = "van der Gryp", Age = 30, DateOfBirth = new DateTime(1990,1,1), IsActive = true}
             };
-
-            ws.FirstCell().CellRight().CellBelow().InsertTable(data);
-
-            ws.Columns().AdjustToContents();
-
-            return wb;
         }
+    }
 
-        private XlsxWorkbook PrepareWorkbookWithAdditionalColumns()
+    [Test]
+    public void AddingEmptyEnumerables()
+    {
+        using (var wb = PrepareWorkbook())
         {
-            var wb = PrepareWorkbook();
             var ws = wb.Worksheets.First();
 
             var table = ws.Tables.First();
-            table.HeadersRow()
-                .LastCell().CellRight()
-                .InsertData(new[] { "CumulativeAge", "NameLength", "IsOld", "HardCodedValue" }, transpose: true);
 
-            table.Resize(ws.Range(table.FirstCell(), table.LastCell().CellRight(4)));
+            IEnumerable<Person> personEnumerable = null;
+            Assert.AreEqual(null, table.AppendData(personEnumerable));
 
-            table.Field("CumulativeAge").DataCells.ForEach(c => c.FormulaA1 = $"SUM($G$3:G{c.WorksheetRow().RowNumber()})");
-            table.Field("NameLength").DataCells.ForEach(c => c.FormulaA1 = $"LEN(B{c.WorksheetRow().RowNumber()})");
-            table.Field("IsOld").DataCells.ForEach(c => c.FormulaA1 = $"=G{c.WorksheetRow().RowNumber()}>=40");
-            table.Field("HardCodedValue").DataCells.Value = "40 is not old!";
+            personEnumerable = new Person[] { };
+            Assert.AreEqual(null, table.AppendData(personEnumerable));
 
-            return wb;
+            IEnumerable enumerable = null;
+            Assert.AreEqual(null, table.AppendData(enumerable));
+
+            enumerable = new Person[] { };
+            Assert.AreEqual(null, table.AppendData(enumerable));
         }
+    }
 
-        private Person[] NewData
+    [Test]
+    public void ReplaceWithEmptyEnumerables()
+    {
+        using (var wb = PrepareWorkbook())
         {
-            get
-            {
-                return new[]
-                {
-                    new Person{FirstName = "Michelle", LastName = "de Beer", Age = 35, DateOfBirth = new DateTime(1983,1,1), IsActive = false},
-                    new Person{FirstName = "Marichen", LastName = "van der Gryp", Age = 30, DateOfBirth = new DateTime(1990,1,1), IsActive = true}
-                };
-            }
+            var ws = wb.Worksheets.First();
+
+            var table = ws.Tables.First();
+
+            IEnumerable<Person> personEnumerable = null;
+            Assert.Throws<InvalidOperationException>(() => table.ReplaceData(personEnumerable));
+
+            personEnumerable = new Person[] { };
+            Assert.Throws<InvalidOperationException>(() => table.ReplaceData(personEnumerable));
+
+            IEnumerable enumerable = null;
+            Assert.Throws<InvalidOperationException>(() => table.ReplaceData(enumerable));
+
+            enumerable = new Person[] { };
+            Assert.Throws<InvalidOperationException>(() => table.ReplaceData(enumerable));
         }
+    }
 
-        [Test]
-        public void AddingEmptyEnumerables()
-        {
-            using (var wb = PrepareWorkbook())
-            {
-                var ws = wb.Worksheets.First();
-
-                var table = ws.Tables.First();
-
-                IEnumerable<Person> personEnumerable = null;
-                Assert.AreEqual(null, table.AppendData(personEnumerable));
-
-                personEnumerable = new Person[] { };
-                Assert.AreEqual(null, table.AppendData(personEnumerable));
-
-                IEnumerable enumerable = null;
-                Assert.AreEqual(null, table.AppendData(enumerable));
-
-                enumerable = new Person[] { };
-                Assert.AreEqual(null, table.AppendData(enumerable));
-            }
-        }
-
-        [Test]
-        public void ReplaceWithEmptyEnumerables()
+    [Test]
+    public void CanAppendTypedEnumerable()
+    {
+        using (var ms = new MemoryStream())
         {
             using (var wb = PrepareWorkbook())
             {
@@ -121,590 +148,564 @@ namespace Aid.Xlsx.Tests.Excel.Tables
 
                 var table = ws.Tables.First();
 
-                IEnumerable<Person> personEnumerable = null;
-                Assert.Throws<InvalidOperationException>(() => table.ReplaceData(personEnumerable));
+                IEnumerable<Person> personEnumerable = NewData;
+                var addedRange = table.AppendData(personEnumerable);
 
-                personEnumerable = new Person[] { };
-                Assert.Throws<InvalidOperationException>(() => table.ReplaceData(personEnumerable));
+                Assert.AreEqual("B6:G7", addedRange.RangeAddress.ToString());
+                ws.Columns().AdjustToContents();
 
-                IEnumerable enumerable = null;
-                Assert.Throws<InvalidOperationException>(() => table.ReplaceData(enumerable));
+                wb.SaveAs(ms);
+            }
 
-                enumerable = new Person[] { };
-                Assert.Throws<InvalidOperationException>(() => table.ReplaceData(enumerable));
+            using (var wb = new XlsxWorkbook(ms))
+            {
+                var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
+
+                Assert.AreEqual(5, table.DataRange.RowCount());
+                Assert.AreEqual(6, table.DataRange.ColumnCount());
             }
         }
+    }
 
-        [Test]
-        public void CanAppendTypedEnumerable()
+    [Test]
+    public void CanAppendToTableWithTotalsRow()
+    {
+        using (var ms = new MemoryStream())
         {
-            using (var ms = new MemoryStream())
+            using (var wb = PrepareWorkbook())
             {
-                using (var wb = PrepareWorkbook())
-                {
-                    var ws = wb.Worksheets.First();
+                var ws = wb.Worksheets.First();
 
-                    var table = ws.Tables.First();
+                var table = ws.Tables.First();
+                table.SetShowTotalsRow(true);
+                table.Fields.Last().TotalsRowFunction = XlsxTotalsRowFunction.Average;
 
-                    IEnumerable<Person> personEnumerable = NewData;
-                    var addedRange = table.AppendData(personEnumerable);
+                IEnumerable<Person> personEnumerable = NewData;
+                var addedRange = table.AppendData(personEnumerable);
 
-                    Assert.AreEqual("B6:G7", addedRange.RangeAddress.ToString());
-                    ws.Columns().AdjustToContents();
+                Assert.AreEqual("B6:G7", addedRange.RangeAddress.ToString());
+                ws.Columns().AdjustToContents();
 
-                    wb.SaveAs(ms);
-                }
+                wb.SaveAs(ms);
+            }
 
-                using (var wb = new XlsxWorkbook(ms))
-                {
-                    var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
+            using (var wb = new XlsxWorkbook(ms))
+            {
+                var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
-                    Assert.AreEqual(5, table.DataRange.RowCount());
-                    Assert.AreEqual(6, table.DataRange.ColumnCount());
-                }
+                Assert.AreEqual(5, table.DataRange.RowCount());
+                Assert.AreEqual(6, table.DataRange.ColumnCount());
             }
         }
+    }
 
-        [Test]
-        public void CanAppendToTableWithTotalsRow()
+    [Test]
+    public void CanAppendTypedEnumerableAndPushDownCellsBelowTable()
+    {
+        using (var ms = new MemoryStream())
         {
-            using (var ms = new MemoryStream())
+            var value = "Some value that will be overwritten";
+            IXlsxAddress address;
+            using (var wb = PrepareWorkbook())
             {
-                using (var wb = PrepareWorkbook())
-                {
-                    var ws = wb.Worksheets.First();
+                var ws = wb.Worksheets.First();
 
-                    var table = ws.Tables.First();
-                    table.SetShowTotalsRow(true);
-                    table.Fields.Last().TotalsRowFunction = XlsxTotalsRowFunction.Average;
+                var table = ws.Tables.First();
 
-                    IEnumerable<Person> personEnumerable = NewData;
-                    var addedRange = table.AppendData(personEnumerable);
+                var cell = table.LastRow().FirstCell().CellRight(2).CellBelow(1);
+                address = cell.Address;
+                cell.Value = value;
 
-                    Assert.AreEqual("B6:G7", addedRange.RangeAddress.ToString());
-                    ws.Columns().AdjustToContents();
+                IEnumerable<Person> personEnumerable = NewData;
+                var addedRange = table.AppendData(personEnumerable);
 
-                    wb.SaveAs(ms);
-                }
+                Assert.AreEqual("B6:G7", addedRange.RangeAddress.ToString());
+                ws.Columns().AdjustToContents();
 
-                using (var wb = new XlsxWorkbook(ms))
-                {
-                    var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
+                wb.SaveAs(ms);
+            }
 
-                    Assert.AreEqual(5, table.DataRange.RowCount());
-                    Assert.AreEqual(6, table.DataRange.ColumnCount());
-                }
+            using (var wb = new XlsxWorkbook(ms))
+            {
+                var ws = wb.Worksheets.First();
+
+                var table = ws.Tables.First();
+
+                var cell = ws.Cell(address);
+                Assert.AreEqual("de Beer", cell.Value);
+                Assert.AreEqual(5, table.DataRange.RowCount());
+                Assert.AreEqual(6, table.DataRange.ColumnCount());
+
+                Assert.AreEqual(value, cell.CellBelow(NewData.Count()).Value);
             }
         }
+    }
 
-        [Test]
-        public void CanAppendTypedEnumerableAndPushDownCellsBelowTable()
+    [Test]
+    public void CanAppendUntypedEnumerable()
+    {
+        using (var ms = new MemoryStream())
         {
-            using (var ms = new MemoryStream())
+            using (var wb = PrepareWorkbook())
             {
-                var value = "Some value that will be overwritten";
-                IXlsxAddress address;
-                using (var wb = PrepareWorkbook())
-                {
-                    var ws = wb.Worksheets.First();
+                var ws = wb.Worksheets.First();
 
-                    var table = ws.Tables.First();
+                var table = ws.Tables.First();
 
-                    var cell = table.LastRow().FirstCell().CellRight(2).CellBelow(1);
-                    address = cell.Address;
-                    cell.Value = value;
+                var list = new ArrayList();
+                list.AddRange(NewData);
 
-                    IEnumerable<Person> personEnumerable = NewData;
-                    var addedRange = table.AppendData(personEnumerable);
+                var addedRange = table.AppendData(list);
 
-                    Assert.AreEqual("B6:G7", addedRange.RangeAddress.ToString());
-                    ws.Columns().AdjustToContents();
+                Assert.AreEqual("B6:G7", addedRange.RangeAddress.ToString());
 
-                    wb.SaveAs(ms);
-                }
+                ws.Columns().AdjustToContents();
 
-                using (var wb = new XlsxWorkbook(ms))
-                {
-                    var ws = wb.Worksheets.First();
+                wb.SaveAs(ms);
+            }
 
-                    var table = ws.Tables.First();
+            using (var wb = new XlsxWorkbook(ms))
+            {
+                var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
-                    var cell = ws.Cell(address);
-                    Assert.AreEqual("de Beer", cell.Value);
-                    Assert.AreEqual(5, table.DataRange.RowCount());
-                    Assert.AreEqual(6, table.DataRange.ColumnCount());
-
-                    Assert.AreEqual(value, cell.CellBelow(NewData.Count()).Value);
-                }
+                Assert.AreEqual(5, table.DataRange.RowCount());
+                Assert.AreEqual(6, table.DataRange.ColumnCount());
             }
         }
+    }
 
-        [Test]
-        public void CanAppendUntypedEnumerable()
+    [Test]
+    public void CanAppendDataTable()
+    {
+        using (var ms = new MemoryStream())
         {
-            using (var ms = new MemoryStream())
+            using (var wb = PrepareWorkbook())
             {
-                using (var wb = PrepareWorkbook())
-                {
-                    var ws = wb.Worksheets.First();
+                var ws = wb.Worksheets.First();
 
-                    var table = ws.Tables.First();
+                var table = ws.Tables.First();
 
-                    var list = new ArrayList();
-                    list.AddRange(NewData);
+                IEnumerable<Person> personEnumerable = NewData;
 
-                    var addedRange = table.AppendData(list);
+                var ws2 = wb.AddWorksheet("temp");
+                var dataTable = ws2.FirstCell().InsertTable(personEnumerable).AsNativeDataTable();
 
-                    Assert.AreEqual("B6:G7", addedRange.RangeAddress.ToString());
+                var addedRange = table.AppendData(dataTable);
 
-                    ws.Columns().AdjustToContents();
+                Assert.AreEqual("B6:G7", addedRange.RangeAddress.ToString());
+                ws.Columns().AdjustToContents();
 
-                    wb.SaveAs(ms);
-                }
+                wb.SaveAs(ms);
+            }
 
-                using (var wb = new XlsxWorkbook(ms))
-                {
-                    var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
+            using (var wb = new XlsxWorkbook(ms))
+            {
+                var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
-                    Assert.AreEqual(5, table.DataRange.RowCount());
-                    Assert.AreEqual(6, table.DataRange.ColumnCount());
-                }
+                Assert.AreEqual(5, table.DataRange.RowCount());
+                Assert.AreEqual(6, table.DataRange.ColumnCount());
             }
         }
+    }
 
-        [Test]
-        public void CanAppendDataTable()
+    [Test]
+    public void CanReplaceWithTypedEnumerable()
+    {
+        using (var ms = new MemoryStream())
         {
-            using (var ms = new MemoryStream())
+            using (var wb = PrepareWorkbook())
             {
-                using (var wb = PrepareWorkbook())
-                {
-                    var ws = wb.Worksheets.First();
+                var ws = wb.Worksheets.First();
 
-                    var table = ws.Tables.First();
+                var table = ws.Tables.First();
 
-                    IEnumerable<Person> personEnumerable = NewData;
+                IEnumerable<Person> personEnumerable = NewData;
+                var replacedRange = table.ReplaceData(personEnumerable);
 
-                    var ws2 = wb.AddWorksheet("temp");
-                    var dataTable = ws2.FirstCell().InsertTable(personEnumerable).AsNativeDataTable();
+                Assert.AreEqual("B3:G4", replacedRange.RangeAddress.ToString());
+                ws.Columns().AdjustToContents();
 
-                    var addedRange = table.AppendData(dataTable);
+                wb.SaveAs(ms);
+            }
 
-                    Assert.AreEqual("B6:G7", addedRange.RangeAddress.ToString());
-                    ws.Columns().AdjustToContents();
+            using (var wb = new XlsxWorkbook(ms))
+            {
+                var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
-                    wb.SaveAs(ms);
-                }
-
-                using (var wb = new XlsxWorkbook(ms))
-                {
-                    var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
-
-                    Assert.AreEqual(5, table.DataRange.RowCount());
-                    Assert.AreEqual(6, table.DataRange.ColumnCount());
-                }
+                Assert.AreEqual(2, table.DataRange.RowCount());
+                Assert.AreEqual(6, table.DataRange.ColumnCount());
             }
         }
+    }
 
-        [Test]
-        public void CanReplaceWithTypedEnumerable()
+    [Test]
+    public void CanReplaceWithUntypedEnumerable()
+    {
+        using (var ms = new MemoryStream())
         {
-            using (var ms = new MemoryStream())
+            using (var wb = PrepareWorkbook())
             {
-                using (var wb = PrepareWorkbook())
-                {
-                    var ws = wb.Worksheets.First();
+                var ws = wb.Worksheets.First();
 
-                    var table = ws.Tables.First();
+                var table = ws.Tables.First();
 
-                    IEnumerable<Person> personEnumerable = NewData;
-                    var replacedRange = table.ReplaceData(personEnumerable);
+                var list = new ArrayList();
+                list.AddRange(NewData);
 
-                    Assert.AreEqual("B3:G4", replacedRange.RangeAddress.ToString());
-                    ws.Columns().AdjustToContents();
+                var replacedRange = table.ReplaceData(list);
 
-                    wb.SaveAs(ms);
-                }
+                Assert.AreEqual("B3:G4", replacedRange.RangeAddress.ToString());
 
-                using (var wb = new XlsxWorkbook(ms))
-                {
-                    var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
+                ws.Columns().AdjustToContents();
 
-                    Assert.AreEqual(2, table.DataRange.RowCount());
-                    Assert.AreEqual(6, table.DataRange.ColumnCount());
-                }
+                wb.SaveAs(ms);
+            }
+
+            using (var wb = new XlsxWorkbook(ms))
+            {
+                var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
+
+                Assert.AreEqual(2, table.DataRange.RowCount());
+                Assert.AreEqual(6, table.DataRange.ColumnCount());
             }
         }
+    }
 
-        [Test]
-        public void CanReplaceWithUntypedEnumerable()
+    [Test]
+    public void CanReplaceWithDataTable()
+    {
+        using (var ms = new MemoryStream())
         {
-            using (var ms = new MemoryStream())
+            using (var wb = PrepareWorkbook())
             {
-                using (var wb = PrepareWorkbook())
-                {
-                    var ws = wb.Worksheets.First();
+                var ws = wb.Worksheets.First();
 
-                    var table = ws.Tables.First();
+                var table = ws.Tables.First();
 
-                    var list = new ArrayList();
-                    list.AddRange(NewData);
+                IEnumerable<Person> personEnumerable = NewData;
 
-                    var replacedRange = table.ReplaceData(list);
+                var ws2 = wb.AddWorksheet("temp");
+                var dataTable = ws2.FirstCell().InsertTable(personEnumerable).AsNativeDataTable();
 
-                    Assert.AreEqual("B3:G4", replacedRange.RangeAddress.ToString());
+                var replacedRange = table.ReplaceData(dataTable);
 
-                    ws.Columns().AdjustToContents();
+                Assert.AreEqual("B3:G4", replacedRange.RangeAddress.ToString());
+                ws.Columns().AdjustToContents();
 
-                    wb.SaveAs(ms);
-                }
+                wb.SaveAs(ms);
+            }
 
-                using (var wb = new XlsxWorkbook(ms))
-                {
-                    var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
+            using (var wb = new XlsxWorkbook(ms))
+            {
+                var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
-                    Assert.AreEqual(2, table.DataRange.RowCount());
-                    Assert.AreEqual(6, table.DataRange.ColumnCount());
-                }
+                Assert.AreEqual(2, table.DataRange.RowCount());
+                Assert.AreEqual(6, table.DataRange.ColumnCount());
             }
         }
+    }
 
-        [Test]
-        public void CanReplaceWithDataTable()
+    [Test]
+    public void CanReplaceToTableWithTablesRow1()
+    {
+        using (var ms = new MemoryStream())
         {
-            using (var ms = new MemoryStream())
+            using (var wb = PrepareWorkbook())
             {
-                using (var wb = PrepareWorkbook())
-                {
-                    var ws = wb.Worksheets.First();
+                var ws = wb.Worksheets.First();
 
-                    var table = ws.Tables.First();
+                var table = ws.Tables.First();
+                table.SetShowTotalsRow(true);
+                table.Fields.Last().TotalsRowFunction = XlsxTotalsRowFunction.Average;
 
-                    IEnumerable<Person> personEnumerable = NewData;
+                // Will cause table to overflow
+                IEnumerable<Person> personEnumerable = NewData.Union(NewData).Union(NewData);
+                var replacedRange = table.ReplaceData(personEnumerable);
 
-                    var ws2 = wb.AddWorksheet("temp");
-                    var dataTable = ws2.FirstCell().InsertTable(personEnumerable).AsNativeDataTable();
+                Assert.AreEqual("B3:G8", replacedRange.RangeAddress.ToString());
+                ws.Columns().AdjustToContents();
 
-                    var replacedRange = table.ReplaceData(dataTable);
+                wb.SaveAs(ms);
+            }
 
-                    Assert.AreEqual("B3:G4", replacedRange.RangeAddress.ToString());
-                    ws.Columns().AdjustToContents();
+            using (var wb = new XlsxWorkbook(ms))
+            {
+                var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
-                    wb.SaveAs(ms);
-                }
-
-                using (var wb = new XlsxWorkbook(ms))
-                {
-                    var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
-
-                    Assert.AreEqual(2, table.DataRange.RowCount());
-                    Assert.AreEqual(6, table.DataRange.ColumnCount());
-                }
+                Assert.AreEqual(6, table.DataRange.RowCount());
+                Assert.AreEqual(6, table.DataRange.ColumnCount());
             }
         }
+    }
 
-        [Test]
-        public void CanReplaceToTableWithTablesRow1()
+    [Test]
+    public void CanReplaceToTableWithTablesRow2()
+    {
+        using (var ms = new MemoryStream())
         {
-            using (var ms = new MemoryStream())
+            using (var wb = PrepareWorkbook())
             {
-                using (var wb = PrepareWorkbook())
-                {
-                    var ws = wb.Worksheets.First();
+                var ws = wb.Worksheets.First();
 
-                    var table = ws.Tables.First();
-                    table.SetShowTotalsRow(true);
-                    table.Fields.Last().TotalsRowFunction = XlsxTotalsRowFunction.Average;
+                var table = ws.Tables.First();
+                table.SetShowTotalsRow(true);
+                table.Fields.Last().TotalsRowFunction = XlsxTotalsRowFunction.Average;
 
-                    // Will cause table to overflow
-                    IEnumerable<Person> personEnumerable = NewData.Union(NewData).Union(NewData);
-                    var replacedRange = table.ReplaceData(personEnumerable);
+                // Will cause table to shrink
+                IEnumerable<Person> personEnumerable = NewData.Take(1);
+                var replacedRange = table.ReplaceData(personEnumerable);
 
-                    Assert.AreEqual("B3:G8", replacedRange.RangeAddress.ToString());
-                    ws.Columns().AdjustToContents();
+                Assert.AreEqual("B3:G3", replacedRange.RangeAddress.ToString());
+                ws.Columns().AdjustToContents();
 
-                    wb.SaveAs(ms);
-                }
+                wb.SaveAs(ms);
+            }
 
-                using (var wb = new XlsxWorkbook(ms))
-                {
-                    var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
+            using (var wb = new XlsxWorkbook(ms))
+            {
+                var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
-                    Assert.AreEqual(6, table.DataRange.RowCount());
-                    Assert.AreEqual(6, table.DataRange.ColumnCount());
-                }
+                Assert.AreEqual(1, table.DataRange.RowCount());
+                Assert.AreEqual(6, table.DataRange.ColumnCount());
             }
         }
+    }
 
-        [Test]
-        public void CanReplaceToTableWithTablesRow2()
+    [Test]
+    public void CanReplaceWithUntypedEnumerableAndPropagateExtraColumns()
+    {
+        using (var ms = new MemoryStream())
         {
-            using (var ms = new MemoryStream())
+            using (var wb = PrepareWorkbookWithAdditionalColumns())
             {
-                using (var wb = PrepareWorkbook())
-                {
-                    var ws = wb.Worksheets.First();
+                var ws = wb.Worksheets.First();
+                var table = ws.Tables.First();
 
-                    var table = ws.Tables.First();
-                    table.SetShowTotalsRow(true);
-                    table.Fields.Last().TotalsRowFunction = XlsxTotalsRowFunction.Average;
+                var list = new ArrayList();
+                list.AddRange(NewData);
+                list.AddRange(NewData);
 
-                    // Will cause table to shrink
-                    IEnumerable<Person> personEnumerable = NewData.Take(1);
-                    var replacedRange = table.ReplaceData(personEnumerable);
+                var replacedRange = table.ReplaceData(list, propagateExtraColumns: true);
 
-                    Assert.AreEqual("B3:G3", replacedRange.RangeAddress.ToString());
-                    ws.Columns().AdjustToContents();
+                Assert.AreEqual("B3:G6", replacedRange.RangeAddress.ToString());
 
-                    wb.SaveAs(ms);
-                }
+                ws.Columns().AdjustToContents();
 
-                using (var wb = new XlsxWorkbook(ms))
-                {
-                    var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
+                wb.SaveAs(ms);
+            }
 
-                    Assert.AreEqual(1, table.DataRange.RowCount());
-                    Assert.AreEqual(6, table.DataRange.ColumnCount());
-                }
+            using (var wb = new XlsxWorkbook(ms))
+            {
+                var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
+
+                Assert.AreEqual(4, table.DataRange.RowCount());
+                Assert.AreEqual(10, table.DataRange.ColumnCount());
+
+                Assert.AreEqual("SUM($G$3:G5)", table.Worksheet.Cell("H5").FormulaA1);
+                Assert.AreEqual("SUM($G$3:G6)", table.Worksheet.Cell("H6").FormulaA1);
+                Assert.AreEqual(100, table.Worksheet.Cell("H5").Value);
+                Assert.AreEqual(130, table.Worksheet.Cell("H6").Value);
+
+                Assert.AreEqual("LEN(B5)", table.Worksheet.Cell("I5").FormulaA1);
+                Assert.AreEqual("LEN(B6)", table.Worksheet.Cell("I6").FormulaA1);
+                Assert.AreEqual(16, table.Worksheet.Cell("I5").Value);
+                Assert.AreEqual(21, table.Worksheet.Cell("I6").Value);
+
+                Assert.AreEqual("G5>=40", table.Worksheet.Cell("J5").FormulaA1);
+                Assert.AreEqual("G6>=40", table.Worksheet.Cell("J6").FormulaA1);
+                Assert.AreEqual(false, table.Worksheet.Cell("J5").Value);
+                Assert.AreEqual(false, table.Worksheet.Cell("J6").Value);
+
+                Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K5").Value);
+                Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K6").Value);
             }
         }
+    }
 
-        [Test]
-        public void CanReplaceWithUntypedEnumerableAndPropagateExtraColumns()
+    [Test]
+    public void CanReplaceWithTypedEnumerableAndPropagateExtraColumns()
+    {
+        using (var ms = new MemoryStream())
         {
-            using (var ms = new MemoryStream())
+            using (var wb = PrepareWorkbookWithAdditionalColumns())
             {
-                using (var wb = PrepareWorkbookWithAdditionalColumns())
-                {
-                    var ws = wb.Worksheets.First();
-                    var table = ws.Tables.First();
+                var ws = wb.Worksheets.First();
 
-                    var list = new ArrayList();
-                    list.AddRange(NewData);
-                    list.AddRange(NewData);
+                var table = ws.Tables.First();
 
-                    var replacedRange = table.ReplaceData(list, propagateExtraColumns: true);
+                IEnumerable<Person> personEnumerable = NewData.Concat(NewData).OrderBy(p => p.Age);
+                var replacedRange = table.ReplaceData(personEnumerable, propagateExtraColumns: true);
 
-                    Assert.AreEqual("B3:G6", replacedRange.RangeAddress.ToString());
+                Assert.AreEqual("B3:G6", replacedRange.RangeAddress.ToString());
+                ws.Columns().AdjustToContents();
 
-                    ws.Columns().AdjustToContents();
+                wb.SaveAs(ms);
+            }
 
-                    wb.SaveAs(ms);
-                }
+            using (var wb = new XlsxWorkbook(ms))
+            {
+                var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
-                using (var wb = new XlsxWorkbook(ms))
-                {
-                    var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
+                Assert.AreEqual(4, table.DataRange.RowCount());
+                Assert.AreEqual(10, table.DataRange.ColumnCount());
 
-                    Assert.AreEqual(4, table.DataRange.RowCount());
-                    Assert.AreEqual(10, table.DataRange.ColumnCount());
+                Assert.AreEqual("SUM($G$3:G5)", table.Worksheet.Cell("H5").FormulaA1);
+                Assert.AreEqual("SUM($G$3:G6)", table.Worksheet.Cell("H6").FormulaA1);
+                Assert.AreEqual(95, table.Worksheet.Cell("H5").Value);
+                Assert.AreEqual(130, table.Worksheet.Cell("H6").Value);
 
-                    Assert.AreEqual("SUM($G$3:G5)", table.Worksheet.Cell("H5").FormulaA1);
-                    Assert.AreEqual("SUM($G$3:G6)", table.Worksheet.Cell("H6").FormulaA1);
-                    Assert.AreEqual(100, table.Worksheet.Cell("H5").Value);
-                    Assert.AreEqual(130, table.Worksheet.Cell("H6").Value);
+                Assert.AreEqual("LEN(B5)", table.Worksheet.Cell("I5").FormulaA1);
+                Assert.AreEqual("LEN(B6)", table.Worksheet.Cell("I6").FormulaA1);
+                Assert.AreEqual(16, table.Worksheet.Cell("I5").Value);
+                Assert.AreEqual(16, table.Worksheet.Cell("I6").Value);
 
-                    Assert.AreEqual("LEN(B5)", table.Worksheet.Cell("I5").FormulaA1);
-                    Assert.AreEqual("LEN(B6)", table.Worksheet.Cell("I6").FormulaA1);
-                    Assert.AreEqual(16, table.Worksheet.Cell("I5").Value);
-                    Assert.AreEqual(21, table.Worksheet.Cell("I6").Value);
+                Assert.AreEqual("G5>=40", table.Worksheet.Cell("J5").FormulaA1);
+                Assert.AreEqual("G6>=40", table.Worksheet.Cell("J6").FormulaA1);
+                Assert.AreEqual(false, table.Worksheet.Cell("J5").Value);
+                Assert.AreEqual(false, table.Worksheet.Cell("J6").Value);
 
-                    Assert.AreEqual("G5>=40", table.Worksheet.Cell("J5").FormulaA1);
-                    Assert.AreEqual("G6>=40", table.Worksheet.Cell("J6").FormulaA1);
-                    Assert.AreEqual(false, table.Worksheet.Cell("J5").Value);
-                    Assert.AreEqual(false, table.Worksheet.Cell("J6").Value);
-
-                    Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K5").Value);
-                    Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K6").Value);
-                }
+                Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K5").Value);
+                Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K6").Value);
             }
         }
+    }
 
-        [Test]
-        public void CanReplaceWithTypedEnumerableAndPropagateExtraColumns()
+    [TestCase("ListOfPeople[Age]")] // Defined name formula without a A1 reference
+    [TestCase("ListOfPeople!A1")] // Defined name formula with an A1 reference
+    public void CanReplaceTableDataWhenWorksheetHasDefinedNames(string nameFormula)
+    {
+        // When table data are replaced, the size of a table is modified. That
+        // means rows below it are shifted up/down and defined names should be
+        // adjusted.
+        // TODO: add assert for name shift when formulas are properly shifted. Originally, it threw even on defined name with A1 reference
+        using (var ms = new MemoryStream())
         {
-            using (var ms = new MemoryStream())
+            using (var wb = PrepareWorkbook())
             {
-                using (var wb = PrepareWorkbookWithAdditionalColumns())
-                {
-                    var ws = wb.Worksheets.First();
+                var ws = wb.Worksheets.First();
 
-                    var table = ws.Tables.First();
+                ws.DefinedNames.Add("ListOfPeople_Age", nameFormula);
 
-                    IEnumerable<Person> personEnumerable = NewData.Concat(NewData).OrderBy(p => p.Age);
-                    var replacedRange = table.ReplaceData(personEnumerable, propagateExtraColumns: true);
+                var table = ws.Tables.First();
 
-                    Assert.AreEqual("B3:G6", replacedRange.RangeAddress.ToString());
-                    ws.Columns().AdjustToContents();
+                IEnumerable<Person> personEnumerable = NewData;
+                var replacedRange = table.ReplaceData(personEnumerable);
 
-                    wb.SaveAs(ms);
-                }
+                Assert.AreEqual("B3:G4", replacedRange.RangeAddress.ToString());
 
-                using (var wb = new XlsxWorkbook(ms))
-                {
-                    var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
+                wb.SaveAs(ms);
+            }
 
-                    Assert.AreEqual(4, table.DataRange.RowCount());
-                    Assert.AreEqual(10, table.DataRange.ColumnCount());
+            using (var wb = new XlsxWorkbook(ms))
+            {
+                var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
-                    Assert.AreEqual("SUM($G$3:G5)", table.Worksheet.Cell("H5").FormulaA1);
-                    Assert.AreEqual("SUM($G$3:G6)", table.Worksheet.Cell("H6").FormulaA1);
-                    Assert.AreEqual(95, table.Worksheet.Cell("H5").Value);
-                    Assert.AreEqual(130, table.Worksheet.Cell("H6").Value);
-
-                    Assert.AreEqual("LEN(B5)", table.Worksheet.Cell("I5").FormulaA1);
-                    Assert.AreEqual("LEN(B6)", table.Worksheet.Cell("I6").FormulaA1);
-                    Assert.AreEqual(16, table.Worksheet.Cell("I5").Value);
-                    Assert.AreEqual(16, table.Worksheet.Cell("I6").Value);
-
-                    Assert.AreEqual("G5>=40", table.Worksheet.Cell("J5").FormulaA1);
-                    Assert.AreEqual("G6>=40", table.Worksheet.Cell("J6").FormulaA1);
-                    Assert.AreEqual(false, table.Worksheet.Cell("J5").Value);
-                    Assert.AreEqual(false, table.Worksheet.Cell("J6").Value);
-
-                    Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K5").Value);
-                    Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K6").Value);
-                }
+                Assert.AreEqual(2, table.DataRange.RowCount());
+                Assert.AreEqual(6, table.DataRange.ColumnCount());
             }
         }
+    }
 
-        [TestCase("ListOfPeople[Age]")] // Defined name formula without a A1 reference
-        [TestCase("ListOfPeople!A1")] // Defined name formula with an A1 reference
-        public void CanReplaceTableDataWhenWorksheetHasDefinedNames(string nameFormula)
+    [Test]
+    public void CanAppendWithUntypedEnumerableAndPropagateExtraColumns()
+    {
+        using (var ms = new MemoryStream())
         {
-            // When table data are replaced, the size of a table is modified. That
-            // means rows below it are shifted up/down and defined names should be
-            // adjusted.
-            // TODO: add assert for name shift when formulas are properly shifted. Originally, it threw even on defined name with A1 reference
-            using (var ms = new MemoryStream())
+            using (var wb = PrepareWorkbookWithAdditionalColumns())
             {
-                using (var wb = PrepareWorkbook())
-                {
-                    var ws = wb.Worksheets.First();
+                var ws = wb.Worksheets.First();
+                var table = ws.Tables.First();
 
-                    ws.DefinedNames.Add("ListOfPeople_Age", nameFormula);
+                var list = new ArrayList();
+                list.AddRange(NewData);
+                list.AddRange(NewData);
 
-                    var table = ws.Tables.First();
+                var appendedRange = table.AppendData(list, propagateExtraColumns: true);
 
-                    IEnumerable<Person> personEnumerable = NewData;
-                    var replacedRange = table.ReplaceData(personEnumerable);
+                Assert.AreEqual("B6:G9", appendedRange.RangeAddress.ToString());
 
-                    Assert.AreEqual("B3:G4", replacedRange.RangeAddress.ToString());
+                ws.Columns().AdjustToContents();
 
-                    wb.SaveAs(ms);
-                }
+                wb.SaveAs(ms);
+            }
 
-                using (var wb = new XlsxWorkbook(ms))
-                {
-                    var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
+            using (var wb = new XlsxWorkbook(ms))
+            {
+                var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
-                    Assert.AreEqual(2, table.DataRange.RowCount());
-                    Assert.AreEqual(6, table.DataRange.ColumnCount());
-                }
+                Assert.AreEqual(7, table.DataRange.RowCount());
+                Assert.AreEqual(10, table.DataRange.ColumnCount());
+
+                Assert.AreEqual("SUM($G$3:G8)", table.Worksheet.Cell("H8").FormulaA1);
+                Assert.AreEqual("SUM($G$3:G9)", table.Worksheet.Cell("H9").FormulaA1);
+                Assert.AreEqual(220, table.Worksheet.Cell("H8").Value);
+                Assert.AreEqual(250, table.Worksheet.Cell("H9").Value);
+
+                Assert.AreEqual("LEN(B8)", table.Worksheet.Cell("I8").FormulaA1);
+                Assert.AreEqual("LEN(B9)", table.Worksheet.Cell("I9").FormulaA1);
+                Assert.AreEqual(16, table.Worksheet.Cell("I8").Value);
+                Assert.AreEqual(21, table.Worksheet.Cell("I9").Value);
+
+                Assert.AreEqual("G8>=40", table.Worksheet.Cell("J8").FormulaA1);
+                Assert.AreEqual("G9>=40", table.Worksheet.Cell("J9").FormulaA1);
+                Assert.AreEqual(false, table.Worksheet.Cell("J8").Value);
+                Assert.AreEqual(false, table.Worksheet.Cell("J9").Value);
+
+                Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K8").Value);
+                Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K9").Value);
             }
         }
+    }
 
-        [Test]
-        public void CanAppendWithUntypedEnumerableAndPropagateExtraColumns()
+    [Test]
+    public void CanAppendTypedEnumerableAndPropagateExtraColumns()
+    {
+        using (var ms = new MemoryStream())
         {
-            using (var ms = new MemoryStream())
+            using (var wb = PrepareWorkbookWithAdditionalColumns())
             {
-                using (var wb = PrepareWorkbookWithAdditionalColumns())
-                {
-                    var ws = wb.Worksheets.First();
-                    var table = ws.Tables.First();
+                var ws = wb.Worksheets.First();
 
-                    var list = new ArrayList();
-                    list.AddRange(NewData);
-                    list.AddRange(NewData);
+                var table = ws.Tables.First();
 
-                    var appendedRange = table.AppendData(list, propagateExtraColumns: true);
+                IEnumerable<Person> personEnumerable =
+                    NewData
+                    .Concat(NewData)
+                    .Concat(NewData)
+                    .OrderBy(p => p.FirstName);
 
-                    Assert.AreEqual("B6:G9", appendedRange.RangeAddress.ToString());
+                var addedRange = table.AppendData(personEnumerable);
 
-                    ws.Columns().AdjustToContents();
+                Assert.AreEqual("B6:G11", addedRange.RangeAddress.ToString());
+                ws.Columns().AdjustToContents();
 
-                    wb.SaveAs(ms);
-                }
-
-                using (var wb = new XlsxWorkbook(ms))
-                {
-                    var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
-
-                    Assert.AreEqual(7, table.DataRange.RowCount());
-                    Assert.AreEqual(10, table.DataRange.ColumnCount());
-
-                    Assert.AreEqual("SUM($G$3:G8)", table.Worksheet.Cell("H8").FormulaA1);
-                    Assert.AreEqual("SUM($G$3:G9)", table.Worksheet.Cell("H9").FormulaA1);
-                    Assert.AreEqual(220, table.Worksheet.Cell("H8").Value);
-                    Assert.AreEqual(250, table.Worksheet.Cell("H9").Value);
-
-                    Assert.AreEqual("LEN(B8)", table.Worksheet.Cell("I8").FormulaA1);
-                    Assert.AreEqual("LEN(B9)", table.Worksheet.Cell("I9").FormulaA1);
-                    Assert.AreEqual(16, table.Worksheet.Cell("I8").Value);
-                    Assert.AreEqual(21, table.Worksheet.Cell("I9").Value);
-
-                    Assert.AreEqual("G8>=40", table.Worksheet.Cell("J8").FormulaA1);
-                    Assert.AreEqual("G9>=40", table.Worksheet.Cell("J9").FormulaA1);
-                    Assert.AreEqual(false, table.Worksheet.Cell("J8").Value);
-                    Assert.AreEqual(false, table.Worksheet.Cell("J9").Value);
-
-                    Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K8").Value);
-                    Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K9").Value);
-                }
+                wb.SaveAs(ms);
             }
-        }
 
-        [Test]
-        public void CanAppendTypedEnumerableAndPropagateExtraColumns()
-        {
-            using (var ms = new MemoryStream())
+            using (var wb = new XlsxWorkbook(ms))
             {
-                using (var wb = PrepareWorkbookWithAdditionalColumns())
-                {
-                    var ws = wb.Worksheets.First();
+                var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
-                    var table = ws.Tables.First();
+                Assert.AreEqual(9, table.DataRange.RowCount());
+                Assert.AreEqual(10, table.DataRange.ColumnCount());
 
-                    IEnumerable<Person> personEnumerable =
-                        NewData
-                        .Concat(NewData)
-                        .Concat(NewData)
-                        .OrderBy(p => p.FirstName);
+                Assert.AreEqual("SUM($G$3:G10)", table.Worksheet.Cell("H10").FormulaA1);
+                Assert.AreEqual("SUM($G$3:G11)", table.Worksheet.Cell("H11").FormulaA1);
+                Assert.AreEqual(280, table.Worksheet.Cell("H10").Value);
+                Assert.AreEqual(315, table.Worksheet.Cell("H11").Value);
 
-                    var addedRange = table.AppendData(personEnumerable);
+                Assert.AreEqual("LEN(B10)", table.Worksheet.Cell("I10").FormulaA1);
+                Assert.AreEqual("LEN(B11)", table.Worksheet.Cell("I11").FormulaA1);
+                Assert.AreEqual(16, table.Worksheet.Cell("I10").Value);
+                Assert.AreEqual(16, table.Worksheet.Cell("I11").Value);
 
-                    Assert.AreEqual("B6:G11", addedRange.RangeAddress.ToString());
-                    ws.Columns().AdjustToContents();
+                Assert.AreEqual("G10>=40", table.Worksheet.Cell("J10").FormulaA1);
+                Assert.AreEqual("G11>=40", table.Worksheet.Cell("J11").FormulaA1);
+                Assert.AreEqual(false, table.Worksheet.Cell("J10").Value);
+                Assert.AreEqual(false, table.Worksheet.Cell("J11").Value);
 
-                    wb.SaveAs(ms);
-                }
-
-                using (var wb = new XlsxWorkbook(ms))
-                {
-                    var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
-
-                    Assert.AreEqual(9, table.DataRange.RowCount());
-                    Assert.AreEqual(10, table.DataRange.ColumnCount());
-
-                    Assert.AreEqual("SUM($G$3:G10)", table.Worksheet.Cell("H10").FormulaA1);
-                    Assert.AreEqual("SUM($G$3:G11)", table.Worksheet.Cell("H11").FormulaA1);
-                    Assert.AreEqual(280, table.Worksheet.Cell("H10").Value);
-                    Assert.AreEqual(315, table.Worksheet.Cell("H11").Value);
-
-                    Assert.AreEqual("LEN(B10)", table.Worksheet.Cell("I10").FormulaA1);
-                    Assert.AreEqual("LEN(B11)", table.Worksheet.Cell("I11").FormulaA1);
-                    Assert.AreEqual(16, table.Worksheet.Cell("I10").Value);
-                    Assert.AreEqual(16, table.Worksheet.Cell("I11").Value);
-
-                    Assert.AreEqual("G10>=40", table.Worksheet.Cell("J10").FormulaA1);
-                    Assert.AreEqual("G11>=40", table.Worksheet.Cell("J11").FormulaA1);
-                    Assert.AreEqual(false, table.Worksheet.Cell("J10").Value);
-                    Assert.AreEqual(false, table.Worksheet.Cell("J11").Value);
-
-                    Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K10").Value);
-                    Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K11").Value);
-                }
+                Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K10").Value);
+                Assert.AreEqual("40 is not old!", table.Worksheet.Cell("K11").Value);
             }
         }
     }

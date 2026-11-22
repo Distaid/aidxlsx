@@ -1,6 +1,6 @@
-using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Model.Workbooks;
 
-namespace Aid.Xlsx.Exceptions;
+namespace Aid.Xlsx.Model.Exceptions;
 
 /// <summary>
 /// Some limit (generally set in <see cref="LoadOptions"/>) was exceeded.

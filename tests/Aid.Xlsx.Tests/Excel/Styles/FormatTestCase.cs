@@ -1,4 +1,4 @@
-using Aid.Xlsx.Styles;
+using Aid.Xlsx.Model.Styles;
 
 namespace Aid.Xlsx.Tests.Excel.Styles;
 

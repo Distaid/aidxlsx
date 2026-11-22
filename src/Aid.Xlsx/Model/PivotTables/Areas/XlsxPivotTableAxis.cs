@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace Aid.Xlsx.PivotTables.Areas;
+namespace Aid.Xlsx.Model.PivotTables.Areas;
 
 /// <summary>
 /// A description of one axis (<see cref="XlsxPivotTable.RowAxis"/>/<see cref="XlsxPivotTable.ColumnAxis"/>)

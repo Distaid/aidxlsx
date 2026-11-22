@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace Aid.Xlsx.Utils;
+namespace Aid.Xlsx.Infrastructure.Utilities;
 
 internal sealed class ReferenceEqualityComparer<T> : IEqualityComparer<T>
     where T : class

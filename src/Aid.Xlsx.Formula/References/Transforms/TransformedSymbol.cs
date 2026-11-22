@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace Aid.Xlsx.Formulas;
+namespace Aid.Xlsx.Formulas.References.Transforms;
 
 /// <summary>
 /// A symbol that represents a transformed symbol value. Should be used during AST transformation.

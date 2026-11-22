@@ -1,7 +1,9 @@
 using System.Collections.Generic;
-using Aid.Xlsx.CodeGen.Model.Elements;
+using Aid.Xlsx.CodeGen.Emission;
+using Aid.Xlsx.CodeGen.Infrastructure;
+using Aid.Xlsx.CodeGen.Schema.Model.Elements;
 
-namespace Aid.Xlsx.CodeGen.Model.TopLevel;
+namespace Aid.Xlsx.CodeGen.Schema.Model.TopLevel;
 
 /// <summary>
 /// Base class for nodes representing a <c><![CDATA[<xsd:compleType>]]></c>.

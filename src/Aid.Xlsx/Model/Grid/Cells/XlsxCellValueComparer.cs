@@ -1,52 +1,51 @@
 #nullable disable
 
-namespace Aid.Xlsx.Cells
+namespace Aid.Xlsx.Model.Grid.Cells;
+
+internal class XlsxCellValueComparer : IEqualityComparer<XlsxCellValue>
 {
-    internal class XlsxCellValueComparer : IEqualityComparer<XlsxCellValue>
+    private readonly StringComparer _textComparer;
+
+    internal static readonly XlsxCellValueComparer OrdinalIgnoreCase = new(StringComparer.OrdinalIgnoreCase);
+
+    private XlsxCellValueComparer(StringComparer textComparer)
     {
-        private readonly StringComparer _textComparer;
+        _textComparer = textComparer;
+    }
 
-        internal static readonly XlsxCellValueComparer OrdinalIgnoreCase = new(StringComparer.OrdinalIgnoreCase);
+    public bool Equals(XlsxCellValue x, XlsxCellValue y)
+    {
+        if (x.Type != y.Type)
+            return false;
 
-        private XlsxCellValueComparer(StringComparer textComparer)
+        return x.Type switch
         {
-            _textComparer = textComparer;
-        }
+            XlsxDataType.Blank => true,
+            XlsxDataType.Boolean => x.GetBoolean() == y.GetBoolean(),
+            XlsxDataType.Number => x.GetNumber().Equals(y.GetNumber()),
+            XlsxDataType.Text => _textComparer.Equals(x.GetText(), y.GetText()),
+            XlsxDataType.Error => x.GetError() == y.GetError(),
+            XlsxDataType.DateTime => x.GetUnifiedNumber().Equals(y.GetUnifiedNumber()),
+            XlsxDataType.TimeSpan => x.GetUnifiedNumber().Equals(y.GetUnifiedNumber()),
+            _ => throw new NotSupportedException()
+        };
+    }
 
-        public bool Equals(XlsxCellValue x, XlsxCellValue y)
+    public int GetHashCode(XlsxCellValue obj)
+    {
+        unchecked
         {
-            if (x.Type != y.Type)
-                return false;
-
-            return x.Type switch
+            var hashCode = obj.Type.GetHashCode();
+            var valueHashCode = obj.Type switch
             {
-                XlsxDataType.Blank => true,
-                XlsxDataType.Boolean => x.GetBoolean() == y.GetBoolean(),
-                XlsxDataType.Number => x.GetNumber().Equals(y.GetNumber()),
-                XlsxDataType.Text => _textComparer.Equals(x.GetText(), y.GetText()),
-                XlsxDataType.Error => x.GetError() == y.GetError(),
-                XlsxDataType.DateTime => x.GetUnifiedNumber().Equals(y.GetUnifiedNumber()),
-                XlsxDataType.TimeSpan => x.GetUnifiedNumber().Equals(y.GetUnifiedNumber()),
-                _ => throw new NotSupportedException()
+                XlsxDataType.Blank => 0,
+                XlsxDataType.Boolean => obj.GetBoolean().GetHashCode(),
+                XlsxDataType.Text => _textComparer.GetHashCode(obj.GetText()),
+                XlsxDataType.Error => obj.GetError().GetHashCode(),
+                _ => obj.GetUnifiedNumber().GetHashCode()
             };
-        }
-
-        public int GetHashCode(XlsxCellValue obj)
-        {
-            unchecked
-            {
-                var hashCode = obj.Type.GetHashCode();
-                var valueHashCode = obj.Type switch
-                {
-                    XlsxDataType.Blank => 0,
-                    XlsxDataType.Boolean => obj.GetBoolean().GetHashCode(),
-                    XlsxDataType.Text => _textComparer.GetHashCode(obj.GetText()),
-                    XlsxDataType.Error => obj.GetError().GetHashCode(),
-                    _ => obj.GetUnifiedNumber().GetHashCode()
-                };
-                hashCode = (hashCode * 397) ^ valueHashCode;
-                return hashCode;
-            }
+            hashCode = (hashCode * 397) ^ valueHashCode;
+            return hashCode;
         }
     }
 }

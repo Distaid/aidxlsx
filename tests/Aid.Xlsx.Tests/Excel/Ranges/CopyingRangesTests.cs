@@ -1,11 +1,11 @@
 using System.Drawing;
-using Aid.Xlsx.Columns;
-using Aid.Xlsx.ConditionalFormats;
-using Aid.Xlsx.Rows;
-using Aid.Xlsx.Styles.Colors;
-using Aid.Xlsx.Workbooks;
-using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
+using Aid.Xlsx.Model.ConditionalFormats;
+using Aid.Xlsx.Model.Grid.Columns;
+using Aid.Xlsx.Model.Grid.Rows;
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Workbooks;
+using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Tests;
 

@@ -1,10 +1,11 @@
-using Aid.Xlsx.Cells;
-using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Ranges;
-using Aid.Xlsx.Tables;
-using Aid.Xlsx.Worksheets;
+using Aid.Xlsx.DataImport.Attributes;
+using Aid.Xlsx.Model.Grid.Cells;
+using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Tables;
+using Aid.Xlsx.Model.Worksheets;
 
-namespace Aid.Xlsx.InsertData;
+namespace Aid.Xlsx.DataImport.Mapping;
 
 /// <summary>Inserts rows using mappers generated at compile time.</summary>
 public static class MappedDataExtensions
