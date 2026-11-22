@@ -1,18 +1,18 @@
-using System;
-using System.IO;
 using System.Xml;
 using Aid.Xlsx.Extensions;
+using Aid.Xlsx.PivotTables;
+using Aid.Xlsx.Utils;
 using static Aid.Xlsx.Internal.IO.OpenXmlConst;
 
 namespace Aid.Xlsx.Internal.IO
 {
     internal class PivotCacheRecordsWriter
     {
-        internal static void WriteContent(Stream partStream, XLPivotCache pivotCache)
+        internal static void WriteContent(Stream partStream, XlsxPivotCache pivotCache)
         {
             var settings = new XmlWriterSettings
             {
-                Encoding = XLHelper.NoBomUTF8
+                Encoding = XlsxHelper.NoBomUTF8
             };
 
             using var xml = XmlWriter.Create(partStream, settings);
@@ -37,35 +37,35 @@ namespace Aid.Xlsx.Internal.IO
                     var value = fieldValues.GetValue(recordIdx);
                     switch (value.Type)
                     {
-                        case XLPivotCacheValueType.Missing:
+                        case XlsxPivotCacheValueType.Missing:
                             xml.WriteEmptyElement("m");
                             break;
-                        case XLPivotCacheValueType.Number:
+                        case XlsxPivotCacheValueType.Number:
                             xml.WriteStartElement("n");
                             xml.WriteAttribute("v", value.GetNumber());
                             xml.WriteEndElement();
                             break;
-                        case XLPivotCacheValueType.Boolean:
+                        case XlsxPivotCacheValueType.Boolean:
                             xml.WriteStartElement("b");
                             xml.WriteAttribute("v", value.GetBoolean());
                             xml.WriteEndElement();
                             break;
-                        case XLPivotCacheValueType.Error:
+                        case XlsxPivotCacheValueType.Error:
                             xml.WriteStartElement("b");
                             xml.WriteAttribute("v", value.GetError().ToDisplayString());
                             xml.WriteEndElement();
                             break;
-                        case XLPivotCacheValueType.String:
+                        case XlsxPivotCacheValueType.String:
                             xml.WriteStartElement("s");
                             xml.WriteAttribute("v", fieldValues.GetText(value));
                             xml.WriteEndElement();
                             break;
-                        case XLPivotCacheValueType.DateTime:
+                        case XlsxPivotCacheValueType.DateTime:
                             xml.WriteStartElement("d");
                             xml.WriteAttribute("v", value.GetDateTime());
                             xml.WriteEndElement();
                             break;
-                        case XLPivotCacheValueType.Index:
+                        case XlsxPivotCacheValueType.Index:
                             xml.WriteStartElement("x");
                             xml.WriteAttribute("v", value.GetIndex());
                             xml.WriteEndElement();

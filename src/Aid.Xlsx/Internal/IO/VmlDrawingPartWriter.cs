@@ -1,9 +1,12 @@
-using System;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Xml;
 using System.Xml.Linq;
+using System.Xml;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Drawings.Styles;
+using Aid.Xlsx.Drawings;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Worksheets;
 
 namespace Aid.Xlsx.Internal.IO
 {
@@ -13,17 +16,17 @@ namespace Aid.Xlsx.Internal.IO
         private static readonly XNamespace Office = "urn:schemas-microsoft-com:office:office";
         internal static readonly XNamespace Excel = "urn:schemas-microsoft-com:office:excel";
 
-        internal static XDocument? GenerateContent(Stream? existing, XLWorksheet worksheet, bool hasComments)
+        internal static XDocument? GenerateContent(Stream? existing, XlsxWorksheet worksheet, bool hasComments)
         {
             var document = (existing is null ? null : XDocumentExtensions.Load(existing)) ?? new XDocument(new XElement("xml"));
             var root = document.Root!.Element("xml") ?? document.Root;
             root.Elements().Where(element => IsCommentShape(element) ||
-                (element.Name == Vml + "shapetype" && (string?)element.Attribute("id") == XLConstants.Comment.ShapeTypeId)).Remove();
+                (element.Name == Vml + "shapetype" && (string?)element.Attribute("id") == XlsxConstants.Comment.ShapeTypeId)).Remove();
             if (!hasComments)
                 return root.HasElements ? document : null;
 
             var template = new XElement(Vml + "shapetype",
-                new XAttribute("id", XLConstants.Comment.ShapeTypeId),
+                new XAttribute("id", XlsxConstants.Comment.ShapeTypeId),
                 new XAttribute("coordsize", "21600,21600"),
                 new XAttribute(Office + "spt", 202),
                 new XAttribute("path", "m,l,21600r21600,l21600,xe"),
@@ -47,7 +50,7 @@ namespace Aid.Xlsx.Internal.IO
             if (objectType is not null)
                 return objectType == "Note";
 
-            return shapeType == "#" + XLConstants.Comment.ShapeTypeId || shapeType == "#" + XLConstants.Comment.AlternateShapeTypeId;
+            return shapeType == "#" + XlsxConstants.Comment.ShapeTypeId || shapeType == "#" + XlsxConstants.Comment.AlternateShapeTypeId;
         }
 
         internal static void Write(Stream target, XDocument document)
@@ -57,7 +60,7 @@ namespace Aid.Xlsx.Internal.IO
         }
 
         // VML Shape for Comment
-        private static XElement GenerateCommentShape(XLCell cell)
+        private static XElement GenerateCommentShape(XlsxCell cell)
         {
             var comment = cell.GetComment();
             var style = comment.Style;
@@ -71,7 +74,7 @@ namespace Aid.Xlsx.Internal.IO
                 new XAttribute("fillcolor", fillColor),
                 new XAttribute("strokecolor", "#" + colors.LineColor.Color.ToHex()[2..]),
                 new XAttribute("strokeweight", colors.LineWeight.ToInvariantString() + "pt"),
-                new XAttribute("type", "#" + XLConstants.Comment.ShapeTypeId),
+                new XAttribute("type", "#" + XlsxConstants.Comment.ShapeTypeId),
                 new XAttribute(XNamespace.Xmlns + "o", Office),
                 new XAttribute(XNamespace.Xmlns + "v", Vml),
                 new XElement(Vml + "fill", Opacity(colors.FillTransparency), new XAttribute("color2", fillColor)),
@@ -80,8 +83,8 @@ namespace Aid.Xlsx.Internal.IO
                 new XElement(Vml + "path", new XAttribute(Office + "connecttype", "none")),
                 GetTextBox(style),
                 new XElement(Excel + "ClientData", new XAttribute("ObjectType", "Note"), new XAttribute(XNamespace.Xmlns + "xvml", Excel),
-                    new XElement(Excel + "MoveWithCells", (style.Properties.Positioning == XLDrawingAnchor.Absolute).ToString()),
-                    new XElement(Excel + "SizeWithCells", (style.Properties.Positioning != XLDrawingAnchor.MoveAndSizeWithCells).ToString()),
+                    new XElement(Excel + "MoveWithCells", (style.Properties.Positioning == XlsxDrawingAnchor.Absolute).ToString()),
+                    new XElement(Excel + "SizeWithCells", (style.Properties.Positioning != XlsxDrawingAnchor.MoveAndSizeWithCells).ToString()),
                     new XElement(Excel + "Anchor", GetAnchor(cell)),
                     new XElement(Excel + "TextHAlign", style.Alignment.Horizontal.ToString().ToCamel()),
                     new XElement(Excel + "TextVAlign", style.Alignment.Vertical.ToString().ToCamel()),
@@ -93,42 +96,42 @@ namespace Aid.Xlsx.Internal.IO
                     new XElement(Excel + "Visible", comment.Visible.ToString())));
         }
 
-        private static XElement GetStroke(IXLDrawingStyle style)
+        private static XElement GetStroke(IXlsxDrawingStyle style)
         {
             var colors = style.ColorsAndLines;
             var dash = colors.LineDash;
             var line = colors.LineStyle switch
             {
-                XLLineStyle.Single => "single",
-                XLLineStyle.ThickBetweenThin => "thickBetweenThin",
-                XLLineStyle.ThickThin => "thickThin",
-                XLLineStyle.ThinThick => "thinThick",
-                XLLineStyle.ThinThin => "thinThin",
+                XlsxLineStyle.Single => "single",
+                XlsxLineStyle.ThickBetweenThin => "thickBetweenThin",
+                XlsxLineStyle.ThickThin => "thickThin",
+                XlsxLineStyle.ThinThick => "thinThick",
+                XlsxLineStyle.ThinThin => "thinThin",
                 _ => throw new ArgumentOutOfRangeException(nameof(style), colors.LineStyle, "Invalid line style.")
             };
             return new XElement(Vml + "stroke", Opacity(colors.LineTransparency), new XAttribute("linestyle", line),
-                new XAttribute("dashstyle", dash is XLDashStyle.RoundDot or XLDashStyle.SquareDot ? "shortDot" : dash.ToString().ToCamel()),
-                dash == XLDashStyle.RoundDot ? new XAttribute("endcap", "round") : null);
+                new XAttribute("dashstyle", dash is XlsxDashStyle.RoundDot or XlsxDashStyle.SquareDot ? "shortDot" : dash.ToString().ToCamel()),
+                dash == XlsxDashStyle.RoundDot ? new XAttribute("endcap", "round") : null);
         }
 
         private static XAttribute? Opacity(double value) => value < 1 ? new XAttribute("opacity", Math.Round(value, 2)) : null;
 
-        private static XElement GetTextBox(IXLDrawingStyle ds)
+        private static XElement GetTextBox(IXlsxDrawingStyle ds)
         {
             var sb = new StringBuilder();
             var a = ds.Alignment;
 
-            if (a.Direction == XLDrawingTextDirection.Context)
+            if (a.Direction == XlsxDrawingTextDirection.Context)
                 sb.Append("mso-direction-alt:auto;");
-            else if (a.Direction == XLDrawingTextDirection.RightToLeft)
+            else if (a.Direction == XlsxDrawingTextDirection.RightToLeft)
                 sb.Append("direction:RTL;");
 
-            if (a.Orientation != XLDrawingTextOrientation.LeftToRight)
+            if (a.Orientation != XlsxDrawingTextOrientation.LeftToRight)
             {
                 sb.Append("layout-flow:vertical;");
-                if (a.Orientation == XLDrawingTextOrientation.BottomToTop)
+                if (a.Orientation == XlsxDrawingTextOrientation.BottomToTop)
                     sb.Append("mso-layout-flow-alt:bottom-to-top;");
-                else if (a.Orientation == XLDrawingTextOrientation.Vertical)
+                else if (a.Orientation == XlsxDrawingTextOrientation.Vertical)
                     sb.Append("mso-layout-flow-alt:top-to-bottom;");
             }
             if (a.AutomaticSize)
@@ -150,7 +153,7 @@ namespace Aid.Xlsx.Internal.IO
             return tb;
         }
 
-        private static string GetAnchor(XLCell cell)
+        private static string GetAnchor(XlsxCell cell)
         {
             var c = cell.GetComment();
             var cWidth = c.Style.Size.Width;
@@ -183,7 +186,7 @@ namespace Aid.Xlsx.Internal.IO
             return FormattableString.Invariant($"{fcNumber}, {fcOffset}, {frNumber}, {frOffset}, {lcNumber}, {lcOffset}, {lrNumber}, {lrOffset}");
         }
 
-        private static string GetCommentStyle(XLCell cell)
+        private static string GetCommentStyle(XlsxCell cell)
         {
             var c = cell.GetComment();
             var sb = new StringBuilder("position:absolute; ");

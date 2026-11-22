@@ -1,11 +1,11 @@
-using System.Collections.Generic;
-using Aid.Xlsx.Formatting;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Styles.Formatting;
 
-namespace Aid.Xlsx;
+namespace Aid.Xlsx.Cells;
 
 internal class FormatSlice : ISlice
 {
-    private readonly Slice<XLCellFormatValue?> _slice = new();
+    private readonly Slice<XlsxCellFormatValue?> _slice = new();
 
     public bool IsEmpty => _slice.IsEmpty;
 
@@ -57,22 +57,22 @@ internal class FormatSlice : ISlice
         _slice.Swap(sp1, sp2);
     }
 
-    public void Set(Point point, XLCellFormatValue? value)
+    public void Set(Point point, XlsxCellFormatValue? value)
     {
         _slice.Set(point, value);
     }
 
-    internal void SetAll(Area area, XLCellFormatValue? value)
+    internal void SetAll(Area area, XlsxCellFormatValue? value)
     {
         _slice.SetAll(area, value);
     }
 
-    internal XLCellFormatValue? GetFormat(Point point)
+    internal XlsxCellFormatValue? GetFormat(Point point)
     {
         return _slice[point];
     }
 
-    internal void AddUsedFormat(HashSet<XLCellFormatValue> usedCellFormats)
+    internal void AddUsedFormat(HashSet<XlsxCellFormatValue> usedCellFormats)
     {
         var enumerator = GetEnumerator(Area.Full);
         while (enumerator.MoveNext())

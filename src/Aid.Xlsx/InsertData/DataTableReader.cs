@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
+using Aid.Xlsx.Cells;
 
 namespace Aid.Xlsx.InsertData
 {
@@ -22,9 +20,9 @@ namespace Aid.Xlsx.InsertData
             _dataTable = _dataRows.FirstOrDefault()?.Table;
         }
 
-        public IEnumerable<IEnumerable<XLCellValue>> GetRecords()
+        public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
         {
-            return _dataRows.Select(r => r.ItemArray.Select(XLCellValue.FromInsertedObject));
+            return _dataRows.Select(r => r.ItemArray.Select(XlsxCellValue.FromInsertedObject));
         }
 
         public int GetPropertiesCount()

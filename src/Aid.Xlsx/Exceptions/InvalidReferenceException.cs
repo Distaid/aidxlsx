@@ -1,5 +1,3 @@
-using System;
-
 namespace Aid.Xlsx.Exceptions
 {
     /// <summary>

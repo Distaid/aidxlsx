@@ -1,6 +1,12 @@
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Styles;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
-using System.Linq;
 
 namespace Aid.Xlsx.Tests
 {
@@ -10,12 +16,12 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void LastCellFromMerge()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet");
             ws.Range("B2:D4").Merge();
 
-            string first = ws.FirstCellUsed(XLCellsUsedOptions.All).Address.ToStringRelative();
-            string last = ws.LastCellUsed(XLCellsUsedOptions.All).Address.ToStringRelative();
+            string first = ws.FirstCellUsed(XlsxCellsUsedOptions.All).Address.ToStringRelative();
+            string last = ws.LastCellUsed(XlsxCellsUsedOptions.All).Address.ToStringRelative();
 
             Assert.AreEqual("B2", first);
             Assert.AreEqual("D4", last);
@@ -28,7 +34,7 @@ namespace Aid.Xlsx.Tests
         [TestCase("C7:D7", "E7:F7")]
         public void MergedRangesShiftedOnColumnInsert(string originalRange, string expectedRange)
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("MRShift");
                 var range = ws.Range(originalRange).Merge();
@@ -49,7 +55,7 @@ namespace Aid.Xlsx.Tests
         [TestCase("G4:G5", "G6:G7")]
         public void MergedRangesShiftedOnRowInsert(string originalRange, string expectedRange)
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("MRShift");
                 var range = ws.Range(originalRange).Merge();
@@ -70,7 +76,7 @@ namespace Aid.Xlsx.Tests
         [TestCase("C7:D7", true, "B7:C7")]
         public void MergedRangesShiftedOnColumnDelete(string originalRange, bool expectedExist, string expectedRange)
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("MRShift");
                 var range = ws.Range(originalRange).Merge();
@@ -99,7 +105,7 @@ namespace Aid.Xlsx.Tests
         [TestCase("G4:G5", true, "G3:G4")]
         public void MergedRangesShiftedOnRowDelete(string originalRange, bool expectedExist, string expectedRange)
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("MRShift");
                 var range = ws.Range(originalRange).Merge();
@@ -124,7 +130,7 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void ShiftRangeRightBreaksMerges()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("MRShift");
                 ws.Range("B2:C3").Merge();
@@ -148,7 +154,7 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void ShiftRangeLeftBreaksMerges()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("MRShift");
                 ws.Range("B2:C3").Merge();
@@ -158,7 +164,7 @@ namespace Aid.Xlsx.Tests
                 ws.Range("H1:I2").Merge();
                 ws.Range("H5:I6").Merge();
 
-                ws.Range("D3:E4").Delete(XLShiftDeletedCells.ShiftCellsLeft);
+                ws.Range("D3:E4").Delete(XlsxShiftDeletedCells.ShiftCellsLeft);
 
                 var mr = ws.MergedRanges.ToArray();
                 Assert.AreEqual(4, mr.Length);
@@ -172,7 +178,7 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void RangeShiftDownBreaksMerges()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("MRShift");
                 ws.Range("B2:C3").Merge();
@@ -196,7 +202,7 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void RangeShiftUpBreaksMerges()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("MRShift");
                 ws.Range("B2:C3").Merge();
@@ -206,7 +212,7 @@ namespace Aid.Xlsx.Tests
                 ws.Range("A8:B9").Merge();
                 ws.Range("E8:F9").Merge();
 
-                ws.Range("C4:D5").Delete(XLShiftDeletedCells.ShiftCellsUp);
+                ws.Range("C4:D5").Delete(XlsxShiftDeletedCells.ShiftCellsUp);
 
                 var mr = ws.MergedRanges.ToArray();
                 Assert.AreEqual(4, mr.Length);
@@ -220,24 +226,24 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void MergedCellsAcquireFirstCellStyle()
         {
-            using (XLWorkbook wb = new XLWorkbook())
+            using (XlsxWorkbook wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
-                ws.Cell("A1").Style.Fill.BackgroundColor = XLColor.Red;
-                ws.Cell("A2").Style.Fill.BackgroundColor = XLColor.Yellow;
-                ws.Cell("A3").Style.Fill.BackgroundColor = XLColor.Green;
+                ws.Cell("A1").Style.Fill.BackgroundColor = XlsxColor.Red;
+                ws.Cell("A2").Style.Fill.BackgroundColor = XlsxColor.Yellow;
+                ws.Cell("A3").Style.Fill.BackgroundColor = XlsxColor.Green;
                 ws.Range("A1:A3").Merge();
 
-                Assert.AreEqual(XLColor.Red, ws.Cell("A1").Style.Fill.BackgroundColor);
-                Assert.AreEqual(XLColor.Red, ws.Cell("A2").Style.Fill.BackgroundColor);
-                Assert.AreEqual(XLColor.Red, ws.Cell("A3").Style.Fill.BackgroundColor);
+                Assert.AreEqual(XlsxColor.Red, ws.Cell("A1").Style.Fill.BackgroundColor);
+                Assert.AreEqual(XlsxColor.Red, ws.Cell("A2").Style.Fill.BackgroundColor);
+                Assert.AreEqual(XlsxColor.Red, ws.Cell("A3").Style.Fill.BackgroundColor);
             }
         }
 
         [Test]
         public void MergedCellsLooseData()
         {
-            using (XLWorkbook wb = new XLWorkbook())
+            using (XlsxWorkbook wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 ws.Range("A1:A3").SetValue(100);
@@ -252,11 +258,11 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void MergedCellsLooseConditionalFormats()
         {
-            using (XLWorkbook wb = new XLWorkbook())
+            using (XlsxWorkbook wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
-                ws.Cell("A1").AddConditionalFormat().WhenContains("1").Fill.BackgroundColor = XLColor.Red;
-                ws.Cell("A2").AddConditionalFormat().WhenContains("2").Fill.BackgroundColor = XLColor.Yellow;
+                ws.Cell("A1").AddConditionalFormat().WhenContains("1").Fill.BackgroundColor = XlsxColor.Red;
+                ws.Cell("A2").AddConditionalFormat().WhenContains("2").Fill.BackgroundColor = XlsxColor.Yellow;
 
                 ws.Range("A1:A2").Merge();
 
@@ -268,7 +274,7 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void MergedCellsLooseDataValidation()
         {
-            using (XLWorkbook wb = new XLWorkbook())
+            using (XlsxWorkbook wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 ws.Cell("A1").CreateDataValidation().WholeNumber.Between(1, 2);
@@ -286,80 +292,80 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void UnmergedCellsPreserveStyle()
         {
-            using (XLWorkbook wb = new XLWorkbook())
+            using (XlsxWorkbook wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 var range = ws.Range("B2:D4");
-                range.Style.Fill.SetBackgroundColor(XLColor.Yellow);
-                range.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thick)
-                    .Border.SetOutsideBorderColor(XLColor.DarkBlue)
-                    .Border.SetInsideBorder(XLBorderStyleValues.Thin)
-                    .Border.SetInsideBorderColor(XLColor.Pink);
+                range.Style.Fill.SetBackgroundColor(XlsxColor.Yellow);
+                range.Style.Border.SetOutsideBorder(XlsxBorderStyleValues.Thick)
+                    .Border.SetOutsideBorderColor(XlsxColor.DarkBlue)
+                    .Border.SetInsideBorder(XlsxBorderStyleValues.Thin)
+                    .Border.SetInsideBorderColor(XlsxColor.Pink);
                 range.Cells().ForEach(c => c.Value = c.Address.ToString());
 
                 var firstCell = ws.Cell("B2");
-                firstCell.Style.Fill.SetBackgroundColor(XLColor.Red)
-                    .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
+                firstCell.Style.Fill.SetBackgroundColor(XlsxColor.Red)
+                    .Alignment.SetHorizontal(XlsxAlignmentHorizontalValues.Center)
                     .Font.SetBold();
 
                 range.Merge();
                 range.Unmerge();
 
-                Assert.IsTrue(range.Cells().All(c => c.Style.Fill.BackgroundColor == XLColor.Red));
+                Assert.IsTrue(range.Cells().All(c => c.Style.Fill.BackgroundColor == XlsxColor.Red));
                 Assert.IsTrue(range.Cells().Where(c => !c.Equals(firstCell)).All(c => c.Value.Equals(Blank.Value)));
                 Assert.AreEqual("B2", firstCell.Value);
 
-                Assert.AreEqual(XLBorderStyleValues.Thick, ws.Cell("B2").Style.Border.TopBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("B2").Style.Border.RightBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("B2").Style.Border.BottomBorder);
-                Assert.AreEqual(XLBorderStyleValues.Thick, ws.Cell("B2").Style.Border.LeftBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.Thick, ws.Cell("B2").Style.Border.TopBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("B2").Style.Border.RightBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("B2").Style.Border.BottomBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.Thick, ws.Cell("B2").Style.Border.LeftBorder);
 
-                Assert.AreEqual(XLBorderStyleValues.Thick, ws.Cell("C2").Style.Border.TopBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("C2").Style.Border.RightBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("C2").Style.Border.BottomBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("C2").Style.Border.LeftBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.Thick, ws.Cell("C2").Style.Border.TopBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("C2").Style.Border.RightBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("C2").Style.Border.BottomBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("C2").Style.Border.LeftBorder);
 
-                Assert.AreEqual(XLBorderStyleValues.Thick, ws.Cell("D2").Style.Border.TopBorder);
-                Assert.AreEqual(XLBorderStyleValues.Thick, ws.Cell("D2").Style.Border.RightBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("D2").Style.Border.BottomBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("D2").Style.Border.LeftBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.Thick, ws.Cell("D2").Style.Border.TopBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.Thick, ws.Cell("D2").Style.Border.RightBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("D2").Style.Border.BottomBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("D2").Style.Border.LeftBorder);
 
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("B3").Style.Border.TopBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("B3").Style.Border.RightBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("B3").Style.Border.BottomBorder);
-                Assert.AreEqual(XLBorderStyleValues.Thick, ws.Cell("B3").Style.Border.LeftBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("B3").Style.Border.TopBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("B3").Style.Border.RightBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("B3").Style.Border.BottomBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.Thick, ws.Cell("B3").Style.Border.LeftBorder);
 
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("C3").Style.Border.TopBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("C3").Style.Border.RightBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("C3").Style.Border.BottomBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("C3").Style.Border.LeftBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("C3").Style.Border.TopBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("C3").Style.Border.RightBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("C3").Style.Border.BottomBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("C3").Style.Border.LeftBorder);
 
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("D3").Style.Border.TopBorder);
-                Assert.AreEqual(XLBorderStyleValues.Thick, ws.Cell("D3").Style.Border.RightBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("D3").Style.Border.BottomBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("D3").Style.Border.LeftBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("D3").Style.Border.TopBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.Thick, ws.Cell("D3").Style.Border.RightBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("D3").Style.Border.BottomBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("D3").Style.Border.LeftBorder);
 
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("B4").Style.Border.TopBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("B4").Style.Border.RightBorder);
-                Assert.AreEqual(XLBorderStyleValues.Thick, ws.Cell("B4").Style.Border.BottomBorder);
-                Assert.AreEqual(XLBorderStyleValues.Thick, ws.Cell("B4").Style.Border.LeftBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("B4").Style.Border.TopBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("B4").Style.Border.RightBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.Thick, ws.Cell("B4").Style.Border.BottomBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.Thick, ws.Cell("B4").Style.Border.LeftBorder);
 
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("C4").Style.Border.TopBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("C4").Style.Border.RightBorder);
-                Assert.AreEqual(XLBorderStyleValues.Thick, ws.Cell("C4").Style.Border.BottomBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("C4").Style.Border.LeftBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("C4").Style.Border.TopBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("C4").Style.Border.RightBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.Thick, ws.Cell("C4").Style.Border.BottomBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("C4").Style.Border.LeftBorder);
 
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("D4").Style.Border.TopBorder);
-                Assert.AreEqual(XLBorderStyleValues.Thick, ws.Cell("D4").Style.Border.RightBorder);
-                Assert.AreEqual(XLBorderStyleValues.Thick, ws.Cell("D4").Style.Border.BottomBorder);
-                Assert.AreEqual(XLBorderStyleValues.None, ws.Cell("D4").Style.Border.LeftBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("D4").Style.Border.TopBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.Thick, ws.Cell("D4").Style.Border.RightBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.Thick, ws.Cell("D4").Style.Border.BottomBorder);
+                Assert.AreEqual(XlsxBorderStyleValues.None, ws.Cell("D4").Style.Border.LeftBorder);
             }
         }
 
         [Test]
         public void MergedRangesCellValuesShouldNotBeSet()
         {
-            using (var workbook = new XLWorkbook())
+            using (var workbook = new XlsxWorkbook())
             {
                 var ws = workbook.AddWorksheet();
                 ws.Range("A2:A4").Merge();
@@ -370,7 +376,7 @@ namespace Aid.Xlsx.Tests
                 Assert.AreEqual(1, ws.Cell("B1").Value);
             }
 
-            using (var workbook = new XLWorkbook())
+            using (var workbook = new XlsxWorkbook())
             {
                 var ws = workbook.AddWorksheet();
                 ws.Range("A2:A4").Merge().SetValue(1);
@@ -382,7 +388,7 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void MergedRangesCellFormulasShouldNotBeSet()
         {
-            using (var workbook = new XLWorkbook())
+            using (var workbook = new XlsxWorkbook())
             {
                 var ws = workbook.AddWorksheet();
                 ws.Range("A2:A4").Merge();
@@ -393,7 +399,7 @@ namespace Aid.Xlsx.Tests
                 Assert.AreEqual(1, ws.Cell("B1").Value);
             }
 
-            using (var workbook = new XLWorkbook())
+            using (var workbook = new XlsxWorkbook())
             {
                 var ws = workbook.AddWorksheet();
                 ws.Range("A2:A4").Merge();
@@ -404,7 +410,7 @@ namespace Aid.Xlsx.Tests
                 Assert.AreEqual(1, ws.Cell("B1").Value);
             }
 
-            using (var workbook = new XLWorkbook())
+            using (var workbook = new XlsxWorkbook())
             {
                 var ws = workbook.AddWorksheet();
                 ws.Range("A2:A4").Merge();
@@ -415,7 +421,7 @@ namespace Aid.Xlsx.Tests
                 Assert.AreEqual(1, ws.Cell("B1").Value);
             }
 
-            using (var workbook = new XLWorkbook())
+            using (var workbook = new XlsxWorkbook())
             {
                 var ws = workbook.AddWorksheet();
                 ws.Range("A2:A4").Merge();
@@ -430,7 +436,7 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void MergeSingleCellRangeDoesNothing()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var range = ws.Range(1, 1, 1, 1);
 

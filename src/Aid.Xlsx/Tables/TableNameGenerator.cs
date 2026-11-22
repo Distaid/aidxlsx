@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Aid.Xlsx.Workbooks;
 
-namespace Aid.Xlsx
+namespace Aid.Xlsx.Tables
 {
     internal class TableNameGenerator
     {
@@ -12,7 +10,7 @@ namespace Aid.Xlsx
         /// <param name="workbook">Workbook to generate name for</param>
         /// <param name="baseTableName">"Base Table Name</param>
         /// <returns>Name for the table</returns>
-        internal static string GetNewTableName(IXLWorkbook workbook, string baseTableName = "Table")
+        internal static string GetNewTableName(IXlsxWorkbook workbook, string baseTableName = "Table")
         {
             var existingTableNames = new HashSet<String>(
                 workbook.Worksheets

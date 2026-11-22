@@ -1,7 +1,5 @@
 #nullable disable
 
-using System;
-using System.IO;
 using Aid.Xlsx.Drawings;
 using Aid.Xlsx.Utils;
 
@@ -28,7 +26,7 @@ namespace Aid.Xlsx.Graphics
             return true;
         }
 
-        protected override XLPictureInfo ReadInfo(Stream stream)
+        protected override XlsxPictureInfo ReadInfo(Stream stream)
         {
             stream.Position += MagicBytes.Length;
             var hdrLength = stream.ReadU32BE();
@@ -63,7 +61,7 @@ namespace Aid.Xlsx.Graphics
 
             var dpiX = PixelsPerMeterToDpi(pixelsPerUnitX);
             var dpiY = PixelsPerMeterToDpi(pixelsPerUnitY);
-            return new XLPictureInfo(XLPictureFormat.Png, width, height, dpiX, dpiY);
+            return new XlsxPictureInfo(XlsxPictureFormat.Png, width, height, dpiX, dpiY);
         }
 
         private static uint ReadType(Stream stream) => stream.ReadU32BE();

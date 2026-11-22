@@ -1,8 +1,8 @@
+using System.Collections;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
 using Aid.Xlsx.InsertData;
 using NUnit.Framework;
-using System.Collections;
-using System.Linq;
-using Aid.Xlsx;
 
 namespace Aid.Xlsx.Tests.Excel.InsertData
 {
@@ -64,15 +64,15 @@ namespace Aid.Xlsx.Tests.Excel.InsertData
 
             var result = reader.GetRecords().ToArray();
 
-            Assert.AreEqual(new XLCellValue[] { Blank.Value }, result[0]);
-            Assert.AreEqual(new XLCellValue[] { "Value 2", "Value 1", 4, 3 }, result[1]);
-            Assert.AreEqual(new XLCellValue[] { Blank.Value }, result[2]);
-            Assert.AreEqual(new XLCellValue[] { Blank.Value }, result[3]);
-            Assert.AreEqual(new XLCellValue[] { Blank.Value }, result[4]);
-            Assert.AreEqual(new XLCellValue[] { 1, 2, 3 }, result[5]);
-            Assert.AreEqual(new XLCellValue[] { 4, 5, 6, 7 }, result[6]);
-            Assert.AreEqual(new XLCellValue[] { "Separator" }, result[7]);
-            Assert.AreEqual(new XLCellValue[] { "Value 9", "Value 10" }, result[8]);
+            Assert.AreEqual(new XlsxCellValue[] { Blank.Value }, result[0]);
+            Assert.AreEqual(new XlsxCellValue[] { "Value 2", "Value 1", 4, 3 }, result[1]);
+            Assert.AreEqual(new XlsxCellValue[] { Blank.Value }, result[2]);
+            Assert.AreEqual(new XlsxCellValue[] { Blank.Value }, result[3]);
+            Assert.AreEqual(new XlsxCellValue[] { Blank.Value }, result[4]);
+            Assert.AreEqual(new XlsxCellValue[] { 1, 2, 3 }, result[5]);
+            Assert.AreEqual(new XlsxCellValue[] { 4, 5, 6, 7 }, result[6]);
+            Assert.AreEqual(new XlsxCellValue[] { "Separator" }, result[7]);
+            Assert.AreEqual(new XlsxCellValue[] { "Value 9", "Value 10" }, result[8]);
         }
     }
 }

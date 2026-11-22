@@ -1,8 +1,5 @@
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-
 namespace Aid.Xlsx.CalcEngine.Functions
 {
     /// <summary>
@@ -656,21 +653,21 @@ namespace Aid.Xlsx.CalcEngine.Functions
             {
                 // SERIESSUM doesn't convert logical values to number...
                 if (args[0].IsLogical)
-                    return XLError.IncompatibleValue;
+                    return XlsxError.IncompatibleValue;
 
                 var arg0Converted = ToNumber(args[0], ctx);
                 if (!arg0Converted.TryPickT0(out var arg0, out var err0))
                     return err0;
 
                 if (args[1].IsLogical)
-                    return XLError.IncompatibleValue;
+                    return XlsxError.IncompatibleValue;
 
                 var arg1Converted = ToNumber(args[1], ctx);
                 if (!arg1Converted.TryPickT0(out var arg1, out var err1))
                     return err1;
 
                 if (args[2].IsLogical)
-                    return XLError.IncompatibleValue;
+                    return XlsxError.IncompatibleValue;
 
                 var arg2Converted = ToNumber(args[2], ctx);
                 if (!arg2Converted.TryPickT0(out var arg2, out var err2))
@@ -679,7 +676,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
                 if (args[3].TryPickSingleOrMultiValue(out var scalar, out var arg3, ctx))
                 {
                     if (scalar.IsLogical)
-                        return XLError.IncompatibleValue;
+                        return XlsxError.IncompatibleValue;
 
                     if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out var error))
                         return error;
@@ -960,7 +957,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
         // Each method is named ToSomething and it converts an argument into a desired type (e.g. for ToSomething it should be type Something).
         // Return value is always OneOf<Something, Error>, if there is an error, return it as an error.
 
-        private static OneOf<Boolean, XLError> CoerceToLogical(in AnyValue value, CalcContext ctx)
+        private static OneOf<Boolean, XlsxError> CoerceToLogical(in AnyValue value, CalcContext ctx)
         {
             if (!ToScalarValue(in value, ctx).TryPickT0(out var scalar, out var scalarError))
                 return scalarError;
@@ -973,7 +970,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
             return logical;
         }
 
-        private static OneOf<double, XLError> ToNumber(in AnyValue value, CalcContext ctx)
+        private static OneOf<double, XlsxError> ToNumber(in AnyValue value, CalcContext ctx)
         {
             if (value.TryPickScalar(out var scalar, out var collection))
                 return scalar.ToNumber(ctx.Culture);
@@ -988,7 +985,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
             throw new NotImplementedException("Array formulas not implemented.");
         }
 
-        private static OneOf<string, XLError> ToText(in AnyValue value, CalcContext ctx)
+        private static OneOf<string, XlsxError> ToText(in AnyValue value, CalcContext ctx)
         {
             if (value.TryPickScalar(out var scalar, out var collection))
                 return scalar.ToText(ctx.Culture);
@@ -1002,7 +999,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
             throw new NotImplementedException("Array formulas not implemented.");
         }
 
-        private static OneOf<ScalarValue, XLError> ToScalarValue(in AnyValue value, CalcContext ctx)
+        private static OneOf<ScalarValue, XlsxError> ToScalarValue(in AnyValue value, CalcContext ctx)
         {
             if (value.TryPickScalar(out var scalar, out var collection))
                 return scalar;
@@ -1013,10 +1010,10 @@ namespace Aid.Xlsx.CalcEngine.Functions
             if (reference.TryGetSingleCellValue(out var referenceScalar, ctx))
                 return referenceScalar;
 
-            return OneOf<ScalarValue, XLError>.FromT1(XLError.IncompatibleValue);
+            return OneOf<ScalarValue, XlsxError>.FromT1(XlsxError.IncompatibleValue);
         }
 
-        private static OneOf<List<(AnyValue Range, ScalarValue Criteria)>, XLError> ToCriteria(CalcContext ctx, ReadOnlySpan<AnyValue> args)
+        private static OneOf<List<(AnyValue Range, ScalarValue Criteria)>, XlsxError> ToCriteria(CalcContext ctx, ReadOnlySpan<AnyValue> args)
         {
             var allCriteria = new List<(AnyValue Range, ScalarValue Criteria)>();
             var pairCount = (args.Length + 1) / 2;

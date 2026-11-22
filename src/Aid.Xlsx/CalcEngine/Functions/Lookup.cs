@@ -1,10 +1,9 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Ranges;
 using static Aid.Xlsx.CalcEngine.Functions.SignatureAdapter;
 
 namespace Aid.Xlsx.CalcEngine.Functions
@@ -73,23 +72,23 @@ namespace Aid.Xlsx.CalcEngine.Functions
                 lookupValue = 0;
 
             if (lookupValue.TryPickText(out var lookupText, out _) && lookupText.Length > 255)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             if (rangeValue.TryPickScalar(out _, out var range))
-                return XLError.NoValueAvailable;
+                return XlsxError.NoValueAvailable;
             if (!range.TryPickT0(out var array, out var reference))
             {
                 if (reference.Areas.Count > 1)
-                    return XLError.NoValueAvailable;
+                    return XlsxError.NoValueAvailable;
 
                 array = new ReferenceArray(reference.Areas.Single(), ctx);
             }
 
             var rowIndex = (int)Math.Truncate(rowNumber) - 1;
             if (rowIndex < 0)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
             if (rowIndex >= array.Height)
-                return XLError.CellReference;
+                return XlsxError.CellReference;
 
             if (approximateSearchFlag)
             {
@@ -97,7 +96,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
                 var transposedArray = new TransposedArray(array);
                 var foundColumn = Bisection(ctx, transposedArray, lookupValue);
                 if (foundColumn == -1)
-                    return XLError.NoValueAvailable;
+                    return XlsxError.NoValueAvailable;
 
                 return array[rowIndex, foundColumn].ToAnyValue();
             }
@@ -115,7 +114,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
                         return array[rowIndex, columnIndex].ToAnyValue();
                 }
 
-                return XLError.NoValueAvailable;
+                return XlsxError.NoValueAvailable;
             }
         }
 
@@ -128,18 +127,18 @@ namespace Aid.Xlsx.CalcEngine.Functions
         {
             var areaNumber = p.Count > 2 ? p[2] : 1;
             if (areaNumber < 1)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             if (!value.IsReference && areaNumber > 1)
-                return XLError.CellReference;
+                return XlsxError.CellReference;
 
             // There must be two paths, one for array and one for reference. Reference path
             // must return reference, so it behaves correctly with implicit intersection.
-            OneOf<XLRangeAddress, Array> data;
+            OneOf<XlsxRangeAddress, Array> data;
             if (value.TryPickScalar(out var scalar, out var collection))
             {
                 if (scalar.IsBlank)
-                    return XLError.IncompatibleValue;
+                    return XlsxError.IncompatibleValue;
 
                 data = new ScalarArray(scalar, 1, 1);
             }
@@ -150,7 +149,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
             else
             {
                 if (areaNumber > reference.Areas.Count)
-                    return XLError.CellReference;
+                    return XlsxError.CellReference;
 
                 data = reference.Areas[areaNumber - 1];
             }
@@ -177,16 +176,16 @@ namespace Aid.Xlsx.CalcEngine.Functions
 
             // Check the bounded values
             if (rowNumber < 0 || colNumber < 0)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             if (rowNumber > height || colNumber > width)
-                return XLError.CellReference;
+                return XlsxError.CellReference;
 
             return data.TryPickT0(out var area, out var array)
                 ? IndexArea(area, rowNumber, colNumber)
                 : IndexArray(array, rowNumber, colNumber);
 
-            static Reference IndexArea(XLRangeAddress area, int rowNumber, int colNumber)
+            static Reference IndexArea(XlsxRangeAddress area, int rowNumber, int colNumber)
             {
                 // Return whole area
                 if (rowNumber == 0 && colNumber == 0)
@@ -195,23 +194,23 @@ namespace Aid.Xlsx.CalcEngine.Functions
                 // Return one column at colNumber
                 if (rowNumber == 0)
                 {
-                    var topCell = new XLAddress(area.Worksheet, area.FirstAddress.RowNumber, area.FirstAddress.ColumnNumber + colNumber - 1, true, true);
-                    var bottomCell = new XLAddress(area.Worksheet, area.LastAddress.RowNumber, area.FirstAddress.ColumnNumber + colNumber - 1, true, true);
-                    return new Reference(new XLRangeAddress(topCell, bottomCell));
+                    var topCell = new XlsxAddress(area.Worksheet, area.FirstAddress.RowNumber, area.FirstAddress.ColumnNumber + colNumber - 1, true, true);
+                    var bottomCell = new XlsxAddress(area.Worksheet, area.LastAddress.RowNumber, area.FirstAddress.ColumnNumber + colNumber - 1, true, true);
+                    return new Reference(new XlsxRangeAddress(topCell, bottomCell));
                 }
 
                 // Return one row at rowNumber
                 if (colNumber == 0)
                 {
-                    var leftCell = new XLAddress(area.Worksheet, area.FirstAddress.RowNumber + rowNumber - 1, area.FirstAddress.ColumnNumber, true, true);
-                    var rightCell = new XLAddress(area.Worksheet, area.FirstAddress.RowNumber + rowNumber - 1, area.LastAddress.ColumnNumber, true, true);
-                    return new Reference(new XLRangeAddress(leftCell, rightCell));
+                    var leftCell = new XlsxAddress(area.Worksheet, area.FirstAddress.RowNumber + rowNumber - 1, area.FirstAddress.ColumnNumber, true, true);
+                    var rightCell = new XlsxAddress(area.Worksheet, area.FirstAddress.RowNumber + rowNumber - 1, area.LastAddress.ColumnNumber, true, true);
+                    return new Reference(new XlsxRangeAddress(leftCell, rightCell));
                 }
 
                 // Return single cell reference.
                 var areaCorner = area.FirstAddress;
-                var cellAddress = new XLAddress(area.Worksheet, areaCorner.RowNumber + rowNumber - 1, areaCorner.ColumnNumber + colNumber - 1, true, true);
-                return new Reference(new XLRangeAddress(cellAddress, cellAddress));
+                var cellAddress = new XlsxAddress(area.Worksheet, areaCorner.RowNumber + rowNumber - 1, areaCorner.ColumnNumber + colNumber - 1, true, true);
+                return new Reference(new XlsxRangeAddress(cellAddress, cellAddress));
             }
 
             static AnyValue IndexArray(Array array, int rowNumber, int colNumber)
@@ -236,13 +235,13 @@ namespace Aid.Xlsx.CalcEngine.Functions
         private static ScalarValue Match(CalcContext ctx, ScalarValue target, AnyValue lookupArray, int matchType)
         {
             if (target.IsBlank)
-                return XLError.NoValueAvailable;
+                return XlsxError.NoValueAvailable;
 
             if (target.TryPickError(out var error))
                 return error;
 
             if (!lookupArray.TryPickCollectionArray(out var array, ctx))
-                return XLError.NoValueAvailable;
+                return XlsxError.NoValueAvailable;
 
             // Match only supports arrays with one row or one column.
             // Normalize to an array with one column in both cases.
@@ -250,7 +249,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
                 array = new TransposedArray(array);
 
             if (array.Width != 1)
-                return XLError.NoValueAvailable;
+                return XlsxError.NoValueAvailable;
 
             var index = matchType switch
             {
@@ -260,7 +259,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
             };
 
             if (index < 0)
-                return XLError.NoValueAvailable;
+                return XlsxError.NoValueAvailable;
 
             return index + 1;
 
@@ -432,30 +431,30 @@ namespace Aid.Xlsx.CalcEngine.Functions
                 lookupValue = 0;
 
             if (lookupValue.TryPickText(out var lookupText, out _) && lookupText.Length > 255)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             if (rangeValue.TryPickScalar(out _, out var range))
-                return XLError.NoValueAvailable;
+                return XlsxError.NoValueAvailable;
             if (!range.TryPickT0(out var array, out var reference))
             {
                 if (reference.Areas.Count > 1)
-                    return XLError.NoValueAvailable;
+                    return XlsxError.NoValueAvailable;
 
                 array = new ReferenceArray(reference.Areas.Single(), ctx);
             }
 
             var columnIdx = (int)Math.Truncate(columnNumber) - 1;
             if (columnIdx < 0)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
             if (columnIdx >= array.Width)
-                return XLError.CellReference;
+                return XlsxError.CellReference;
 
             if (approximateSearchFlag)
             {
                 // Bisection in Excel and here differs, so we return different values for unsorted ranges, but same values for sorted ranges.
                 var foundRow = Bisection(ctx, array, lookupValue);
                 if (foundRow == -1)
-                    return XLError.NoValueAvailable;
+                    return XlsxError.NoValueAvailable;
 
                 return array[foundRow, columnIdx].ToAnyValue();
             }
@@ -473,7 +472,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
                         return array[rowIndex, columnIdx].ToAnyValue();
                 }
 
-                return XLError.NoValueAvailable;
+                return XlsxError.NoValueAvailable;
             }
         }
 
@@ -602,10 +601,10 @@ namespace Aid.Xlsx.CalcEngine.Functions
                 return 1;
 
             if (value.IsBlank)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             // Only thing left, if reference has multiple areas
-            return XLError.CellReference;
+            return XlsxError.CellReference;
         }
     }
 }

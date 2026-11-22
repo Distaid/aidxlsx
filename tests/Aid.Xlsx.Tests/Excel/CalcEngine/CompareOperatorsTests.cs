@@ -1,4 +1,6 @@
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine
@@ -16,7 +18,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("\"tExT\"=\"TeXt\"", true)]
         [TestCase("\"text\"=\"text\"", true)]
         [TestCase("\"\"=\"\"", true)]
-        [TestCase("#VALUE!=#VALUE!", XLError.IncompatibleValue)]
+        [TestCase("#VALUE!=#VALUE!", XlsxError.IncompatibleValue)]
         [TestCase("A1=B1", true)] // blanks are equal
         public void EqualTo_WithSameType(string formula, object expectedValue)
         {
@@ -33,7 +35,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("\"tExT\"<>\"TeXt\"", false)]
         [TestCase("\"text\"<>\"text\"", false)]
         [TestCase("\"\"<>\"\"", false)]
-        [TestCase("#VALUE!<>#VALUE!", XLError.IncompatibleValue)]
+        [TestCase("#VALUE!<>#VALUE!", XlsxError.IncompatibleValue)]
         [TestCase("A1<>B1", false)] // blanks are equal
         public void NotEqualTo_WithSameType(string formula, object expectedValue)
         {
@@ -48,7 +50,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("TRUE>FALSE", true)]
         [TestCase("\"text\">\"text\"", false)]
         [TestCase("\"texu\">\"text\"", true)]
-        [TestCase("#VALUE!>#REF!", XLError.IncompatibleValue)]
+        [TestCase("#VALUE!>#REF!", XlsxError.IncompatibleValue)]
         [TestCase("A1>A2", false)]
         public void GreaterThen_WithSameType(string formula, object expectedValue)
         {
@@ -63,7 +65,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("TRUE>=FALSE", true)]
         [TestCase("\"text\">=\"text\"", true)]
         [TestCase("\"texu\">=\"text\"", true)]
-        [TestCase("#VALUE!>=#REF!", XLError.IncompatibleValue)]
+        [TestCase("#VALUE!>=#REF!", XlsxError.IncompatibleValue)]
         [TestCase("A1>=A2", true)]
         public void GreaterThenOrEqual_WithSameType(string formula, object expectedValue)
         {
@@ -80,7 +82,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("FALSE<TRUE", true)]
         [TestCase("\"text\"<\"text\"", false)]
         [TestCase("\"text\"<\"texu\"", true)]
-        [TestCase("#VALUE!<#REF!", XLError.IncompatibleValue)]
+        [TestCase("#VALUE!<#REF!", XlsxError.IncompatibleValue)]
         [TestCase("A1<A2", false)]
         public void LessThen_WithSameType(string formula, object expectedValue)
         {
@@ -97,7 +99,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("FALSE<=TRUE", true)]
         [TestCase("\"text\"<=\"text\"", true)]
         [TestCase("\"text\"<=\"texu\"", true)]
-        [TestCase("#VALUE!<=#REF!", XLError.IncompatibleValue)]
+        [TestCase("#VALUE!<=#REF!", XlsxError.IncompatibleValue)]
         [TestCase("A1<=A2", true)]
         public void LessThenOrEqual_WithSameType(string formula, object expectedValue)
         {
@@ -139,7 +141,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("10<\"1\"", true)]
         public void Comparison_TextIsAlwaysGreaterThanAnyNumber(string formula, bool expectedResult)
         {
-            Assert.AreEqual(expectedResult, XLWorkbook.EvaluateExpr(formula));
+            Assert.AreEqual(expectedResult, XlsxWorkbook.EvaluateExpr(formula));
         }
 
         [TestCase("FALSE=A1")]
@@ -153,9 +155,9 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
             Assert.AreEqual(true, Evaluate(formula));
         }
 
-        private static XLCellValue Evaluate(string formula)
+        private static XlsxCellValue Evaluate(string formula)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             return ws.Evaluate(formula);
         }

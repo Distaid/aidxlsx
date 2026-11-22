@@ -1,9 +1,9 @@
 #nullable disable
 
-using System;
 using System.Globalization;
-using System.Linq;
 using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Utils;
 using CollectionValue = Aid.Xlsx.CalcEngine.OneOf<Aid.Xlsx.CalcEngine.Array, Aid.Xlsx.CalcEngine.Reference>;
 
 namespace Aid.Xlsx.CalcEngine
@@ -25,11 +25,11 @@ namespace Aid.Xlsx.CalcEngine
         private readonly bool _logical;
         private readonly double _number;
         private readonly string _text;
-        private readonly XLError _error;
+        private readonly XlsxError _error;
         private readonly Array _array;
         private readonly Reference _reference;
 
-        private AnyValue(byte index, bool logical, double number, string text, XLError error, Array array, Reference reference)
+        private AnyValue(byte index, bool logical, double number, string text, XlsxError error, Array array, Reference reference)
         {
             _index = index;
             _logical = logical;
@@ -57,7 +57,7 @@ namespace Aid.Xlsx.CalcEngine
             return new AnyValue(TextValue, default, default, text, default, default, default);
         }
 
-        public static AnyValue From(XLError error) => new(ErrorValue, default, default, default, error, default, default);
+        public static AnyValue From(XlsxError error) => new(ErrorValue, default, default, default, error, default, default);
 
         public static AnyValue From(Array array)
         {
@@ -81,7 +81,7 @@ namespace Aid.Xlsx.CalcEngine
 
         public static implicit operator AnyValue(string text) => From(text);
 
-        public static implicit operator AnyValue(XLError error) => From(error);
+        public static implicit operator AnyValue(XlsxError error) => From(error);
 
         public static implicit operator AnyValue(Array array) => From(array);
 
@@ -126,7 +126,7 @@ namespace Aid.Xlsx.CalcEngine
             return _index <= ErrorValue;
         }
 
-        public bool TryPickError(out XLError error)
+        public bool TryPickError(out XlsxError error)
         {
             if (_index == ErrorValue)
             {
@@ -150,7 +150,7 @@ namespace Aid.Xlsx.CalcEngine
             return false;
         }
 
-        public bool TryPickReference(out Reference reference, out XLError error)
+        public bool TryPickReference(out Reference reference, out XlsxError error)
         {
             if (_index == ReferenceValue)
             {
@@ -160,7 +160,7 @@ namespace Aid.Xlsx.CalcEngine
             }
 
             reference = default;
-            error = _index == ErrorValue ? _error : XLError.IncompatibleValue;
+            error = _index == ErrorValue ? _error : XlsxError.IncompatibleValue;
             return false;
         }
 
@@ -170,19 +170,19 @@ namespace Aid.Xlsx.CalcEngine
         /// <param name="area">The found area.</param>
         /// <param name="error">Original error, if the value is error, <c>#VALUE!</c> if type is not a reference or #REF! if more than one area in the reference.</param>
         /// <returns>True if area could be determined, false otherwise.</returns>
-        public bool TryPickArea(out XLRangeAddress area, out XLError error)
+        public bool TryPickArea(out XlsxRangeAddress area, out XlsxError error)
         {
             if (_index != ReferenceValue)
             {
                 area = default;
-                error = _index == ErrorValue ? _error : XLError.IncompatibleValue;
+                error = _index == ErrorValue ? _error : XlsxError.IncompatibleValue;
                 return false;
             }
 
             if (_reference.Areas.Count > 1)
             {
                 area = default;
-                error = XLError.CellReference;
+                error = XlsxError.CellReference;
                 return false;
             }
 
@@ -216,7 +216,7 @@ namespace Aid.Xlsx.CalcEngine
         /// </para>
         /// <para>
         /// Single cell references are turned into a scalar, multi-area references are turned
-        /// into <see cref="XLError.IncompatibleValue"/> and single-area references are turned
+        /// into <see cref="XlsxError.IncompatibleValue"/> and single-area references are turned
         /// into arrays.
         /// </para>
         /// </summary>
@@ -246,7 +246,7 @@ namespace Aid.Xlsx.CalcEngine
 
             if (reference.Areas.Count > 1)
             {
-                scalar = XLError.IncompatibleValue;
+                scalar = XlsxError.IncompatibleValue;
                 return true;
             }
 
@@ -254,7 +254,7 @@ namespace Aid.Xlsx.CalcEngine
             return false;
         }
 
-        public TResult Match<TResult>(Func<TResult> transformBlank, Func<bool, TResult> transformLogical, Func<double, TResult> transformNumber, Func<string, TResult> transformText, Func<XLError, TResult> transformError, Func<Array, TResult> transformArray, Func<Reference, TResult> transformReference)
+        public TResult Match<TResult>(Func<TResult> transformBlank, Func<bool, TResult> transformLogical, Func<double, TResult> transformNumber, Func<string, TResult> transformText, Func<XlsxError, TResult> transformError, Func<Array, TResult> transformArray, Func<Reference, TResult> transformReference)
         {
             return _index switch
             {
@@ -331,13 +331,13 @@ namespace Aid.Xlsx.CalcEngine
             return Reference.UnionOp(leftReference, rightReference);
         }
 
-        private static OneOf<Reference, XLError> ConvertToReference(in AnyValue value)
+        private static OneOf<Reference, XlsxError> ConvertToReference(in AnyValue value)
         {
             return value._index switch
             {
                 ReferenceValue => value._reference,
                 ErrorValue => value._error,
-                _ => XLError.IncompatibleValue
+                _ => XlsxError.IncompatibleValue
             };
         }
 
@@ -407,7 +407,7 @@ namespace Aid.Xlsx.CalcEngine
         {
             return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
             {
-                return BinaryArithmeticOp(in leftItem, in rightItem, static (lhs, rhs) => rhs == 0.0 ? XLError.DivisionByZero : lhs / rhs, ctx);
+                return BinaryArithmeticOp(in leftItem, in rightItem, static (lhs, rhs) => rhs == 0.0 ? XlsxError.DivisionByZero : lhs / rhs, ctx);
             }, context);
         }
 
@@ -415,7 +415,7 @@ namespace Aid.Xlsx.CalcEngine
         {
             return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
             {
-                return BinaryArithmeticOp(in leftItem, in rightItem, static (lhs, rhs) => lhs == 0 && rhs == 0 ? XLError.NumberInvalid : Math.Pow(lhs, rhs), ctx);
+                return BinaryArithmeticOp(in leftItem, in rightItem, static (lhs, rhs) => lhs == 0 && rhs == 0 ? XlsxError.NumberInvalid : Math.Pow(lhs, rhs), ctx);
             }, context);
         }
 
@@ -497,8 +497,8 @@ namespace Aid.Xlsx.CalcEngine
                 if (!rightTextResult.TryPickT0(out var rightText, out var rightError))
                     return rightError;
 
-                if ((long)leftText.Length + rightText.Length > XLHelper.CellTextLimit)
-                    return XLError.IncompatibleValue;
+                if ((long)leftText.Length + rightText.Length > XlsxHelper.CellTextLimit)
+                    return XlsxError.IncompatibleValue;
 
                 return leftText + rightText;
             }, context);
@@ -575,28 +575,28 @@ namespace Aid.Xlsx.CalcEngine
         ///     Return 1 (positive) if left greater than left
         ///     Return 0 if both operands are considered equal.
         /// </returns>
-        private static OneOf<int, XLError> CompareValues(ScalarValue left, ScalarValue right, CultureInfo culture)
+        private static OneOf<int, XlsxError> CompareValues(ScalarValue left, ScalarValue right, CultureInfo culture)
         {
             return left.Match(culture,
-                _ => right.Match<OneOf<int, XLError>, CultureInfo>(culture,
+                _ => right.Match<OneOf<int, XlsxError>, CultureInfo>(culture,
                         _ => 0,
                         (rightLogical, _) => false.CompareTo(rightLogical),
                         (rightNumber, _) => 0.0.CompareTo(rightNumber),
                         (rightText, culture) => string.Compare(string.Empty, rightText, culture, CompareOptions.IgnoreCase),
                         (rightError, _) => rightError),
-                (leftLogical, _) => right.Match<OneOf<int, XLError>, bool>(leftLogical,
+                (leftLogical, _) => right.Match<OneOf<int, XlsxError>, bool>(leftLogical,
                         leftLogical => leftLogical.CompareTo(false),
                         (rightLogical, leftLogical) => leftLogical.CompareTo(rightLogical),
                         (rightNumber, _) => 1,
                         (rightText, _) => 1,
                         (rightError, _) => rightError),
-                (leftNumber, _) => right.Match<OneOf<int, XLError>, double>(leftNumber,
+                (leftNumber, _) => right.Match<OneOf<int, XlsxError>, double>(leftNumber,
                         leftNumber => leftNumber.CompareTo(0.0),
                         (rightLogical, _) => -1,
                         (rightNumber, leftNumber) => leftNumber.CompareTo(rightNumber),
                         (rightText, _) => -1,
                         (rightError, _) => rightError),
-                (leftText, culture) => right.Match<OneOf<int, XLError>, string, CultureInfo>(leftText, culture,
+                (leftText, culture) => right.Match<OneOf<int, XlsxError>, string, CultureInfo>(leftText, culture,
                         (leftText, culture) => string.Compare(leftText, string.Empty, culture, CompareOptions.IgnoreCase),
                         (rightLogical, _, _) => -1,
                         (rightNumber, _, _) => 1,
@@ -645,7 +645,7 @@ namespace Aid.Xlsx.CalcEngine
         /// <exception cref="InvalidCastException" />
         public Array GetArray() => _index == ArrayValue ? _array : throw new InvalidCastException();
 
-        private delegate OneOf<double, XLError> BinaryNumberFunc(double lhs, double rhs);
+        private delegate OneOf<double, XlsxError> BinaryNumberFunc(double lhs, double rhs);
     }
 
     internal delegate ScalarValue BinaryFunc(in ScalarValue lhs, in ScalarValue rhs, CalcContext ctx);

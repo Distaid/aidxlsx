@@ -1,4 +1,6 @@
-using Aid.Xlsx;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.Cells
@@ -9,7 +11,7 @@ namespace Aid.Xlsx.Tests.Excel.Cells
         [Test]
         public void Deleting_worksheet_dereferences_all_texts_in_its_value_slice()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sst = wb.SharedStringTable;
             var keptWs = wb.AddWorksheet();
             var removedWs = wb.AddWorksheet();
@@ -28,7 +30,7 @@ namespace Aid.Xlsx.Tests.Excel.Cells
         [Test]
         public void Clear_dereferences_texts_in_the_range()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sst = wb.SharedStringTable;
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = "Double referenced text";
@@ -36,7 +38,7 @@ namespace Aid.Xlsx.Tests.Excel.Cells
             ws.Cell("C2").Value = "Single referenced text";
 
             Assert.AreEqual(2, sst.Count);
-            ((XLWorksheet)ws).Internals.CellsCollection.ValueSlice.Clear(new Area(2, 2, 2, 3));
+            ((XlsxWorksheet)ws).Internals.CellsCollection.ValueSlice.Clear(new Area(2, 2, 2, 3));
             Assert.AreEqual(1, sst.Count);
             Assert.AreEqual("Double referenced text", ws.Cell("A1").Value);
         }
@@ -44,7 +46,7 @@ namespace Aid.Xlsx.Tests.Excel.Cells
         [Test]
         public void DeleteAreaAndShiftLeft_dereferences_all_texts_deleted_area()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sst = wb.SharedStringTable;
             var ws = wb.AddWorksheet();
             ws.Cell("B2").Value = "Deleted Single Reference"; // id 0
@@ -52,7 +54,7 @@ namespace Aid.Xlsx.Tests.Excel.Cells
             ws.Cell("B1").Value = "Kept Double Reference"; // id 2
             ws.Cell("C3").Value = "Kept Double Reference"; // id 2
 
-            ((XLWorksheet)ws).Internals.CellsCollection.ValueSlice.DeleteAreaAndShiftLeft(new Area(2, 2, 3, 3));
+            ((XlsxWorksheet)ws).Internals.CellsCollection.ValueSlice.DeleteAreaAndShiftLeft(new Area(2, 2, 3, 3));
 
             Assert.AreEqual(2, sst.Count);
             Assert.AreEqual("Kept Single Reference", sst[1]);
@@ -62,7 +64,7 @@ namespace Aid.Xlsx.Tests.Excel.Cells
         [Test]
         public void DeleteAreaAndShiftUp_dereferences_all_texts_deleted_area()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sst = wb.SharedStringTable;
             var ws = wb.AddWorksheet();
             ws.Cell("B2").Value = "Deleted Single Reference"; // id 0
@@ -70,7 +72,7 @@ namespace Aid.Xlsx.Tests.Excel.Cells
             ws.Cell("A2").Value = "Kept Double Reference"; // id 2
             ws.Cell("C3").Value = "Kept Double Reference"; // id 2
 
-            ((XLWorksheet)ws).Internals.CellsCollection.ValueSlice.DeleteAreaAndShiftLeft(new Area(2, 2, 3, 3));
+            ((XlsxWorksheet)ws).Internals.CellsCollection.ValueSlice.DeleteAreaAndShiftLeft(new Area(2, 2, 3, 3));
 
             Assert.AreEqual(2, sst.Count);
             Assert.AreEqual("Kept Single Reference", sst[1]);
@@ -80,7 +82,7 @@ namespace Aid.Xlsx.Tests.Excel.Cells
         [Test]
         public void InsertAreaAndShiftDown_dereferences_all_texts_in_pushed_out_range()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sst = wb.SharedStringTable;
             var ws = wb.AddWorksheet();
 
@@ -88,7 +90,7 @@ namespace Aid.Xlsx.Tests.Excel.Cells
             ws.Cell("C1048576").Value = "Deleted Single Reference"; // id 1
             ws.Cell("B1048574").Value = "Kept Double Reference"; // id 2
             ws.Cell("B1048576").Value = "Kept Double Reference"; // id 2
-            ((XLWorksheet)ws).Internals.CellsCollection.ValueSlice.InsertAreaAndShiftDown(new Area(3, 2, 4, 3));
+            ((XlsxWorksheet)ws).Internals.CellsCollection.ValueSlice.InsertAreaAndShiftDown(new Area(3, 2, 4, 3));
 
             Assert.AreEqual(2, sst.Count);
             Assert.AreEqual("Kept Single Reference", sst[0]);
@@ -98,7 +100,7 @@ namespace Aid.Xlsx.Tests.Excel.Cells
         [Test]
         public void InsertAreaAndShiftRight_dereferences_all_texts_in_pushed_out_range()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sst = wb.SharedStringTable;
             var ws = wb.AddWorksheet();
 
@@ -106,7 +108,7 @@ namespace Aid.Xlsx.Tests.Excel.Cells
             ws.Cell("XFD2").Value = "Deleted Single Reference"; // id 1
             ws.Cell("XFD3").Value = "Kept Double Reference"; // id 2
             ws.Cell("XFB3").Value = "Kept Double Reference"; // id 2
-            ((XLWorksheet)ws).Internals.CellsCollection.ValueSlice.InsertAreaAndShiftRight(new Area(2, 3, 3, 4));
+            ((XlsxWorksheet)ws).Internals.CellsCollection.ValueSlice.InsertAreaAndShiftRight(new Area(2, 3, 3, 4));
 
             Assert.AreEqual(2, sst.Count);
             Assert.AreEqual("Kept Single Reference", sst[0]);

@@ -1,4 +1,6 @@
 using System.ComponentModel;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
 
 namespace Aid.Xlsx.InsertData;
 
@@ -7,7 +9,7 @@ namespace Aid.Xlsx.InsertData;
 public static class TableMapperRegistry
 {
     /// <summary>Registers a mapper for <typeparamref name="T"/>.</summary>
-    public static void Register<T>(string? tableName, string[] headers, string?[] formats, Func<T, int, XLCellValue> read)
+    public static void Register<T>(string? tableName, string[] headers, string?[] formats, Func<T, int, XlsxCellValue> read)
     {
         ArgumentNullException.ThrowIfNull(headers);
         ArgumentNullException.ThrowIfNull(formats);
@@ -21,7 +23,7 @@ public static class TableMapperRegistry
     }
 }
 
-internal sealed record TableRowMap<T>(string? TableName, string[] Headers, string?[] Formats, Func<T, int, XLCellValue> Read)
+internal sealed record TableRowMap<T>(string? TableName, string[] Headers, string?[] Formats, Func<T, int, XlsxCellValue> Read)
 {
     internal static TableRowMap<T>? Registered;
 
@@ -37,13 +39,13 @@ internal sealed class MappedDataReader<T>(IEnumerable<T> data, TableRowMap<T> ma
 
     public string? GetNumberFormat(int propertyIndex) => mapper.Formats[propertyIndex];
 
-    public IEnumerable<IEnumerable<XLCellValue>> GetRecords()
+    public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
     {
         foreach (var item in data)
             yield return ReadRow(item);
     }
 
-    private IEnumerable<XLCellValue> ReadRow(T item)
+    private IEnumerable<XlsxCellValue> ReadRow(T item)
     {
         for (var i = 0; i < mapper.Headers.Length; i++)
             yield return item is null ? Blank.Value : mapper.Read(item, i);

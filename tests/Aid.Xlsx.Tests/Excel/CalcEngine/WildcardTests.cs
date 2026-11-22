@@ -1,4 +1,3 @@
-using System;
 using Aid.Xlsx.CalcEngine;
 using NUnit.Framework;
 

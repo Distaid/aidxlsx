@@ -1,7 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Aid.Xlsx.Opc;
+using Aid.Xlsx.RichText;
+using Aid.Xlsx.Styles;
 using Aid.Xlsx.Utils;
 
 namespace Aid.Xlsx.Internal.IO;
@@ -51,120 +51,120 @@ internal sealed class XmlToEnumMapper : IEnumMapper
         var builder = new Builder();
 
         // ST_FontScheme
-        builder.Add(new BiDictionary<string, XLFontScheme>
+        builder.Add(new BiDictionary<string, XlsxFontScheme>
         {
-            { "none", XLFontScheme.None },
-            { "major", XLFontScheme.Major },
-            { "minor", XLFontScheme.Minor },
+            { "none", XlsxFontScheme.None },
+            { "major", XlsxFontScheme.Major },
+            { "minor", XlsxFontScheme.Minor },
         });
 
         // ST_UnderlineValues
-        builder.Add(new BiDictionary<string, XLFontUnderlineValues>
+        builder.Add(new BiDictionary<string, XlsxFontUnderlineValues>
         {
-            { "double", XLFontUnderlineValues.Double },
-            { "doubleAccounting", XLFontUnderlineValues.DoubleAccounting },
-            { "none", XLFontUnderlineValues.None },
-            { "single", XLFontUnderlineValues.Single },
-            { "singleAccounting", XLFontUnderlineValues.SingleAccounting },
+            { "double", XlsxFontUnderlineValues.Double },
+            { "doubleAccounting", XlsxFontUnderlineValues.DoubleAccounting },
+            { "none", XlsxFontUnderlineValues.None },
+            { "single", XlsxFontUnderlineValues.Single },
+            { "singleAccounting", XlsxFontUnderlineValues.SingleAccounting },
         });
 
         // ST_VerticalAlignRun
-        builder.Add(new BiDictionary<string, XLFontVerticalTextAlignmentValues>
+        builder.Add(new BiDictionary<string, XlsxFontVerticalTextAlignmentValues>
         {
-            { "baseline", XLFontVerticalTextAlignmentValues.Baseline },
-            { "subscript", XLFontVerticalTextAlignmentValues.Subscript },
-            { "superscript", XLFontVerticalTextAlignmentValues.Superscript },
+            { "baseline", XlsxFontVerticalTextAlignmentValues.Baseline },
+            { "subscript", XlsxFontVerticalTextAlignmentValues.Subscript },
+            { "superscript", XlsxFontVerticalTextAlignmentValues.Superscript },
         });
 
         // ST_PatternType
-        builder.Add(new BiDictionary<string, XLFillPatternValues>
+        builder.Add(new BiDictionary<string, XlsxFillPatternValues>
         {
-            { "none", XLFillPatternValues.None },
-            { "solid", XLFillPatternValues.Solid },
-            { "mediumGray", XLFillPatternValues.MediumGray },
-            { "darkGray", XLFillPatternValues.DarkGray },
-            { "lightGray", XLFillPatternValues.LightGray },
-            { "darkHorizontal", XLFillPatternValues.DarkHorizontal },
-            { "darkVertical", XLFillPatternValues.DarkVertical },
-            { "darkDown", XLFillPatternValues.DarkDown },
-            { "darkUp", XLFillPatternValues.DarkUp },
-            { "darkGrid", XLFillPatternValues.DarkGrid },
-            { "darkTrellis", XLFillPatternValues.DarkTrellis },
-            { "lightHorizontal", XLFillPatternValues.LightHorizontal },
-            { "lightVertical", XLFillPatternValues.LightVertical },
-            { "lightDown", XLFillPatternValues.LightDown },
-            { "lightUp", XLFillPatternValues.LightUp },
-            { "lightGrid", XLFillPatternValues.LightGrid },
-            { "lightTrellis", XLFillPatternValues.LightTrellis },
-            { "gray125", XLFillPatternValues.Gray125 },
-            { "gray0625", XLFillPatternValues.Gray0625 },
+            { "none", XlsxFillPatternValues.None },
+            { "solid", XlsxFillPatternValues.Solid },
+            { "mediumGray", XlsxFillPatternValues.MediumGray },
+            { "darkGray", XlsxFillPatternValues.DarkGray },
+            { "lightGray", XlsxFillPatternValues.LightGray },
+            { "darkHorizontal", XlsxFillPatternValues.DarkHorizontal },
+            { "darkVertical", XlsxFillPatternValues.DarkVertical },
+            { "darkDown", XlsxFillPatternValues.DarkDown },
+            { "darkUp", XlsxFillPatternValues.DarkUp },
+            { "darkGrid", XlsxFillPatternValues.DarkGrid },
+            { "darkTrellis", XlsxFillPatternValues.DarkTrellis },
+            { "lightHorizontal", XlsxFillPatternValues.LightHorizontal },
+            { "lightVertical", XlsxFillPatternValues.LightVertical },
+            { "lightDown", XlsxFillPatternValues.LightDown },
+            { "lightUp", XlsxFillPatternValues.LightUp },
+            { "lightGrid", XlsxFillPatternValues.LightGrid },
+            { "lightTrellis", XlsxFillPatternValues.LightTrellis },
+            { "gray125", XlsxFillPatternValues.Gray125 },
+            { "gray0625", XlsxFillPatternValues.Gray0625 },
         });
 
         // ST_BorderStyle
-        builder.Add(new BiDictionary<string, XLBorderStyleValues>
+        builder.Add(new BiDictionary<string, XlsxBorderStyleValues>
         {
-            { "none", XLBorderStyleValues.None },
-            { "thin", XLBorderStyleValues.Thin },
-            { "medium", XLBorderStyleValues.Medium },
-            { "dashed", XLBorderStyleValues.Dashed },
-            { "dotted", XLBorderStyleValues.Dotted },
-            { "thick", XLBorderStyleValues.Thick },
-            { "double", XLBorderStyleValues.Double },
-            { "hair", XLBorderStyleValues.Hair },
-            { "mediumDashed", XLBorderStyleValues.MediumDashed },
-            { "dashDot", XLBorderStyleValues.DashDot },
-            { "mediumDashDot", XLBorderStyleValues.MediumDashDot },
-            { "dashDotDot", XLBorderStyleValues.DashDotDot },
-            { "mediumDashDotDot", XLBorderStyleValues.MediumDashDotDot },
-            { "slantDashDot", XLBorderStyleValues.SlantDashDot },
+            { "none", XlsxBorderStyleValues.None },
+            { "thin", XlsxBorderStyleValues.Thin },
+            { "medium", XlsxBorderStyleValues.Medium },
+            { "dashed", XlsxBorderStyleValues.Dashed },
+            { "dotted", XlsxBorderStyleValues.Dotted },
+            { "thick", XlsxBorderStyleValues.Thick },
+            { "double", XlsxBorderStyleValues.Double },
+            { "hair", XlsxBorderStyleValues.Hair },
+            { "mediumDashed", XlsxBorderStyleValues.MediumDashed },
+            { "dashDot", XlsxBorderStyleValues.DashDot },
+            { "mediumDashDot", XlsxBorderStyleValues.MediumDashDot },
+            { "dashDotDot", XlsxBorderStyleValues.DashDotDot },
+            { "mediumDashDotDot", XlsxBorderStyleValues.MediumDashDotDot },
+            { "slantDashDot", XlsxBorderStyleValues.SlantDashDot },
         });
 
         // ST_HorizontalAlignment
-        builder.Add(new BiDictionary<string, XLAlignmentHorizontalValues>
+        builder.Add(new BiDictionary<string, XlsxAlignmentHorizontalValues>
         {
-            { "general", XLAlignmentHorizontalValues.General },
-            { "left", XLAlignmentHorizontalValues.Left },
-            { "center", XLAlignmentHorizontalValues.Center },
-            { "right", XLAlignmentHorizontalValues.Right },
-            { "fill", XLAlignmentHorizontalValues.Fill },
-            { "justify", XLAlignmentHorizontalValues.Justify },
-            { "centerContinuous", XLAlignmentHorizontalValues.CenterContinuous },
-            { "distributed", XLAlignmentHorizontalValues.Distributed },
+            { "general", XlsxAlignmentHorizontalValues.General },
+            { "left", XlsxAlignmentHorizontalValues.Left },
+            { "center", XlsxAlignmentHorizontalValues.Center },
+            { "right", XlsxAlignmentHorizontalValues.Right },
+            { "fill", XlsxAlignmentHorizontalValues.Fill },
+            { "justify", XlsxAlignmentHorizontalValues.Justify },
+            { "centerContinuous", XlsxAlignmentHorizontalValues.CenterContinuous },
+            { "distributed", XlsxAlignmentHorizontalValues.Distributed },
         });
 
         // ST_VerticalAlignment
-        builder.Add(new BiDictionary<string, XLAlignmentVerticalValues>
+        builder.Add(new BiDictionary<string, XlsxAlignmentVerticalValues>
         {
-            { "top", XLAlignmentVerticalValues.Top },
-            { "center", XLAlignmentVerticalValues.Center },
-            { "bottom", XLAlignmentVerticalValues.Bottom },
-            { "justify", XLAlignmentVerticalValues.Justify },
-            { "distributed", XLAlignmentVerticalValues.Distributed },
+            { "top", XlsxAlignmentVerticalValues.Top },
+            { "center", XlsxAlignmentVerticalValues.Center },
+            { "bottom", XlsxAlignmentVerticalValues.Bottom },
+            { "justify", XlsxAlignmentVerticalValues.Justify },
+            { "distributed", XlsxAlignmentVerticalValues.Distributed },
         });
 
         // ST_GradientType
-        builder.Add(new BiDictionary<string, XLGradientType>
+        builder.Add(new BiDictionary<string, XlsxGradientType>
         {
-            { "linear", XLGradientType.Linear },
-            { "path", XLGradientType.Path }
+            { "linear", XlsxGradientType.Linear },
+            { "path", XlsxGradientType.Path }
         });
 
         // ST_PhoneticType
-        builder.Add(new BiDictionary<string, XLPhoneticType>
+        builder.Add(new BiDictionary<string, XlsxPhoneticType>
         {
-            { "halfwidthKatakana", XLPhoneticType.HalfWidthKatakana },
-            { "fullwidthKatakana", XLPhoneticType.FullWidthKatakana },
-            { "Hiragana", XLPhoneticType.Hiragana },
-            { "noConversion", XLPhoneticType.NoConversion },
+            { "halfwidthKatakana", XlsxPhoneticType.HalfWidthKatakana },
+            { "fullwidthKatakana", XlsxPhoneticType.FullWidthKatakana },
+            { "Hiragana", XlsxPhoneticType.Hiragana },
+            { "noConversion", XlsxPhoneticType.NoConversion },
         });
 
         // ST_PhoneticAlignment
-        builder.Add(new BiDictionary<string, XLPhoneticAlignment>
+        builder.Add(new BiDictionary<string, XlsxPhoneticAlignment>
         {
-            { "noControl", XLPhoneticAlignment.NoControl },
-            { "left", XLPhoneticAlignment.Left },
-            { "center", XLPhoneticAlignment.Center },
-            { "distributed", XLPhoneticAlignment.Distributed },
+            { "noControl", XlsxPhoneticAlignment.NoControl },
+            { "left", XlsxPhoneticAlignment.Left },
+            { "center", XlsxPhoneticAlignment.Center },
+            { "distributed", XlsxPhoneticAlignment.Distributed },
         });
 
         return builder.Build();

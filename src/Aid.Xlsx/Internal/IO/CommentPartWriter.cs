@@ -1,10 +1,11 @@
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Xml;
+using Aid.Xlsx.Cells;
 using Aid.Xlsx.Extensions;
+using Aid.Xlsx.RichText;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Worksheets;
 using static Aid.Xlsx.Internal.IO.OpenXmlConst;
 
 namespace Aid.Xlsx.Internal.IO
@@ -12,15 +13,15 @@ namespace Aid.Xlsx.Internal.IO
     internal class CommentPartWriter
     {
         internal static void GenerateWorksheetCommentsPartContent(Stream partStream,
-            XLWorksheet xlWorksheet)
+            XlsxWorksheet xlWorksheet)
         {
             var settings = new XmlWriterSettings
             {
-                Encoding = XLHelper.NoBomUTF8
+                Encoding = XlsxHelper.NoBomUTF8
             };
             using var xml = XmlWriter.Create(partStream, settings);
 
-            var commentCells = new List<XLCell>();
+            var commentCells = new List<XlsxCell>();
             var authorsDict = new Dictionary<String, Int32>();
             xml.WriteStartElement("x", "comments", Main2006SsNs);
             foreach (var c in xlWorksheet.Internals.CellsCollection.GetCells(c => c.HasComment))
@@ -61,7 +62,7 @@ namespace Aid.Xlsx.Internal.IO
                 // Excel ignores the shapeId attribute.
 
                 xml.WriteStartElement("text", Main2006SsNs);
-                var richText = XLImmutableRichText.Create(comment);
+                var richText = XlsxImmutableRichText.Create(comment);
                 foreach (var run in richText.Runs)
                     TextSerializer.WriteRun(xml, richText, run);
 

@@ -1,4 +1,8 @@
 using System.Xml.Linq;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 
 namespace Aid.Xlsx.Internal.IO;
 
@@ -6,7 +10,7 @@ internal static class CalculationChainPartWriter
 {
     private static readonly XNamespace Spreadsheet = OpenXmlConst.Main2006SsNs;
 
-    internal static XDocument? GenerateContent(Stream? existing, XLWorkbook workbook)
+    internal static XDocument? GenerateContent(Stream? existing, XlsxWorkbook workbook)
     {
         var document = existing is null ? null : XDocumentExtensions.Load(existing);
         if (document?.Root is not { } root || root.Name != Spreadsheet + "calcChain")
@@ -19,12 +23,12 @@ internal static class CalculationChainPartWriter
             root.Attribute("xmlns")!.Remove();
         root.SetAttributeValue(XNamespace.Xmlns + "x", Spreadsheet.NamespaceName);
         root.Elements(Spreadsheet + "c").Remove();
-        var cells = workbook.WorksheetsInternal.Cast<XLWorksheet>().SelectMany(GetCalculationCells);
+        var cells = workbook.WorksheetsInternal.Cast<XlsxWorksheet>().SelectMany(GetCalculationCells);
         root.AddFirst(cells);
         return root.HasElements ? document : null;
     }
 
-    private static IEnumerable<XElement> GetCalculationCells(XLWorksheet sheet)
+    private static IEnumerable<XElement> GetCalculationCells(XlsxWorksheet sheet)
     {
         foreach (var cell in sheet.Internals.CellsCollection.GetCells(c => c.HasFormula))
         {
@@ -51,6 +55,6 @@ internal static class CalculationChainPartWriter
         }
     }
 
-    private static XElement CreateEntry(IXLCell cell, uint sheetId) =>
+    private static XElement CreateEntry(IXlsxCell cell, uint sheetId) =>
         new(Spreadsheet + "c", new XAttribute("r", cell.Address.ToString()!), new XAttribute("i", sheetId));
 }

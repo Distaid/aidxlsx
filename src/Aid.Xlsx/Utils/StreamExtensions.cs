@@ -1,8 +1,5 @@
 #nullable disable
 
-using System;
-using System.IO;
-
 namespace Aid.Xlsx.Utils
 {
     internal static class StreamExtensions

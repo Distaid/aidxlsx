@@ -1,7 +1,9 @@
-using Aid.Xlsx.Formulas;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Aid.Xlsx.DefinedNames;
+using Aid.Xlsx.Formulas;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 
 namespace Aid.Xlsx.CalcEngine
 {
@@ -239,7 +241,7 @@ namespace Aid.Xlsx.CalcEngine
 
         public override TResult Accept<TContext, TResult>(TContext context, IFormulaVisitor<TContext, TResult> visitor) => visitor.Visit(context, this);
 
-        internal OneOf<IXLWorksheet, XLError> GetWorksheet(XLWorkbook wb)
+        internal OneOf<IXlsxWorksheet, XlsxError> GetWorksheet(XlsxWorkbook wb)
         {
             if (File is not null)
                 throw new NotImplementedException("References from other files are not yet implemented.");
@@ -247,10 +249,10 @@ namespace Aid.Xlsx.CalcEngine
             if (FirstSheet is not null || LastSheet is not null)
                 throw new NotImplementedException("3D references are not yet implemented.");
 
-            if (!wb.TryGetWorksheet(Sheet, out XLWorksheet worksheet))
-                return XLError.CellReference;
+            if (!wb.TryGetWorksheet(Sheet, out XlsxWorksheet worksheet))
+                return XlsxError.CellReference;
 
-            return OneOf<IXLWorksheet, XLError>.FromT0(worksheet);
+            return OneOf<IXlsxWorksheet, XlsxError>.FromT0(worksheet);
         }
     }
 
@@ -292,13 +294,13 @@ namespace Aid.Xlsx.CalcEngine
         public AnyValue GetReference(CalcContext ctx)
         {
             if (Prefix is null)
-                return new Reference(new XLRangeAddress(null, Address));
+                return new Reference(new XlsxRangeAddress(null, Address));
 
             if (!Prefix.GetWorksheet(ctx.Workbook).TryPickT0(out var ws, out var err))
                 return err;
 
-            // TODO: XLRangeAddress can parse all types of reference item type, utilize known type for faster parsing + cache
-            return new Reference(new XLRangeAddress((XLWorksheet)ws!, Address));
+            // TODO: XlsxRangeAddress can parse all types of reference item type, utilize known type for faster parsing + cache
+            return new Reference(new XlsxRangeAddress((XlsxWorksheet)ws!, Address));
         }
     }
 
@@ -322,7 +324,7 @@ namespace Aid.Xlsx.CalcEngine
 
         public override TResult Accept<TContext, TResult>(TContext context, IFormulaVisitor<TContext, TResult> visitor) => visitor.Visit(context, this);
 
-        public AnyValue GetValue(XLWorksheet ctxWs, XLCalcEngine engine)
+        public AnyValue GetValue(XlsxWorksheet ctxWs, XlsxCalcEngine engine)
         {
             var worksheet = ctxWs;
             if (Prefix is not null)
@@ -330,11 +332,11 @@ namespace Aid.Xlsx.CalcEngine
                 if (!Prefix.GetWorksheet(ctxWs.Workbook).TryPickT0(out var ws, out var err))
                     return err;
 
-                worksheet = (XLWorksheet)ws!;
+                worksheet = (XlsxWorksheet)ws!;
             }
 
             if (!TryGetNameRange(worksheet, out var definedName))
-                return XLError.NameNotRecognized;
+                return XlsxError.NameNotRecognized;
 
             // Parser needs an equal sign for a union of ranges (or braces around formula)
             var nameFormula = definedName.RefersTo;
@@ -342,7 +344,7 @@ namespace Aid.Xlsx.CalcEngine
             return engine.EvaluateName(nameFormula, ctxWs);
         }
 
-        internal bool TryGetNameRange(IXLWorksheet ws, [NotNullWhen(true)] out IXLDefinedName? definedName)
+        internal bool TryGetNameRange(IXlsxWorksheet ws, [NotNullWhen(true)] out IXlsxDefinedName? definedName)
         {
             if (ws.DefinedNames.TryGetValue(Name, out var sheetDefinedName))
             {

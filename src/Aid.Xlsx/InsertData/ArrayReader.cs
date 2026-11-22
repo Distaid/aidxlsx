@@ -1,8 +1,6 @@
 // Keep this file CodeMaid organised and cleaned
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+using Aid.Xlsx.Cells;
 
 namespace Aid.Xlsx.InsertData
 {
@@ -15,9 +13,9 @@ namespace Aid.Xlsx.InsertData
             _data = data ?? throw new ArgumentNullException(nameof(data));
         }
 
-        public IEnumerable<IEnumerable<XLCellValue>> GetRecords()
+        public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
         {
-            return _data.Select(item => item.Cast<object>().Select(XLCellValue.FromInsertedObject));
+            return _data.Select(item => item.Cast<object>().Select(XlsxCellValue.FromInsertedObject));
         }
 
         public int GetPropertiesCount()

@@ -1,10 +1,10 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Utils;
 
-namespace Aid.Xlsx;
+namespace Aid.Xlsx.Coordinates;
 
 /// <summary>
 /// A representation of a <c>ST_Ref</c>, i.e. an area in a sheet (no reference to the sheet).
@@ -31,8 +31,8 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// A range that covers whole worksheet.
     /// </summary>
     public static readonly Area Full = new(
-        new Point(XLHelper.MinRowNumber, XLHelper.MinColumnNumber),
-        new Point(XLHelper.MaxRowNumber, XLHelper.MaxColumnNumber));
+        new Point(XlsxHelper.MinRowNumber, XlsxHelper.MinColumnNumber),
+        new Point(XlsxHelper.MaxRowNumber, XlsxHelper.MaxColumnNumber));
 
     /// <summary>
     /// Top-left point of the sheet range.
@@ -49,23 +49,23 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     public int Height => LastPoint.Row - FirstPoint.Row + 1;
 
     /// <summary>
-    /// The left column number of the range. From 1 to <see cref="XLHelper.MaxColumnNumber"/>.
+    /// The left column number of the range. From 1 to <see cref="XlsxHelper.MaxColumnNumber"/>.
     /// </summary>
     public int LeftColumn => FirstPoint.Column;
 
     /// <summary>
-    /// The right column number of the range. From 1 to <see cref="XLHelper.MaxColumnNumber"/>.
+    /// The right column number of the range. From 1 to <see cref="XlsxHelper.MaxColumnNumber"/>.
     /// Greater or equal to <see cref="LeftColumn"/>.
     /// </summary>
     public int RightColumn => LastPoint.Column;
 
     /// <summary>
-    /// The top row number of the range. From 1 to <see cref="XLHelper.MaxRowNumber"/>.
+    /// The top row number of the range. From 1 to <see cref="XlsxHelper.MaxRowNumber"/>.
     /// </summary>
     public int TopRow => FirstPoint.Row;
 
     /// <summary>
-    /// The bottom row number of the range. From 1 to <see cref="XLHelper.MaxRowNumber"/>.
+    /// The bottom row number of the range. From 1 to <see cref="XlsxHelper.MaxRowNumber"/>.
     /// Greater or equal to <see cref="TopRow"/>.
     /// </summary>
     public int BottomRow => LastPoint.Row;
@@ -73,12 +73,12 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <summary>
     /// Does area span from first to last column?
     /// </summary>
-    internal bool HasFullRowWidth => LeftColumn == XLHelper.MinColumnNumber && RightColumn == XLHelper.MaxColumnNumber;
+    internal bool HasFullRowWidth => LeftColumn == XlsxHelper.MinColumnNumber && RightColumn == XlsxHelper.MaxColumnNumber;
 
     /// <summary>
     /// Does area span from first to last row?
     /// </summary>
-    internal bool HasFullColumnHeight => TopRow == XLHelper.MinRowNumber && BottomRow == XLHelper.MaxRowNumber;
+    internal bool HasFullColumnHeight => TopRow == XlsxHelper.MinRowNumber && BottomRow == XlsxHelper.MaxRowNumber;
 
     public override bool Equals(object? obj)
     {
@@ -178,7 +178,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <exception cref="InvalidOperationException">The range touches the bottom border of the sheet.</exception>
     internal Area BelowRange()
     {
-        return BelowRange(XLHelper.MaxRowNumber);
+        return BelowRange(XlsxHelper.MaxRowNumber);
     }
 
     /// <summary>
@@ -188,10 +188,10 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <exception cref="InvalidOperationException">The range touches the bottom border of the sheet.</exception>
     internal Area BelowRange(int rows)
     {
-        if (LastPoint.Row >= XLHelper.MaxRowNumber)
+        if (LastPoint.Row >= XlsxHelper.MaxRowNumber)
             throw new InvalidOperationException("No cells below.");
 
-        rows = Math.Min(rows, XLHelper.MaxRowNumber - LastPoint.Row);
+        rows = Math.Min(rows, XlsxHelper.MaxRowNumber - LastPoint.Row);
         return new Area(
             new Point(LastPoint.Row + 1, FirstPoint.Column),
             new Point(LastPoint.Row + rows, LastPoint.Column));
@@ -203,12 +203,12 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <exception cref="InvalidOperationException">The range touches the right border of the sheet.</exception>
     internal Area RightRange()
     {
-        if (LastPoint.Column == XLHelper.MaxColumnNumber)
+        if (LastPoint.Column == XlsxHelper.MaxColumnNumber)
             throw new InvalidOperationException("No cells to the left.");
 
         return new Area(
             new Point(FirstPoint.Row, LastPoint.Column + 1),
-            new Point(LastPoint.Row, XLHelper.MaxColumnNumber));
+            new Point(LastPoint.Row, XlsxHelper.MaxColumnNumber));
     }
 
     /// <summary>
@@ -217,7 +217,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     internal Area ExtendBelow(int rows)
     {
         Debug.Assert(rows >= 0);
-        var row = Math.Min(LastPoint.Row + rows, XLHelper.MaxRowNumber);
+        var row = Math.Min(LastPoint.Row + rows, XlsxHelper.MaxRowNumber);
         return new Area(FirstPoint, new Point(row, LastPoint.Column));
     }
 
@@ -227,12 +227,12 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     internal Area ExtendRight(int columns)
     {
         Debug.Assert(columns >= 0);
-        var column = Math.Min(LastPoint.Column + columns, XLHelper.MaxColumnNumber);
+        var column = Math.Min(LastPoint.Column + columns, XlsxHelper.MaxColumnNumber);
         return new Area(FirstPoint, new Point(LastPoint.Row, column));
     }
 
     internal static Area FromRangeAddress<T>(T address)
-        where T : IXLRangeAddress
+        where T : IXlsxRangeAddress
     {
         var firstPoint = Point.FromAddress(address.FirstAddress);
         var lastPoint = Point.FromAddress(address.LastAddress);
@@ -363,7 +363,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// </summary>
     internal bool IsEntireColumn()
     {
-        return TopRow == 1 && BottomRow == XLHelper.MaxRowNumber;
+        return TopRow == 1 && BottomRow == XlsxHelper.MaxRowNumber;
     }
 
     /// <summary>
@@ -371,7 +371,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// </summary>
     public bool IsEntireRow()
     {
-        return LeftColumn == 1 && RightColumn == XLHelper.MaxColumnNumber;
+        return LeftColumn == 1 && RightColumn == XlsxHelper.MaxColumnNumber;
     }
 
     /// <summary>
@@ -423,15 +423,15 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     internal Area? ShiftRowsAndClip(int rowShift)
     {
         var shiftedTop = TopRow + rowShift;
-        if (shiftedTop > XLHelper.MaxRowNumber)
+        if (shiftedTop > XlsxHelper.MaxRowNumber)
             return null;
 
         var shiftedBottom = BottomRow + rowShift;
-        if (shiftedBottom < XLHelper.MinRowNumber)
+        if (shiftedBottom < XlsxHelper.MinRowNumber)
             return null;
 
-        var clippedTop = Math.Max(shiftedTop, XLHelper.MinRowNumber);
-        var clippedBottom = Math.Min(shiftedBottom, XLHelper.MaxRowNumber);
+        var clippedTop = Math.Max(shiftedTop, XlsxHelper.MinRowNumber);
+        var clippedBottom = Math.Min(shiftedBottom, XlsxHelper.MaxRowNumber);
 
         return new Area(clippedTop, LeftColumn, clippedBottom, RightColumn);
     }
@@ -457,15 +457,15 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     internal Area? ShiftColumnsAndClip(int columnShift)
     {
         var shiftedLeft = LeftColumn + columnShift;
-        if (shiftedLeft > XLHelper.MaxColumnNumber)
+        if (shiftedLeft > XlsxHelper.MaxColumnNumber)
             return null;
 
         var shiftedRight = RightColumn + columnShift;
-        if (shiftedRight < XLHelper.MinColumnNumber)
+        if (shiftedRight < XlsxHelper.MinColumnNumber)
             return null;
 
-        var clippedLeft = Math.Max(shiftedLeft, XLHelper.MinColumnNumber);
-        var clippedRight = Math.Min(shiftedRight, XLHelper.MaxColumnNumber);
+        var clippedLeft = Math.Max(shiftedLeft, XlsxHelper.MinColumnNumber);
+        var clippedRight = Math.Min(shiftedRight, XlsxHelper.MaxColumnNumber);
 
         return new Area(TopRow, clippedLeft, BottomRow, clippedRight);
     }
@@ -515,16 +515,16 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
         if (insertedArea.LeftColumn <= LeftColumn)
         {
             // Area is completely pushed out
-            if (LeftColumn + insertedArea.Width > XLHelper.MaxColumnNumber)
+            if (LeftColumn + insertedArea.Width > XlsxHelper.MaxColumnNumber)
             {
                 result = null;
                 return true;
             }
 
             // Area is partially pushed out
-            if (RightColumn + insertedArea.Width > XLHelper.MaxColumnNumber)
+            if (RightColumn + insertedArea.Width > XlsxHelper.MaxColumnNumber)
             {
-                var pushedOutColsCount = RightColumn + insertedArea.Width - XLHelper.MaxColumnNumber;
+                var pushedOutColsCount = RightColumn + insertedArea.Width - XlsxHelper.MaxColumnNumber;
                 var keepCols = Width - pushedOutColsCount;
                 var resized = SliceFromLeft(keepCols);
                 result = resized.ShiftColumns(insertedArea.Width);
@@ -569,16 +569,16 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
         if (insertedArea.TopRow <= TopRow)
         {
             // Area is completely pushed out
-            if (TopRow + insertedArea.Height > XLHelper.MaxRowNumber)
+            if (TopRow + insertedArea.Height > XlsxHelper.MaxRowNumber)
             {
                 result = null;
                 return true;
             }
 
             // Area is partially pushed out
-            if (BottomRow + insertedArea.Height > XLHelper.MaxRowNumber)
+            if (BottomRow + insertedArea.Height > XlsxHelper.MaxRowNumber)
             {
-                var pushedOutRowsCount = BottomRow + insertedArea.Height - XLHelper.MaxRowNumber;
+                var pushedOutRowsCount = BottomRow + insertedArea.Height - XlsxHelper.MaxRowNumber;
                 var keepRows = Height - pushedOutRowsCount;
                 var resized = SliceFromTop(keepRows);
                 result = resized.ShiftRows(insertedArea.Height);
@@ -951,7 +951,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <returns><c>true</c> if <paramref name="above"/> is not null.</returns>
     internal bool SplitAbove(int row, [NotNullWhen(true)] out Area? above, out Area? below)
     {
-        if (row is < XLHelper.MinRowNumber or > XLHelper.MaxRowNumber)
+        if (row is < XlsxHelper.MinRowNumber or > XlsxHelper.MaxRowNumber)
             throw new ArgumentOutOfRangeException(nameof(row));
 
         if (BottomRow < row)
@@ -980,7 +980,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <returns><c>true</c> if <paramref name="below"/> is not null.</returns>
     internal bool SplitBelow(int row, [NotNullWhen(true)] out Area? below, out Area? above)
     {
-        if (row is < XLHelper.MinRowNumber or > XLHelper.MaxRowNumber)
+        if (row is < XlsxHelper.MinRowNumber or > XlsxHelper.MaxRowNumber)
             throw new ArgumentOutOfRangeException(nameof(row));
 
         if (TopRow > row)
@@ -1009,7 +1009,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <returns><c>true</c> if <paramref name="left"/> is not null.</returns>
     internal bool SplitBefore(int column, [NotNullWhen(true)] out Area? left, out Area? right)
     {
-        if (column is < XLHelper.MinColumnNumber or > XLHelper.MaxColumnNumber)
+        if (column is < XlsxHelper.MinColumnNumber or > XlsxHelper.MaxColumnNumber)
             throw new ArgumentOutOfRangeException(nameof(column));
 
         if (RightColumn < column)
@@ -1038,7 +1038,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <returns><c>true</c> if <paramref name="right"/> is not null.</returns>
     internal bool SplitAfter(int column, [NotNullWhen(true)] out Area? right, out Area? left)
     {
-        if (column is < XLHelper.MinColumnNumber or > XLHelper.MaxColumnNumber)
+        if (column is < XlsxHelper.MinColumnNumber or > XlsxHelper.MaxColumnNumber)
             throw new ArgumentOutOfRangeException(nameof(column));
 
         if (LeftColumn > column)
@@ -1060,8 +1060,8 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
         return true;
     }
 
-    internal XLAreaList ToAreaList()
+    internal XlsxAreaList ToAreaList()
     {
-        return new XLAreaList(this);
+        return new XlsxAreaList(this);
     }
 }

@@ -1,7 +1,8 @@
-using Aid.Xlsx;
 using Aid.Xlsx.CalcEngine.Visitors;
+using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Formulas;
+using Aid.Xlsx.Ranges;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine;
@@ -125,7 +126,7 @@ public class ReferenceShiftRefModTests
         Assert.True(ReferenceParser.TryParseSheetA1(deletedArea, out var deletedSheet, out var deletedReference));
         var deleted = new SheetArea(deletedSheet, deletedReference.ToAreaFromA1());
 
-        var result = FormulaConverter.ModifyA1(formula, "Sheet", 1, 1, new ReferenceShiftOnDeleteRefModVisitor(deleted, XLShiftDeletedCells.ShiftCellsUp));
+        var result = FormulaConverter.ModifyA1(formula, "Sheet", 1, 1, new ReferenceShiftOnDeleteRefModVisitor(deleted, XlsxShiftDeletedCells.ShiftCellsUp));
 
         Assert.AreEqual(expected, result);
     }
@@ -184,7 +185,7 @@ public class ReferenceShiftRefModTests
         Assert.True(ReferenceParser.TryParseSheetA1(deletedArea, out var deletedSheet, out var deletedReference));
         var deleted = new SheetArea(deletedSheet, deletedReference.ToAreaFromA1());
 
-        var result = FormulaConverter.ModifyA1(formula, "Sheet", 1, 1, new ReferenceShiftOnDeleteRefModVisitor(deleted, XLShiftDeletedCells.ShiftCellsLeft));
+        var result = FormulaConverter.ModifyA1(formula, "Sheet", 1, 1, new ReferenceShiftOnDeleteRefModVisitor(deleted, XlsxShiftDeletedCells.ShiftCellsLeft));
 
         Assert.AreEqual(expected, result);
     }

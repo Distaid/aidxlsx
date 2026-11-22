@@ -1,11 +1,8 @@
 // Keep this file CodeMaid organised and cleaned
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
-namespace Aid.Xlsx
+namespace Aid.Xlsx.Extensions
 {
     internal static class EnumerableExtensions
     {
@@ -28,11 +25,6 @@ namespace Aid.Xlsx
 
                 return ienumerable?.GetGenericArguments()?.FirstOrDefault();
             }
-        }
-
-        public static HashSet<T> ToHashSet<T>(this IEnumerable<T> source)
-        {
-            return new HashSet<T>(source);
         }
 
         /// <summary>

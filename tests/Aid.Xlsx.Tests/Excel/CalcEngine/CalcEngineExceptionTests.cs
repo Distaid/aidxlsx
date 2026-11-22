@@ -1,7 +1,7 @@
-using Aid.Xlsx;
-using NUnit.Framework;
 using System.Globalization;
-using System.Threading;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Workbooks;
+using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine
 {
@@ -17,30 +17,30 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void InvalidCharNumber()
         {
-            Assert.AreEqual(XLError.IncompatibleValue, XLWorkbook.EvaluateExpr("CHAR(-2)"));
-            Assert.AreEqual(XLError.IncompatibleValue, XLWorkbook.EvaluateExpr("CHAR(270)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, XlsxWorkbook.EvaluateExpr("CHAR(-2)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, XlsxWorkbook.EvaluateExpr("CHAR(270)"));
         }
 
         [Test]
         public void DivisionByZero()
         {
-            Assert.AreEqual(XLError.DivisionByZero, XLWorkbook.EvaluateExpr("0/0"));
-            Assert.AreEqual(XLError.DivisionByZero, new XLWorkbook().AddWorksheet().Evaluate("0/0"));
+            Assert.AreEqual(XlsxError.DivisionByZero, XlsxWorkbook.EvaluateExpr("0/0"));
+            Assert.AreEqual(XlsxError.DivisionByZero, new XlsxWorkbook().AddWorksheet().Evaluate("0/0"));
         }
 
         [Test]
         public void InvalidFunction()
         {
-            Assert.AreEqual(XLError.NameNotRecognized, XLWorkbook.EvaluateExpr("XXX(A1:A2)"));
+            Assert.AreEqual(XlsxError.NameNotRecognized, XlsxWorkbook.EvaluateExpr("XXX(A1:A2)"));
 
-            var ws = new XLWorkbook().AddWorksheet();
-            Assert.AreEqual(XLError.NameNotRecognized, ws.Evaluate("XXX(A1:A2)"));
+            var ws = new XlsxWorkbook().AddWorksheet();
+            Assert.AreEqual(XlsxError.NameNotRecognized, ws.Evaluate("XXX(A1:A2)"));
         }
 
         [Test]
         public void NestedNameNotRecognizedException()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").SetFormulaA1("=XXX");
             ws.Cell("A2").SetFormulaA1(@"=IFERROR(A1, ""Success"")");

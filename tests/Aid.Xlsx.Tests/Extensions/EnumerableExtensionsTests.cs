@@ -1,10 +1,7 @@
-using Aid.Xlsx;
+using System.Collections;
+using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Tests.Excel;
 using NUnit.Framework;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Aid.Xlsx.Tests.Extensions
 {

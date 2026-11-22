@@ -1,6 +1,5 @@
-using System;
-using Aid.Xlsx;
 using Aid.Xlsx.Internal.IO;
+using Aid.Xlsx.Styles.Colors;
 
 namespace Aid.Xlsx.Extensions;
 
@@ -65,26 +64,26 @@ internal static class XmlTreeWriterExtensions
             xml.WriteAttribute(attrName, value.Value);
     }
 
-    public static void WriteColor(this XmlTreeWriter xml, string elName, string ns, XLColor color, bool isDifferential = false)
+    public static void WriteColor(this XmlTreeWriter xml, string elName, string ns, XlsxColor color, bool isDifferential = false)
     {
         xml.WriteStartElement(elName, ns);
         switch (color.ColorType)
         {
-            case XLColorType.Automatic:
+            case XlsxColorType.Automatic:
                 xml.WriteAttribute("auto", 1);
                 break;
 
-            case XLColorType.Color:
+            case XlsxColorType.Color:
                 xml.WriteAttribute("rgb", color.Color.ToHex());
                 break;
 
-            case XLColorType.Indexed:
+            case XlsxColorType.Indexed:
                 // 64 is 'transparent' and should be ignored for differential formats
                 if (!isDifferential || color.Indexed != 64)
                     xml.WriteAttribute("indexed", color.Indexed);
                 break;
 
-            case XLColorType.Theme:
+            case XlsxColorType.Theme:
                 xml.WriteAttribute("theme", (int)color.ThemeColor);
 
                 if (color.ThemeTint != 0)

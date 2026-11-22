@@ -1,15 +1,16 @@
-using System.Collections.Generic;
 using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Worksheets;
 
-namespace Aid.Xlsx
+namespace Aid.Xlsx.Cells
 {
     internal class FormulaSlice : ISlice
     {
-        private readonly XLWorksheet _sheet;
-        private readonly XLCalcEngine _engine;
-        private readonly Slice<XLCellFormula?> _formulas = new();
+        private readonly XlsxWorksheet _sheet;
+        private readonly XlsxCalcEngine _engine;
+        private readonly Slice<XlsxCellFormula?> _formulas = new();
 
-        public FormulaSlice(XLWorksheet sheet)
+        public FormulaSlice(XlsxWorksheet sheet)
         {
             _sheet = sheet;
             _engine = sheet.Workbook.CalcEngine;
@@ -72,12 +73,12 @@ namespace Aid.Xlsx
             Set(sp2, value1);
         }
 
-        internal XLCellFormula? Get(Point point)
+        internal XlsxCellFormula? Get(Point point)
         {
             return _formulas[point];
         }
 
-        internal void Set(Point point, XLCellFormula? formula)
+        internal void Set(Point point, XlsxCellFormula? formula)
         {
             // Can't ref, because it is an alias for a memory and thus wouldn't hold old formula.
             var original = _formulas[point];
@@ -102,7 +103,7 @@ namespace Aid.Xlsx
         /// <remarks>
         /// This method doesn't check that formula doesn't damage other array formulas.
         /// </remarks>
-        internal void SetArray(Area range, XLCellFormula? arrayFormula)
+        internal void SetArray(Area range, XlsxCellFormula? arrayFormula)
         {
             for (var row = range.TopRow; row <= range.BottomRow; ++row)
             {
@@ -127,9 +128,9 @@ namespace Aid.Xlsx
                 _engine.AddArrayFormula(range, arrayFormula, _sheet);
         }
 
-        internal Slice<XLCellFormula>.Enumerator GetForwardEnumerator(Area range)
+        internal Slice<XlsxCellFormula>.Enumerator GetForwardEnumerator(Area range)
         {
-            return new Slice<XLCellFormula>.Enumerator(_formulas!, range);
+            return new Slice<XlsxCellFormula>.Enumerator(_formulas!, range);
         }
 
         /// <summary>

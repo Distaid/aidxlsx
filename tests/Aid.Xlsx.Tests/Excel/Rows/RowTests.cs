@@ -1,7 +1,11 @@
-using Aid.Xlsx;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Rows;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
-using System;
-using System.Linq;
 
 namespace Aid.Xlsx.Tests.Excel
 {
@@ -11,7 +15,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void RowsUsedIsFast()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.FirstCell().SetValue("Hello world!");
             var rowsUsed = ws.Column(1).AsRange().RowsUsed();
@@ -21,8 +25,8 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CopyRow()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
             ws.FirstCell().SetValue("Test").Style.Font.SetBold();
             ws.FirstRow().CopyTo(ws.Row(2));
 
@@ -32,34 +36,34 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void InsertingRowsAbove1()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet1");
 
-            ws.Rows("1,3").Style.Fill.SetBackgroundColor(XLColor.Red);
-            ws.Row(2).Style.Fill.SetBackgroundColor(XLColor.Yellow);
-            ws.Cell(2, 2).SetValue("X").Style.Fill.SetBackgroundColor(XLColor.Green);
+            ws.Rows("1,3").Style.Fill.SetBackgroundColor(XlsxColor.Red);
+            ws.Row(2).Style.Fill.SetBackgroundColor(XlsxColor.Yellow);
+            ws.Cell(2, 2).SetValue("X").Style.Fill.SetBackgroundColor(XlsxColor.Green);
 
-            IXLRow row1 = ws.Row(1);
-            IXLRow row2 = ws.Row(2);
-            IXLRow row3 = ws.Row(3);
+            IXlsxRow row1 = ws.Row(1);
+            IXlsxRow row2 = ws.Row(2);
+            IXlsxRow row3 = ws.Row(3);
 
-            IXLRow rowIns = ws.Row(1).InsertRowsAbove(1).First();
+            IXlsxRow rowIns = ws.Row(1).InsertRowsAbove(1).First();
 
             Assert.AreEqual(ws.Style.Fill.BackgroundColor, ws.Row(1).Cell(1).Style.Fill.BackgroundColor);
             Assert.AreEqual(ws.Style.Fill.BackgroundColor, ws.Row(1).Cell(2).Style.Fill.BackgroundColor);
             Assert.AreEqual(ws.Style.Fill.BackgroundColor, ws.Row(1).Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Red, ws.Row(2).Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, ws.Row(2).Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, ws.Row(2).Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(2).Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(2).Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(2).Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Yellow, ws.Row(3).Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Green, ws.Row(3).Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Yellow, ws.Row(3).Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, ws.Row(3).Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Green, ws.Row(3).Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, ws.Row(3).Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Red, ws.Row(4).Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, ws.Row(4).Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, ws.Row(4).Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(4).Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(4).Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(4).Cell(3).Style.Fill.BackgroundColor);
 
             Assert.AreEqual("X", ws.Row(3).Cell(2).GetText());
 
@@ -67,17 +71,17 @@ namespace Aid.Xlsx.Tests.Excel
             Assert.AreEqual(ws.Style.Fill.BackgroundColor, rowIns.Cell(2).Style.Fill.BackgroundColor);
             Assert.AreEqual(ws.Style.Fill.BackgroundColor, rowIns.Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Red, row1.Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, row1.Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, row1.Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row1.Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row1.Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row1.Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Yellow, row2.Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Green, row2.Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Yellow, row2.Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, row2.Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Green, row2.Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, row2.Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Red, row3.Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, row3.Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, row3.Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row3.Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row3.Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row3.Cell(3).Style.Fill.BackgroundColor);
 
             Assert.AreEqual("X", row2.Cell(2).GetText());
         }
@@ -85,52 +89,52 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void InsertingRowsAbove2()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet1");
 
-            ws.Rows("1,3").Style.Fill.SetBackgroundColor(XLColor.Red);
-            ws.Row(2).Style.Fill.SetBackgroundColor(XLColor.Yellow);
-            ws.Cell(2, 2).SetValue("X").Style.Fill.SetBackgroundColor(XLColor.Green);
+            ws.Rows("1,3").Style.Fill.SetBackgroundColor(XlsxColor.Red);
+            ws.Row(2).Style.Fill.SetBackgroundColor(XlsxColor.Yellow);
+            ws.Cell(2, 2).SetValue("X").Style.Fill.SetBackgroundColor(XlsxColor.Green);
 
-            IXLRow row1 = ws.Row(1);
-            IXLRow row2 = ws.Row(2);
-            IXLRow row3 = ws.Row(3);
+            IXlsxRow row1 = ws.Row(1);
+            IXlsxRow row2 = ws.Row(2);
+            IXlsxRow row3 = ws.Row(3);
 
-            IXLRow rowIns = ws.Row(2).InsertRowsAbove(1).First();
+            IXlsxRow rowIns = ws.Row(2).InsertRowsAbove(1).First();
 
-            Assert.AreEqual(XLColor.Red, ws.Row(1).Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, ws.Row(1).Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, ws.Row(1).Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(1).Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(1).Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(1).Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Red, ws.Row(2).Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, ws.Row(2).Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, ws.Row(2).Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(2).Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(2).Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(2).Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Yellow, ws.Row(3).Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Green, ws.Row(3).Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Yellow, ws.Row(3).Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, ws.Row(3).Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Green, ws.Row(3).Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, ws.Row(3).Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Red, ws.Row(4).Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, ws.Row(4).Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, ws.Row(4).Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(4).Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(4).Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(4).Cell(3).Style.Fill.BackgroundColor);
 
             Assert.AreEqual("X", ws.Row(3).Cell(2).GetText());
 
-            Assert.AreEqual(XLColor.Red, rowIns.Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, rowIns.Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, rowIns.Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, rowIns.Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, rowIns.Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, rowIns.Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Red, row1.Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, row1.Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, row1.Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row1.Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row1.Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row1.Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Yellow, row2.Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Green, row2.Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Yellow, row2.Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, row2.Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Green, row2.Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, row2.Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Red, row3.Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, row3.Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, row3.Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row3.Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row3.Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row3.Cell(3).Style.Fill.BackgroundColor);
 
             Assert.AreEqual("X", row2.Cell(2).GetText());
         }
@@ -138,52 +142,52 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void InsertingRowsAbove3()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet1");
 
-            ws.Rows("1,3").Style.Fill.SetBackgroundColor(XLColor.Red);
-            ws.Row(2).Style.Fill.SetBackgroundColor(XLColor.Yellow);
-            ws.Cell(2, 2).SetValue("X").Style.Fill.SetBackgroundColor(XLColor.Green);
+            ws.Rows("1,3").Style.Fill.SetBackgroundColor(XlsxColor.Red);
+            ws.Row(2).Style.Fill.SetBackgroundColor(XlsxColor.Yellow);
+            ws.Cell(2, 2).SetValue("X").Style.Fill.SetBackgroundColor(XlsxColor.Green);
 
-            IXLRow row1 = ws.Row(1);
-            IXLRow row2 = ws.Row(2);
-            IXLRow row3 = ws.Row(3);
+            IXlsxRow row1 = ws.Row(1);
+            IXlsxRow row2 = ws.Row(2);
+            IXlsxRow row3 = ws.Row(3);
 
-            IXLRow rowIns = ws.Row(3).InsertRowsAbove(1).First();
+            IXlsxRow rowIns = ws.Row(3).InsertRowsAbove(1).First();
 
-            Assert.AreEqual(XLColor.Red, ws.Row(1).Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, ws.Row(1).Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, ws.Row(1).Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(1).Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(1).Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(1).Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Yellow, ws.Row(2).Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Green, ws.Row(2).Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Yellow, ws.Row(2).Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, ws.Row(2).Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Green, ws.Row(2).Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, ws.Row(2).Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Yellow, ws.Row(3).Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Green, ws.Row(3).Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Yellow, ws.Row(3).Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, ws.Row(3).Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Green, ws.Row(3).Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, ws.Row(3).Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Red, ws.Row(4).Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, ws.Row(4).Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, ws.Row(4).Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(4).Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(4).Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, ws.Row(4).Cell(3).Style.Fill.BackgroundColor);
 
             Assert.AreEqual("X", ws.Row(2).Cell(2).GetText());
 
-            Assert.AreEqual(XLColor.Yellow, rowIns.Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Green, rowIns.Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Yellow, rowIns.Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, rowIns.Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Green, rowIns.Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, rowIns.Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Red, row1.Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, row1.Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, row1.Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row1.Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row1.Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row1.Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Yellow, row2.Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Green, row2.Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Yellow, row2.Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, row2.Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Green, row2.Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Yellow, row2.Cell(3).Style.Fill.BackgroundColor);
 
-            Assert.AreEqual(XLColor.Red, row3.Cell(1).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, row3.Cell(2).Style.Fill.BackgroundColor);
-            Assert.AreEqual(XLColor.Red, row3.Cell(3).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row3.Cell(1).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row3.Cell(2).Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.Red, row3.Cell(3).Style.Fill.BackgroundColor);
 
             Assert.AreEqual("X", row2.Cell(2).GetText());
         }
@@ -191,7 +195,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void InsertingRowsAbove4()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.Worksheets.Add("Sheet1");
 
@@ -221,14 +225,14 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void NoRowsUsed()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet1");
             Int32 count = 0;
 
-            foreach (IXLRow row in ws.RowsUsed())
+            foreach (IXlsxRow row in ws.RowsUsed())
                 count++;
 
-            foreach (IXLRangeRow row in ws.Range("A1:C3").RowsUsed())
+            foreach (IXlsxRangeRow row in ws.Range("A1:C3").RowsUsed())
                 count++;
 
             Assert.AreEqual(0, count);
@@ -237,50 +241,50 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void RowUsed()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet1");
             ws.Cell(1, 2).SetValue("Test");
             ws.Cell(1, 3).SetValue("Test");
 
-            IXLRangeRow fromRow = ws.Row(1).RowUsed();
+            IXlsxRangeRow fromRow = ws.Row(1).RowUsed();
             Assert.AreEqual("B1:C1", fromRow.RangeAddress.ToStringRelative());
 
-            IXLRangeRow fromRange = ws.Range("A1:E1").FirstRow().RowUsed();
+            IXlsxRangeRow fromRange = ws.Range("A1:E1").FirstRow().RowUsed();
             Assert.AreEqual("B1:C1", fromRange.RangeAddress.ToStringRelative());
         }
 
         [Test]
         public void RowsUsedWithDataValidation()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.FirstCell().SetValue("Hello world!");
             ws.Range("A1:A100").CreateDataValidation().WholeNumber.EqualTo(1);
 
             var range = ws.Column(1).AsRange();
 
-            Assert.AreEqual(100, range.RowsUsed(XLCellsUsedOptions.DataValidation).Count());
-            Assert.AreEqual(100, range.RowsUsed(XLCellsUsedOptions.All).Count());
+            Assert.AreEqual(100, range.RowsUsed(XlsxCellsUsedOptions.DataValidation).Count());
+            Assert.AreEqual(100, range.RowsUsed(XlsxCellsUsedOptions.All).Count());
         }
 
         [Test]
         public void RowsUsedWithConditionalFormatting()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.FirstCell().SetValue("Hello world!");
-            ws.Range("A1:A100").AddConditionalFormat().WhenStartsWith("Hell").Fill.SetBackgroundColor(XLColor.Red).Font.SetFontColor(XLColor.White);
+            ws.Range("A1:A100").AddConditionalFormat().WhenStartsWith("Hell").Fill.SetBackgroundColor(XlsxColor.Red).Font.SetFontColor(XlsxColor.White);
 
             var range = ws.Column(1).AsRange();
 
-            Assert.AreEqual(100, range.RowsUsed(XLCellsUsedOptions.ConditionalFormats).Count());
-            Assert.AreEqual(100, range.RowsUsed(XLCellsUsedOptions.All).Count());
+            Assert.AreEqual(100, range.RowsUsed(XlsxCellsUsedOptions.ConditionalFormats).Count());
+            Assert.AreEqual(100, range.RowsUsed(XlsxCellsUsedOptions.All).Count());
         }
 
         [Test]
         public void UngroupFromAll()
         {
-            IXLWorksheet ws = new XLWorkbook().AddWorksheet("Sheet1");
+            IXlsxWorksheet ws = new XlsxWorkbook().AddWorksheet("Sheet1");
             ws.Rows(1, 2).Group();
             ws.Rows(1, 2).Ungroup(true);
         }
@@ -288,9 +292,9 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void NegativeRowNumberIsInvalid()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet1") as XLWorksheet;
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet1") as XlsxWorksheet;
 
-            var row = new XLRow(ws, -1);
+            var row = new XlsxRow(ws, -1);
 
             Assert.IsFalse(row.RangeAddress.IsValid);
         }
@@ -298,7 +302,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void DeleteRowOnWorksheetWithComment()
         {
-            var ws = new XLWorkbook().AddWorksheet();
+            var ws = new XlsxWorkbook().AddWorksheet();
             ws.Cell(4, 1).GetComment().AddText("test");
             ws.Column(1).Width = 100;
             Assert.DoesNotThrow(() => ws.Row(1).Delete());
@@ -307,41 +311,41 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void AssignWorksheetRowHeightWhenAllRowsChanged()
         {
-            var ws = new XLWorkbook().AddWorksheet();
+            var ws = new XlsxWorkbook().AddWorksheet();
             var rows = ws.Rows();
 
             rows.Height = 30;
 
-            Assert.AreEqual(30, ws.Row(11).Height, XLHelper.Epsilon);
-            Assert.AreEqual(30, ws.RowHeight, XLHelper.Epsilon);
+            Assert.AreEqual(30, ws.Row(11).Height, XlsxHelper.Epsilon);
+            Assert.AreEqual(30, ws.RowHeight, XlsxHelper.Epsilon);
         }
 
         [Test]
         public void PreserveWorksheetRowHeightWhenNotAllRowsChanged()
         {
-            var ws = new XLWorkbook().AddWorksheet();
+            var ws = new XlsxWorkbook().AddWorksheet();
             var defaultRowHeight = ws.RowHeight;
-            var rows = ws.Rows(1, XLHelper.MaxRowNumber);
+            var rows = ws.Rows(1, XlsxHelper.MaxRowNumber);
 
             rows.Height = 30;
 
-            Assert.AreEqual(30, ws.Row(11).Height, XLHelper.Epsilon);
-            Assert.AreEqual(defaultRowHeight, ws.RowHeight, XLHelper.Epsilon);
+            Assert.AreEqual(30, ws.Row(11).Height, XlsxHelper.Epsilon);
+            Assert.AreEqual(defaultRowHeight, ws.RowHeight, XlsxHelper.Epsilon);
         }
 
         [Test]
         public void PreserveWorksheetRowHeightWhenUsedRowsChanged()
         {
-            var ws = new XLWorkbook().AddWorksheet();
+            var ws = new XlsxWorkbook().AddWorksheet();
             ws.Cells("A1:E5").Value = "Not empty";
             var defaultRowHeight = ws.RowHeight;
-            var rows = ws.RowsUsed(XLCellsUsedOptions.Contents);
+            var rows = ws.RowsUsed(XlsxCellsUsedOptions.Contents);
 
             rows.Height = 30;
 
-            Assert.AreEqual(30, ws.Row(3).Height, XLHelper.Epsilon);
-            Assert.AreEqual(defaultRowHeight, ws.Row(11).Height, XLHelper.Epsilon);
-            Assert.AreEqual(defaultRowHeight, ws.RowHeight, XLHelper.Epsilon);
+            Assert.AreEqual(30, ws.Row(3).Height, XlsxHelper.Epsilon);
+            Assert.AreEqual(defaultRowHeight, ws.Row(11).Height, XlsxHelper.Epsilon);
+            Assert.AreEqual(defaultRowHeight, ws.RowHeight, XlsxHelper.Epsilon);
         }
     }
 }

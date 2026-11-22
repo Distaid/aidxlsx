@@ -1,8 +1,11 @@
 #nullable enable
 
 using System.Collections.Generic;
+using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Opc;
-using Aid.Xlsx.Formatting;
+using Aid.Xlsx.Styles;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Styles.Formatting;
 
 namespace Aid.Xlsx.Internal.IO;
 
@@ -17,7 +20,9 @@ internal partial class StylesReader
 
         var count = _reader.GetOptionalUInt("count");
 
-        var numFmt = new List<(int NumFmtId, XLNumberFormat Format)>();
+        OnNumFmtsParsing(count);
+
+        var numFmt = new List<(int NumFmtId, XlsxNumberFormat Format)>();
         while (ParseNumFmt("numFmt", _ns) is { IsSuccess: true} numFmtItem)
         {
             numFmt.Add(numFmtItem.Value);
@@ -28,22 +33,28 @@ internal partial class StylesReader
         return Xpr.Success();
     }
 
-    partial void OnNumFmtsParsed(List<(int NumFmtId, XLNumberFormat Format)> numFmt, uint? count);
+    partial void OnNumFmtsParsing(uint? count);
 
-    private Xpr<(int NumFmtId, XLNumberFormat Format)> ParseNumFmt(string elementName, string ns)
+    partial void OnNumFmtsParsed(List<(int NumFmtId, XlsxNumberFormat Format)> numFmt, uint? count);
+
+    private Xpr<(int NumFmtId, XlsxNumberFormat Format)> ParseNumFmt(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<(int NumFmtId, XLNumberFormat Format)>();
+            return Xpr.Fail<(int NumFmtId, XlsxNumberFormat Format)>();
         }
 
         var numFmtId = _reader.GetUInt("numFmtId");
         var formatCode = _reader.GetXString("formatCode");
 
+        OnNumFmtParsing(numFmtId, formatCode);
+
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnNumFmtParsed(numFmtId, formatCode));
     }
+
+    partial void OnNumFmtParsing(uint numFmtId, string formatCode);
 
     private Xpr ParseFonts(string elementName, string ns)
     {
@@ -54,7 +65,9 @@ internal partial class StylesReader
 
         var count = _reader.GetOptionalUInt("count");
 
-        var font = new List<XLDifferentialFontValue>();
+        OnFontsParsing(count);
+
+        var font = new List<XlsxDifferentialFontValue>();
         while (ParseFont("font", _ns) is { IsSuccess: true} fontItem)
         {
             font.Add(fontItem.Value);
@@ -65,7 +78,9 @@ internal partial class StylesReader
         return Xpr.Success();
     }
 
-    partial void OnFontsParsed(List<XLDifferentialFontValue> font, uint? count);
+    partial void OnFontsParsing(uint? count);
+
+    partial void OnFontsParsed(List<XlsxDifferentialFontValue> font, uint? count);
 
     private Xpr ParseFills(string elementName, string ns)
     {
@@ -76,7 +91,9 @@ internal partial class StylesReader
 
         var count = _reader.GetOptionalUInt("count");
 
-        var fill = new List<XLFillFormatValue>();
+        OnFillsParsing(count);
+
+        var fill = new List<XlsxFillFormatValue>();
         while (ParseFill("fill", _ns) is { IsSuccess: true} fillItem)
         {
             fill.Add(fillItem.Value);
@@ -87,16 +104,20 @@ internal partial class StylesReader
         return Xpr.Success();
     }
 
-    partial void OnFillsParsed(List<XLFillFormatValue> fill, uint? count);
+    partial void OnFillsParsing(uint? count);
 
-    private Xpr<XLFillFormatValue> ParseFill(string elementName, string ns)
+    partial void OnFillsParsed(List<XlsxFillFormatValue> fill, uint? count);
+
+    private Xpr<XlsxFillFormatValue> ParseFill(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<XLFillFormatValue>();
+            return Xpr.Fail<XlsxFillFormatValue>();
         }
 
-        XLFillFormatValue? choice;
+        OnFillParsing();
+
+        XlsxFillFormatValue? choice;
         if (ParsePatternFill("patternFill", _ns) is { IsSuccess: true } patternFill)
         {
             choice = OnFillPatternFillParsed(patternFill.Value);
@@ -114,39 +135,47 @@ internal partial class StylesReader
         return Xpr.From(OnFillParsed(choice));
     }
 
-    private Xpr<XLFillFormatValue> ParsePatternFill(string elementName, string ns)
+    partial void OnFillParsing();
+
+    private Xpr<XlsxFillFormatValue> ParsePatternFill(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<XLFillFormatValue>();
+            return Xpr.Fail<XlsxFillFormatValue>();
         }
 
-        var patternType = _reader.GetOptionalEnum<XLFillPatternValues>("patternType");
+        var patternType = _reader.GetOptionalEnum<XlsxFillPatternValues>("patternType");
+
+        OnPatternFillParsing(patternType);
 
         var fgColorResult = ParseColor("fgColor", _ns);
-        var fgColor = fgColorResult.IsSuccess ? fgColorResult.Value : default(XLColor?);
+        var fgColor = fgColorResult.IsSuccess ? fgColorResult.Value : default(XlsxColor?);
         var bgColorResult = ParseColor("bgColor", _ns);
-        var bgColor = bgColorResult.IsSuccess ? bgColorResult.Value : default(XLColor?);
+        var bgColor = bgColorResult.IsSuccess ? bgColorResult.Value : default(XlsxColor?);
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnPatternFillParsed(fgColor, bgColor, patternType));
     }
 
-    private Xpr<XLFillFormatValue> ParseGradientFill(string elementName, string ns)
+    partial void OnPatternFillParsing(XlsxFillPatternValues? patternType);
+
+    private Xpr<XlsxFillFormatValue> ParseGradientFill(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<XLFillFormatValue>();
+            return Xpr.Fail<XlsxFillFormatValue>();
         }
 
-        var type = _reader.GetOptionalEnum<XLGradientType>("type") ?? XLGradientType.Linear;
+        var type = _reader.GetOptionalEnum<XlsxGradientType>("type") ?? XlsxGradientType.Linear;
         var degree = _reader.GetOptionalDouble("degree") ?? 0;
         var left = _reader.GetOptionalDouble("left") ?? 0;
         var right = _reader.GetOptionalDouble("right") ?? 0;
         var top = _reader.GetOptionalDouble("top") ?? 0;
         var bottom = _reader.GetOptionalDouble("bottom") ?? 0;
 
-        var stop = new List<(FractionOfOne Value, XLColor Color)>();
+        OnGradientFillParsing(type, degree, left, right, top, bottom);
+
+        var stop = new List<(FractionOfOne Value, XlsxColor Color)>();
         while (ParseGradientStop("stop", _ns) is { IsSuccess: true} stopItem)
         {
             stop.Add(stopItem.Value);
@@ -156,20 +185,26 @@ internal partial class StylesReader
         return Xpr.From(OnGradientFillParsed(stop, type, degree, left, right, top, bottom));
     }
 
-    private Xpr<(FractionOfOne Value, XLColor Color)> ParseGradientStop(string elementName, string ns)
+    partial void OnGradientFillParsing(XlsxGradientType type, double degree, double left, double right, double top, double bottom);
+
+    private Xpr<(FractionOfOne Value, XlsxColor Color)> ParseGradientStop(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<(FractionOfOne Value, XLColor Color)>();
+            return Xpr.Fail<(FractionOfOne Value, XlsxColor Color)>();
         }
 
         var position = _reader.GetDouble("position");
+
+        OnGradientStopParsing(position);
 
         var color = ParseColor("color", _ns).Value;
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnGradientStopParsed(color, position));
     }
+
+    partial void OnGradientStopParsing(double position);
 
     private Xpr ParseBorders(string elementName, string ns)
     {
@@ -180,7 +215,9 @@ internal partial class StylesReader
 
         var count = _reader.GetOptionalUInt("count");
 
-        var border = new List<XLDifferentialBorderValue>();
+        OnBordersParsing(count);
+
+        var border = new List<XlsxDifferentialBorderValue>();
         while (ParseBorder("border", _ns) is { IsSuccess: true} borderItem)
         {
             border.Add(borderItem.Value);
@@ -191,53 +228,67 @@ internal partial class StylesReader
         return Xpr.Success();
     }
 
-    partial void OnBordersParsed(List<XLDifferentialBorderValue> border, uint? count);
+    partial void OnBordersParsing(uint? count);
 
-    private Xpr<XLDifferentialBorderValue> ParseBorder(string elementName, string ns)
+    partial void OnBordersParsed(List<XlsxDifferentialBorderValue> border, uint? count);
+
+    private Xpr<XlsxDifferentialBorderValue> ParseBorder(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<XLDifferentialBorderValue>();
+            return Xpr.Fail<XlsxDifferentialBorderValue>();
         }
 
         var diagonalUp = _reader.GetOptionalBool("diagonalUp");
         var diagonalDown = _reader.GetOptionalBool("diagonalDown");
         var outline = _reader.GetOptionalBool("outline") ?? true;
 
+        OnBorderParsing(diagonalUp, diagonalDown, outline);
+
+        var startResult = ParseBorderPr("start", _ns);
+        var start = startResult.IsSuccess ? startResult.Value : default(XlsxBorderLine?);
+        var endResult = ParseBorderPr("end", _ns);
+        var end = endResult.IsSuccess ? endResult.Value : default(XlsxBorderLine?);
         var leftResult = ParseBorderPr("left", _ns);
-        var left = leftResult.IsSuccess ? leftResult.Value : default(XLBorderLine?);
+        var left = leftResult.IsSuccess ? leftResult.Value : default(XlsxBorderLine?);
         var rightResult = ParseBorderPr("right", _ns);
-        var right = rightResult.IsSuccess ? rightResult.Value : default(XLBorderLine?);
+        var right = rightResult.IsSuccess ? rightResult.Value : default(XlsxBorderLine?);
         var topResult = ParseBorderPr("top", _ns);
-        var top = topResult.IsSuccess ? topResult.Value : default(XLBorderLine?);
+        var top = topResult.IsSuccess ? topResult.Value : default(XlsxBorderLine?);
         var bottomResult = ParseBorderPr("bottom", _ns);
-        var bottom = bottomResult.IsSuccess ? bottomResult.Value : default(XLBorderLine?);
+        var bottom = bottomResult.IsSuccess ? bottomResult.Value : default(XlsxBorderLine?);
         var diagonalResult = ParseBorderPr("diagonal", _ns);
-        var diagonal = diagonalResult.IsSuccess ? diagonalResult.Value : default(XLBorderLine?);
+        var diagonal = diagonalResult.IsSuccess ? diagonalResult.Value : default(XlsxBorderLine?);
         var verticalResult = ParseBorderPr("vertical", _ns);
-        var vertical = verticalResult.IsSuccess ? verticalResult.Value : default(XLBorderLine?);
+        var vertical = verticalResult.IsSuccess ? verticalResult.Value : default(XlsxBorderLine?);
         var horizontalResult = ParseBorderPr("horizontal", _ns);
-        var horizontal = horizontalResult.IsSuccess ? horizontalResult.Value : default(XLBorderLine?);
+        var horizontal = horizontalResult.IsSuccess ? horizontalResult.Value : default(XlsxBorderLine?);
         _reader.Close(elementName, ns);
 
-        return Xpr.From(OnBorderParsed(left, right, top, bottom, diagonal, vertical, horizontal, diagonalUp, diagonalDown, outline));
+        return Xpr.From(OnBorderParsed(start, end, left, right, top, bottom, diagonal, vertical, horizontal, diagonalUp, diagonalDown, outline));
     }
 
-    private Xpr<XLBorderLine> ParseBorderPr(string elementName, string ns)
+    partial void OnBorderParsing(bool? diagonalUp, bool? diagonalDown, bool outline);
+
+    private Xpr<XlsxBorderLine> ParseBorderPr(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<XLBorderLine>();
+            return Xpr.Fail<XlsxBorderLine>();
         }
 
-        var style = _reader.GetOptionalEnum<XLBorderStyleValues>("style") ?? XLBorderStyleValues.None;
+        var style = _reader.GetOptionalEnum<XlsxBorderStyleValues>("style") ?? XlsxBorderStyleValues.None;
+
+        OnBorderPrParsing(style);
 
         var colorResult = ParseColor("color", _ns);
-        var color = colorResult.IsSuccess ? colorResult.Value : default(XLColor?);
+        var color = colorResult.IsSuccess ? colorResult.Value : default(XlsxColor?);
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnBorderPrParsed(color, style));
     }
+
+    partial void OnBorderPrParsing(XlsxBorderStyleValues style);
 
     private Xpr ParseCellStyleXfs(string elementName, string ns)
     {
@@ -248,7 +299,9 @@ internal partial class StylesReader
 
         var count = _reader.GetOptionalUInt("count");
 
-        var xf = new List<(XLCellFormatValue Format, int? CellStyleXfId)>();
+        OnCellStyleXfsParsing(count);
+
+        var xf = new List<(XlsxCellFormatValue Format, int? CellStyleXfId)>();
         while (ParseXf("xf", _ns) is { IsSuccess: true} xfItem)
         {
             xf.Add(xfItem.Value);
@@ -264,13 +317,15 @@ internal partial class StylesReader
         return Xpr.Success();
     }
 
-    partial void OnCellStyleXfsParsed(List<(XLCellFormatValue Format, int? CellStyleXfId)> xf, uint? count);
+    partial void OnCellStyleXfsParsing(uint? count);
 
-    private Xpr<(XLCellFormatValue Format, int? CellStyleXfId)> ParseXf(string elementName, string ns)
+    partial void OnCellStyleXfsParsed(List<(XlsxCellFormatValue Format, int? CellStyleXfId)> xf, uint? count);
+
+    private Xpr<(XlsxCellFormatValue Format, int? CellStyleXfId)> ParseXf(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<(XLCellFormatValue Format, int? CellStyleXfId)>();
+            return Xpr.Fail<(XlsxCellFormatValue Format, int? CellStyleXfId)>();
         }
 
         var numFmtId = _reader.GetOptionalUInt("numFmtId");
@@ -287,10 +342,12 @@ internal partial class StylesReader
         var applyAlignment = _reader.GetOptionalBool("applyAlignment");
         var applyProtection = _reader.GetOptionalBool("applyProtection");
 
+        OnXfParsing(numFmtId, fontId, fillId, borderId, xfId, quotePrefix, pivotButton, applyNumberFormat, applyFont, applyFill, applyBorder, applyAlignment, applyProtection);
+
         var alignmentResult = ParseCellAlignment("alignment", _ns);
-        var alignment = alignmentResult.IsSuccess ? alignmentResult.Value : default(XLDifferentialAlignmentValue?);
+        var alignment = alignmentResult.IsSuccess ? alignmentResult.Value : default(XlsxDifferentialAlignmentValue?);
         var protectionResult = ParseCellProtection("protection", _ns);
-        var protection = protectionResult.IsSuccess ? protectionResult.Value : default(XLDifferentialProtectionValue?);
+        var protection = protectionResult.IsSuccess ? protectionResult.Value : default(XlsxDifferentialProtectionValue?);
         if (ParseExtensionList("extLst", _ns) is { IsSuccess: true })
         {
             // Optional element 'extLst' was present
@@ -300,15 +357,17 @@ internal partial class StylesReader
         return Xpr.From(OnXfParsed(alignment, protection, numFmtId, fontId, fillId, borderId, xfId, quotePrefix, pivotButton, applyNumberFormat, applyFont, applyFill, applyBorder, applyAlignment, applyProtection));
     }
 
-    private Xpr<XLDifferentialAlignmentValue> ParseCellAlignment(string elementName, string ns)
+    partial void OnXfParsing(uint? numFmtId, uint? fontId, uint? fillId, uint? borderId, uint? xfId, bool quotePrefix, bool pivotButton, bool? applyNumberFormat, bool? applyFont, bool? applyFill, bool? applyBorder, bool? applyAlignment, bool? applyProtection);
+
+    private Xpr<XlsxDifferentialAlignmentValue> ParseCellAlignment(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<XLDifferentialAlignmentValue>();
+            return Xpr.Fail<XlsxDifferentialAlignmentValue>();
         }
 
-        var horizontal = _reader.GetOptionalEnum<XLAlignmentHorizontalValues>("horizontal");
-        var vertical = _reader.GetOptionalEnum<XLAlignmentVerticalValues>("vertical") ?? XLAlignmentVerticalValues.Bottom;
+        var horizontal = _reader.GetOptionalEnum<XlsxAlignmentHorizontalValues>("horizontal");
+        var vertical = _reader.GetOptionalEnum<XlsxAlignmentVerticalValues>("vertical") ?? XlsxAlignmentVerticalValues.Bottom;
         var textRotation = _reader.GetOptionalUInt("textRotation");
         var wrapText = _reader.GetOptionalBool("wrapText");
         var indent = _reader.GetOptionalUInt("indent");
@@ -317,36 +376,46 @@ internal partial class StylesReader
         var shrinkToFit = _reader.GetOptionalBool("shrinkToFit");
         var readingOrder = _reader.GetOptionalUInt("readingOrder");
 
+        OnCellAlignmentParsing(horizontal, vertical, textRotation, wrapText, indent, relativeIndent, justifyLastLine, shrinkToFit, readingOrder);
+
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnCellAlignmentParsed(horizontal, vertical, textRotation, wrapText, indent, relativeIndent, justifyLastLine, shrinkToFit, readingOrder));
     }
 
-    private Xpr<XLDifferentialProtectionValue> ParseCellProtection(string elementName, string ns)
+    partial void OnCellAlignmentParsing(XlsxAlignmentHorizontalValues? horizontal, XlsxAlignmentVerticalValues vertical, uint? textRotation, bool? wrapText, uint? indent, int? relativeIndent, bool? justifyLastLine, bool? shrinkToFit, uint? readingOrder);
+
+    private Xpr<XlsxDifferentialProtectionValue> ParseCellProtection(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<XLDifferentialProtectionValue>();
+            return Xpr.Fail<XlsxDifferentialProtectionValue>();
         }
 
         var locked = _reader.GetOptionalBool("locked");
         var hidden = _reader.GetOptionalBool("hidden");
+
+        OnCellProtectionParsing(locked, hidden);
 
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnCellProtectionParsed(locked, hidden));
     }
 
-    private Xpr<List<(XLCellFormatValue Format, int? CellStyleXfId)>> ParseCellXfs(string elementName, string ns)
+    partial void OnCellProtectionParsing(bool? locked, bool? hidden);
+
+    private Xpr<List<(XlsxCellFormatValue Format, int? CellStyleXfId)>> ParseCellXfs(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<List<(XLCellFormatValue Format, int? CellStyleXfId)>>();
+            return Xpr.Fail<List<(XlsxCellFormatValue Format, int? CellStyleXfId)>>();
         }
 
         var count = _reader.GetOptionalUInt("count");
 
-        var xf = new List<(XLCellFormatValue Format, int? CellStyleXfId)>();
+        OnCellXfsParsing(count);
+
+        var xf = new List<(XlsxCellFormatValue Format, int? CellStyleXfId)>();
         while (ParseXf("xf", _ns) is { IsSuccess: true} xfItem)
         {
             xf.Add(xfItem.Value);
@@ -361,16 +430,20 @@ internal partial class StylesReader
         return Xpr.From(OnCellXfsParsed(xf, count));
     }
 
-    private Xpr<Dictionary<int, XLCellStyleValue>> ParseCellStyles(string elementName, string ns)
+    partial void OnCellXfsParsing(uint? count);
+
+    private Xpr<Dictionary<int, XlsxCellStyleValue>> ParseCellStyles(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<Dictionary<int, XLCellStyleValue>>();
+            return Xpr.Fail<Dictionary<int, XlsxCellStyleValue>>();
         }
 
         var count = _reader.GetOptionalUInt("count");
 
-        var cellStyle = new List<(int CellStyleXfId, XLCellStyleValue Style)>();
+        OnCellStylesParsing(count);
+
+        var cellStyle = new List<(int CellStyleXfId, XlsxCellStyleValue Style)>();
         while (ParseCellStyle("cellStyle", _ns) is { IsSuccess: true} cellStyleItem)
         {
             cellStyle.Add(cellStyleItem.Value);
@@ -385,11 +458,13 @@ internal partial class StylesReader
         return Xpr.From(OnCellStylesParsed(cellStyle, count));
     }
 
-    private Xpr<(int CellStyleXfId, XLCellStyleValue Style)> ParseCellStyle(string elementName, string ns)
+    partial void OnCellStylesParsing(uint? count);
+
+    private Xpr<(int CellStyleXfId, XlsxCellStyleValue Style)> ParseCellStyle(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<(int CellStyleXfId, XLCellStyleValue Style)>();
+            return Xpr.Fail<(int CellStyleXfId, XlsxCellStyleValue Style)>();
         }
 
         var name = _reader.GetOptionalXString("name");
@@ -398,6 +473,8 @@ internal partial class StylesReader
         var iLevel = _reader.GetOptionalUInt("iLevel");
         var hidden = _reader.GetOptionalBool("hidden");
         var customBuiltin = _reader.GetOptionalBool("customBuiltin");
+
+        OnCellStyleParsing(name, xfId, builtinId, iLevel, hidden, customBuiltin);
 
         if (ParseExtensionList("extLst", _ns) is { IsSuccess: true })
         {
@@ -408,6 +485,8 @@ internal partial class StylesReader
         return Xpr.From(OnCellStyleParsed(name, xfId, builtinId, iLevel, hidden, customBuiltin));
     }
 
+    partial void OnCellStyleParsing(string? name, uint xfId, uint? builtinId, uint? iLevel, bool? hidden, bool? customBuiltin);
+
     private Xpr ParseDxfs(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
@@ -416,6 +495,8 @@ internal partial class StylesReader
         }
 
         var count = _reader.GetOptionalUInt("count");
+
+        OnDxfsParsing(count);
 
         while (ParseDxf("dxf", _ns) is { IsSuccess: true })
         {
@@ -427,6 +508,8 @@ internal partial class StylesReader
         return Xpr.Success();
     }
 
+    partial void OnDxfsParsing(uint? count);
+
     partial void OnDxfsParsed(uint? count);
 
     private Xpr ParseDxf(string elementName, string ns)
@@ -436,18 +519,20 @@ internal partial class StylesReader
             return Xpr.Fail();
         }
 
+        OnDxfParsing();
+
         var fontResult = ParseFont("font", _ns);
-        var font = fontResult.IsSuccess ? fontResult.Value : default(XLDifferentialFontValue?);
+        var font = fontResult.IsSuccess ? fontResult.Value : default(XlsxDifferentialFontValue?);
         var numFmtResult = ParseNumFmt("numFmt", _ns);
-        var numFmt = numFmtResult.IsSuccess ? numFmtResult.Value : default((int NumFmtId, XLNumberFormat Format)?);
+        var numFmt = numFmtResult.IsSuccess ? numFmtResult.Value : default((int NumFmtId, XlsxNumberFormat Format)?);
         var fillResult = ParseFill("fill", _ns);
-        var fill = fillResult.IsSuccess ? fillResult.Value : default(XLFillFormatValue?);
+        var fill = fillResult.IsSuccess ? fillResult.Value : default(XlsxFillFormatValue?);
         var alignmentResult = ParseCellAlignment("alignment", _ns);
-        var alignment = alignmentResult.IsSuccess ? alignmentResult.Value : default(XLDifferentialAlignmentValue?);
+        var alignment = alignmentResult.IsSuccess ? alignmentResult.Value : default(XlsxDifferentialAlignmentValue?);
         var borderResult = ParseBorder("border", _ns);
-        var border = borderResult.IsSuccess ? borderResult.Value : default(XLDifferentialBorderValue?);
+        var border = borderResult.IsSuccess ? borderResult.Value : default(XlsxDifferentialBorderValue?);
         var protectionResult = ParseCellProtection("protection", _ns);
-        var protection = protectionResult.IsSuccess ? protectionResult.Value : default(XLDifferentialProtectionValue?);
+        var protection = protectionResult.IsSuccess ? protectionResult.Value : default(XlsxDifferentialProtectionValue?);
         if (ParseExtensionList("extLst", _ns) is { IsSuccess: true })
         {
             // Optional element 'extLst' was present
@@ -458,7 +543,9 @@ internal partial class StylesReader
         return Xpr.Success();
     }
 
-    partial void OnDxfParsed(XLDifferentialFontValue? font, (int NumFmtId, XLNumberFormat Format)? numFmt, XLFillFormatValue? fill, XLDifferentialAlignmentValue? alignment, XLDifferentialBorderValue? border, XLDifferentialProtectionValue? protection);
+    partial void OnDxfParsing();
+
+    partial void OnDxfParsed(XlsxDifferentialFontValue? font, (int NumFmtId, XlsxNumberFormat Format)? numFmt, XlsxFillFormatValue? fill, XlsxDifferentialAlignmentValue? alignment, XlsxDifferentialBorderValue? border, XlsxDifferentialProtectionValue? protection);
 
     private Xpr ParseTableStyles(string elementName, string ns)
     {
@@ -471,6 +558,8 @@ internal partial class StylesReader
         var defaultTableStyle = _reader.GetOptionalString("defaultTableStyle");
         var defaultPivotStyle = _reader.GetOptionalString("defaultPivotStyle");
 
+        OnTableStylesParsing(count, defaultTableStyle, defaultPivotStyle);
+
         while (ParseTableStyle("tableStyle", _ns) is { IsSuccess: true })
         {
             // Parsed another element 'tableStyle' with cardinality 0-2147483647
@@ -480,6 +569,8 @@ internal partial class StylesReader
         OnTableStylesParsed(count, defaultTableStyle, defaultPivotStyle);
         return Xpr.Success();
     }
+
+    partial void OnTableStylesParsing(uint? count, string? defaultTableStyle, string? defaultPivotStyle);
 
     partial void OnTableStylesParsed(uint? count, string? defaultTableStyle, string? defaultPivotStyle);
 
@@ -495,6 +586,8 @@ internal partial class StylesReader
         var table = _reader.GetOptionalBool("table") ?? true;
         var count = _reader.GetOptionalUInt("count");
 
+        OnTableStyleParsing(name, pivot, table, count);
+
         while (ParseTableStyleElement("tableStyleElement", _ns) is { IsSuccess: true })
         {
             // Parsed another element 'tableStyleElement' with cardinality 0-2147483647
@@ -504,6 +597,8 @@ internal partial class StylesReader
         OnTableStyleParsed(name, pivot, table, count);
         return Xpr.Success();
     }
+
+    partial void OnTableStyleParsing(string name, bool pivot, bool table, uint? count);
 
     partial void OnTableStyleParsed(string name, bool pivot, bool table, uint? count);
 
@@ -518,13 +613,17 @@ internal partial class StylesReader
         var size = _reader.GetOptionalUInt("size") ?? 1;
         var dxfId = _reader.GetOptionalUInt("dxfId");
 
+        OnTableStyleElementParsing(type, size, dxfId);
+
         _reader.Close(elementName, ns);
 
         OnTableStyleElementParsed(type, size, dxfId);
         return Xpr.Success();
     }
 
-    partial void OnTableStyleElementParsed((XLTableStyleRegionValues?, XLPivotStyleRegionValues?) type, uint size, uint? dxfId);
+    partial void OnTableStyleElementParsing((XlsxTableStyleRegionValues?, XlsxPivotStyleRegionValues?) type, uint size, uint? dxfId);
+
+    partial void OnTableStyleElementParsed((XlsxTableStyleRegionValues?, XlsxPivotStyleRegionValues?) type, uint size, uint? dxfId);
 
     private Xpr ParseColors(string elementName, string ns)
     {
@@ -532,6 +631,8 @@ internal partial class StylesReader
         {
             return Xpr.Fail();
         }
+
+        OnColorsParsing();
 
         if (ParseIndexedColors("indexedColors", _ns) is { IsSuccess: true })
         {
@@ -547,6 +648,8 @@ internal partial class StylesReader
         return Xpr.Success();
     }
 
+    partial void OnColorsParsing();
+
     partial void OnColorsParsed();
 
     private Xpr ParseIndexedColors(string elementName, string ns)
@@ -555,6 +658,8 @@ internal partial class StylesReader
         {
             return Xpr.Fail();
         }
+
+        OnIndexedColorsParsing();
 
         var rgbColor = new List<uint>();
         while (ParseRgbColor("rgbColor", _ns) is { IsSuccess: true} rgbColorItem)
@@ -572,6 +677,8 @@ internal partial class StylesReader
         return Xpr.Success();
     }
 
+    partial void OnIndexedColorsParsing();
+
     partial void OnIndexedColorsParsed(List<uint> rgbColor);
 
     private Xpr ParseMRUColors(string elementName, string ns)
@@ -581,7 +688,9 @@ internal partial class StylesReader
             return Xpr.Fail();
         }
 
-        var color = new List<XLColor>();
+        OnMRUColorsParsing();
+
+        var color = new List<XlsxColor>();
         while (ParseColor("color", _ns) is { IsSuccess: true} colorItem)
         {
             color.Add(colorItem.Value);
@@ -597,7 +706,9 @@ internal partial class StylesReader
         return Xpr.Success();
     }
 
-    partial void OnMRUColorsParsed(List<XLColor> color);
+    partial void OnMRUColorsParsing();
+
+    partial void OnMRUColorsParsed(List<XlsxColor> color);
 
     private Xpr<uint> ParseRgbColor(string elementName, string ns)
     {
@@ -608,8 +719,12 @@ internal partial class StylesReader
 
         var rgb = _reader.GetOptionalUIntHex("rgb");
 
+        OnRgbColorParsing(rgb);
+
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnRgbColorParsed(rgb));
     }
+
+    partial void OnRgbColorParsing(uint? rgb);
 }

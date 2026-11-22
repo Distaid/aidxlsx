@@ -1,9 +1,11 @@
-using Aid.Xlsx;
+using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Patterns;
 using Aid.Xlsx.Ranges.Index;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Aid.Xlsx.Tests.Excel.Ranges
 {
@@ -15,16 +17,16 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Test]
         public void FindExistingMatches()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                var ws = wb.Worksheets.Add("Sheet1") as XLWorksheet;
+                var ws = wb.Worksheets.Add("Sheet1") as XlsxWorksheet;
                 var index = FillIndexWithTestData(ws);
 
                 for (int i = 1; i <= TEST_COUNT; i++)
                 {
                     for (int j = 2; j <= 4; j++)
                     {
-                        var address = new XLAddress(ws, i * 2, j, false, false);
+                        var address = new XlsxAddress(ws, i * 2, j, false, false);
                         Assert.True(index.Contains(in address));
                     }
                 }
@@ -34,14 +36,14 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Test]
         public void FindNonExistingMatches()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                var ws = wb.Worksheets.Add("Sheet1") as XLWorksheet;
+                var ws = wb.Worksheets.Add("Sheet1") as XlsxWorksheet;
                 var index = FillIndexWithTestData(ws);
 
                 for (int i = 1; i <= TEST_COUNT; i++)
                 {
-                    var address = new XLAddress(ws, i * 2 + 1, 3, false, false);
+                    var address = new XlsxAddress(ws, i * 2 + 1, 3, false, false);
                     Assert.False(index.Contains(in address));
                 }
             }
@@ -50,23 +52,23 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Test]
         public void FindExistingIntersections()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                var ws = wb.Worksheets.Add("Sheet1") as XLWorksheet;
+                var ws = wb.Worksheets.Add("Sheet1") as XlsxWorksheet;
                 var index = FillIndexWithTestData(ws);
 
                 for (int i = 1; i <= TEST_COUNT; i++)
                 {
-                    var rangeAddress = new XLRangeAddress(
-                        new XLAddress(ws, i * 2, 1 + i % 4, false, false),
-                        new XLAddress(ws, i * 2 + 1, 8 - i % 3, false, false));
+                    var rangeAddress = new XlsxRangeAddress(
+                        new XlsxAddress(ws, i * 2, 1 + i % 4, false, false),
+                        new XlsxAddress(ws, i * 2 + 1, 8 - i % 3, false, false));
 
                     Assert.True(index.Intersects(in rangeAddress));
                 }
 
                 for (int i = 2; i < 4; i++)
                 {
-                    var columnAddress = XLRangeAddress.EntireColumn(ws, i);
+                    var columnAddress = XlsxRangeAddress.EntireColumn(ws, i);
                     Assert.True(index.Intersects(in columnAddress));
                 }
             }
@@ -75,23 +77,23 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Test]
         public void FindNonExistingIntersections()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                var ws = wb.Worksheets.Add("Sheet1") as XLWorksheet;
+                var ws = wb.Worksheets.Add("Sheet1") as XlsxWorksheet;
                 var index = FillIndexWithTestData(ws);
 
                 for (int i = 1; i <= TEST_COUNT; i++)
                 {
-                    var rangeAddress = new XLRangeAddress(
-                        new XLAddress(ws, i * 2 + 1, 1 + i % 4, false, false),
-                        new XLAddress(ws, i * 2 + 1, 8 - i % 3, false, false));
+                    var rangeAddress = new XlsxRangeAddress(
+                        new XlsxAddress(ws, i * 2 + 1, 1 + i % 4, false, false),
+                        new XlsxAddress(ws, i * 2 + 1, 8 - i % 3, false, false));
 
                     Assert.False(index.Intersects(in rangeAddress));
                 }
 
-                var columnAddress = XLRangeAddress.EntireColumn(ws, 1);
+                var columnAddress = XlsxRangeAddress.EntireColumn(ws, 1);
                 Assert.False(index.Intersects(in columnAddress));
-                columnAddress = XLRangeAddress.EntireColumn(ws, 5);
+                columnAddress = XlsxRangeAddress.EntireColumn(ws, 5);
                 Assert.False(index.Intersects(in columnAddress));
             }
         }
@@ -99,14 +101,14 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Test]
         public void FindMatchAfterColumnShifting()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                var ws = wb.Worksheets.Add("Sheet1") as XLWorksheet;
+                var ws = wb.Worksheets.Add("Sheet1") as XlsxWorksheet;
                 var index = FillIndexWithTestData(ws);
 
                 ws.Column(1).InsertColumnsBefore(1000);
 
-                var address = new XLAddress(ws, 102, 1004, false, false);
+                var address = new XlsxAddress(ws, 102, 1004, false, false);
 
                 Assert.True(index.Contains(in address));
             }
@@ -115,14 +117,14 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Test]
         public void FindIntersectionsAfterColumnShifting()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                var ws = wb.Worksheets.Add("Sheet1") as XLWorksheet;
+                var ws = wb.Worksheets.Add("Sheet1") as XlsxWorksheet;
                 var index = FillIndexWithTestData(ws);
 
                 ws.Column(3).InsertColumnsBefore(2);
 
-                var rangeAddress = new XLRangeAddress(ws, "F102:E103");
+                var rangeAddress = new XlsxRangeAddress(ws, "F102:E103");
 
                 Assert.True(index.Intersects(in rangeAddress));
             }
@@ -131,14 +133,14 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Test]
         public void FindMatchAfterRowShifting()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                var ws = wb.Worksheets.Add("Sheet1") as XLWorksheet;
+                var ws = wb.Worksheets.Add("Sheet1") as XlsxWorksheet;
                 var index = FillIndexWithTestData(ws);
 
                 ws.Row(10).InsertRowsBelow(3);
 
-                var address = new XLAddress(ws, 103, 4, false, false);
+                var address = new XlsxAddress(ws, 103, 4, false, false);
 
                 Assert.True(index.Contains(in address));
             }
@@ -147,14 +149,14 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Test]
         public void FindIntersectionsAfterRowShifting()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                var ws = wb.Worksheets.Add("Sheet1") as XLWorksheet;
+                var ws = wb.Worksheets.Add("Sheet1") as XlsxWorksheet;
                 var index = FillIndexWithTestData(ws);
 
                 ws.Row(10).InsertRowsBelow(3);
 
-                var rangeAddress = new XLRangeAddress(ws, "C103:E103");
+                var rangeAddress = new XlsxRangeAddress(ws, "C103:E103");
 
                 Assert.True(index.Intersects(in rangeAddress));
             }
@@ -163,9 +165,9 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Test]
         public void CreateQuadTree()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                var ws = wb.Worksheets.Add("Sheet1") as XLWorksheet;
+                var ws = wb.Worksheets.Add("Sheet1") as XlsxWorksheet;
                 var quadTree = new Quadrant();
                 var range = ws.Range("BT76:CA87");
 
@@ -173,9 +175,9 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
 
                 var level0 = quadTree;
                 Assert.AreEqual(1, level0.MinimumColumn);
-                Assert.AreEqual(XLHelper.MaxColumnNumber, level0.MaximumColumn);
+                Assert.AreEqual(XlsxHelper.MaxColumnNumber, level0.MaximumColumn);
                 Assert.AreEqual(1, level0.MinimumRow);
-                Assert.AreEqual(XLHelper.MaxRowNumber, level0.MaximumRow);
+                Assert.AreEqual(XlsxHelper.MaxRowNumber, level0.MaximumRow);
                 Assert.IsNull(level0.Ranges);
                 Assert.AreEqual(128, level0.Children.Count());
                 Assert.True(level0.Children.All(child => child.Level == 1));
@@ -221,16 +223,16 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         }
 
         [Test]
-        public void XLRangesCountChangesCorrectly()
+        public void XlsxRangesCountChangesCorrectly()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                var ws = wb.Worksheets.Add("Sheet1") as XLWorksheet;
+                var ws = wb.Worksheets.Add("Sheet1") as XlsxWorksheet;
                 var range1 = ws.Range("A1:B2");
                 var range2 = ws.Range("A2:B3");
                 var range3 = ws.Range("A1:B2"); // same as range1
 
-                var ranges = new XLRanges(wb);
+                var ranges = new XlsxRanges(wb);
                 ranges.Add(range1);
                 Assert.AreEqual(1, ranges.Count);
                 ranges.Add(range2);
@@ -238,7 +240,7 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
                 ranges.Add(range3);
                 Assert.AreEqual(2, ranges.Count);
 
-                Assert.AreEqual(ranges.Count, ranges.Count<IXLRange>());
+                Assert.AreEqual(ranges.Count, ranges.Count<IXlsxRange>());
 
                 // Add many entries to activate QuadTree
                 for (int i = 1; i <= TEST_COUNT; i++)
@@ -264,14 +266,14 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
             }
         }
 
-        private IXLRangeIndex CreateRangeIndex(IXLWorksheet worksheet)
+        private IXlsxRangeIndex CreateRangeIndex(IXlsxWorksheet worksheet)
         {
-            return new XLRangeIndex<IXLRangeBase>((XLWorksheet)worksheet);
+            return new XlsxRangeIndex<IXlsxRangeBase>((XlsxWorksheet)worksheet);
         }
 
-        private IXLRangeIndex FillIndexWithTestData(IXLWorksheet worksheet)
+        private IXlsxRangeIndex FillIndexWithTestData(IXlsxWorksheet worksheet)
         {
-            var ranges = new List<IXLRange>();
+            var ranges = new List<IXlsxRange>();
             for (int i = 1; i <= TEST_COUNT; i++)
             {
                 ranges.Add(worksheet.Range(i * 2, 2, i * 2, 4));

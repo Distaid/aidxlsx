@@ -1,14 +1,14 @@
 #nullable disable
 
+using System.Diagnostics;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.PivotTables;
 using Aid.Xlsx.Utils;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml;
-using System;
-using System.Diagnostics;
-using System.Linq;
-using Aid.Xlsx.Extensions;
-using static Aid.Xlsx.XLWorkbook;
+using static Aid.Xlsx.Workbooks.XlsxWorkbook;
 
 namespace Aid.Xlsx.Internal.IO
 {
@@ -16,7 +16,7 @@ namespace Aid.Xlsx.Internal.IO
     {
         internal static void GenerateContent(
             PivotTableCacheDefinitionPart pivotTableCacheDefinitionPart,
-            XLPivotCache pivotCache,
+            XlsxPivotCache pivotCache,
             SaveContext context)
         {
             var pivotCacheDefinition = pivotTableCacheDefinitionPart.PivotCacheDefinition;
@@ -31,7 +31,7 @@ namespace Aid.Xlsx.Internal.IO
 
             #region CreatedVersion
 
-            byte createdVersion = XLConstants.PivotTable.CreatedVersion;
+            byte createdVersion = XlsxConstants.PivotTable.CreatedVersion;
 
             if (pivotCacheDefinition.CreatedVersion?.HasValue ?? false)
                 pivotCacheDefinition.CreatedVersion = Math.Max(createdVersion, pivotCacheDefinition.CreatedVersion.Value);
@@ -42,7 +42,7 @@ namespace Aid.Xlsx.Internal.IO
 
             #region RefreshedVersion
 
-            byte refreshedVersion = XLConstants.PivotTable.RefreshedVersion;
+            byte refreshedVersion = XlsxConstants.PivotTable.RefreshedVersion;
             if (pivotCacheDefinition.RefreshedVersion?.HasValue ?? false)
                 pivotCacheDefinition.RefreshedVersion = Math.Max(refreshedVersion, pivotCacheDefinition.RefreshedVersion.Value);
             else
@@ -63,15 +63,15 @@ namespace Aid.Xlsx.Internal.IO
             pivotCacheDefinition.SaveData = pivotCache.SaveSourceData;
             pivotCacheDefinition.RefreshOnLoad = true; //pt.RefreshDataOnOpen
 
-            if (pivotCache.ItemsToRetainPerField == XLItemsToRetain.None)
+            if (pivotCache.ItemsToRetainPerField == XlsxItemsToRetain.None)
                 pivotCacheDefinition.MissingItemsLimit = 0U;
-            else if (pivotCache.ItemsToRetainPerField == XLItemsToRetain.Max)
-                pivotCacheDefinition.MissingItemsLimit = XLHelper.MaxRowNumber;
+            else if (pivotCache.ItemsToRetainPerField == XlsxItemsToRetain.Max)
+                pivotCacheDefinition.MissingItemsLimit = XlsxHelper.MaxRowNumber;
 
             // Begin CacheSource
             var cacheSource = new CacheSource();
 
-            if (pivotCache.Source is XLPivotSourceReference localSource)
+            if (pivotCache.Source is XlsxPivotSourceReference localSource)
             {
                 // Do not quote worksheet name with whitespace here - issue #955
                 var worksheetSource = localSource.UsesName
@@ -80,7 +80,7 @@ namespace Aid.Xlsx.Internal.IO
                 cacheSource.Type = SourceValues.Worksheet;
                 cacheSource.AddChild(worksheetSource);
             }
-            else if (pivotCache.Source is XLPivotSourceExternalWorkbook externalSource)
+            else if (pivotCache.Source is XlsxPivotSourceExternalWorkbook externalSource)
             {
                 var worksheetSource = externalSource.UsesName
                     ? new WorksheetSource { Id = externalSource.RelId, Name = externalSource.TableOrName }
@@ -88,12 +88,12 @@ namespace Aid.Xlsx.Internal.IO
                 cacheSource.Type = SourceValues.Worksheet;
                 cacheSource.AddChild(worksheetSource);
             }
-            else if (pivotCache.Source is XLPivotSourceConnection connectionSource)
+            else if (pivotCache.Source is XlsxPivotSourceConnection connectionSource)
             {
                 cacheSource.Type = SourceValues.External;
                 cacheSource.ConnectionId = connectionSource.ConnectionId;
             }
-            else if (pivotCache.Source is XLPivotSourceConsolidation consolidationSource)
+            else if (pivotCache.Source is XlsxPivotSourceConsolidation consolidationSource)
             {
                 cacheSource.Type = SourceValues.Consolidation;
                 var consolidation = new Consolidation
@@ -151,7 +151,7 @@ namespace Aid.Xlsx.Internal.IO
                 consolidation.AddChild(rangeSets);
                 cacheSource.AddChild(consolidation);
             }
-            else if (pivotCache.Source is XLPivotSourceScenario)
+            else if (pivotCache.Source is XlsxPivotSourceScenario)
             {
                 cacheSource.Type = SourceValues.Scenario;
             }
@@ -295,13 +295,13 @@ namespace Aid.Xlsx.Internal.IO
                 {
                     OpenXmlElement toAdd = value.Type switch
                     {
-                        XLDataType.Blank => new MissingItem(),
-                        XLDataType.Boolean => new BooleanItem { Val = value.GetBoolean() },
-                        XLDataType.Number => new NumberItem { Val = value.GetNumber() },
-                        XLDataType.Text => new StringItem { Val = value.GetText() },
-                        XLDataType.Error => new ErrorItem { Val = value.GetError().ToDisplayString() },
-                        XLDataType.DateTime => new DateTimeItem { Val = value.GetDateTime() },
-                        XLDataType.TimeSpan => new DateTimeItem { Val = DateTime.FromOADate(value.GetUnifiedNumber()) },
+                        XlsxDataType.Blank => new MissingItem(),
+                        XlsxDataType.Boolean => new BooleanItem { Val = value.GetBoolean() },
+                        XlsxDataType.Number => new NumberItem { Val = value.GetNumber() },
+                        XlsxDataType.Text => new StringItem { Val = value.GetText() },
+                        XlsxDataType.Error => new ErrorItem { Val = value.GetError().ToDisplayString() },
+                        XlsxDataType.DateTime => new DateTimeItem { Val = value.GetDateTime() },
+                        XlsxDataType.TimeSpan => new DateTimeItem { Val = DateTime.FromOADate(value.GetUnifiedNumber()) },
                         _ => throw new InvalidOperationException()
                     };
                     sharedItems.AppendChild(toAdd);

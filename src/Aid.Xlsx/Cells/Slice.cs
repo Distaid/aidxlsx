@@ -1,11 +1,11 @@
 #nullable disable
 
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Utils;
 
-namespace Aid.Xlsx
+namespace Aid.Xlsx.Cells
 {
     /// <summary>
     /// Slice is a sparse array that stores a part of cell information (e.g. only values,
@@ -73,7 +73,7 @@ namespace Aid.Xlsx
         {
             get
             {
-                var rowsEnumerator = new Lut<Lut<TElement>>.LutEnumerator(_data, XLHelper.MinRowNumber - 1, XLHelper.MaxRowNumber - 1);
+                var rowsEnumerator = new Lut<Lut<TElement>>.LutEnumerator(_data, XlsxHelper.MinRowNumber - 1, XlsxHelper.MaxRowNumber - 1);
                 while (rowsEnumerator.MoveNext())
                 {
                     if (!rowsEnumerator.Current.IsEmpty)
@@ -100,7 +100,7 @@ namespace Aid.Xlsx
         {
             Clear(areaToDelete);
 
-            var noCellsToShift = areaToDelete.LastPoint.Column == XLHelper.MaxColumnNumber;
+            var noCellsToShift = areaToDelete.LastPoint.Column == XlsxHelper.MaxColumnNumber;
             if (noCellsToShift)
                 return;
 
@@ -121,7 +121,7 @@ namespace Aid.Xlsx
         {
             Clear(areaToDelete);
 
-            var noCellsToShift = areaToDelete.LastPoint.Row == XLHelper.MaxRowNumber;
+            var noCellsToShift = areaToDelete.LastPoint.Row == XlsxHelper.MaxRowNumber;
             if (noCellsToShift)
                 return;
 
@@ -167,7 +167,7 @@ namespace Aid.Xlsx
         /// <inheritdoc />
         public void InsertAreaAndShiftDown(Area areaToInsert)
         {
-            var hasSpaceBelow = areaToInsert.LastPoint.Row < XLHelper.MaxRowNumber;
+            var hasSpaceBelow = areaToInsert.LastPoint.Row < XlsxHelper.MaxRowNumber;
             if (!hasSpaceBelow)
             {
                 Clear(areaToInsert);
@@ -178,13 +178,13 @@ namespace Aid.Xlsx
 
             // Purged range might contain some cells that wouldn't be overwritten during shift => clear.
             var purgedRange = new Area(
-                new Point(XLHelper.MaxRowNumber - shiftDistance + 1, areaToInsert.FirstPoint.Column),
-                new Point(XLHelper.MaxRowNumber, areaToInsert.LastPoint.Column));
+                new Point(XlsxHelper.MaxRowNumber - shiftDistance + 1, areaToInsert.FirstPoint.Column),
+                new Point(XlsxHelper.MaxRowNumber, areaToInsert.LastPoint.Column));
             Clear(purgedRange);
 
             var shiftedRange = new Area(
                 areaToInsert.FirstPoint,
-                new Point(XLHelper.MaxRowNumber - shiftDistance, areaToInsert.LastPoint.Column));
+                new Point(XlsxHelper.MaxRowNumber - shiftDistance, areaToInsert.LastPoint.Column));
             var cellEnumerator = new ReverseEnumerator(this, shiftedRange);
             while (cellEnumerator.MoveNext())
             {
@@ -198,7 +198,7 @@ namespace Aid.Xlsx
         /// <inheritdoc />
         public void InsertAreaAndShiftRight(Area areaToInsert)
         {
-            var hasSpaceRight = areaToInsert.LastPoint.Column < XLHelper.MaxColumnNumber;
+            var hasSpaceRight = areaToInsert.LastPoint.Column < XlsxHelper.MaxColumnNumber;
             if (!hasSpaceRight)
             {
                 Clear(areaToInsert);
@@ -209,13 +209,13 @@ namespace Aid.Xlsx
 
             // Purged range might contain some cells that wouldn't be overwritten during shift => clear.
             var purgedRange = new Area(
-                new Point(areaToInsert.FirstPoint.Row, XLHelper.MaxColumnNumber - shiftDistance + 1),
-                new Point(areaToInsert.LastPoint.Row, XLHelper.MaxColumnNumber));
+                new Point(areaToInsert.FirstPoint.Row, XlsxHelper.MaxColumnNumber - shiftDistance + 1),
+                new Point(areaToInsert.LastPoint.Row, XlsxHelper.MaxColumnNumber));
             Clear(purgedRange);
 
             var shiftedRange = new Area(
                 areaToInsert.FirstPoint,
-                new Point(areaToInsert.LastPoint.Row, XLHelper.MaxColumnNumber - shiftDistance));
+                new Point(areaToInsert.LastPoint.Row, XlsxHelper.MaxColumnNumber - shiftDistance));
             var enumerator = new ReverseEnumerator(this, shiftedRange);
             while (enumerator.MoveNext())
             {
@@ -290,7 +290,7 @@ namespace Aid.Xlsx
         private int CalculateMaxColumn()
         {
             var maxColIdx = -1;
-            var rowEnumerator = new Lut<Lut<TElement>>.LutEnumerator(_data, XLHelper.MinRowNumber - 1, XLHelper.MaxRowNumber - 1);
+            var rowEnumerator = new Lut<Lut<TElement>>.LutEnumerator(_data, XlsxHelper.MinRowNumber - 1, XlsxHelper.MaxRowNumber - 1);
             while (rowEnumerator.MoveNext())
                 maxColIdx = Math.Max(maxColIdx, rowEnumerator.Current.MaxUsedIndex);
 
@@ -331,7 +331,7 @@ namespace Aid.Xlsx
             {
                 _range = range;
 
-                _columnsEnumerator = new Lut<TElement>.LutEnumerator(Dummy, XLHelper.MaxColumnNumber + 1, XLHelper.MaxColumnNumber + 1);
+                _columnsEnumerator = new Lut<TElement>.LutEnumerator(Dummy, XlsxHelper.MaxColumnNumber + 1, XlsxHelper.MaxColumnNumber + 1);
                 _rowsEnumerator = new Lut<Lut<TElement>>.LutEnumerator(
                     slice._data,
                     range.FirstPoint.Row - 1,

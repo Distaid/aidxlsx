@@ -2,8 +2,6 @@
 
 using Aid.Xlsx.Drawings;
 using Aid.Xlsx.Utils;
-using System;
-using System.IO;
 
 namespace Aid.Xlsx.Graphics
 {
@@ -33,7 +31,7 @@ namespace Aid.Xlsx.Graphics
             return version == 42;
         }
 
-        protected override XLPictureInfo ReadInfo(Stream stream)
+        protected override XlsxPictureInfo ReadInfo(Stream stream)
         {
             var byteOrder = stream.ReadU16BE();
             var usesLittleEndian = byteOrder == ByteOrder.LittleEndian;
@@ -82,7 +80,7 @@ namespace Aid.Xlsx.Graphics
 
             var dpiX = ToDpi(xResolution, resolutionUnit);
             var dpiY = ToDpi(yResolution, resolutionUnit);
-            return new XLPictureInfo(XLPictureFormat.Tiff, width, height, dpiX, dpiY);
+            return new XlsxPictureInfo(XlsxPictureFormat.Tiff, width, height, dpiX, dpiY);
         }
 
         private static uint ReadShortOrLone(Stream stream, ushort entryType, Func<Stream, ushort> readU16, Func<Stream, uint> readU32)

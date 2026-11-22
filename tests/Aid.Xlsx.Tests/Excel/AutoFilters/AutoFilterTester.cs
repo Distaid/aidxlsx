@@ -1,38 +1,39 @@
-using System;
-using System.Collections.Generic;
-using Aid.Xlsx;
+using Aid.Xlsx.AutoFilters;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Styles;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.AutoFilters
 {
     internal class AutoFilterTester
     {
-        private readonly Action<IXLFilterColumn> _setFilter;
-        private readonly List<(XLCellValue Value, Action<IXLStyle> SetStyle, bool ExpectedVisibility)> _values = new();
+        private readonly Action<IXlsxFilterColumn> _setFilter;
+        private readonly List<(XlsxCellValue Value, Action<IXlsxStyle> SetStyle, bool ExpectedVisibility)> _values = new();
 
-        internal AutoFilterTester(Action<IXLFilterColumn> setFilter)
+        internal AutoFilterTester(Action<IXlsxFilterColumn> setFilter)
         {
             _setFilter = setFilter;
         }
 
-        internal AutoFilterTester Add(XLCellValue value, bool shouldBeVisible)
+        internal AutoFilterTester Add(XlsxCellValue value, bool shouldBeVisible)
         {
-            return Add(value, static (IXLStyle _) => { }, shouldBeVisible);
+            return Add(value, static (IXlsxStyle _) => { }, shouldBeVisible);
         }
 
-        internal AutoFilterTester Add(XLCellValue value, Action<IXLNumberFormat> setNumberFormat, bool shouldBeVisible)
+        internal AutoFilterTester Add(XlsxCellValue value, Action<IXlsxNumberFormat> setNumberFormat, bool shouldBeVisible)
         {
             _values.Add((value, s => setNumberFormat(s.NumberFormat), shouldBeVisible));
             return this;
         }
 
-        internal AutoFilterTester Add(XLCellValue value, Action<IXLStyle> setStyle, bool shouldBeVisible)
+        internal AutoFilterTester Add(XlsxCellValue value, Action<IXlsxStyle> setStyle, bool shouldBeVisible)
         {
             _values.Add((value, setStyle, shouldBeVisible));
             return this;
         }
 
-        internal AutoFilterTester AddTrue(params XLCellValue[] values)
+        internal AutoFilterTester AddTrue(params XlsxCellValue[] values)
         {
             foreach (var value in values)
                 Add(value, true);
@@ -40,7 +41,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
             return this;
         }
 
-        internal AutoFilterTester AddFalse(params XLCellValue[] values)
+        internal AutoFilterTester AddFalse(params XlsxCellValue[] values)
         {
             foreach (var value in values)
                 Add(value, false);
@@ -50,7 +51,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
 
         internal void AssertVisibility()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = "Data";
             for (var i = 0; i < _values.Count; ++i)
@@ -67,7 +68,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
             {
                 var row = i + 2;
                 var value = ws.Cell(row, 1).CachedValue;
-                var formattedString = ((XLCell)ws.Cell(row, 1)).GetFormattedString(value);
+                var formattedString = ((XlsxCell)ws.Cell(row, 1)).GetFormattedString(value);
                 var actualVisible = !ws.Row(row).IsHidden;
                 var expectedVisibility = _values[i].ExpectedVisibility;
                 Assert.AreEqual(expectedVisibility, actualVisible, $"Visibility differs at index {i} for value {value} (formatted '{formattedString}')");

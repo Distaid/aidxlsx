@@ -1,6 +1,6 @@
-using System;
-using System.Linq;
-using Aid.Xlsx;
+using Aid.Xlsx.AutoFilters;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Styles;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.AutoFilters
@@ -26,7 +26,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
                     }).SetAutoFilter();
                     autoFilter.Column(1)
                         .AddFilter(1)
-                        .AddDateGroupFilter(new DateTime(2015, 8, 1), XLDateTimeGrouping.Month);
+                        .AddDateGroupFilter(new DateTime(2015, 8, 1), XlsxDateTimeGrouping.Month);
                 },
                 (_, ws) =>
                 {
@@ -45,7 +45,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
                 .Add("1.5", false)
                 .Add("1,5", true)
                 .Add("1,50", false)
-                .Add(1.5, nf => nf.SetNumberFormatId((int)XLPredefinedFormat.Number.PercentPrecision2), false)
+                .Add(1.5, nf => nf.SetNumberFormatId((int)XlsxPredefinedFormat.Number.PercentPrecision2), false)
                 .Add(700, nf => nf.SetFormat("\"1,5\""), true)
                 .AssertVisibility();
         }
@@ -69,7 +69,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
         public void Regular_error_value_is_compared_as_text_against_formatted_text()
         {
             new AutoFilterTester(f => f.AddFilter("#VALUE!"))
-                .Add(XLError.IncompatibleValue, true)
+                .Add(XlsxError.IncompatibleValue, true)
                 .Add(2, false)
                 .Add("#VALUE!", true)
                 .AssertVisibility();

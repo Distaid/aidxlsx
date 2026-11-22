@@ -1,13 +1,11 @@
 #nullable disable
 
-using System;
 using System.Collections.Concurrent;
-using System.IO;
 using System.Reflection;
-using Aid.Xlsx;
 using Aid.Xlsx.Drawings;
-using SixLabors.Fonts;
+using Aid.Xlsx.Styles;
 using SixLabors.Fonts.Unicode;
+using SixLabors.Fonts;
 
 namespace Aid.Xlsx.Graphics
 {
@@ -28,7 +26,7 @@ namespace Aid.Xlsx.Graphics
     /// <see cref="CreateWithFontsAndSystemFonts(Stream, Stream[])"/> to get identical metrics everywhere.
     /// </para>
     /// </remarks>
-    public class DefaultGraphicEngine : IXLGraphicEngine
+    public class DefaultGraphicEngine : IXlsxGraphicEngine
     {
         /// <summary>
         /// Carlito is a Calibri metric compatible font. This is a version stripped of everything but metric information
@@ -148,7 +146,7 @@ namespace Aid.Xlsx.Graphics
         /// </remarks>
         /// <param name="fallbackFontStream">A stream that contains a fallback font.</param>
         /// <param name="fontStreams">Fonts that should be loaded to the engine.</param>
-        public static IXLGraphicEngine CreateOnlyWithFonts(Stream fallbackFontStream, params Stream[] fontStreams)
+        public static IXlsxGraphicEngine CreateOnlyWithFonts(Stream fallbackFontStream, params Stream[] fontStreams)
         {
             return new DefaultGraphicEngine(fallbackFontStream, false, fontStreams);
         }
@@ -159,12 +157,12 @@ namespace Aid.Xlsx.Graphics
         /// </summary>
         /// <param name="fallbackFontStream">A stream that contains a fallback font.</param>
         /// <param name="fontStreams">Fonts that should be loaded to the engine.</param>
-        public static IXLGraphicEngine CreateWithFontsAndSystemFonts(Stream fallbackFontStream, params Stream[] fontStreams)
+        public static IXlsxGraphicEngine CreateWithFontsAndSystemFonts(Stream fallbackFontStream, params Stream[] fontStreams)
         {
             return new DefaultGraphicEngine(fallbackFontStream, true, fontStreams);
         }
 
-        public XLPictureInfo GetPictureInfo(Stream stream, XLPictureFormat expectedFormat)
+        public XlsxPictureInfo GetPictureInfo(Stream stream, XlsxPictureFormat expectedFormat)
         {
             foreach (var imageReader in _imageReaders)
             {
@@ -175,31 +173,31 @@ namespace Aid.Xlsx.Graphics
             throw new ArgumentException("Unable to determine the format of the image.");
         }
 
-        public double GetDescent(IXLFontBase font, double dpiY)
+        public double GetDescent(IXlsxFontBase font, double dpiY)
         {
             var metrics = GetMetrics(font);
             return GetDescent(font, dpiY, metrics);
         }
 
-        private double GetDescent(IXLFontBase font, double dpiY, FontMetrics metrics)
+        private double GetDescent(IXlsxFontBase font, double dpiY, FontMetrics metrics)
         {
             return PointsToPixels(-metrics.VerticalMetrics.Descender * font.FontSize / metrics.UnitsPerEm, dpiY);
         }
 
-        public double GetMaxDigitWidth(IXLFontBase fontBase, double dpiX)
+        public double GetMaxDigitWidth(IXlsxFontBase fontBase, double dpiX)
         {
             var metricId = new MetricId(fontBase);
             var maxDigitWidth = _maxDigitWidths.GetOrAdd(metricId, _calculateMaxDigitWidth);
             return PointsToPixels(maxDigitWidth * fontBase.FontSize, dpiX);
         }
 
-        public double GetTextHeight(IXLFontBase font, double dpiY)
+        public double GetTextHeight(IXlsxFontBase font, double dpiY)
         {
             var metrics = GetMetrics(font);
             return PointsToPixels((metrics.VerticalMetrics.Ascender - 2 * metrics.VerticalMetrics.Descender) * font.FontSize / metrics.UnitsPerEm, dpiY);
         }
 
-        public double GetTextWidth(string text, IXLFontBase fontBase, double dpiX)
+        public double GetTextWidth(string text, IXlsxFontBase fontBase, double dpiX)
         {
             var font = GetFont(fontBase);
             var dimensionsPx = TextMeasurer.MeasureAdvance(text, new TextOptions(font)
@@ -211,7 +209,7 @@ namespace Aid.Xlsx.Graphics
         }
 
         /// <inheritdoc />
-        public GlyphBox GetGlyphBox(ReadOnlySpan<int> graphemeCluster, IXLFontBase font, Dpi dpi)
+        public GlyphBox GetGlyphBox(ReadOnlySpan<int> graphemeCluster, IXlsxFontBase font, Dpi dpi)
         {
             // SixLabors.Fonts don't have a way to get a glyph representation of a cluster
             // without a TextRenderer that has unacceptable performance.
@@ -245,13 +243,13 @@ namespace Aid.Xlsx.Graphics
                 (float)Math.Round(descentPx, MidpointRounding.AwayFromZero));
         }
 
-        private FontMetrics GetMetrics(IXLFontBase fontBase)
+        private FontMetrics GetMetrics(IXlsxFontBase fontBase)
         {
             var font = GetFont(fontBase);
             return font.FontMetrics;
         }
 
-        private Font GetFont(IXLFontBase fontBase)
+        private Font GetFont(IXlsxFontBase fontBase)
         {
             return GetFont(new MetricId(fontBase));
         }
@@ -338,7 +336,7 @@ namespace Aid.Xlsx.Graphics
         {
             private readonly FontStyle _style;
 
-            public MetricId(IXLFontBase fontBase)
+            public MetricId(IXlsxFontBase fontBase)
             {
                 Name = fontBase.FontName;
                 _style = GetFontStyle(fontBase);
@@ -352,7 +350,7 @@ namespace Aid.Xlsx.Graphics
 
             public override int GetHashCode() => (Name.GetHashCode() * 397) ^ (int)_style;
 
-            private static FontStyle GetFontStyle(IXLFontBase fontBase)
+            private static FontStyle GetFontStyle(IXlsxFontBase fontBase)
             {
                 return fontBase switch
                 {

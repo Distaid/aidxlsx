@@ -1,8 +1,7 @@
 // Keep this file CodeMaid organised and cleaned
-using System;
 using System.Globalization;
 
-namespace Aid.Xlsx
+namespace Aid.Xlsx.Extensions
 {
     internal static class ObjectExtensions
     {

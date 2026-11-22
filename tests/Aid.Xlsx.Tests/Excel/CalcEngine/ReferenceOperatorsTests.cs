@@ -1,4 +1,5 @@
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine
@@ -11,7 +12,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void ImplicitIntersection_DoesNotAffectSingleCellReference()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("B3").Value = -1;
             ws.Cell("D5").FormulaA1 = "ABS(B3:B3)";
@@ -22,7 +23,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void ImplicitIntersection_TakesReferenceFromHorizontalLine()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("B3").Value = -1;
             ws.Cell("D3").FormulaA1 = "ABS(B1:B10)";
@@ -33,7 +34,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void ImplicitIntersection_TakesReferenceFromVerticalLine()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("B3").Value = -1;
             ws.Cell("B5").FormulaA1 = "ABS(A3:Z3)";
@@ -44,7 +45,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void ImplicitIntersection_TakesReferenceEvenFromIntersectionEvenFromDifferentSheet()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sheet1 = wb.AddWorksheet("Sheet1");
             sheet1.Cell("B3").Value = -1;
 
@@ -57,38 +58,38 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void ImplicitIntersection_WithoutIntersectionResultsInValueError()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("B3").Value = -1;
             ws.Cell("D5").FormulaA1 = "ABS(B1:B4)";
 
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Cell("D5").Value);
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Cell("D5").Value);
         }
 
         [Test]
         public void ImplicitIntersection_CanWorkOnlyWithOneArea()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("B3").Value = -1;
             ws.Cell("D3").FormulaA1 = "ABS((B1:B2,B3:B5))"; // A continous range made of two areas
 
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Cell("D3").Value);
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Cell("D3").Value);
         }
 
         [Test]
         public void ImplicitIntersection_IntersectionMustHaveSpanOfOneCell()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("B3").Value = -1;
             var horizontalIntersectionCell = ws.Cell("D3");
             horizontalIntersectionCell.FormulaA1 = "ABS(A1:B5)";
-            Assert.AreEqual(XLError.IncompatibleValue, horizontalIntersectionCell.Value);
+            Assert.AreEqual(XlsxError.IncompatibleValue, horizontalIntersectionCell.Value);
 
             var verticalIntersectionCell = ws.Cell("B5");
             verticalIntersectionCell.FormulaA1 = "ABS(A3:C4)";
-            Assert.AreEqual(XLError.IncompatibleValue, verticalIntersectionCell.Value);
+            Assert.AreEqual(XlsxError.IncompatibleValue, verticalIntersectionCell.Value);
         }
 
         #endregion
@@ -108,7 +109,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("B5:(Sheet1!A1,A5)", 10)]
         public void Range_UnifiesReferencesIntoSingleAreas(string referenceFormula, int expectedCellCount)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Sheet1");
             ws.Cells("A1:Z100").Value = 1;
 
@@ -121,7 +122,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("Sheet1!A1:B3:C4:Sheet1!B5:C5")]
         public void Range_LeftSideDeterminesSheetIfRightOmitted(string formula)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var firstSheet = wb.AddWorksheet("Sheet1");
             firstSheet.Cells("A1:C5").Value = 1;
             var secondSheet = wb.AddWorksheet("Sheet2");
@@ -139,11 +140,11 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         // [TestCase("Other!A5:(B5)")] This causes #VALUE! in Excel, but it shouldn't. It's likely there is a "Fast parser for simple sheet areas" and "Full path" for complicated operands and they behave inconsistenly
         public void Range_UnificationAcrossSheetsResultsInValueError(string referenceFormula)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var formulaSheet = wb.AddWorksheet("Current");
             wb.AddWorksheet("Other");
 
-            Assert.AreEqual(XLError.IncompatibleValue, formulaSheet.Evaluate($"SUM({referenceFormula})"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, formulaSheet.Evaluate($"SUM({referenceFormula})"));
         }
 
         [TestCase("A1:IF(TRUE,1,)")]
@@ -152,10 +153,10 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("IF(TRUE,FALSE):A1")]
         public void Range_OnlyReferencesCanBeRange(string referenceFormula)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sheet = wb.AddWorksheet();
 
-            Assert.AreEqual(XLError.IncompatibleValue, sheet.Evaluate($"SUM({referenceFormula})"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, sheet.Evaluate($"SUM({referenceFormula})"));
         }
 
         #endregion
@@ -174,7 +175,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("A1:B2,Other!A1:B2,B2:C3,Other!E5:Other!F6", 4 + 40 + 4 + 40)]
         public void Union_CanJoinAnyTwoRanges(string formula, int expectedSum)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var currentSheet = wb.AddWorksheet("Current");
             currentSheet.Cells("A1:F10").Value = 1;
             var otherSheet = wb.AddWorksheet("Other");

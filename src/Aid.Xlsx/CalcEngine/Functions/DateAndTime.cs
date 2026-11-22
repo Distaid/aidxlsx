@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using Aid.Xlsx.Extensions;
 using static Aid.Xlsx.CalcEngine.Functions.SignatureAdapter;
 
 namespace Aid.Xlsx.CalcEngine.Functions
@@ -81,7 +80,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
             day = Math.Floor(day);
 
             if (month is < -short.MaxValue or >= short.MaxValue)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             // Excel behaves out of spec. Spec says 0-99 are interpreted as year + 1900,
             // but reality is that anything below 1900 is interpreted as year + 1900.
@@ -107,12 +106,12 @@ namespace Aid.Xlsx.CalcEngine.Functions
             // Year 1 is earliest allowable in both date system. Also avoid the double
             // to int conversion problems when double is too small.
             if (year < 1)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             var startOfMonth = new DateTime((int)year, (int)month, 1).ToSerialDateTime();
             var serialDate = startOfMonth + day - 1;
             if (serialDate < 0 || serialDate >= ctx.DateSystemUpperLimit)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return serialDate;
         }
@@ -120,13 +119,13 @@ namespace Aid.Xlsx.CalcEngine.Functions
         private static ScalarValue DateDif(CalcContext ctx, double startDateTime, double endDateTime, string unit)
         {
             if (!TryGetDate(ctx, startDateTime, out var startSerialDate))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (!TryGetDate(ctx, endDateTime, out var endSerialDate))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (startSerialDate > endSerialDate)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             var startDate = DateParts.From(ctx, startSerialDate);
             var endDate = DateParts.From(ctx, endSerialDate);
@@ -190,7 +189,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
                 return daysDiff;
             }
 
-            return XLError.NumberInvalid;
+            return XlsxError.NumberInvalid;
         }
 
         private static ScalarValue DateValue(CalcContext ctx, ScalarValue value)
@@ -199,7 +198,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
                 return error;
 
             if (!ScalarValue.ToSerialDateTime(text, ctx.Culture, out var serialDateTime))
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             return Math.Truncate(serialDateTime);
         }
@@ -207,7 +206,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
         private static ScalarValue Day(CalcContext ctx, double serialDateTime)
         {
             if (!TryGetDate(ctx, serialDateTime, out var serialDate))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return DateParts.From(ctx, serialDate).Day;
         }
@@ -215,10 +214,10 @@ namespace Aid.Xlsx.CalcEngine.Functions
         private static ScalarValue Days(CalcContext ctx, double endSerialDate, double startSerialDate)
         {
             if (!TryGetDate(ctx, startSerialDate, out var startDate))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (!TryGetDate(ctx, endSerialDate, out var endDate))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return endDate - startDate;
         }
@@ -226,10 +225,10 @@ namespace Aid.Xlsx.CalcEngine.Functions
         private static ScalarValue Days360(CalcContext ctx, double startDateTime, double endDateTime, bool isEuropean)
         {
             if (!TryGetDate(ctx, startDateTime, out var startDate))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (!TryGetDate(ctx, endDateTime, out var endDate))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return Days360(ctx, startDate, endDate, isEuropean);
         }
@@ -265,10 +264,10 @@ namespace Aid.Xlsx.CalcEngine.Functions
         private static ScalarValue EDate(CalcContext ctx, double startSerialDate, double monthOffset)
         {
             if (!TryGetDate(ctx, startSerialDate, out var startSerial))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (!TryGetMonthsOffset(monthOffset, out var months))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             var startDate = DateParts.From(ctx, startSerial);
             var endDate = startDate.AddMonths(months);
@@ -279,10 +278,10 @@ namespace Aid.Xlsx.CalcEngine.Functions
         private static ScalarValue Eomonth(CalcContext ctx, double startSerialDate, double monthOffset)
         {
             if (!TryGetDate(ctx, startSerialDate, out var startSerial))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (!TryGetMonthsOffset(monthOffset, out var months))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             var startDate = DateParts.From(ctx, startSerial);
             var endDate = startDate.AddMonths(months);
@@ -300,7 +299,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
         {
             // Uses ISO week algorithm from Wikipedia
             if (!TryGetDate(ctx, serialDateTime, out var serialDate))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             var date = DateParts.From(ctx, serialDate);
 
@@ -349,7 +348,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
         private static ScalarValue Month(CalcContext ctx, double serialDateTime)
         {
             if (!TryGetDate(ctx, serialDateTime, out var serialDate))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return DateParts.From(ctx, serialDate).Month;
         }
@@ -389,13 +388,13 @@ namespace Aid.Xlsx.CalcEngine.Functions
         private static ScalarValue Time(CalcContext ctx, double hour, double minute, double second)
         {
             if (!TryGetComponent(hour, out var hourFloored))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (!TryGetComponent(minute, out var minuteFloored))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (!TryGetComponent(second, out var secondFloored))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             var serialDate = new TimeSpan(hourFloored, minuteFloored, secondFloored).ToSerialDateTime();
             return serialDate % 1.0;
@@ -420,7 +419,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
                 return error;
 
             if (!ScalarValue.ToSerialDateTime(text, ctx.Culture, out var serialDateTime))
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             return serialDateTime % 1.0;
         }
@@ -451,7 +450,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
             return weekday;
         }
 
-        private static OneOf<int, XLError> Weekday(int serialDate, int startFlag)
+        private static OneOf<int, XlsxError> Weekday(int serialDate, int startFlag)
         {
             // There are two offsets:
             // - what is the starting day
@@ -471,7 +470,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
                 _ => null,
             };
             if (weekStartOffset is null)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             var numberOffset = startFlag == 3 ? 0 : 1;
 
@@ -492,7 +491,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
         private static ScalarValue WeekNum(CalcContext ctx, double serialDateTime, double weekStartFlag = 1)
         {
             if (!TryGetDate(ctx, serialDateTime, out var serialDate))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             var flag = (int)weekStartFlag;
             var firstDayOfWeek = flag switch
@@ -511,7 +510,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
             };
 
             if (firstDayOfWeek < 0)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             // Use existing function
             if (flag == 21)
@@ -621,7 +620,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
 
             return workday;
 
-            OneOf<List<int>, XLError> GetHolidays(IComparer<int> comparer)
+            OneOf<List<int>, XlsxError> GetHolidays(IComparer<int> comparer)
             {
                 // Use set to skip duplicate values
                 var distinctHolidays = new HashSet<int>();
@@ -650,7 +649,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
         private static ScalarValue Year(CalcContext ctx, double serialDateTime)
         {
             if (!TryGetDate(ctx, serialDateTime, out var serialDate))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return DateParts.From(ctx, serialDate).Year;
         }
@@ -658,13 +657,13 @@ namespace Aid.Xlsx.CalcEngine.Functions
         private static ScalarValue YearFrac(CalcContext ctx, double startDateTime, double endDateTime, double basis = 0)
         {
             if (!TryGetDate(ctx, startDateTime, out var startDate))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (!TryGetDate(ctx, endDateTime, out var endDate))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (basis is < 0 or >= 5)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             var option = checked((int)Math.Truncate(basis));
             var yearFrac = option switch
@@ -695,14 +694,14 @@ namespace Aid.Xlsx.CalcEngine.Functions
             }
         }
 
-        private static bool TryGetDate(CalcContext ctx, ScalarValue value, out int serialDate, out XLError error, bool acceptLogical = false)
+        private static bool TryGetDate(CalcContext ctx, ScalarValue value, out int serialDate, out XlsxError error, bool acceptLogical = false)
         {
             // For some reason, Excel dislikes logical for things that are "date" in functions.
             // Someone likely though it was a good idea 40yrs ago.
             if (value.IsLogical && !acceptLogical)
             {
                 serialDate = default;
-                error = XLError.IncompatibleValue;
+                error = XlsxError.IncompatibleValue;
                 return false;
             }
 
@@ -715,7 +714,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
             if (serialDateTime is < 0 or > Year10K)
             {
                 serialDate = default;
-                error = XLError.NumberInvalid;
+                error = XlsxError.NumberInvalid;
                 return false;
             }
 
@@ -752,7 +751,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
         private static ScalarValue GetTimeComponent(CalcContext ctx, double serialTime, Func<DateTime, int> component)
         {
             if (serialTime < 0 || serialTime >= ctx.DateSystemUpperLimit)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return component(DateTime.FromOADate(serialTime));
         }
@@ -856,10 +855,10 @@ namespace Aid.Xlsx.CalcEngine.Functions
                 return this with { Day = DaysInMonth(Year, Month) };
             }
 
-            internal OneOf<int, XLError> ToSerialDate()
+            internal OneOf<int, XlsxError> ToSerialDate()
             {
                 if (Year is > 9999 or < 1900)
-                    return XLError.NumberInvalid;
+                    return XlsxError.NumberInvalid;
 
                 return SerialDate;
             }

@@ -1,9 +1,10 @@
 // Keep this file CodeMaid organised and cleaned
-using Aid.Xlsx;
-using DocumentFormat.OpenXml;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Internal.IO;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Styles;
 using DocumentFormat.OpenXml.Spreadsheet;
-using System;
-using System.Linq;
+using DocumentFormat.OpenXml;
 using X14 = DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace Aid.Xlsx.Utils
@@ -21,7 +22,7 @@ namespace Aid.Xlsx.Utils
         /// <param name="isDifferential">Flag specifying that the color should be saved in
         /// differential format (affects the transparent color processing).</param>
         /// <returns>The original color in OpenXML format.</returns>
-        public static T FromXlsxColor<T>(this ColorType openXMLColor, XLColor xlColor, bool isDifferential = false)
+        public static T FromXlsxColor<T>(this ColorType openXMLColor, XlsxColor xlColor, bool isDifferential = false)
             where T : ColorType
         {
             var adapter = new ColorTypeAdapter(openXMLColor);
@@ -38,7 +39,7 @@ namespace Aid.Xlsx.Utils
         /// <param name="isDifferential">Flag specifying that the color should be saved in
         /// differential format (affects the transparent color processing).</param>
         /// <returns>The original color in OpenXML format.</returns>
-        public static T FromXlsxColor<T>(this X14.ColorType openXMLColor, XLColor xlColor, bool isDifferential = false)
+        public static T FromXlsxColor<T>(this X14.ColorType openXMLColor, XlsxColor xlColor, bool isDifferential = false)
             where T : X14.ColorType
         {
             var adapter = new X14ColorTypeAdapter(openXMLColor);
@@ -61,7 +62,7 @@ namespace Aid.Xlsx.Utils
         /// </summary>
         /// <param name="openXMLColor">Color in OpenXML format.</param>
         /// <returns>The color in Aid.Xlsx format.</returns>
-        public static XLColor ToXlsxColor(this ColorType openXMLColor)
+        public static XlsxColor ToXlsxColor(this ColorType openXMLColor)
         {
             return ConvertToXlsxColor(new ColorTypeAdapter(openXMLColor));
         }
@@ -71,24 +72,24 @@ namespace Aid.Xlsx.Utils
         /// </summary>
         /// <param name="openXMLColor">Color in OpenXML format.</param>
         /// <returns>The color in Aid.Xlsx format.</returns>
-        public static XLColor ToXlsxColor(this X14.ColorType openXMLColor)
+        public static XlsxColor ToXlsxColor(this X14.ColorType openXMLColor)
         {
             return ConvertToXlsxColor(new X14ColorTypeAdapter(openXMLColor));
         }
 
 #nullable disable
 
-        internal static void LoadNumberFormat(NumberingFormat nfSource, IXLNumberFormat nf)
+        internal static void LoadNumberFormat(NumberingFormat nfSource, IXlsxNumberFormat nf)
         {
             if (nfSource == null) return;
 
-            if (nfSource.NumberFormatId != null && nfSource.NumberFormatId.Value < XLConstants.NumberOfBuiltInStyles)
+            if (nfSource.NumberFormatId != null && nfSource.NumberFormatId.Value < XlsxConstants.NumberOfBuiltInStyles)
                 nf.NumberFormatId = (Int32)nfSource.NumberFormatId.Value;
             else if (nfSource.FormatCode != null)
                 nf.Format = nfSource.FormatCode.Value;
         }
 
-        internal static void LoadBorder(Border borderSource, IXLBorder border)
+        internal static void LoadBorder(Border borderSource, IXlsxBorder border)
         {
             if (borderSource == null) return;
 
@@ -105,7 +106,7 @@ namespace Aid.Xlsx.Utils
             LoadBorderValues(borderSource.BottomBorder, border.SetBottomBorder, border.SetBottomBorderColor);
         }
 
-        private static void LoadBorderValues(BorderPropertiesType source, Func<XLBorderStyleValues, IXLStyle> setBorder, Func<XLColor, IXLStyle> setColor)
+        private static void LoadBorderValues(BorderPropertiesType source, Func<XlsxBorderStyleValues, IXlsxStyle> setBorder, Func<XlsxColor, IXlsxStyle> setColor)
         {
             if (source != null)
             {
@@ -119,27 +120,27 @@ namespace Aid.Xlsx.Utils
         // Differential fills store the patterns differently than other fills
         // Actually differential fills make more sense. bg is bg and fg is fg
         // 'Other' fills store the bg color in the fg field when pattern type is solid
-        internal static void LoadFill(Fill openXMLFill, IXLFill xlsxFill, Boolean differentialFillFormat)
+        internal static void LoadFill(Fill openXMLFill, IXlsxFill xlsxFill, Boolean differentialFillFormat)
         {
             if (openXMLFill == null || openXMLFill.PatternFill == null) return;
 
             if (openXMLFill.PatternFill.PatternType != null)
                 xlsxFill.PatternType = openXMLFill.PatternFill.PatternType.Value.ToXlsx();
             else
-                xlsxFill.PatternType = XLFillPatternValues.Solid;
+                xlsxFill.PatternType = XlsxFillPatternValues.Solid;
 
             switch (xlsxFill.PatternType)
             {
-                case XLFillPatternValues.None:
+                case XlsxFillPatternValues.None:
                     break;
 
-                case XLFillPatternValues.Solid:
+                case XlsxFillPatternValues.Solid:
                     if (differentialFillFormat)
                     {
                         if (openXMLFill.PatternFill.BackgroundColor != null)
                             xlsxFill.BackgroundColor = openXMLFill.PatternFill.BackgroundColor.ToXlsxColor();
                         else
-                            xlsxFill.BackgroundColor = XLColor.FromIndex(64);
+                            xlsxFill.BackgroundColor = XlsxColor.FromIndex(64);
                     }
                     else
                     {
@@ -147,7 +148,7 @@ namespace Aid.Xlsx.Utils
                         if (openXMLFill.PatternFill.ForegroundColor != null)
                             xlsxFill.BackgroundColor = openXMLFill.PatternFill.ForegroundColor.ToXlsxColor();
                         else
-                            xlsxFill.BackgroundColor = XLColor.FromIndex(64);
+                            xlsxFill.BackgroundColor = XlsxColor.FromIndex(64);
                     }
                     break;
 
@@ -158,7 +159,7 @@ namespace Aid.Xlsx.Utils
                     if (openXMLFill.PatternFill.BackgroundColor != null)
                         xlsxFill.BackgroundColor = openXMLFill.PatternFill.BackgroundColor.ToXlsxColor();
                     else
-                        xlsxFill.BackgroundColor = XLColor.FromIndex(64);
+                        xlsxFill.BackgroundColor = XlsxColor.FromIndex(64);
                     break;
             }
         }
@@ -175,23 +176,23 @@ namespace Aid.Xlsx.Utils
         /// <param name="openXMLColor">OpenXML color. Must be either <see cref="ColorType"/> or <see cref="X14.ColorType"/>.
         /// Since these types do not implement a common interface we use dynamic.</param>
         /// <returns>The color in Aid.Xlsx format.</returns>
-        private static XLColor ConvertToXlsxColor(IColorTypeAdapter openXMLColor)
+        private static XlsxColor ConvertToXlsxColor(IColorTypeAdapter openXMLColor)
         {
-            XLColor? retVal = null;
+            XlsxColor? retVal = null;
             if (openXMLColor.Rgb?.Value is not null)
             {
                 var thisColor = ColorStringParser.ParseFromArgb(openXMLColor.Rgb.Value.AsSpan());
-                retVal = XLColor.FromColor(thisColor);
+                retVal = XlsxColor.FromColor(thisColor);
             }
             else if (openXMLColor.Indexed is not null && openXMLColor.Indexed <= 64)
-                retVal = XLColor.FromIndex((Int32)openXMLColor.Indexed.Value);
+                retVal = XlsxColor.FromIndex((Int32)openXMLColor.Indexed.Value);
             else if (openXMLColor.Theme is not null)
             {
                 retVal = openXMLColor.Tint is not null
-                    ? XLColor.FromTheme((XLThemeColor)openXMLColor.Theme.Value, openXMLColor.Tint.Value)
-                    : XLColor.FromTheme((XLThemeColor)openXMLColor.Theme.Value);
+                    ? XlsxColor.FromTheme((XlsxThemeColor)openXMLColor.Theme.Value, openXMLColor.Tint.Value)
+                    : XlsxColor.FromTheme((XlsxThemeColor)openXMLColor.Theme.Value);
             }
-            return retVal ?? XLColor.Automatic;
+            return retVal ?? XlsxColor.Automatic;
         }
 
         /// <summary>
@@ -203,7 +204,7 @@ namespace Aid.Xlsx.Utils
         /// <param name="xlColor">Color in Aid.Xlsx format.</param>
         /// <param name="isDifferential">Flag specifying that the color should be saved in
         /// differential format (affects the transparent color processing).</param>
-        private static void FillFromXlsxColor(IColorTypeAdapter openXMLColor, XLColor xlColor, bool isDifferential)
+        private static void FillFromXlsxColor(IColorTypeAdapter openXMLColor, XlsxColor xlColor, bool isDifferential)
         {
             if (openXMLColor == null)
                 throw new ArgumentNullException(nameof(openXMLColor));
@@ -213,17 +214,17 @@ namespace Aid.Xlsx.Utils
 
             switch (xlColor.ColorType)
             {
-                case XLColorType.Color:
+                case XlsxColorType.Color:
                     openXMLColor.Rgb = xlColor.Color.ToHex();
                     break;
 
-                case XLColorType.Indexed:
+                case XlsxColorType.Indexed:
                     // 64 is 'transparent' and should be ignored for differential formats
                     if (!isDifferential || xlColor.Indexed != 64)
                         openXMLColor.Indexed = (UInt32)xlColor.Indexed;
                     break;
 
-                case XLColorType.Theme:
+                case XlsxColorType.Theme:
                     openXMLColor.Theme = (UInt32)xlColor.ThemeColor;
 
                     if (xlColor.ThemeTint != 0)

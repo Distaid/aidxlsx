@@ -1,11 +1,9 @@
 #nullable disable
 
-using Aid.Xlsx.Utils;
-using System;
 using System.Drawing;
-using System.IO;
-using Aid.Xlsx;
 using Aid.Xlsx.Drawings;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Utils;
 
 namespace Aid.Xlsx.Graphics
 {
@@ -39,7 +37,7 @@ namespace Aid.Xlsx.Graphics
                    header[11] == 'P';
         }
 
-        protected override XLPictureInfo ReadInfo(Stream stream)
+        protected override XlsxPictureInfo ReadInfo(Stream stream)
         {
             // Skip header and file size
             stream.Position += 12;
@@ -57,7 +55,7 @@ namespace Aid.Xlsx.Graphics
                 var height = stream.ReadU24LE() + 1;
 
                 // There is a potential EXIF/XMP chunk in extended format, but use default DPI to keep it simple.
-                return new XLPictureInfo(XLPictureFormat.Webp, new Size(width, height), Size.Empty, 72, 72);
+                return new XlsxPictureInfo(XlsxPictureFormat.Webp, new Size(width, height), Size.Empty, 72, 72);
             }
 
             if (chunkCode == LossyVp8Code)
@@ -91,7 +89,7 @@ namespace Aid.Xlsx.Graphics
                 var heightAndScale = stream.ReadU16LE();
                 var height = GetSize(heightAndScale);
 
-                return new XLPictureInfo(XLPictureFormat.Webp, new Size(width, height), Size.Empty, 72, 72);
+                return new XlsxPictureInfo(XlsxPictureFormat.Webp, new Size(width, height), Size.Empty, 72, 72);
 
                 static int GetSize(ushort sizeAndScale)
                 {
@@ -127,7 +125,7 @@ namespace Aid.Xlsx.Graphics
                 var width = header[0] + ((header[1] & 0x3F) << 8) + 1;
                 var height = ((header[1] & 0xC0) >> 6) + (header[2] << 2) + ((header[3] & 0xF) << 10) + 1;
 
-                return new XLPictureInfo(XLPictureFormat.Webp, new Size(width, height), Size.Empty, 72, 72);
+                return new XlsxPictureInfo(XlsxPictureFormat.Webp, new Size(width, height), Size.Empty, 72, 72);
             }
 
             throw new ArgumentException("Invalid chunk for WebP file.");

@@ -1,6 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
-using Aid.Xlsx;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.DataValidations;
@@ -11,7 +11,7 @@ public class DataValidationShiftTests
     [Test]
     public void DataValidationShiftedOnColumnInsert()
     {
-        using var wb = new XLWorkbook();
+        using var wb = new XlsxWorkbook();
         var ws = wb.AddWorksheet("DataValidationShift");
         ws.Range("A1:A1").CreateDataValidation().WholeNumber.Between(0, 1);
         ws.Range("A2:B2").CreateDataValidation().WholeNumber.Between(0, 1);
@@ -34,7 +34,7 @@ public class DataValidationShiftTests
     [Test]
     public void DataValidationShiftedOnRowInsert()
     {
-        using var wb = new XLWorkbook();
+        using var wb = new XlsxWorkbook();
         var ws = wb.AddWorksheet("DataValidationShift");
         ws.Range("A1:A1").CreateDataValidation().WholeNumber.Between(0, 1);
         ws.Range("B1:B2").CreateDataValidation().WholeNumber.Between(0, 1);
@@ -57,7 +57,7 @@ public class DataValidationShiftTests
     [Test]
     public void DataValidationShiftedOnColumnDelete()
     {
-        using var wb = new XLWorkbook();
+        using var wb = new XlsxWorkbook();
         var ws = wb.AddWorksheet("DataValidationShift");
         ws.Range("A1:A1").CreateDataValidation().WholeNumber.Between(0, 1);
         ws.Range("A2:B2").CreateDataValidation().WholeNumber.Between(0, 1);
@@ -79,7 +79,7 @@ public class DataValidationShiftTests
     [Test]
     public void DataValidationShiftedOnRowDelete()
     {
-        using var wb = new XLWorkbook();
+        using var wb = new XlsxWorkbook();
         var ws = wb.AddWorksheet("DataValidationShift");
         ws.Range("A1:A1").CreateDataValidation().WholeNumber.Between(0, 1);
         ws.Range("B1:B2").CreateDataValidation().WholeNumber.Between(0, 1);
@@ -103,7 +103,7 @@ public class DataValidationShiftTests
     [TestCase(new[] { "A10", "A11" }, "1-2", new[] { "A8:A8", "A9:A9" })]
     public void Data_validations_are_shifted_when_rows_above_are_deleted(string[] initialDvs, string rowsToDelete, string[] shiftedDvs)
     {
-        using var wb = new XLWorkbook();
+        using var wb = new XlsxWorkbook();
         var ws = wb.AddWorksheet();
         foreach (var initialDv in initialDvs)
             ws.Ranges(initialDv).CreateDataValidation();
@@ -117,11 +117,11 @@ public class DataValidationShiftTests
     [Test]
     public void Data_validations_is_removed_when_its_area_is_deleted()
     {
-        using var wb = new XLWorkbook();
+        using var wb = new XlsxWorkbook();
         var ws = wb.AddWorksheet();
         ws.Range("A10").CreateDataValidation();
 
-        ws.Range("A10").Delete(XLShiftDeletedCells.ShiftCellsUp);
+        ws.Range("A10").Delete(XlsxShiftDeletedCells.ShiftCellsUp);
 
         Assert.IsEmpty(ws.DataValidations);
     }
@@ -129,11 +129,11 @@ public class DataValidationShiftTests
     [Test]
     public void Data_validations_can_split_its_area_when_inserted_or_deleted_area_intersects_its_area()
     {
-        using var wb = new XLWorkbook();
+        using var wb = new XlsxWorkbook();
         var ws = wb.AddWorksheet();
         ws.Range("A10:C12").CreateDataValidation();
 
-        ws.Range("B12").Delete(XLShiftDeletedCells.ShiftCellsUp);
+        ws.Range("B12").Delete(XlsxShiftDeletedCells.ShiftCellsUp);
 
         Assert.AreEqual("A10:C11 A12:A12 C12:C12", ws.DataValidations.Single().Ranges.ToSpaceList());
     }
@@ -141,17 +141,17 @@ public class DataValidationShiftTests
     [Test]
     public void DataValidationShiftedTruncateRange()
     {
-        using var wb = new XLWorkbook();
+        using var wb = new XlsxWorkbook();
         var ws = wb.AddWorksheet("DataValidationShift");
         ws.AsRange().CreateDataValidation().WholeNumber.Between(0, 1);
         var dv = ws.DataValidations.Single();
 
         ws.Row(2).InsertRowsAbove(1);
         Assert.IsTrue(dv.Ranges.Single().RangeAddress.IsValid);
-        Assert.AreEqual($"1:{XLHelper.MaxRowNumber}", dv.Ranges.Single().RangeAddress.ToString());
+        Assert.AreEqual($"1:{XlsxHelper.MaxRowNumber}", dv.Ranges.Single().RangeAddress.ToString());
 
         ws.Column(2).InsertColumnsAfter(1);
         Assert.IsTrue(dv.Ranges.Single().RangeAddress.IsValid);
-        Assert.AreEqual($"1:{XLHelper.MaxRowNumber}", dv.Ranges.Single().RangeAddress.ToString());
+        Assert.AreEqual($"1:{XlsxHelper.MaxRowNumber}", dv.Ranges.Single().RangeAddress.ToString());
     }
 }

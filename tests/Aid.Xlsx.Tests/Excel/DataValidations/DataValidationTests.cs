@@ -1,6 +1,8 @@
-using System;
-using System.Linq;
-using Aid.Xlsx;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.DataValidation;
+using Aid.Xlsx.Tables;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.DataValidations
@@ -11,9 +13,9 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test]
         public void Validation_Reference_List_Values_From_Separate_Sheet()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet valuesSheet = wb.Worksheets.Add("ValuesSheet");
-            IXLCell cell = valuesSheet.Cell("E1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet valuesSheet = wb.Worksheets.Add("ValuesSheet");
+            IXlsxCell cell = valuesSheet.Cell("E1");
             cell.SetValue("Value 1");
             cell = cell.CellBelow();
             cell.SetValue("Value 2");
@@ -22,21 +24,21 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
             cell = cell.CellBelow();
             cell.SetValue("Value 4");
 
-            IXLWorksheet uiSheet = wb.Worksheets.Add("UI Sheet");
+            IXlsxWorksheet uiSheet = wb.Worksheets.Add("UI Sheet");
             uiSheet.Cell("A1").SetValue("Cell below has validation with references to the 'ValuesSheet'.");
             cell = uiSheet.Cell("A2");
             cell.GetDataValidation().List(valuesSheet.Range("ValuesSheet!$E$1:$E$4"));
 
-            Assert.AreEqual(XLAllowedValues.List, cell.GetDataValidation().AllowedValues);
+            Assert.AreEqual(XlsxAllowedValues.List, cell.GetDataValidation().AllowedValues);
             Assert.AreEqual("ValuesSheet!$E$1:$E$4", cell.GetDataValidation().Value);
         }
 
         [Test]
         public void Validation_1()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Data Validation Issue");
-            IXLCell cell = ws.Cell("E1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Data Validation Issue");
+            IXlsxCell cell = ws.Cell("E1");
             cell.SetValue("Value 1");
             cell = cell.CellBelow();
             cell.SetValue("Value 2");
@@ -54,7 +56,7 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
             cell.GetDataValidation().List(ws.Range("$E$1:$E$4"));
             cell.GetDataValidation().InputTitle = "Title for B2";
 
-            Assert.AreEqual(XLAllowedValues.List, cell.GetDataValidation().AllowedValues);
+            Assert.AreEqual(XlsxAllowedValues.List, cell.GetDataValidation().AllowedValues);
             Assert.AreEqual("'Data Validation Issue'!$E$1:$E$4", cell.GetDataValidation().Value);
             Assert.AreEqual("Title for B2", cell.GetDataValidation().InputTitle);
 
@@ -63,7 +65,7 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
             cell.GetDataValidation().List(ws.Range("$E$1:$E$4"));
             cell.GetDataValidation().InputMessage = "Message for C2";
 
-            Assert.AreEqual(XLAllowedValues.List, cell.GetDataValidation().AllowedValues);
+            Assert.AreEqual(XlsxAllowedValues.List, cell.GetDataValidation().AllowedValues);
             Assert.AreEqual("'Data Validation Issue'!$E$1:$E$4", cell.GetDataValidation().Value);
             Assert.AreEqual("Message for C2", cell.GetDataValidation().InputMessage);
 
@@ -73,7 +75,7 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
             cell.GetDataValidation().InputTitle = "Title for D2";
             cell.GetDataValidation().InputMessage = "Message for D2";
 
-            Assert.AreEqual(XLAllowedValues.List, cell.GetDataValidation().AllowedValues);
+            Assert.AreEqual(XlsxAllowedValues.List, cell.GetDataValidation().AllowedValues);
             Assert.AreEqual("'Data Validation Issue'!$E$1:$E$4", cell.GetDataValidation().Value);
             Assert.AreEqual("Title for D2", cell.GetDataValidation().InputTitle);
             Assert.AreEqual("Message for D2", cell.GetDataValidation().InputMessage);
@@ -82,12 +84,12 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test]
         public void Validation_2()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet1");
             ws.Cell("A1").SetValue("A");
             ws.Cell("B1").CreateDataValidation().Custom("Sheet1!A1");
 
-            IXLWorksheet ws2 = wb.AddWorksheet("Sheet2");
+            IXlsxWorksheet ws2 = wb.AddWorksheet("Sheet2");
             ws2.Cell("A1").SetValue("B");
             ws.Cell("B1").CopyTo(ws2.Cell("B1"));
 
@@ -97,8 +99,8 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test, Ignore("Wait for proper formula shifting (#686)")]
         public void Validation_3()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet1");
             ws.Cell("A1").SetValue("A");
             ws.Cell("B1").CreateDataValidation().Custom("A1");
             ws.FirstRow().InsertRowsAbove(1);
@@ -109,8 +111,8 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test]
         public void Validation_4()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet1");
             ws.Cell("A1").SetValue("A");
             ws.Cell("B1").CreateDataValidation().Custom("A1");
             ws.Cell("B1").CopyTo(ws.Cell("B2"));
@@ -120,8 +122,8 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test, Ignore("Wait for proper formula shifting (#686)")]
         public void Validation_5()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet1");
             ws.Cell("A1").SetValue("A");
             ws.Cell("B1").CreateDataValidation().Custom("A1");
             ws.FirstColumn().InsertColumnsBefore(1);
@@ -132,8 +134,8 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test]
         public void Validation_6()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet1");
             ws.Cell("A1").SetValue("A");
             ws.Cell("B1").CreateDataValidation().Custom("A1");
             ws.Cell("B1").CopyTo(ws.Cell("C1"));
@@ -143,16 +145,16 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test]
         public void Validation_persists_on_Cell_DataValidation()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("People");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("People");
 
             ws.FirstCell().SetValue("Categories")
                 .CellBelow().SetValue("A")
                 .CellBelow().SetValue("B");
 
-            IXLTable table = ws.RangeUsed().CreateTable();
+            IXlsxTable table = ws.RangeUsed().CreateTable();
 
-            IXLDataValidation dv = table.DataRange.CreateDataValidation();
+            IXlsxDataValidation dv = table.DataRange.CreateDataValidation();
             dv.ErrorTitle = "Error";
 
             Assert.AreEqual("Error", table.DataRange.FirstCell().GetDataValidation().ErrorTitle);
@@ -161,15 +163,15 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test]
         public void Validation_persists_on_Worksheet_DataValidations()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("People");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("People");
 
             ws.FirstCell().SetValue("Categories")
                 .CellBelow().SetValue("A");
 
-            IXLTable table = ws.RangeUsed().CreateTable();
+            IXlsxTable table = ws.RangeUsed().CreateTable();
 
-            IXLDataValidation dv = table.DataRange.CreateDataValidation();
+            IXlsxDataValidation dv = table.DataRange.CreateDataValidation();
             dv.ErrorTitle = "Error";
 
             Assert.AreEqual("Error", ws.DataValidations.Single().ErrorTitle);
@@ -185,7 +187,7 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         public void DataValidationShiftedOnRowInsert(string initialAddress, int rowNum, bool setValue, string expectedAddress)
         {
             //Arrange
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws = wb.Worksheets.Add("DataValidation");
             var validation = ws.Range(initialAddress).CreateDataValidation();
             validation.WholeNumber.Between(0, 100);
@@ -211,7 +213,7 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         public void DataValidationShiftedOnColumnInsert(string initialAddress, int columnNum, bool setValue, string expectedAddress)
         {
             //Arrange
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.Worksheets.Add("DataValidation");
             var validation = ws.Range(initialAddress).CreateDataValidation();
             validation.WholeNumber.Between(0, 100);
@@ -230,14 +232,14 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test]
         public void DataValidationClearSplitsRange()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.Worksheets.Add("DataValidation");
                 var validation = ws.Range("A1:C3").CreateDataValidation();
                 validation.WholeNumber.Between(0, 100);
 
                 //Act
-                ws.Cell("B2").Clear(XLClearOptions.DataValidation);
+                ws.Cell("B2").Clear(XlsxClearOptions.DataValidation);
 
                 //Assert
                 Assert.IsFalse(ws.Cell("B2").HasDataValidation);
@@ -248,7 +250,7 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test]
         public void NewDataValidationSplitsRange()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.Worksheets.Add("DataValidation");
                 var validation = ws.Range("A1:C3").CreateDataValidation();
@@ -273,7 +275,7 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
 
             Assert.True(values.Length > 255);
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var dv = wb.AddWorksheet("Sheet 1").Cell(1, 1).GetDataValidation();
 
@@ -295,14 +297,14 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test]
         public void DataValidationHasWorksheetAndRangesWhenCreated()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet();
                 var range = ws.Range("A1:A3");
 
                 var dv = range.CreateDataValidation();
 
-                Assert.AreSame(ws, ((XLDataValidation)dv).Worksheet);
+                Assert.AreSame(ws, ((XlsxDataValidation)dv).Worksheet);
                 Assert.AreSame(range, dv.Ranges.Single());
             }
         }
@@ -310,7 +312,7 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test]
         public void CanAddRangeFromSameWorksheet()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet();
                 var range1 = ws.Range("A1:A3");
@@ -331,7 +333,7 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test]
         public void CanAddRangeFromAnotherWorksheet()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws1 = wb.AddWorksheet();
                 var ws2 = wb.AddWorksheet();
@@ -348,7 +350,7 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test]
         public void CanClearRanges()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet();
                 var range1 = ws.Range("A1:A3");
@@ -367,7 +369,7 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test]
         public void CanRemoveExistingRange()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet();
                 var range1 = ws.Range("A1:A3");
@@ -385,7 +387,7 @@ namespace Aid.Xlsx.Tests.Excel.DataValidations
         [Test]
         public void RemovingExistingRangeDoesNoFail()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet();
                 var range1 = ws.Range("A1:A3");

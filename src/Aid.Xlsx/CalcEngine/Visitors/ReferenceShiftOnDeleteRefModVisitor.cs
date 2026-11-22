@@ -1,5 +1,8 @@
+using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Formulas;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Utils;
 
 namespace Aid.Xlsx.CalcEngine.Visitors;
 
@@ -9,9 +12,9 @@ namespace Aid.Xlsx.CalcEngine.Visitors;
 internal class ReferenceShiftOnDeleteRefModVisitor : CopyVisitor
 {
     private readonly SheetArea _deletedBookArea;
-    private readonly XLShiftDeletedCells _shift;
+    private readonly XlsxShiftDeletedCells _shift;
 
-    public ReferenceShiftOnDeleteRefModVisitor(SheetArea deletedBookArea, XLShiftDeletedCells shift)
+    public ReferenceShiftOnDeleteRefModVisitor(SheetArea deletedBookArea, XlsxShiftDeletedCells shift)
     {
         _deletedBookArea = deletedBookArea;
         _shift = shift;
@@ -29,10 +32,10 @@ internal class ReferenceShiftOnDeleteRefModVisitor : CopyVisitor
 
     private TransformedSymbol ShiftFormulaReferences(ModContext ctx, SymbolRange range, string? referenceSheetName, ReferenceArea referenceToShift)
     {
-        if (!XLHelper.SheetComparer.Equals(_deletedBookArea.Name, referenceSheetName ?? ctx.Sheet))
+        if (!XlsxHelper.SheetComparer.Equals(_deletedBookArea.Name, referenceSheetName ?? ctx.Sheet))
             return TransformedSymbol.CopyOriginal(ctx.Formula, range);
 
-        var wouldSplitArea = _shift == XLShiftDeletedCells.ShiftCellsUp
+        var wouldSplitArea = _shift == XlsxShiftDeletedCells.ShiftCellsUp
             ? !referenceToShift.TryDeleteAndShiftUp(_deletedBookArea.Area, out var shiftedReference)
             : !referenceToShift.TryDeleteAndShiftLeft(_deletedBookArea.Area, out shiftedReference);
 
@@ -42,7 +45,7 @@ internal class ReferenceShiftOnDeleteRefModVisitor : CopyVisitor
 
         // If reference was shifted out of sheet, return #REF!
         if (shiftedReference is null)
-            return TransformedSymbol.ToText(ctx.Formula, range, XLHelper.RefError);
+            return TransformedSymbol.ToText(ctx.Formula, range, XlsxHelper.RefError);
 
         // Do not allocate a new string unless necessary
         if (referenceToShift == shiftedReference.Value)

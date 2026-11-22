@@ -1,13 +1,15 @@
 #if NETFRAMEWORK
-using Aid.Xlsx;
-using Aid.Xlsx.Tests.Utils;
-using NUnit.Framework;
-using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.OleDb;
+using System.Data;
 using System.IO;
 using System.Linq;
+using System;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Tests.Utils;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx;
+using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.OleDb
 {
@@ -82,7 +84,7 @@ namespace Aid.Xlsx.Tests.OleDb
 
         private string CreateTestFile()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 ws.Cell("A1").Value = "Base";

@@ -1,9 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
 using Aid.Xlsx.Internal.IO;
 using Aid.Xlsx.Opc;
+using Aid.Xlsx.PivotTables;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.IO;
@@ -14,7 +15,7 @@ internal class PivotCacheRecordsReaderTests
     [Test]
     public void Can_read_all_record_item_types()
     {
-        var sharedItems = new XLPivotCacheSharedItems();
+        var sharedItems = new XlsxPivotCacheSharedItems();
         sharedItems.Add("First shared item");
         sharedItems.Add("Second shared item");
 
@@ -50,12 +51,12 @@ internal class PivotCacheRecordsReaderTests
                 reader.ReadRecordsToCache();
 
                 var values = cache.GetFieldValues(0);
-                Assert.That(values.GetCellValues(), Is.EquivalentTo(new XLCellValue[]
+                Assert.That(values.GetCellValues(), Is.EquivalentTo(new XlsxCellValue[]
                 {
                     Blank.Value,
                     5.5,
                     true,
-                    XLError.NumberInvalid,
+                    XlsxError.NumberInvalid,
                     "Text",
                     new DateTime(2020, 10, 5),
                     "Second shared item"
@@ -82,17 +83,17 @@ internal class PivotCacheRecordsReaderTests
             });
     }
 
-    private static void ReadRecords(IReadOnlyList<string> fieldNames, string recordsXml, Action<XLPivotCache, PivotCacheRecordsReader> assert, XLPivotCacheSharedItems sharedItems = null)
+    private static void ReadRecords(IReadOnlyList<string> fieldNames, string recordsXml, Action<XlsxPivotCache, PivotCacheRecordsReader> assert, XlsxPivotCacheSharedItems sharedItems = null)
     {
-        using var wb = new XLWorkbook();
-        var cache = wb.PivotCachesInternal.Add(new XLPivotSourceConnection(0));
-        sharedItems ??= new XLPivotCacheSharedItems();
+        using var wb = new XlsxWorkbook();
+        var cache = wb.PivotCachesInternal.Add(new XlsxPivotSourceConnection(0));
+        sharedItems ??= new XlsxPivotCacheSharedItems();
         foreach (var fieldName in fieldNames)
         {
-            cache.AddCachedField(fieldName, new XLPivotCacheValues(sharedItems, new XLPivotCacheValuesStats()));
+            cache.AddCachedField(fieldName, new XlsxPivotCacheValues(sharedItems, new XlsxPivotCacheValuesStats()));
         }
 
-        using var stream = new MemoryStream(XLHelper.NoBomUTF8.GetBytes(recordsXml));
+        using var stream = new MemoryStream(XlsxHelper.NoBomUTF8.GetBytes(recordsXml));
         using var xmlTreeReader = new XmlTreeReader(stream, XmlToEnumMapper.Instance, true);
         var reader = new PivotCacheRecordsReader(xmlTreeReader, cache);
         assert(cache, reader);

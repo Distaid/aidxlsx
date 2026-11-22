@@ -1,7 +1,7 @@
-using Aid.Xlsx;
-using NUnit.Framework;
 using System.Globalization;
-using System.Linq;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Workbooks;
+using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.Misc
 {
@@ -12,11 +12,11 @@ namespace Aid.Xlsx.Tests.Excel.Misc
         public void TestSearch()
         {
             using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Examples\Misc\CellValues.xlsx")))
-            using (var wb = new XLWorkbook(stream))
+            using (var wb = new XlsxWorkbook(stream))
             {
                 var ws = wb.Worksheets.First();
 
-                IXLCells foundCells;
+                IXlsxCells foundCells;
 
                 foundCells = ws.Search("Initial Value");
                 Assert.AreEqual(1, foundCells.Count());
@@ -55,11 +55,11 @@ namespace Aid.Xlsx.Tests.Excel.Misc
         public void TestSearch2()
         {
             using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Examples\Misc\Formulas.xlsx")))
-            using (var wb = new XLWorkbook(stream))
+            using (var wb = new XlsxWorkbook(stream))
             {
                 var ws = wb.Worksheets.First();
 
-                IXLCells foundCells;
+                IXlsxCells foundCells;
 
                 foundCells = ws.Search("3", CompareOptions.Ordinal);
                 Assert.AreEqual(10, foundCells.Count());

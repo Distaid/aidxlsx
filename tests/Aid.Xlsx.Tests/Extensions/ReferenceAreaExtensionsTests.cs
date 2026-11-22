@@ -1,7 +1,7 @@
-using System.Collections.Generic;
-using Aid.Xlsx;
+using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Formulas;
+using Aid.Xlsx.Utils;
 using NUnit.Framework;
 using static Aid.Xlsx.Formulas.ReferenceAxisType;
 using static Aid.Xlsx.Formulas.ReferenceStyle;
@@ -108,28 +108,28 @@ namespace Aid.Xlsx.Tests.Extensions
             yield return new object[]
             {
                 new ReferenceArea(new RowCol(None, 0, Relative, 3, A1), new RowCol(None, 0, Relative, 5, A1)),
-                new Area(XLHelper.MinRowNumber, 3, XLHelper.MaxRowNumber, 5)
+                new Area(XlsxHelper.MinRowNumber, 3, XlsxHelper.MaxRowNumber, 5)
             };
 
             // E:C
             yield return new object[]
             {
                 new ReferenceArea(new RowCol(None, 0, Relative, 5, A1), new RowCol(None, 0, Relative, 3, A1)),
-                new Area(XLHelper.MinRowNumber, 3, XLHelper.MaxRowNumber, 5)
+                new Area(XlsxHelper.MinRowNumber, 3, XlsxHelper.MaxRowNumber, 5)
             };
 
             // 14:30
             yield return new object[]
             {
                 new ReferenceArea(new RowCol(Relative, 14, None, 0, A1), new RowCol(Relative, 30, None, 0, A1)),
-                new Area(14, XLHelper.MinColumnNumber, 30, XLHelper.MaxColumnNumber)
+                new Area(14, XlsxHelper.MinColumnNumber, 30, XlsxHelper.MaxColumnNumber)
             };
 
             // 30:14
             yield return new object[]
             {
                 new ReferenceArea(new RowCol(Relative, 30, None, 0, A1), new RowCol(Relative, 14, None, 0, A1)),
-                new Area(14, XLHelper.MinColumnNumber, 30, XLHelper.MaxColumnNumber)
+                new Area(14, XlsxHelper.MinColumnNumber, 30, XlsxHelper.MaxColumnNumber)
             };
         }
 
@@ -159,18 +159,18 @@ namespace Aid.Xlsx.Tests.Extensions
                 new Area(3, 2, 3, 2)
             };
 
-            // No looping: Maximum allowed value for relative column is `XLHelper.MaxColumnNumber-1`.
+            // No looping: Maximum allowed value for relative column is `XlsxHelper.MaxColumnNumber-1`.
             yield return new object[]
             {
                 new Point(1, 1), // R1C1
                 new ReferenceArea(Relative, 0, Relative, 16383, R1C1), // R[0]C[16383]
-                new Area(1, XLHelper.MaxColumnNumber, 1, XLHelper.MaxColumnNumber)
+                new Area(1, XlsxHelper.MaxColumnNumber, 1, XlsxHelper.MaxColumnNumber)
             };
 
-            // No looping: Minimum allowed value for relative column is `-XLHelper.MaxColumnNumber+1`.
+            // No looping: Minimum allowed value for relative column is `-XlsxHelper.MaxColumnNumber+1`.
             yield return new object[]
             {
-                new Point(1, XLHelper.MaxColumnNumber), // R1C16384
+                new Point(1, XlsxHelper.MaxColumnNumber), // R1C16384
                 new ReferenceArea(Relative, 0, Relative, -16383, R1C1), // R[0]C[-16383]
                 new Area(1, 1, 1, 1) // R1C1
             };

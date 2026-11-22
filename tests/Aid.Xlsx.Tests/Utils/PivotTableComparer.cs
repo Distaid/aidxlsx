@@ -1,11 +1,8 @@
-using Aid.Xlsx;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Aid.Xlsx.PivotTables;
 
 namespace Aid.Xlsx.Tests
 {
-    internal class PivotTableComparer : IEqualityComparer<XLPivotTable>
+    internal class PivotTableComparer : IEqualityComparer<XlsxPivotTable>
     {
         private readonly bool _compareName;
         private readonly bool _compareRelId;
@@ -22,7 +19,7 @@ namespace Aid.Xlsx.Tests
             this._compareTargetCellAddress = compareTargetCellAddress;
         }
 
-        public bool Equals(XLPivotTable x, XLPivotTable y)
+        public bool Equals(XlsxPivotTable x, XlsxPivotTable y)
         {
             if (x == null && y == null) return true;
 
@@ -81,7 +78,7 @@ namespace Aid.Xlsx.Tests
                 && x.Theme.Equals(y.Theme);
         }
 
-        public int GetHashCode(XLPivotTable obj)
+        public int GetHashCode(XlsxPivotTable obj)
         {
             throw new NotImplementedException();
         }

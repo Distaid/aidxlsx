@@ -1,8 +1,8 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Utils;
 
-namespace Aid.Xlsx
+namespace Aid.Xlsx.Coordinates
 {
     /// <summary>
     /// A specification of an area (rectangular range) of a sheet.
@@ -48,7 +48,7 @@ namespace Aid.Xlsx
             return GetEnumerator();
         }
 
-        internal static SheetArea From(IXLRange range)
+        internal static SheetArea From(IXlsxRange range)
         {
             if (range.Worksheet is null)
                 throw new ArgumentException("Range doesn't contain sheet.", nameof(range));
@@ -56,7 +56,7 @@ namespace Aid.Xlsx
             return new SheetArea(range.Worksheet.Name, Area.FromRangeAddress(range.RangeAddress));
         }
 
-        internal static SheetArea From(XLRangeAddress address)
+        internal static SheetArea From(XlsxRangeAddress address)
         {
             if (address.Worksheet is null)
                 throw new ArgumentException("Range doesn't contain sheet.", nameof(address));
@@ -66,7 +66,7 @@ namespace Aid.Xlsx
 
         public bool Equals(SheetArea other)
         {
-            return Area == other.Area && XLHelper.SheetComparer.Equals(Name, other.Name);
+            return Area == other.Area && XlsxHelper.SheetComparer.Equals(Name, other.Name);
         }
 
         public override bool Equals(object? obj)
@@ -78,7 +78,7 @@ namespace Aid.Xlsx
         {
             unchecked
             {
-                return (XLHelper.SheetComparer.GetHashCode(Name) * 397) ^ Area.GetHashCode();
+                return (XlsxHelper.SheetComparer.GetHashCode(Name) * 397) ^ Area.GetHashCode();
             }
         }
 
@@ -89,7 +89,7 @@ namespace Aid.Xlsx
         /// <returns>The intersection (=same sheet and has non-empty intersection) or null if intersection isn't possible.</returns>
         public SheetArea? Intersect(SheetArea other)
         {
-            if (!XLHelper.SheetComparer.Equals(Name, other.Name))
+            if (!XlsxHelper.SheetComparer.Equals(Name, other.Name))
                 return null;
 
             var intersectionRange = Area.Intersect(other.Area);

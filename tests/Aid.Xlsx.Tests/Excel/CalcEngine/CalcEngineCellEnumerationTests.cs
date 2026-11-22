@@ -1,4 +1,4 @@
-using Aid.Xlsx;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine
@@ -8,7 +8,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void CanEnumerateCellsOverEmptySheet()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var sheet1 = wb.AddWorksheet("Sheet1");
                 var sheet2 = wb.AddWorksheet("Sheet2");

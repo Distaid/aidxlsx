@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Ranges;
 
 namespace Aid.Xlsx.CalcEngine.Functions;
 
@@ -15,7 +14,7 @@ internal class TallyCriteria : ITally
     /// A collection of areas that are tested and if all satisfy the criteria, corresponding values
     /// in the tally areas are tallied.
     /// </summary>
-    private readonly List<(XLRangeAddress Area, Criteria Criteria)> _criteriaRanges = new();
+    private readonly List<(XlsxRangeAddress Area, Criteria Criteria)> _criteriaRanges = new();
 
     /// <summary>
     /// A method to convert a value in the tally area to a number. If scalar value shouldn't be tallied, return null.
@@ -35,17 +34,17 @@ internal class TallyCriteria : ITally
     /// <summary>
     /// Add criteria to the tally that limit which values should be tallied.
     /// </summary>
-    internal void Add(XLRangeAddress area, Criteria criteria)
+    internal void Add(XlsxRangeAddress area, Criteria criteria)
     {
         _criteriaRanges.Add((area, criteria));
     }
 
-    public OneOf<T, XLError> Tally<T>(CalcContext ctx, Span<AnyValue> args, T initialState)
+    public OneOf<T, XlsxError> Tally<T>(CalcContext ctx, Span<AnyValue> args, T initialState)
         where T : ITallyState<T>
     {
         // All criteria functions permit only area reference arguments. Excel ensures this
         // invariant by grammar, we just check the the argument value.
-        var talliedAreas = new List<XLRangeAddress>(args.Length);
+        var talliedAreas = new List<XlsxRangeAddress>(args.Length);
         foreach (var arg in args)
         {
             ctx.ThrowIfCancelled();
@@ -86,7 +85,7 @@ internal class TallyCriteria : ITally
         return state;
     }
 
-    private static IEnumerable<XLSheetOffset> GetCombinedCoordinates(List<(Point Origin, IEnumerable<Point> Enumerable)> enumerables)
+    private static IEnumerable<XlsxSheetOffset> GetCombinedCoordinates(List<(Point Origin, IEnumerable<Point> Enumerable)> enumerables)
     {
         var enumerators = enumerables.Select(e => e.Enumerable.GetEnumerator()).ToList();
         try
@@ -139,7 +138,7 @@ internal class TallyCriteria : ITally
                 enumerator.Dispose();
         }
 
-        XLSheetOffset GetOffset(int i)
+        XlsxSheetOffset GetOffset(int i)
         {
             var origin = enumerables[i].Origin;
             var point = enumerators[i].Current;

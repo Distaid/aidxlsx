@@ -1,4 +1,3 @@
-using System.Linq;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.IO;

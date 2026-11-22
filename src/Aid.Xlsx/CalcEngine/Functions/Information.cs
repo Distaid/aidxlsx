@@ -1,7 +1,5 @@
 #nullable disable
 
-using System;
-using System.Linq;
 using static Aid.Xlsx.CalcEngine.Functions.SignatureAdapter;
 
 namespace Aid.Xlsx.CalcEngine.Functions
@@ -32,7 +30,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
         private static AnyValue ErrorType(CalcContext ctx, ScalarValue value)
         {
             if (!value.TryPickError(out var error))
-                return XLError.NoValueAvailable;
+                return XlsxError.NoValueAvailable;
 
             return (int)error + 1;
         }
@@ -44,7 +42,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
 
         private static AnyValue IsErr(CalcContext ctx, ScalarValue value)
         {
-            return value.TryPickError(out var error) && error != XLError.NoValueAvailable;
+            return value.TryPickError(out var error) && error != XlsxError.NoValueAvailable;
         }
 
         private static AnyValue IsError(CalcContext ctx, ScalarValue value)
@@ -57,7 +55,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
             return GetParity(ctx, value, static (scalar, ctx) =>
             {
                 if (scalar.IsLogical)
-                    return XLError.IncompatibleValue;
+                    return XlsxError.IncompatibleValue;
 
                 if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out var error))
                     return error;
@@ -73,7 +71,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
 
         private static AnyValue IsNa(CalcContext ctx, ScalarValue value)
         {
-            return value.TryPickError(out var error) && error == XLError.NoValueAvailable;
+            return value.TryPickError(out var error) && error == XlsxError.NoValueAvailable;
         }
 
         private static AnyValue IsNonText(CalcContext ctx, ScalarValue value)
@@ -91,7 +89,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
             return GetParity(ctx, value, static (scalar, ctx) =>
             {
                 if (scalar.IsLogical)
-                    return XLError.IncompatibleValue;
+                    return XlsxError.IncompatibleValue;
 
                 if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out var error))
                     return error;
@@ -137,7 +135,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
 
         private static AnyValue NA(CalcContext ctx, Span<AnyValue> value)
         {
-            return XLError.NoValueAvailable;
+            return XlsxError.NoValueAvailable;
         }
 
         private static AnyValue Type(CalcContext ctx, AnyValue value)
@@ -173,7 +171,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
             if (value.TryPickScalar(out var scalar, out var coll))
             {
                 if (scalar.IsBlank)
-                    return XLError.NoValueAvailable;
+                    return XlsxError.NoValueAvailable;
 
                 return f(scalar, ctx).ToAnyValue();
             }
@@ -182,7 +180,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
                 return array.Apply(x => f(x, ctx), ctx);
 
             if (!reference.TryGetSingleCellValue(out var cellValue, ctx))
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             return f(cellValue, ctx).ToAnyValue();
         }

@@ -1,5 +1,6 @@
-using System;
-using Aid.Xlsx;
+using Aid.Xlsx.AutoFilters;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Styles;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.AutoFilters
@@ -16,7 +17,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
         {
             new AutoFilterTester(f => f.EqualOrLessThan(true))
                 .AddTrue(false, true)
-                .AddFalse(Blank.Value, 1, "FALSE", "TRUE", XLError.NullValue)
+                .AddFalse(Blank.Value, 1, "FALSE", "TRUE", XlsxError.NullValue)
                 .AssertVisibility();
         }
 
@@ -34,16 +35,16 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
         {
             new AutoFilterTester(f => f.EqualOrLessThan("b"))
                 .AddTrue("", "A", "b", "B")
-                .AddFalse("C", Blank.Value, 1, false, XLError.NullValue)
+                .AddFalse("C", Blank.Value, 1, false, XlsxError.NullValue)
                 .AssertVisibility();
         }
 
         [Test]
         public void EqualOrLessThan_with_error_compares_against_numeric_types_of_error()
         {
-            new AutoFilterTester(f => f.EqualOrLessThan(XLError.CellReference))
-                .AddTrue(XLError.NullValue, XLError.IncompatibleValue, XLError.CellReference)
-                .AddFalse(XLError.NameNotRecognized, 1, "#NULL!", "Test", "", true, false, Blank.Value)
+            new AutoFilterTester(f => f.EqualOrLessThan(XlsxError.CellReference))
+                .AddTrue(XlsxError.NullValue, XlsxError.IncompatibleValue, XlsxError.CellReference)
+                .AddFalse(XlsxError.NameNotRecognized, 1, "#NULL!", "Test", "", true, false, Blank.Value)
                 .AssertVisibility();
         }
 
@@ -52,7 +53,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
         {
             new AutoFilterTester(f => f.LessThan(true))
                 .AddTrue(false)
-                .AddFalse(true, -1, Blank.Value, 1, "FALSE", "TRUE", XLError.NullValue)
+                .AddFalse(true, -1, Blank.Value, 1, "FALSE", "TRUE", XlsxError.NullValue)
                 .AssertVisibility();
         }
 
@@ -70,16 +71,16 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
         {
             new AutoFilterTester(f => f.LessThan("b"))
                 .AddTrue("", "A")
-                .AddFalse("b", "B", "C", Blank.Value, 1, false, XLError.NullValue)
+                .AddFalse("b", "B", "C", Blank.Value, 1, false, XlsxError.NullValue)
                 .AssertVisibility();
         }
 
         [Test]
         public void LessThan_with_error_compares_against_numeric_types_of_error()
         {
-            new AutoFilterTester(f => f.LessThan(XLError.CellReference))
-                .AddTrue(XLError.NullValue, XLError.IncompatibleValue)
-                .AddFalse(XLError.CellReference, XLError.NameNotRecognized, 1, "#NULL!", "Test", "", true, false, Blank.Value)
+            new AutoFilterTester(f => f.LessThan(XlsxError.CellReference))
+                .AddTrue(XlsxError.NullValue, XlsxError.IncompatibleValue)
+                .AddFalse(XlsxError.CellReference, XlsxError.NameNotRecognized, 1, "#NULL!", "Test", "", true, false, Blank.Value)
                 .AssertVisibility();
         }
 
@@ -88,7 +89,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
         {
             new AutoFilterTester(f => f.GreaterThan(false))
                 .AddTrue(true)
-                .AddFalse(false, -1, Blank.Value, 1, "FALSE", "TRUE", XLError.NullValue)
+                .AddFalse(false, -1, Blank.Value, 1, "FALSE", "TRUE", XlsxError.NullValue)
                 .AssertVisibility();
         }
 
@@ -106,16 +107,16 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
         {
             new AutoFilterTester(f => f.GreaterThan("b"))
                 .AddTrue("C", "c")
-                .AddFalse("", "A", "b", "B", Blank.Value, 1, false, XLError.NullValue)
+                .AddFalse("", "A", "b", "B", Blank.Value, 1, false, XlsxError.NullValue)
                 .AssertVisibility();
         }
 
         [Test]
         public void GreaterThan_with_error_compares_against_numeric_types_of_error()
         {
-            new AutoFilterTester(f => f.GreaterThan(XLError.CellReference))
-                .AddTrue(XLError.NameNotRecognized, XLError.NumberInvalid, XLError.NoValueAvailable)
-                .AddFalse(XLError.CellReference, XLError.IncompatibleValue, XLError.NullValue, 1, "#NULL!", "Test", "", true, false, Blank.Value)
+            new AutoFilterTester(f => f.GreaterThan(XlsxError.CellReference))
+                .AddTrue(XlsxError.NameNotRecognized, XlsxError.NumberInvalid, XlsxError.NoValueAvailable)
+                .AddFalse(XlsxError.CellReference, XlsxError.IncompatibleValue, XlsxError.NullValue, 1, "#NULL!", "Test", "", true, false, Blank.Value)
                 .AssertVisibility();
         }
 
@@ -124,7 +125,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
         {
             new AutoFilterTester(f => f.EqualOrGreaterThan(false))
                 .AddTrue(false, true)
-                .AddFalse(-1, 0, Blank.Value, 1, "FALSE", "TRUE", XLError.NullValue)
+                .AddFalse(-1, 0, Blank.Value, 1, "FALSE", "TRUE", XlsxError.NullValue)
                 .AssertVisibility();
         }
 
@@ -142,16 +143,16 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
         {
             new AutoFilterTester(f => f.EqualOrGreaterThan("b"))
                 .AddTrue("b", "B", "Ba", "C", "c")
-                .AddFalse("", "A", Blank.Value, 1, false, XLError.NullValue)
+                .AddFalse("", "A", Blank.Value, 1, false, XlsxError.NullValue)
                 .AssertVisibility();
         }
 
         [Test]
         public void EqualOrGreaterThan_with_error_compares_against_numeric_types_of_error()
         {
-            new AutoFilterTester(f => f.EqualOrGreaterThan(XLError.CellReference))
-                .AddTrue(XLError.CellReference, XLError.NameNotRecognized, XLError.NumberInvalid, XLError.NoValueAvailable)
-                .AddFalse(XLError.IncompatibleValue, XLError.NullValue, 1, "#NULL!", "Test", "", true, false, Blank.Value)
+            new AutoFilterTester(f => f.EqualOrGreaterThan(XlsxError.CellReference))
+                .AddTrue(XlsxError.CellReference, XlsxError.NameNotRecognized, XlsxError.NumberInvalid, XlsxError.NoValueAvailable)
+                .AddFalse(XlsxError.IncompatibleValue, XlsxError.NullValue, 1, "#NULL!", "Test", "", true, false, Blank.Value)
                 .AssertVisibility();
         }
 
@@ -160,9 +161,9 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
         {
             new AutoFilterTester(f => f.EqualTo("1*0"))
                 .AddTrue("1.0", "1 and 0")
-                .AddFalse(1, "A", "B", 2, XLError.DivisionByZero, true, false)
+                .AddFalse(1, "A", "B", 2, XlsxError.DivisionByZero, true, false)
                 .Add(1, nf => nf.SetFormat("1.0"), false)
-                .Add(1, nf => nf.SetNumberFormatId((int)XLPredefinedFormat.Number.Precision2), false)
+                .Add(1, nf => nf.SetNumberFormatId((int)XlsxPredefinedFormat.Number.Precision2), false)
                 .AssertVisibility();
         }
 
@@ -173,9 +174,9 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
             // Note the ',' separator that is used detect number. Excel doesn't use invariant culture.
             new AutoFilterTester(f => f.EqualTo("1,00"))
                 .Add("1,00", true)
-                .Add(1, nf => nf.SetNumberFormatId((int)XLPredefinedFormat.Number.Precision2), true)
+                .Add(1, nf => nf.SetNumberFormatId((int)XlsxPredefinedFormat.Number.Precision2), true)
                 .Add(99, nf => nf.SetFormat("\"1,00\""), true)
-                .AddFalse(1, "A", "B", 2, XLError.DivisionByZero, true, false)
+                .AddFalse(1, "A", "B", 2, XlsxError.DivisionByZero, true, false)
                 .AssertVisibility();
         }
 
@@ -186,10 +187,10 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
             // 1,00 is detected as a type number with value 1.
             new AutoFilterTester(f => f.NotEqualTo("1,00"))
                 .Add(1, false) // Value is equal => hide
-                .Add(1, nf => nf.SetNumberFormatId((int)XLPredefinedFormat.Number.Precision2), false) // Value is equal => hide
+                .Add(1, nf => nf.SetNumberFormatId((int)XlsxPredefinedFormat.Number.Precision2), false) // Value is equal => hide
                 .Add("1,00", true) // wrong type
                 .Add(99, nf => nf.SetFormat("\"1,00\""), true) // Value is wrong => non-equal
-                .AddTrue("A", "B", 2, XLError.DivisionByZero, true, false) // Wrong type
+                .AddTrue("A", "B", 2, XlsxError.DivisionByZero, true, false) // Wrong type
                 .AssertVisibility();
         }
 
@@ -200,16 +201,16 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
             // NotEqual with text pattern must have text type.
             new AutoFilterTester(f => f.NotEqualTo("1*0"))
                 .Add(1, true)
-                .Add(1, nf => nf.SetNumberFormatId((int)XLPredefinedFormat.Number.Precision2), true)
+                .Add(1, nf => nf.SetNumberFormatId((int)XlsxPredefinedFormat.Number.Precision2), true)
                 .Add("1,00", false)
                 .Add("100", false)
                 .Add(100, true)
                 .Add(99, nf => nf.SetFormat("\"1,00\""), true)
-                .AddTrue("A", "B", 2, XLError.DivisionByZero, true, false)
+                .AddTrue("A", "B", 2, XlsxError.DivisionByZero, true, false)
                 .AssertVisibility();
         }
 
-        private static AutoFilterTester WithOneAndOtherTypes(Action<IXLFilterColumn> filter)
+        private static AutoFilterTester WithOneAndOtherTypes(Action<IXlsxFilterColumn> filter)
         {
             // Add equivalent of 1 and other types
             return new AutoFilterTester(filter)
@@ -220,7 +221,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
                 .Add(Blank.Value, false)
                 .Add("Hello", false)
                 .Add(true, false)
-                .Add(XLError.NullValue, false); // #NULL! has type value 1
+                .Add(XlsxError.NullValue, false); // #NULL! has type value 1
         }
     }
 }

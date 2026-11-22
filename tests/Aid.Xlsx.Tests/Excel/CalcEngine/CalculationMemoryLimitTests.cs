@@ -1,8 +1,8 @@
-using Aid.Xlsx;
+using System.Runtime.CompilerServices;
 using Aid.Xlsx.CalcEngine;
 using Aid.Xlsx.Exceptions;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
-using System.Runtime.CompilerServices;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine;
 
@@ -13,7 +13,7 @@ public class CalculationMemoryLimitTests
     public void All_arrays_in_formula_share_limit()
     {
         const int cells = 4;
-        using var wb = new XLWorkbook(new LoadOptions { MaxCalculationMemoryBytes = cells * Unsafe.SizeOf<ScalarValue>() });
+        using var wb = new XlsxWorkbook(new LoadOptions { MaxCalculationMemoryBytes = cells * Unsafe.SizeOf<ScalarValue>() });
         var ws = wb.AddWorksheet();
         ws.Cell("A1").Value = 10;
         ws.Cell("A2").Value = 20;
@@ -28,7 +28,7 @@ public class CalculationMemoryLimitTests
     [Test]
     public void Reference_to_cells_doesnt_not_instantiate_array_and_is_not_counted()
     {
-        using var wb = new XLWorkbook(new LoadOptions { MaxCalculationMemoryBytes = 1 });
+        using var wb = new XlsxWorkbook(new LoadOptions { MaxCalculationMemoryBytes = 1 });
         var ws = wb.AddWorksheet();
         ws.Cell("A1").Value = 3;
         ws.Cell("A2").Value = 4;
@@ -42,7 +42,7 @@ public class CalculationMemoryLimitTests
     {
         // The multiplication operation will create an intermediate (and final in this case) result
         // that is an array.
-        using var wb = new XLWorkbook(new LoadOptions { MaxCalculationMemoryBytes = 1 });
+        using var wb = new XlsxWorkbook(new LoadOptions { MaxCalculationMemoryBytes = 1 });
         var ws = wb.AddWorksheet();
         ws.Cell("A1").Value = 3;
         ws.Cell("A2").Value = 4;
@@ -54,7 +54,7 @@ public class CalculationMemoryLimitTests
     [Test]
     public void Limit_checks_maximal_usage_at_any_time_of_calculation()
     {
-        using var wb = new XLWorkbook(new LoadOptions { MaxCalculationMemoryBytes = 2 * Unsafe.SizeOf<ScalarValue>() });
+        using var wb = new XlsxWorkbook(new LoadOptions { MaxCalculationMemoryBytes = 2 * Unsafe.SizeOf<ScalarValue>() });
         var ws = wb.AddWorksheet();
         ws.Cell("A1").Value = 3;
         ws.Cell("A2").Value = 4;
@@ -70,18 +70,18 @@ public class CalculationMemoryLimitTests
     [Test]
     public void Expose_only_generic_xlsx_exception()
     {
-        using var wb = new XLWorkbook(new LoadOptions { MaxCalculationMemoryBytes = 1 });
+        using var wb = new XlsxWorkbook(new LoadOptions { MaxCalculationMemoryBytes = 1 });
         var ws = wb.AddWorksheet();
         ws.Cell("A1").Value = 1;
         ws.Cell("B1").SetFormulaA1("A1:A2+1");
-        Assert.That(() => _ = ws.Cell("B1").Value, Throws.InstanceOf<ClosedXMLException>());
+        Assert.That(() => _ = ws.Cell("B1").Value, Throws.InstanceOf<XlsxException>());
         Assert.IsFalse(typeof(LimitExceededException).IsPublic);
     }
 
     [Test]
     public void Zero_means_no_limit()
     {
-        using var wb = new XLWorkbook(new LoadOptions { MaxCalculationMemoryBytes = 0 });
+        using var wb = new XlsxWorkbook(new LoadOptions { MaxCalculationMemoryBytes = 0 });
         var ws = wb.AddWorksheet();
         ws.Range("A1:B100").Value = 1;
         ws.Cell("C1").SetFormulaA1("SUM(A1:B100+1)");
@@ -93,7 +93,7 @@ public class CalculationMemoryLimitTests
     {
         const string formula = "SUM({1,2}*{3;4})";
         const double expectedResult = 21.0;
-        Assert.AreEqual(expectedResult, XLWorkbook.EvaluateExpr(formula));
-        Assert.AreEqual(expectedResult, XLWorkbook.EvaluateExprCurrent(formula));
+        Assert.AreEqual(expectedResult, XlsxWorkbook.EvaluateExpr(formula));
+        Assert.AreEqual(expectedResult, XlsxWorkbook.EvaluateExprCurrent(formula));
     }
 }

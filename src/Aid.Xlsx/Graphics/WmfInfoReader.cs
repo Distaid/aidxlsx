@@ -1,10 +1,8 @@
 #nullable disable
 
+using System.Drawing;
 using Aid.Xlsx.Drawings;
 using Aid.Xlsx.Utils;
-using System;
-using System.Drawing;
-using System.IO;
 
 namespace Aid.Xlsx.Graphics
 {
@@ -40,7 +38,7 @@ namespace Aid.Xlsx.Graphics
             return hasWmfHeader;
         }
 
-        protected override XLPictureInfo ReadInfo(Stream stream)
+        protected override XlsxPictureInfo ReadInfo(Stream stream)
         {
             Span<byte> header = stackalloc byte[22];
             stream.ReadExactly(header);
@@ -53,7 +51,7 @@ namespace Aid.Xlsx.Graphics
                     // Excel ignores inch field of placeable header, but we don't
                     var widthHiMetric = ToHiMetric(placeable.BoundingBox.Width, placeable.Inch);
                     var heightHiMetric = ToHiMetric(placeable.BoundingBox.Height, placeable.Inch);
-                    return new XLPictureInfo(XLPictureFormat.Wmf, Size.Empty, new Size(widthHiMetric, heightHiMetric));
+                    return new XlsxPictureInfo(XlsxPictureFormat.Wmf, Size.Empty, new Size(widthHiMetric, heightHiMetric));
                 }
             }
 
@@ -95,7 +93,7 @@ namespace Aid.Xlsx.Graphics
 
             // Excel uses 96 logical units per inch
             var physSize = new Size(ToHiMetric(viewportExtent.X - viewportOrigin.X, 96), ToHiMetric(viewportExtent.Y - viewportOrigin.Y, 96));
-            return new XLPictureInfo(XLPictureFormat.Wmf, Size.Empty, physSize);
+            return new XlsxPictureInfo(XlsxPictureFormat.Wmf, Size.Empty, physSize);
         }
 
         private static uint GetU32LE(Span<byte> s, int i)

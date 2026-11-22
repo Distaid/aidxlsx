@@ -1,11 +1,9 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using Aid.Xlsx.Cells;
 
 namespace Aid.Xlsx.InsertData
 {
@@ -61,7 +59,7 @@ namespace Aid.Xlsx.InsertData
             }
         }
 
-        public IEnumerable<IEnumerable<XLCellValue>> GetRecords()
+        public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
         {
             foreach (var reader in _readers)
             {

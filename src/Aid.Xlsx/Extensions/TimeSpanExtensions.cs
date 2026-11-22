@@ -1,11 +1,10 @@
 #nullable disable
 
-using Aid.Xlsx.CalcEngine;
-using System;
 using System.Globalization;
 using System.Text;
+using Aid.Xlsx.CalcEngine;
 
-namespace Aid.Xlsx
+namespace Aid.Xlsx.Extensions
 {
     internal static class TimeSpanExtensions
     {

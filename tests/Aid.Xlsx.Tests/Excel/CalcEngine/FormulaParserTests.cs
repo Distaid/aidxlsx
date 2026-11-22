@@ -1,14 +1,12 @@
-using Aid.Xlsx;
-using Aid.Xlsx.CalcEngine;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Workbooks;
+using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine
 {
     /// <summary>
-    /// Tests that verify that we can parse formulas and evaluate them. Take a look at XLParser ExcelFormulaGrammar.cs and each rule + its transformation into Abstract Syntax Tree is checked here.
+    /// Tests that verify that we can parse formulas and evaluate them. Take a look at XlsxParser ExcelFormulaGrammar.cs and each rule + its transformation into Abstract Syntax Tree is checked here.
     /// </summary>
     [TestFixture]
     public class FormulaParserTests
@@ -18,13 +16,13 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase]
         public void Formula_string_can_starting_with_an_equal_sign()
         {
-            Assert.AreEqual(1, XLWorkbook.EvaluateExpr("=1"));
+            Assert.AreEqual(1, XlsxWorkbook.EvaluateExpr("=1"));
         }
 
         [TestCase]
         public void Formula_string_can_omit_starting_equal_sign()
         {
-            Assert.AreEqual(1, XLWorkbook.EvaluateExpr("1"));
+            Assert.AreEqual(1, XlsxWorkbook.EvaluateExpr("1"));
         }
 
         [TestCase]
@@ -32,7 +30,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         {
             // Root of a formula string is pretty much the only place where reference union can be without parenthesis. Elsewhere it must have
             // parentheses to avoid misusing union op (coma) with a separation of arguments in a function call.
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Evaluate("=A1,A3", "Z100");
         }
@@ -44,7 +42,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase]
         public void Formula_can_be_reference()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = "Text";
             Assert.AreEqual("Text", ws.Evaluate("=A1"));
@@ -55,7 +53,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("=TRUE", true)]
         public void Formula_can_be_constant(string formula, object expectedValue)
         {
-            Assert.AreEqual(expectedValue, XLWorkbook.EvaluateExpr(formula));
+            Assert.AreEqual(expectedValue, XlsxWorkbook.EvaluateExpr(formula));
         }
 
         [TestCase("=SUM(1,2)", 3)]
@@ -64,21 +62,21 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("=150%", 1.5)]
         public void Formula_can_be_function_call(string formula, object expectedValue)
         {
-            Assert.AreEqual(expectedValue, XLWorkbook.EvaluateExpr(formula));
+            Assert.AreEqual(expectedValue, XlsxWorkbook.EvaluateExpr(formula));
         }
 
         [TestCase]
         public void Formula_can_be_constant_array()
         {
             // 1 is determined through implicit intersection (first element)
-            Assert.AreEqual(1, XLWorkbook.EvaluateExpr("={1,2,3;4,5,6}"));
+            Assert.AreEqual(1, XlsxWorkbook.EvaluateExpr("={1,2,3;4,5,6}"));
         }
 
         [TestCase("=(1)", 1)]
         [TestCase("=(\"text\")", "text")]
         public void Formula_can_be_another_formula_in_parenthesis(string formula, object expectedValue)
         {
-            Assert.AreEqual(expectedValue, XLWorkbook.EvaluateExpr(formula));
+            Assert.AreEqual(expectedValue, XlsxWorkbook.EvaluateExpr(formula));
         }
         #endregion
 
@@ -93,7 +91,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         public void Constant_can_be_number(string formula, double expectedNumber)
         {
             // Irony returns number as an object of various types, e.g. int or double
-            Assert.AreEqual(expectedNumber, XLWorkbook.EvaluateExpr(formula));
+            Assert.AreEqual(expectedNumber, XlsxWorkbook.EvaluateExpr(formula));
         }
 
         [TestCase("=\"text\"", "text")]
@@ -102,7 +100,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("=\"use two double quote \"\" to nest quotes\"", "use two double quote \" to nest quotes")]
         public void Constant_can_be_text(string formula, string expectedText)
         {
-            Assert.AreEqual(expectedText, XLWorkbook.EvaluateExpr(formula));
+            Assert.AreEqual(expectedText, XlsxWorkbook.EvaluateExpr(formula));
         }
 
         [TestCase("=TRUE", true)]
@@ -110,31 +108,31 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("=tRuE", true)]
         public void Constant_can_be_bool(string formula, bool expectedBool)
         {
-            Assert.AreEqual(expectedBool, XLWorkbook.EvaluateExpr(formula));
+            Assert.AreEqual(expectedBool, XlsxWorkbook.EvaluateExpr(formula));
         }
 
         // #REF! is converted by a different rule, so it is not here.
-        [TestCase("#VALUE!", XLError.IncompatibleValue)]
-        [TestCase("#DIV/0!", XLError.DivisionByZero)]
-        [TestCase("#NAME?", XLError.NameNotRecognized)]
-        [TestCase("#N/A", XLError.NoValueAvailable)]
-        [TestCase("#NULL!", XLError.NullValue)]
-        [TestCase("#NUM!", XLError.NumberInvalid)]
+        [TestCase("#VALUE!", XlsxError.IncompatibleValue)]
+        [TestCase("#DIV/0!", XlsxError.DivisionByZero)]
+        [TestCase("#NAME?", XlsxError.NameNotRecognized)]
+        [TestCase("#N/A", XlsxError.NoValueAvailable)]
+        [TestCase("#NULL!", XlsxError.NullValue)]
+        [TestCase("#NUM!", XlsxError.NumberInvalid)]
         public void Constant_can_be_error(string formula, object expectedError)
         {
-            var error = (XLError)XLWorkbook.EvaluateExpr(formula);
+            var error = (XlsxError)XlsxWorkbook.EvaluateExpr(formula);
             Assert.AreEqual(expectedError, error);
         }
         #endregion
 
-        // Function call from XLParser is anything that takes arguments and uses some transformation (e.g. addition, excel function, unary operation..)
+        // Function call from XlsxParser is anything that takes arguments and uses some transformation (e.g. addition, excel function, unary operation..)
         #region FunctionCall.Rule
 
         [TestCase("=COS(0)", 1)]
         [TestCase("=SUM(1,2,3)", 6)]
         public void FunctionCall_can_be_excel_predefined_function(string formula, object expectedValue)
         {
-            Assert.AreEqual(expectedValue, XLWorkbook.EvaluateExpr(formula));
+            Assert.AreEqual(expectedValue, XlsxWorkbook.EvaluateExpr(formula));
         }
 
         [TestCase("=+1", 1)]
@@ -142,13 +140,13 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         //        [TestCase("=@A1", 1)]
         public void FunctionCall_can_be_unary_prefix_operation(string formula, object expectedValue)
         {
-            Assert.AreEqual(expectedValue, XLWorkbook.EvaluateExpr(formula));
+            Assert.AreEqual(expectedValue, XlsxWorkbook.EvaluateExpr(formula));
         }
 
         [TestCase("=75%", 0.75)]
         public void FunctionCall_can_be_unary_postfix_operation(string formula, object expectedValue)
         {
-            Assert.AreEqual(expectedValue, XLWorkbook.EvaluateExpr(formula));
+            Assert.AreEqual(expectedValue, XlsxWorkbook.EvaluateExpr(formula));
         }
 
         [TestCase("=2^3", 8)]
@@ -175,7 +173,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("=2<=1", false)]
         public void FunctionCall_can_be_binary_infix_operation(string formula, object expectedValue)
         {
-            Assert.AreEqual(expectedValue, XLWorkbook.EvaluateExpr(formula));
+            Assert.AreEqual(expectedValue, XlsxWorkbook.EvaluateExpr(formula));
         }
         #endregion
 
@@ -184,7 +182,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("=PMT(0,1,1000,,1)", -1000)]
         public void Empty_arguments_are_passed_to_function(string formula, object expectedValue)
         {
-            Assert.That(XLWorkbook.EvaluateExpr(formula), Is.EqualTo(expectedValue));
+            Assert.That(XlsxWorkbook.EvaluateExpr(formula), Is.EqualTo(expectedValue));
         }
 
         #endregion
@@ -196,7 +194,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         //        [TestCase("=UndefinedRangeName", Error.NameNotRecognized)]
         public void Reference_can_be_reference_item(string formula, object expectedValue)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = 1;
             ws.Cell("A2").Value = 5;
@@ -208,14 +206,14 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase]
         public void Reference_can_be_reference_function_call()
         {
-            // XLParser considers a limited subset of predefined functions (IF, CHOOSE, INDEX...) to be different from other predefined function because they can return reference.
-            Assert.AreEqual(2, XLWorkbook.EvaluateExpr("=IF(FALSE,1,2)"));
+            // XlsxParser considers a limited subset of predefined functions (IF, CHOOSE, INDEX...) to be different from other predefined function because they can return reference.
+            Assert.AreEqual(2, XlsxWorkbook.EvaluateExpr("=IF(FALSE,1,2)"));
         }
 
         [TestCase]
         public void Reference_can_be_another_reference_in_parenthesis()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = 1;
 
@@ -225,7 +223,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase]
         public void Reference_can_be_reference_item_with_prefix()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws1 = wb.AddWorksheet("Sheet1");
             var ws2 = wb.AddWorksheet("Sheet2");
             ws2.Cell("A1").Value = 1;
@@ -234,7 +232,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         }
 
         [TestCase]
-        [Ignore("XLParser issue #57")]
+        [Ignore("XlsxParser issue #57")]
         public void Reference_can_be_dynamic_data_exchange()
         {
             AssertCanParseButNotEvaluate("=Sdemo123|tik!'id1?req?AAPL_STK_SMART_USD_~/'", "Evaluation of dynamic data exchange is not implemented.");
@@ -247,7 +245,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase]
         public void Reference_function_call_can_be_binary_range_of_two_references()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Evaluate("A1:A3:C2", "Z100");
         }
@@ -261,7 +259,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase]
         public void Reference_function_call_can_be_union_in_parenthesis()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Evaluate("=(A1:A3,A2:B2,B1:B4)", "Z100");
         }
@@ -269,7 +267,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase]
         public void Reference_function_call_can_be_reference_function()
         {
-            Assert.AreEqual(1, XLWorkbook.EvaluateExpr("=IF(TRUE,1,2)"));
+            Assert.AreEqual(1, XlsxWorkbook.EvaluateExpr("=IF(TRUE,1,2)"));
         }
 
         [TestCase]
@@ -286,7 +284,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         // [TestCase("=CHOOSE(2,\"A\",\"B\",73)", "B")] Not implemented
         public void Ref_function_name_can_be_excel_ref_conditional_function(string formula, object expectedValue)
         {
-            Assert.AreEqual(expectedValue, XLWorkbook.EvaluateExpr(formula));
+            Assert.AreEqual(expectedValue, XlsxWorkbook.EvaluateExpr(formula));
         }
 
         [TestCase("=INDEX(A1:B2,1,2)", "Lemons")]
@@ -294,7 +292,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         //[TestCase("=INDIRECT(\"A2\")", "Bananas")] Not implemented
         public void Ref_function_name_can_be_excel_ref_function(string formula, object expectedValue)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = "Apples";
             ws.Cell("B1").Value = "Lemons";
@@ -311,7 +309,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase]
         public void Reference_item_can_be_cell()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = 1;
 
@@ -322,7 +320,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("A1A1")]
         public void Reference_item_can_be_named_range(string rangeName)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Range("A1:C4").SetValue(1).AddToNamed(rangeName);
 
@@ -332,7 +330,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase]
         public void Reference_item_can_be_vertical_range()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Range("A1:C4").SetValue(1);
 
@@ -342,7 +340,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase]
         public void Reference_item_can_be_horizontal_range()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Range("A1:C4").SetValue(1);
 
@@ -352,19 +350,19 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase]
         public void Reference_item_can_be_ref_error()
         {
-            Assert.AreEqual(XLError.CellReference, XLWorkbook.EvaluateExpr("#REF!"));
+            Assert.AreEqual(XlsxError.CellReference, XlsxWorkbook.EvaluateExpr("#REF!"));
         }
 
         [TestCase]
         public void Reference_item_can_be_user_defined_function_call()
         {
-            Assert.AreEqual(XLError.NameNotRecognized, XLWorkbook.EvaluateExpr("CustomFunction(1)"));
+            Assert.AreEqual(XlsxError.NameNotRecognized, XlsxWorkbook.EvaluateExpr("CustomFunction(1)"));
         }
 
         [TestCase]
         public void Reference_item_can_be_structured_reference()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").InsertTable(new[] { new { Amount = 1 }, new { Amount = 2 } });
 
@@ -378,7 +376,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Const_array_must_have_same_number_of_columns()
         {
-            var calcEngine = new XLCalcEngine(CultureInfo.InvariantCulture);
+            var calcEngine = new XlsxCalcEngine(CultureInfo.InvariantCulture);
             var ex = Assert.Throws<ExpressionParseException>(() => calcEngine.Parse("{1;2,3}"))!;
             StringAssert.Contains("Rows of an array don't have same size.", ex.Message);
         }
@@ -386,8 +384,8 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Const_array_cant_contain_implicit_intersection_operator()
         {
-            // XLParser allows @ for number through 'PrefixOp + Number'
-            var calcEngine = new XLCalcEngine(CultureInfo.InvariantCulture);
+            // XlsxParser allows @ for number through 'PrefixOp + Number'
+            var calcEngine = new XlsxCalcEngine(CultureInfo.InvariantCulture);
             var ex = Assert.Throws<ExpressionParseException>(() => calcEngine.Parse("{@1}"))!;
             StringAssert.Contains("Unexpected token INTERSECT.", ex.Message);
         }
@@ -396,7 +394,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         public void Const_array_can_have_only_scalars(string formula, object expected)
         {
             var expectedArray = (ConstArray)expected;
-            var calcEngine = new XLCalcEngine(CultureInfo.InvariantCulture);
+            var calcEngine = new XlsxCalcEngine(CultureInfo.InvariantCulture);
 
             var ast = calcEngine.Parse(formula);
 
@@ -426,7 +424,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
                 yield return new object[]
                 {
                     "{#REF!}",
-                    new ConstArray(new ScalarValue[,] { { XLError.CellReference } })
+                    new ConstArray(new ScalarValue[,] { { XlsxError.CellReference } })
                 };
                 yield return new object[]
                 {
@@ -441,7 +439,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
                 yield return new object[]
                 {
                     "{+1,#REF!,\"Text\";FALSE,#DIV/0!,-1.5}",
-                    new ConstArray(new ScalarValue[,] { { 1, XLError.CellReference, "Text" }, { false, XLError.DivisionByZero, -1.5 } })
+                    new ConstArray(new ScalarValue[,] { { 1, XlsxError.CellReference, "Text" }, { false, XlsxError.DivisionByZero, -1.5 } })
                 };
             }
         }
@@ -461,7 +459,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("='#REF'!A1", "#REF")]
         public void Prefix_can_be_sheet_token(string formula, string sheetName)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet(sheetName);
             ws.Cell("A1").Value = 5;
             Assert.AreEqual(5, ws.Evaluate(formula));
@@ -484,9 +482,9 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
 
         private static void AssertCanParseButNotEvaluate(string formula, string notSupportedMessage)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
-            var calcEngine = new XLCalcEngine(CultureInfo.InvariantCulture);
+            var calcEngine = new XlsxCalcEngine(CultureInfo.InvariantCulture);
             _ = calcEngine.Parse(formula);
             Assert.Throws(Is.TypeOf<NotImplementedException>().With.Message.EqualTo(notSupportedMessage), () => ws.Evaluate(formula, "A1"));
         }

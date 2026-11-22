@@ -1,7 +1,6 @@
 #nullable enable
-using System;
-using System.Collections.Generic;
-using Aid.Xlsx;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Utils;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.Coordinates;
@@ -297,8 +296,8 @@ public class AreaTests
     [TestCase("A1", 1, 0, ExpectedResult = "A2")]
     [TestCase("A1", 0, -1, ExpectedResult = null)]
     [TestCase("A1", -1, 0, ExpectedResult = null)]
-    [TestCase(XLHelper.LastSheetAddress, 0, 1, ExpectedResult = null)]
-    [TestCase(XLHelper.LastSheetAddress, 1, 0, ExpectedResult = null)]
+    [TestCase(XlsxHelper.LastSheetAddress, 0, 1, ExpectedResult = null)]
+    [TestCase(XlsxHelper.LastSheetAddress, 1, 0, ExpectedResult = null)]
     [TestCase("B2:D3", 2, 3, ExpectedResult = "E4:G5")]
     [TestCase("B2:D3", -2, -3, ExpectedResult = "A1")]
     [TestCase("XFA1048574:XFC1048575", 2, 3, ExpectedResult = "XFD1048576")]

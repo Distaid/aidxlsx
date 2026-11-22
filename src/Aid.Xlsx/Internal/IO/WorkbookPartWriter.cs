@@ -1,8 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Xml.Linq;
+using Aid.Xlsx.DefinedNames;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.PivotTables;
+using Aid.Xlsx.Protection;
+using Aid.Xlsx.Ranges;
 using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 
 namespace Aid.Xlsx.Internal.IO;
 
@@ -23,7 +27,7 @@ internal static class WorkbookPartWriter
             new XAttribute(XNamespace.Xmlns + "x", ns));
     }
 
-    internal static void GenerateContent(XElement root, XLWorkbook workbook, SaveOptions options, XLWorkbook.SaveContext context)
+    internal static void GenerateContent(XElement root, XlsxWorkbook workbook, Workbooks.SaveOptions options, XlsxWorkbook.SaveContext context)
     {
         var ns = root.Name.Namespace;
         var relationship = RelationshipId(root);
@@ -50,7 +54,7 @@ internal static class WorkbookPartWriter
         foreach (var unsupported in workbook.UnsupportedSheets)
             ordered.Add(unsupported.Position, sheetById[unsupported.SheetId]);
 
-        foreach (var worksheet in workbook.WorksheetsInternal.Cast<XLWorksheet>().OrderBy(sheet => sheet.Position))
+        foreach (var worksheet in workbook.WorksheetsInternal.Cast<XlsxWorksheet>().OrderBy(sheet => sheet.Position))
         {
             if (!sheetById.TryGetValue(worksheet.SheetId, out var sheet))
                 sheet = new XElement(ns + "sheet", new XAttribute("name", worksheet.Name), new XAttribute("sheetId", worksheet.SheetId));
@@ -58,15 +62,15 @@ internal static class WorkbookPartWriter
             var originalId = WorkbookXml.ReadSheet(sheet).Id;
             var id = string.IsNullOrWhiteSpace(originalId) ? worksheet.RelId : originalId;
             if (string.IsNullOrWhiteSpace(id))
-                id = context.RelIdGenerator.GetNext(XLWorkbook.RelType.Workbook);
+                id = context.RelIdGenerator.GetNext(XlsxWorkbook.RelType.Workbook);
             worksheet.RelId = id;
 
             sheet.SetAttributeValue("name", worksheet.Name);
             sheet.SetAttributeValue("state", worksheet.Visibility switch
             {
-                XLWorksheetVisibility.Visible => null,
-                XLWorksheetVisibility.Hidden => "hidden",
-                XLWorksheetVisibility.VeryHidden => "veryHidden",
+                XlsxWorksheetVisibility.Visible => null,
+                XlsxWorksheetVisibility.Hidden => "hidden",
+                XlsxWorksheetVisibility.VeryHidden => "veryHidden",
                 _ => throw new ArgumentOutOfRangeException(nameof(workbook), "Invalid worksheet visibility.")
             });
             sheet.SetAttributeValue(relationship, id);
@@ -80,7 +84,7 @@ internal static class WorkbookPartWriter
         WriteCalculation(root, workbook);
     }
 
-    internal static void WritePivotCaches(XElement root, IReadOnlyList<XLPivotCache> caches)
+    internal static void WritePivotCaches(XElement root, IReadOnlyList<XlsxPivotCache> caches)
     {
         var ns = root.Name.Namespace;
         root.Element(ns + "pivotCaches")?.Remove();
@@ -98,7 +102,7 @@ internal static class WorkbookPartWriter
         }
     }
 
-    private static void WriteProtection(XElement root, XLWorkbook workbook)
+    private static void WriteProtection(XElement root, XlsxWorkbook workbook)
     {
         var protection = workbook.Protection;
         if (!protection.IsProtected)
@@ -108,25 +112,25 @@ internal static class WorkbookPartWriter
         }
 
         var element = GetOrAdd(root, "workbookProtection");
-        var simpleHash = protection.Algorithm == XLProtectionAlgorithm.Algorithm.SimpleHash;
+        var simpleHash = protection.Algorithm == XlsxProtectionAlgorithm.Algorithm.SimpleHash;
         element.SetAttributeValue("workbookPassword", simpleHash && !string.IsNullOrWhiteSpace(protection.PasswordHash) ? protection.PasswordHash : null);
-        element.SetAttributeValue("lockStructure", protection.AllowedElements.HasFlag(XLWorkbookProtectionElements.Structure) ? null : "1");
-        element.SetAttributeValue("lockWindows", protection.AllowedElements.HasFlag(XLWorkbookProtectionElements.Windows) ? null : "1");
-        element.SetAttributeValue("workbookAlgorithmName", simpleHash ? null : DescribedEnumParser<XLProtectionAlgorithm.Algorithm>.ToDescription(protection.Algorithm));
+        element.SetAttributeValue("lockStructure", protection.AllowedElements.HasFlag(XlsxWorkbookProtectionElements.Structure) ? null : "1");
+        element.SetAttributeValue("lockWindows", protection.AllowedElements.HasFlag(XlsxWorkbookProtectionElements.Windows) ? null : "1");
+        element.SetAttributeValue("workbookAlgorithmName", simpleHash ? null : DescribedEnumParser<XlsxProtectionAlgorithm.Algorithm>.ToDescription(protection.Algorithm));
         element.SetAttributeValue("workbookHashValue", simpleHash ? null : protection.PasswordHash);
         element.SetAttributeValue("workbookSaltValue", simpleHash ? null : protection.Base64EncodedSalt);
         element.SetAttributeValue("workbookSpinCount", simpleHash ? null : protection.SpinCount);
     }
 
-    private static void WriteView(XElement root, XLWorkbook workbook, IEnumerable<XElement> sheets)
+    private static void WriteView(XElement root, XlsxWorkbook workbook, IEnumerable<XElement> sheets)
     {
         var unsupported = workbook.UnsupportedSheets.Select(sheet => sheet.SheetId).ToHashSet();
         var firstVisible = sheets.Select(WorkbookXml.ReadSheet).Where(sheet => !unsupported.Contains(sheet.SheetId))
-            .TakeWhile(sheet => sheet.Visibility != XLWorksheetVisibility.Visible).Count();
+            .TakeWhile(sheet => sheet.Visibility != XlsxWorksheetVisibility.Visible).Count();
         var active = workbook.UnsupportedSheets.Where(sheet => sheet.IsActive).Select(sheet => (int?)sheet.Position - 1).FirstOrDefault();
         if (!active.HasValue)
         {
-            var worksheets = workbook.WorksheetsInternal.Cast<XLWorksheet>();
+            var worksheets = workbook.WorksheetsInternal.Cast<XlsxWorksheet>();
             active = (worksheets.FirstOrDefault(sheet => sheet.TabActive)?.Position - 1)
                 ?? (worksheets.LastOrDefault(sheet => sheet.TabSelected)?.Position - 1)
                 ?? firstVisible;
@@ -145,14 +149,14 @@ internal static class WorkbookPartWriter
         view.SetAttributeValue("activeTab", active);
     }
 
-    private static void WriteDefinedNames(XElement root, XLWorkbook workbook, IEnumerable<XElement> sheets)
+    private static void WriteDefinedNames(XElement root, XlsxWorkbook workbook, IEnumerable<XElement> sheets)
     {
         var ns = root.Name.Namespace;
         var indexes = sheets.Select((sheet, index) => (Sheet: WorkbookXml.ReadSheet(sheet), Index: index))
             .ToDictionary(item => item.Sheet.SheetId, item => item.Index);
         var names = GetOrAdd(root, "definedNames");
         names.Elements(ns + "definedName").Remove();
-        foreach (var worksheet in workbook.WorksheetsInternal.Cast<XLWorksheet>())
+        foreach (var worksheet in workbook.WorksheetsInternal.Cast<XlsxWorksheet>())
         {
             var sheetIndex = indexes[worksheet.SheetId];
             var prefix = worksheet.Name.EscapeSheetName() + "!";
@@ -163,12 +167,12 @@ internal static class WorkbookPartWriter
             if (worksheet.AutoFilter.IsEnabled)
                 AddName("_xlnm._FilterDatabase", prefix + FixedRange(worksheet.AutoFilter.Range.RangeAddress), sheetIndex, hidden: true);
 
-            foreach (var name in worksheet.DefinedNames.Cast<XLDefinedName>().Where(name => name.Name != "_xlnm._FilterDatabase"))
+            foreach (var name in worksheet.DefinedNames.Cast<XlsxDefinedName>().Where(name => name.Name != "_xlnm._FilterDatabase"))
                 AddName(name.Name, name.ToString(), sheetIndex, !name.Visible, name.Comment);
 
             var titles = new List<string>(2);
             if (setup.FirstColumnToRepeatAtLeft > 0)
-                titles.Add(prefix + XLHelper.GetColumnLetterFromNumber(setup.FirstColumnToRepeatAtLeft) + ":" + XLHelper.GetColumnLetterFromNumber(setup.LastColumnToRepeatAtLeft));
+                titles.Add(prefix + XlsxHelper.GetColumnLetterFromNumber(setup.FirstColumnToRepeatAtLeft) + ":" + XlsxHelper.GetColumnLetterFromNumber(setup.LastColumnToRepeatAtLeft));
             if (setup.FirstRowToRepeatAtTop > 0)
                 titles.Add(prefix + FormattableString.Invariant($"{setup.FirstRowToRepeatAtTop}:{setup.LastRowToRepeatAtTop}"));
             if (titles.Count > 0)
@@ -186,10 +190,10 @@ internal static class WorkbookPartWriter
                 hidden ? new XAttribute("hidden", "1") : null, text));
         }
 
-        static string FixedRange(IXLRangeAddress range) => range.FirstAddress.ToStringFixed(XLReferenceStyle.A1) + ":" + range.LastAddress.ToStringFixed(XLReferenceStyle.A1);
+        static string FixedRange(IXlsxRangeAddress range) => range.FirstAddress.ToStringFixed(XlsxReferenceStyle.A1) + ":" + range.LastAddress.ToStringFixed(XlsxReferenceStyle.A1);
     }
 
-    private static void WriteCalculation(XElement root, XLWorkbook workbook)
+    private static void WriteCalculation(XElement root, XlsxWorkbook workbook)
     {
         var calculation = root.Element(root.Name.Namespace + "calcPr");
         if (calculation is null)
@@ -200,17 +204,17 @@ internal static class WorkbookPartWriter
 
         calculation.SetAttributeValue("calcMode", workbook.CalculateMode switch
         {
-            XLCalculateMode.Default => null,
-            XLCalculateMode.Auto => "auto",
-            XLCalculateMode.AutoNoTable => "autoNoTable",
-            XLCalculateMode.Manual => "manual",
+            XlsxCalculateMode.Default => null,
+            XlsxCalculateMode.Auto => "auto",
+            XlsxCalculateMode.AutoNoTable => "autoNoTable",
+            XlsxCalculateMode.Manual => "manual",
             _ => throw new ArgumentOutOfRangeException(nameof(workbook), "Invalid workbook calculation mode.")
         });
         calculation.SetAttributeValue("refMode", workbook.ReferenceStyle switch
         {
-            XLReferenceStyle.Default => null,
-            XLReferenceStyle.A1 => "A1",
-            XLReferenceStyle.R1C1 => "R1C1",
+            XlsxReferenceStyle.Default => null,
+            XlsxReferenceStyle.A1 => "A1",
+            XlsxReferenceStyle.R1C1 => "R1C1",
             _ => throw new ArgumentOutOfRangeException(nameof(workbook), "Invalid workbook reference style.")
         });
         if (workbook.FullCalculationOnLoad) calculation.SetAttributeValue("fullCalcOnLoad", "1");

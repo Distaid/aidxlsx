@@ -1,9 +1,7 @@
+using System.Data.SqlClient;
+using System.Data;
 using Aid.Xlsx.InsertData;
 using NUnit.Framework;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
 
 namespace Aid.Xlsx.Tests.Excel.InsertData
 {

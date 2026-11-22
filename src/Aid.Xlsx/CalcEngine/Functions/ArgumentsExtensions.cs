@@ -1,5 +1,3 @@
-using System;
-
 namespace Aid.Xlsx.CalcEngine.Functions
 {
     /// <summary>
@@ -25,7 +23,7 @@ namespace Aid.Xlsx.CalcEngine.Functions
         /// </param>
         /// <param name="noElementsResult">
         /// What should be the result of aggregation, if there are no elements. Common choices are
-        /// <see cref="XLError.IncompatibleValue"/> or the <paramref name="initialValue"/>.
+        /// <see cref="XlsxError.IncompatibleValue"/> or the <paramref name="initialValue"/>.
         /// </param>
         /// <param name="aggregate">
         /// The aggregation function. First parameter is the accumulator, second parameter is the value of
@@ -43,13 +41,13 @@ namespace Aid.Xlsx.CalcEngine.Functions
         /// determines which elements to include and which to skip. If null, all elements of array are included and
         /// all values are treated same. Make sure the method is static lambda to avoid useless allocations.
         /// </param>
-        public static OneOf<TValue, XLError> Aggregate<TValue>(
+        public static OneOf<TValue, XlsxError> Aggregate<TValue>(
              this Span<AnyValue> args,
              CalcContext ctx,
              TValue initialValue,
-             OneOf<TValue, XLError> noElementsResult,
+             OneOf<TValue, XlsxError> noElementsResult,
              Func<TValue, TValue, TValue> aggregate,
-             Func<ScalarValue, CalcContext, OneOf<TValue, XLError>> convert,
+             Func<ScalarValue, CalcContext, OneOf<TValue, XlsxError>> convert,
              Func<ScalarValue, bool>? collectionFilter = null)
         {
             var result = initialValue;

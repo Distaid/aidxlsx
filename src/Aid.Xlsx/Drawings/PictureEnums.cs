@@ -2,13 +2,13 @@
 
 namespace Aid.Xlsx.Drawings
 {
-    public enum XLMarkerPosition
+    public enum XlsxMarkerPosition
     {
         TopLeft,
         BottomRight
     }
 
-    public enum XLPictureFormat
+    public enum XlsxPictureFormat
     {
         Unknown,
         Bmp,
@@ -23,7 +23,7 @@ namespace Aid.Xlsx.Drawings
         Webp
     }
 
-    public enum XLPicturePlacement
+    public enum XlsxPicturePlacement
     {
         MoveAndSize = 0,
         Move = 1,

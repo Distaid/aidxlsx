@@ -1,8 +1,9 @@
 #nullable enable
 
 using System.Collections.Generic;
+using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Opc;
-using StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.XLImmutableRichText>;
+using StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.RichText.XlsxImmutableRichText>;
 
 namespace Aid.Xlsx.Internal.IO;
 

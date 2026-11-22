@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Xml.Linq;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Workbooks;
 
 namespace Aid.Xlsx.Internal.IO;
 
@@ -10,7 +12,7 @@ internal static class CorePropertiesXml
     private static readonly XNamespace Terms = "http://purl.org/dc/terms/";
     private static readonly XNamespace SchemaInstance = "http://www.w3.org/2001/XMLSchema-instance";
 
-    internal static void Read(Stream stream, XLWorkbookProperties properties)
+    internal static void Read(Stream stream, XlsxWorkbookProperties properties)
     {
         var root = XDocumentExtensions.Load(stream)?.Root;
         if (root?.Name != Core + "coreProperties")
@@ -30,7 +32,7 @@ internal static class CorePropertiesXml
             properties.Modified = modified;
     }
 
-    internal static XDocument Update(Stream? existing, XLWorkbookProperties properties)
+    internal static XDocument Update(Stream? existing, XlsxWorkbookProperties properties)
     {
         var document = existing is null ? null : XDocumentExtensions.Load(existing);
         if (document?.Root is not { } root || root.Name != Core + "coreProperties")

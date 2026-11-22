@@ -1,8 +1,7 @@
-using System.Collections.Generic;
 using System.Globalization;
-using Aid.Xlsx;
-using Aid.Xlsx.CalcEngine;
 using Aid.Xlsx.CalcEngine.Functions;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine;
@@ -13,7 +12,7 @@ internal class CriteriaTests
     [Test]
     [SetCulture("cs-CZ")] // cs-CZ has ',' as a decimal separator (e.g. '1,2' is one point two).
     [TestCaseSource(nameof(CriteriaTestCases))]
-    public void Selection_criteria_uses_type_and_comparator_to_match_values(ScalarValue selectionCriteria, XLCellValue value, bool expectedResult)
+    public void Selection_criteria_uses_type_and_comparator_to_match_values(ScalarValue selectionCriteria, XlsxCellValue value, bool expectedResult)
     {
         var criteria = Criteria.Create(selectionCriteria, CultureInfo.CurrentCulture);
         var matchResult = criteria.Match(value);
@@ -84,7 +83,7 @@ internal class CriteriaTests
             yield return S("<>TRUE", false);
             yield return S("<>TRUE", 1);
             yield return S("<>TRUE", "Text");
-            yield return S("<>TRUE", XLError.DivisionByZero);
+            yield return S("<>TRUE", XlsxError.DivisionByZero);
             yield return F("<>TRUE", true);
 
             yield return S(">FALSE", true);
@@ -109,7 +108,7 @@ internal class CriteriaTests
                 yield return F(eq + "1,5", "text");
                 yield return F(eq + "1", true);
                 yield return F(eq + "1", Blank.Value);
-                yield return F(eq + "1", XLError.NullValue);
+                yield return F(eq + "1", XlsxError.NullValue);
             }
 
             yield return S("<>1", 0.9);
@@ -119,7 +118,7 @@ internal class CriteriaTests
             yield return S("<>1", true);
             yield return S("<>1", false);
             yield return S("<>1", "text");
-            yield return S("<>1", XLError.NullValue);
+            yield return S("<>1", XlsxError.NullValue);
 
             yield return F("<1", 1);
             yield return S("<=1", 1);
@@ -200,31 +199,31 @@ internal class CriteriaTests
             // Errors
             foreach (var eq in new[] { "", "=" })
             {
-                yield return S(eq + "#DIV/0!", XLError.DivisionByZero);
+                yield return S(eq + "#DIV/0!", XlsxError.DivisionByZero);
                 yield return F(eq + "#DIV/0!", "#DIV/0!");
                 yield return F(eq + "#NULL!", 1);
             }
 
-            yield return S(">#NULL!", XLError.DivisionByZero);
-            yield return F(">#DIV/0!", XLError.NullValue);
+            yield return S(">#NULL!", XlsxError.DivisionByZero);
+            yield return F(">#DIV/0!", XlsxError.NullValue);
 
-            yield return S(">=#NULL!", XLError.DivisionByZero);
-            yield return S(">=#NULL!", XLError.NullValue);
-            yield return F(">=#DIV/0!", XLError.NullValue);
+            yield return S(">=#NULL!", XlsxError.DivisionByZero);
+            yield return S(">=#NULL!", XlsxError.NullValue);
+            yield return F(">=#DIV/0!", XlsxError.NullValue);
 
-            yield return S("<=#DIV/0!", XLError.NullValue);
-            yield return S("<=#NULL!", XLError.NullValue);
-            yield return F("<=#NULL!", XLError.DivisionByZero);
+            yield return S("<=#DIV/0!", XlsxError.NullValue);
+            yield return S("<=#NULL!", XlsxError.NullValue);
+            yield return F("<=#NULL!", XlsxError.DivisionByZero);
 
-            yield return S("<#DIV/0!", XLError.NullValue);
-            yield return F("<#NULL!", XLError.DivisionByZero);
+            yield return S("<#DIV/0!", XlsxError.NullValue);
+            yield return F("<#NULL!", XlsxError.DivisionByZero);
 
             yield break;
 
-            static object[] S(ScalarValue s, XLCellValue v)
+            static object[] S(ScalarValue s, XlsxCellValue v)
                 => new object[] { s, v, true };
 
-            static object[] F(ScalarValue s, XLCellValue v)
+            static object[] F(ScalarValue s, XlsxCellValue v)
                 => new object[] { s, v, false };
         }
     }

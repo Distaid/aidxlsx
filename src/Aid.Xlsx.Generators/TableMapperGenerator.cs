@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis;
 
 namespace Aid.Xlsx.Generators;
 
@@ -11,7 +11,7 @@ namespace Aid.Xlsx.Generators;
 public sealed class TableMapperGenerator : IIncrementalGenerator
 {
     private const string Attributes = "Aid.Xlsx.Attributes.";
-    private const string ColumnAttribute = Attributes + "XLColumnAttribute";
+    private const string ColumnAttribute = Attributes + "XlsxColumnAttribute";
     private const string IgnoreAttribute = Attributes + "XlsxIgnoreAttribute";
 
     private static readonly DiagnosticDescriptor DuplicateColumn = Error("XLSX001", "Duplicate table column", "Table row '{0}' has duplicate column {1} '{2}'");
@@ -173,10 +173,10 @@ public sealed class TableMapperGenerator : IIncrementalGenerator
             SpecialType.System_Int32 or SpecialType.System_UInt32 or SpecialType.System_Int64 or SpecialType.System_UInt64 or
             SpecialType.System_Single or SpecialType.System_Double or SpecialType.System_Decimal => value,
             SpecialType.System_Char => value + ".ToString()",
-            _ when type.TypeKind == TypeKind.Enum && type.ToDisplayString() != "Aid.Xlsx.XLError" => value + ".ToString()",
+            _ when type.TypeKind == TypeKind.Enum && type.ToDisplayString() != "Aid.Xlsx.CalcEngine.XlsxError" => value + ".ToString()",
             _ => type.ToDisplayString() switch
             {
-                "Aid.Xlsx.XLCellValue" or "Aid.Xlsx.XLError" or "Aid.Xlsx.Blank" or "System.TimeSpan" => value,
+                "Aid.Xlsx.Cells.XlsxCellValue" or "Aid.Xlsx.CalcEngine.XlsxError" or "Aid.Xlsx.CalcEngine.Blank" or "System.TimeSpan" => value,
                 "System.DateOnly" => value + ".ToDateTime(global::System.TimeOnly.MinValue)",
                 "System.TimeOnly" => value + ".ToTimeSpan()",
                 "System.DateTimeOffset" => value + ".DateTime",
@@ -188,7 +188,7 @@ public sealed class TableMapperGenerator : IIncrementalGenerator
         if (expression is null || !nullable)
             return expression;
 
-        return $"{access} is {{ }} value ? (global::Aid.Xlsx.XLCellValue)({expression}) : default";
+        return $"{access} is {{ }} value ? (global::Aid.Xlsx.Cells.XlsxCellValue)({expression}) : default";
     }
 
     private static object? GetSetting(Dictionary<string, object?>? settings, string key)

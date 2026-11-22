@@ -1,5 +1,5 @@
-using System;
-using Aid.Xlsx;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Utils;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.Coordinates;
@@ -30,7 +30,7 @@ internal class SheetPointTests
 
     [TestCase("sheet", 1, 4, "sheet!D1")]
     [TestCase("Joe's", 47, 28, "'Joe''s'!AB47")]
-    [TestCase("2025 Q1", XLHelper.MaxRowNumber, XLHelper.MaxColumnNumber, "'2025 Q1'!XFD1048576")]
+    [TestCase("2025 Q1", XlsxHelper.MaxRowNumber, XlsxHelper.MaxColumnNumber, "'2025 Q1'!XFD1048576")]
     public void ToString_returns_readable_reference(string name, int row, int column, string expected)
     {
         var bookPoint = new SheetPoint(name, row, column);

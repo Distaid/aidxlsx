@@ -1,6 +1,6 @@
-using System.Collections.Generic;
 using Aid.Xlsx.Opc;
-using StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.XLImmutableRichText>;
+using Aid.Xlsx.Styles;
+using StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.RichText.XlsxImmutableRichText>;
 
 namespace Aid.Xlsx.Internal.IO;
 
@@ -13,7 +13,7 @@ internal class SstReader
     private readonly XmlTreeReader _reader;
     private readonly RstReader _rstReader;
 
-    internal SstReader(XmlTreeReader reader, XLWorkbookStyles styles)
+    internal SstReader(XmlTreeReader reader, XlsxWorkbookStyles styles)
     {
         _reader = reader;
         _rstReader = new RstReader(reader, styles);

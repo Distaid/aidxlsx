@@ -1,7 +1,6 @@
-using System;
 using System.Xml;
-using Aid.Xlsx;
 using Aid.Xlsx.Internal.IO;
+using Aid.Xlsx.Styles.Colors;
 
 namespace Aid.Xlsx.Extensions
 {
@@ -118,22 +117,22 @@ namespace Aid.Xlsx.Extensions
             w.WriteEndElement();
         }
 
-        public static void WriteColor(this XmlWriter w, String elName, XLColor xlColor, Boolean isDifferential = false)
+        public static void WriteColor(this XmlWriter w, String elName, XlsxColor xlColor, Boolean isDifferential = false)
         {
             w.WriteStartElement(elName, OpenXmlConst.Main2006SsNs);
             switch (xlColor.ColorType)
             {
-                case XLColorType.Color:
+                case XlsxColorType.Color:
                     w.WriteAttributeString("rgb", xlColor.Color.ToHex());
                     break;
 
-                case XLColorType.Indexed:
+                case XlsxColorType.Indexed:
                     // 64 is 'transparent' and should be ignored for differential formats
                     if (!isDifferential || xlColor.Indexed != 64)
                         w.WriteAttribute("indexed", xlColor.Indexed);
                     break;
 
-                case XLColorType.Theme:
+                case XlsxColorType.Theme:
                     w.WriteAttribute("theme", (int)xlColor.ThemeColor);
 
                     if (xlColor.ThemeTint != 0)

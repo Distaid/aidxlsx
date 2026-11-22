@@ -1,18 +1,19 @@
-using System;
-using System.Collections.Generic;
-using Aid.Xlsx;
-using Aid.Xlsx.Formatting;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Styles;
 using Aid.Xlsx.Tests.Utils;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.Styles
 {
     public class FontTests
     {
-        private readonly XLFontFormatValue _defaultFormat = XLFontFormatValue.Default;
+        private readonly XlsxFontFormatValue _defaultFormat = XlsxFontFormatValue.Default;
 
         [Test]
-        public void XLFontFormatValue_GetHashCode_IsCaseInsensitive()
+        public void XlsxFontFormatValue_GetHashCode_IsCaseInsensitive()
         {
             var fontKey1 = _defaultFormat with { Name = "Arial" };
             var fontKey2 = _defaultFormat with { Name = "Times New Roman" };
@@ -23,7 +24,7 @@ namespace Aid.Xlsx.Tests.Excel.Styles
         }
 
         [Test]
-        public void XLFontFormatValue_Equals_IsCaseInsensitive()
+        public void XlsxFontFormatValue_Equals_IsCaseInsensitive()
         {
             var fontKey1 = _defaultFormat with { Name = "Arial" };
             var fontKey2 = _defaultFormat with { Name = "Times New Roman" };
@@ -35,12 +36,12 @@ namespace Aid.Xlsx.Tests.Excel.Styles
 
         [Test]
         [TestCaseSource(nameof(FontApiSetters))]
-        public void Font_property_can_be_individually_set(FormatTestCase<IXLFont> testCase)
+        public void Font_property_can_be_individually_set(FormatTestCase<IXlsxFont> testCase)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
-            var cellsFormat = ((XLCells)ws.Cells("A1:C4")).Format;
-            var cellFormat = ((XLCell)ws.Cell("B2")).Format;
+            var cellsFormat = ((XlsxCells)ws.Cells("A1:C4")).Format;
+            var cellFormat = ((XlsxCell)ws.Cell("B2")).Format;
 
             foreach (var testValue in testCase.Values)
             {
@@ -52,9 +53,9 @@ namespace Aid.Xlsx.Tests.Excel.Styles
 
         [Test]
         [TestCaseSource(nameof(FontApiSetters))]
-        public void Dxf_font_property_can_be_individually_set(FormatTestCase<IXLFont> testCase)
+        public void Dxf_font_property_can_be_individually_set(FormatTestCase<IXlsxFont> testCase)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var cf = ws.AddConditionalFormat();
 
@@ -70,21 +71,21 @@ namespace Aid.Xlsx.Tests.Excel.Styles
         public void Font_can_be_set_by_assigning_font()
         {
             // Arrange
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Style
                 .Font.SetBold()
                 .Font.SetItalic()
-                .Font.SetUnderline(XLFontUnderlineValues.DoubleAccounting)
+                .Font.SetUnderline(XlsxFontUnderlineValues.DoubleAccounting)
                 .Font.SetStrikethrough()
-                .Font.SetVerticalAlignment(XLFontVerticalTextAlignmentValues.Superscript)
+                .Font.SetVerticalAlignment(XlsxFontVerticalTextAlignmentValues.Superscript)
                 .Font.SetShadow()
                 .Font.SetFontSize(25)
-                .Font.SetFontColor(XLColor.Red)
+                .Font.SetFontColor(XlsxColor.Red)
                 .Font.SetFontName("Arial")
-                .Font.SetFontFamilyNumbering(XLFontFamilyNumberingValues.Decorative)
-                .Font.SetFontCharSet(XLFontCharSet.Hangul)
-                .Font.SetFontScheme(XLFontScheme.Minor);
+                .Font.SetFontFamilyNumbering(XlsxFontFamilyNumberingValues.Decorative)
+                .Font.SetFontCharSet(XlsxFontCharSet.Hangul)
+                .Font.SetFontScheme(XlsxFontScheme.Minor);
 
             // Act
             ws.Cell("A2").Style.Font = ws.Cell("A1").Style.Font;
@@ -93,41 +94,41 @@ namespace Aid.Xlsx.Tests.Excel.Styles
             var copiedFont = ws.Cell("A2").Style.Font;
             Assert.IsTrue(copiedFont.Bold);
             Assert.IsTrue(copiedFont.Italic);
-            Assert.AreEqual(XLFontUnderlineValues.DoubleAccounting, copiedFont.Underline);
+            Assert.AreEqual(XlsxFontUnderlineValues.DoubleAccounting, copiedFont.Underline);
             Assert.IsTrue(copiedFont.Strikethrough);
-            Assert.AreEqual(XLFontVerticalTextAlignmentValues.Superscript, copiedFont.VerticalAlignment);
+            Assert.AreEqual(XlsxFontVerticalTextAlignmentValues.Superscript, copiedFont.VerticalAlignment);
             Assert.IsTrue(copiedFont.Shadow);
             Assert.AreEqual(25, copiedFont.FontSize);
-            Assert.AreEqual(XLColor.Red, copiedFont.FontColor);
+            Assert.AreEqual(XlsxColor.Red, copiedFont.FontColor);
             Assert.AreEqual("Arial", copiedFont.FontName);
-            Assert.AreEqual(XLFontFamilyNumberingValues.Decorative, copiedFont.FontFamilyNumbering);
-            Assert.AreEqual(XLFontCharSet.Hangul, copiedFont.FontCharSet);
-            Assert.AreEqual(XLFontScheme.Minor, copiedFont.FontScheme);
+            Assert.AreEqual(XlsxFontFamilyNumberingValues.Decorative, copiedFont.FontFamilyNumbering);
+            Assert.AreEqual(XlsxFontCharSet.Hangul, copiedFont.FontCharSet);
+            Assert.AreEqual(XlsxFontScheme.Minor, copiedFont.FontScheme);
         }
 
         [Test]
         public void Font_can_be_checked_for_equality()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var testFont = ws.Cell("A1").Style.Font;
             var equalFont = ws.Cell("A2").Style.Font;
 
             Assert.AreEqual(testFont, equalFont);
-            var makeDifferentFont = new Action<IXLFont>[]
+            var makeDifferentFont = new Action<IXlsxFont>[]
             {
                 x => x.Bold = !x.Bold,
                 x => x.Italic = !x.Italic,
-                x => x.Underline = XLFontUnderlineValues.DoubleAccounting,
+                x => x.Underline = XlsxFontUnderlineValues.DoubleAccounting,
                 x => x.Strikethrough = !x.Strikethrough,
-                x => x.VerticalAlignment = XLFontVerticalTextAlignmentValues.Superscript,
+                x => x.VerticalAlignment = XlsxFontVerticalTextAlignmentValues.Superscript,
                 x => x.Shadow = !x.Shadow,
                 x => x.FontSize = 25,
-                x => x.FontColor = XLColor.Blue,
+                x => x.FontColor = XlsxColor.Blue,
                 x => x.FontName = "Arial",
-                x => x.FontFamilyNumbering = XLFontFamilyNumberingValues.Decorative,
-                x => x.FontCharSet = XLFontCharSet.Arabic,
-                x => x.FontScheme = XLFontScheme.Minor,
+                x => x.FontFamilyNumbering = XlsxFontFamilyNumberingValues.Decorative,
+                x => x.FontCharSet = XlsxFontCharSet.Arabic,
+                x => x.FontScheme = XlsxFontScheme.Minor,
             };
             var cell = ws.Cell("A3");
             foreach (var modify in makeDifferentFont)
@@ -140,51 +141,51 @@ namespace Aid.Xlsx.Tests.Excel.Styles
 
         private static IEnumerable<object> FontApiSetters()
         {
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.Bold, (font, value) => font.Bold = value, true, false);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.Bold, (font, value) => font.SetBold(value), true, false);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.Bold, (font, _) => font.SetBold(), true);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.Bold, (font, value) => font.Bold = value, true, false);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.Bold, (font, value) => font.SetBold(value), true, false);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.Bold, (font, _) => font.SetBold(), true);
 
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.Italic, (font, value) => font.Italic = value, true, false);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.Italic, (font, value) => font.SetItalic(value), true, false);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.Italic, (font, _) => font.SetItalic(), true);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.Italic, (font, value) => font.Italic = value, true, false);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.Italic, (font, value) => font.SetItalic(value), true, false);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.Italic, (font, _) => font.SetItalic(), true);
 
-            var underlineValues = EnumPolyfill.GetValues<XLFontUnderlineValues>();
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.Underline, (font, value) => font.Underline = value, underlineValues);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.Underline, (font, value) => font.SetUnderline(value), underlineValues);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.Underline, (font, _) => font.SetUnderline(), XLFontUnderlineValues.Single);
+            var underlineValues = EnumPolyfill.GetValues<XlsxFontUnderlineValues>();
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.Underline, (font, value) => font.Underline = value, underlineValues);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.Underline, (font, value) => font.SetUnderline(value), underlineValues);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.Underline, (font, _) => font.SetUnderline(), XlsxFontUnderlineValues.Single);
 
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.Strikethrough, (font, value) => font.Strikethrough = value, true, false);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.Strikethrough, (font, value) => font.SetStrikethrough(value), true, false);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.Strikethrough, (font, _) => font.SetStrikethrough(), true);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.Strikethrough, (font, value) => font.Strikethrough = value, true, false);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.Strikethrough, (font, value) => font.SetStrikethrough(value), true, false);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.Strikethrough, (font, _) => font.SetStrikethrough(), true);
 
-            var valignValues = EnumPolyfill.GetValues<XLFontVerticalTextAlignmentValues>();
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.VerticalAlignment, (font, value) => font.VerticalAlignment = value, valignValues);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.VerticalAlignment, (font, value) => font.SetVerticalAlignment(value), valignValues);
+            var valignValues = EnumPolyfill.GetValues<XlsxFontVerticalTextAlignmentValues>();
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.VerticalAlignment, (font, value) => font.VerticalAlignment = value, valignValues);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.VerticalAlignment, (font, value) => font.SetVerticalAlignment(value), valignValues);
 
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.Shadow, (font, value) => font.Shadow = value, true, false);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.Shadow, (font, value) => font.SetShadow(value), true, false);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.Shadow, (font, _) => font.SetShadow(), true);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.Shadow, (font, value) => font.Shadow = value, true, false);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.Shadow, (font, value) => font.SetShadow(value), true, false);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.Shadow, (font, _) => font.SetShadow(), true);
 
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.FontSize, (font, value) => font.FontSize = value, 1, 15, 409.55);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.FontSize, (font, value) => font.SetFontSize(value), 1, 15, 409.55);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.FontSize, (font, value) => font.FontSize = value, 1, 15, 409.55);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.FontSize, (font, value) => font.SetFontSize(value), 1, 15, 409.55);
 
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.FontColor, (font, value) => font.FontColor = value, XLColor.Black, XLColor.Red, XLColor.Automatic);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.FontColor, (font, value) => font.SetFontColor(value), XLColor.Black, XLColor.Red, XLColor.Automatic);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.FontColor, (font, value) => font.FontColor = value, XlsxColor.Black, XlsxColor.Red, XlsxColor.Automatic);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.FontColor, (font, value) => font.SetFontColor(value), XlsxColor.Black, XlsxColor.Red, XlsxColor.Automatic);
 
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.FontName, (font, value) => font.FontName = value, "Calibri", "Arial", "Consolas");
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.FontName, (font, value) => font.SetFontName(value), "Calibri", "Arial", "Consolas");
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.FontName, (font, value) => font.FontName = value, "Calibri", "Arial", "Consolas");
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.FontName, (font, value) => font.SetFontName(value), "Calibri", "Arial", "Consolas");
 
-            var familyValues = EnumPolyfill.GetValues<XLFontFamilyNumberingValues>();
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.FontFamilyNumbering, (font, value) => font.FontFamilyNumbering = value, familyValues);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.FontFamilyNumbering, (font, value) => font.SetFontFamilyNumbering(value), familyValues);
+            var familyValues = EnumPolyfill.GetValues<XlsxFontFamilyNumberingValues>();
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.FontFamilyNumbering, (font, value) => font.FontFamilyNumbering = value, familyValues);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.FontFamilyNumbering, (font, value) => font.SetFontFamilyNumbering(value), familyValues);
 
-            var charsetValues = EnumPolyfill.GetValues<XLFontCharSet>();
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.FontCharSet, (font, value) => font.FontCharSet = value, charsetValues);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.FontCharSet, (font, value) => font.SetFontCharSet(value), charsetValues);
+            var charsetValues = EnumPolyfill.GetValues<XlsxFontCharSet>();
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.FontCharSet, (font, value) => font.FontCharSet = value, charsetValues);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.FontCharSet, (font, value) => font.SetFontCharSet(value), charsetValues);
 
-            var schemeValues = EnumPolyfill.GetValues<XLFontScheme>();
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.FontScheme, (font, value) => font.FontScheme = value, schemeValues);
-            yield return FormatTestCase<IXLFont>.ForFont(font => font.FontScheme, (font, value) => font.SetFontScheme(value), schemeValues);
+            var schemeValues = EnumPolyfill.GetValues<XlsxFontScheme>();
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.FontScheme, (font, value) => font.FontScheme = value, schemeValues);
+            yield return FormatTestCase<IXlsxFont>.ForFont(font => font.FontScheme, (font, value) => font.SetFontScheme(value), schemeValues);
         }
     }
 }

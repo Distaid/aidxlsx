@@ -1,4 +1,3 @@
-using System;
 using Color = System.Drawing.Color;
 
 namespace Aid.Xlsx.Utils

@@ -1,18 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Opc;
+using Aid.Xlsx.PivotTables;
 using Aid.Xlsx.Utils;
-using DocumentFormat.OpenXml;
+using Aid.Xlsx.Workbooks;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml;
 
 namespace Aid.Xlsx.Internal.IO
 {
     internal class PivotTableCacheDefinitionPartReader
     {
-        internal static XLPivotCache Load(WorkbookPart workbookPart, PivotTableCacheDefinitionPart pivotTableCacheDefinitionPart, XLWorkbook workbook)
+        internal static XlsxPivotCache Load(WorkbookPart workbookPart, PivotTableCacheDefinitionPart pivotTableCacheDefinitionPart, XlsxWorkbook workbook)
         {
             var cacheDefinition = pivotTableCacheDefinitionPart.PivotCacheDefinition;
             if (cacheDefinition.CacheSource is not { } cacheSource)
@@ -31,9 +31,9 @@ namespace Aid.Xlsx.Internal.IO
             {
                 pivotCache.ItemsToRetainPerField = missingItemsLimit switch
                 {
-                    0 => XLItemsToRetain.None,
-                    XLHelper.MaxRowNumber => XLItemsToRetain.Max,
-                    _ => XLItemsToRetain.Automatic,
+                    0 => XlsxItemsToRetain.None,
+                    XlsxHelper.MaxRowNumber => XlsxItemsToRetain.Max,
+                    _ => XlsxItemsToRetain.Automatic,
                 };
             }
 
@@ -46,7 +46,7 @@ namespace Aid.Xlsx.Internal.IO
             return pivotCache;
         }
 
-        internal static IXLPivotSource ParsePivotSourceReference(CacheSource cacheSource)
+        internal static IXlsxPivotSource ParsePivotSourceReference(CacheSource cacheSource)
         {
             // Cache source has several types. Each has a specific required format. Do not use different
             // combinations, Excel will crash or at least try to repair
@@ -75,9 +75,9 @@ namespace Aid.Xlsx.Internal.IO
                 if (sheetSource.Name?.Value is { } tableOrName)
                 {
                     if (sheetSource.Id?.Value is { } externalWorkbookRelId)
-                        return new XLPivotSourceExternalWorkbook(externalWorkbookRelId, tableOrName);
+                        return new XlsxPivotSourceExternalWorkbook(externalWorkbookRelId, tableOrName);
 
-                    return new XLPivotSourceReference(tableOrName);
+                    return new XlsxPivotSourceReference(tableOrName);
                 }
 
                 if (sheetSource.Sheet?.Value is { } sheetName &&
@@ -86,10 +86,10 @@ namespace Aid.Xlsx.Internal.IO
                 {
                     var area = new SheetArea(sheetName, sheetArea);
                     if (sheetSource.Id?.Value is { } externalWorkbookRelId)
-                        return new XLPivotSourceExternalWorkbook(externalWorkbookRelId, area);
+                        return new XlsxPivotSourceExternalWorkbook(externalWorkbookRelId, area);
 
                     // area is in this workbook
-                    return new XLPivotSourceReference(area);
+                    return new XlsxPivotSourceReference(area);
                 }
 
                 throw PartStructureException.IncorrectElementFormat("worksheetSource");
@@ -100,7 +100,7 @@ namespace Aid.Xlsx.Internal.IO
                 if (cacheSource.ConnectionId?.Value is not { } connectionId)
                     throw PartStructureException.MissingAttribute("connectionId");
 
-                return new XLPivotSourceConnection(connectionId);
+                return new XlsxPivotSourceConnection(connectionId);
             }
 
             if (sourceType.Equals(SourceValues.Consolidation))
@@ -109,7 +109,7 @@ namespace Aid.Xlsx.Internal.IO
                     throw PartStructureException.ExpectedElementNotFound("consolidation");
 
                 var autoPage = consolidation.AutoPage?.Value ?? true;
-                var xlPages = new List<XLPivotCacheSourceConsolidationPage>();
+                var xlPages = new List<XlsxPivotCacheSourceConsolidationPage>();
                 if (consolidation.Pages is { } pages)
                 {
                     // There is 1..4 pages
@@ -122,21 +122,21 @@ namespace Aid.Xlsx.Internal.IO
                             xlPageItems.Add(pageItemName);
                         }
 
-                        xlPages.Add(new XLPivotCacheSourceConsolidationPage(xlPageItems));
+                        xlPages.Add(new XlsxPivotCacheSourceConsolidationPage(xlPageItems));
                     }
                 }
 
                 if (consolidation.RangeSets is not { } rangeSets)
                     throw PartStructureException.RequiredElementIsMissing("rangeSets");
 
-                var xlRangeSets = new List<XLPivotCacheSourceConsolidationRangeSet>();
+                var xlRangeSets = new List<XlsxPivotCacheSourceConsolidationRangeSet>();
                 foreach (var rangeSet in rangeSets.Cast<RangeSet>())
                     xlRangeSets.Add(GetRangeSet(rangeSet, xlPages));
 
                 if (xlRangeSets.Count < 1)
                     throw PartStructureException.IncorrectElementsCount();
 
-                return new XLPivotSourceConsolidation
+                return new XlsxPivotSourceConsolidation
                 {
                     AutoPage = autoPage,
                     Pages = xlPages,
@@ -146,12 +146,12 @@ namespace Aid.Xlsx.Internal.IO
 
             if (sourceType.Equals(SourceValues.Scenario))
             {
-                return new XLPivotSourceScenario();
+                return new XlsxPivotSourceScenario();
             }
 
             throw PartStructureException.InvalidAttributeValue(sourceType.Value);
 
-            static XLPivotCacheSourceConsolidationRangeSet GetRangeSet(RangeSet rangeSet, List<XLPivotCacheSourceConsolidationPage> xlPages)
+            static XlsxPivotCacheSourceConsolidationRangeSet GetRangeSet(RangeSet rangeSet, List<XlsxPivotCacheSourceConsolidationPage> xlPages)
             {
                 var pageIndexes = new[]
                 {
@@ -182,7 +182,7 @@ namespace Aid.Xlsx.Internal.IO
 
                 if (rangeSet.Name?.Value is { } tableOrName)
                 {
-                    return new XLPivotCacheSourceConsolidationRangeSet
+                    return new XlsxPivotCacheSourceConsolidationRangeSet
                     {
                         Indexes = pageIndexes,
                         RelId = rangeSet.Id?.Value,
@@ -194,7 +194,7 @@ namespace Aid.Xlsx.Internal.IO
                     rangeSet.Reference?.Value is { } reference &&
                     Area.TryParse(reference.AsSpan(), out var area))
                 {
-                    return new XLPivotCacheSourceConsolidationRangeSet
+                    return new XlsxPivotCacheSourceConsolidationRangeSet
                     {
                         Indexes = pageIndexes,
                         RelId = rangeSet.Id?.Value,
@@ -206,7 +206,7 @@ namespace Aid.Xlsx.Internal.IO
             }
         }
 
-        private static void ReadCacheFields(CacheFields cacheFields, XLPivotCache pivotCache)
+        private static void ReadCacheFields(CacheFields cacheFields, XlsxPivotCache pivotCache)
         {
             foreach (var cacheField in cacheFields.Elements<CacheField>())
             {
@@ -222,14 +222,14 @@ namespace Aid.Xlsx.Internal.IO
                 var fieldStats = ReadCacheFieldStats(cacheField);
                 var fieldSharedItems = cacheField.SharedItems is not null
                     ? ReadSharedItems(cacheField)
-                    : new XLPivotCacheSharedItems();
+                    : new XlsxPivotCacheSharedItems();
 
-                var fieldValues = new XLPivotCacheValues(fieldSharedItems, fieldStats);
+                var fieldValues = new XlsxPivotCacheValues(fieldSharedItems, fieldStats);
                 pivotCache.AddCachedField(fieldName, fieldValues);
             }
         }
 
-        private static XLPivotCacheValuesStats ReadCacheFieldStats(CacheField cacheField)
+        private static XlsxPivotCacheValuesStats ReadCacheFieldStats(CacheField cacheField)
         {
             var sharedItems = cacheField.SharedItems;
 
@@ -246,7 +246,7 @@ namespace Aid.Xlsx.Internal.IO
             var longText = OpenXmlHelper.GetBooleanValueAsBool(sharedItems?.LongText, false);
 
             // The containsMixedTypes, containsNonDate and containsSemiMixedTypes are derived from primary stats.
-            return new XLPivotCacheValuesStats(
+            return new XlsxPivotCacheValuesStats(
                 containsBlank,
                 containsNumber,
                 containsOnlyInteger,
@@ -259,9 +259,9 @@ namespace Aid.Xlsx.Internal.IO
                 maxDate);
         }
 
-        private static XLPivotCacheSharedItems ReadSharedItems(CacheField cacheField)
+        private static XlsxPivotCacheSharedItems ReadSharedItems(CacheField cacheField)
         {
-            var sharedItems = new XLPivotCacheSharedItems();
+            var sharedItems = new XlsxPivotCacheSharedItems();
 
             // If there are no shared items, the cache record can't contain field items
             // referencing the shared items.
@@ -297,7 +297,7 @@ namespace Aid.Xlsx.Internal.IO
                         if (errorItem.Val?.Value is not { } errorText)
                             throw PartStructureException.MissingAttribute();
 
-                        if (!XLErrorParser.TryParseError(errorText, out var error))
+                        if (!XlsxErrorParser.TryParseError(errorText, out var error))
                             throw PartStructureException.InvalidAttributeFormat();
 
                         sharedItems.AddError(error);

@@ -1,9 +1,6 @@
 #nullable disable
 
-using System;
 using System.Drawing;
-using System.IO;
-using System.Linq;
 using System.Text;
 using Aid.Xlsx.Drawings;
 using Aid.Xlsx.Utils;
@@ -56,7 +53,7 @@ namespace Aid.Xlsx.Graphics
             }
         }
 
-        protected override XLPictureInfo ReadInfo(Stream stream)
+        protected override XlsxPictureInfo ReadInfo(Stream stream)
         {
             stream.Position += 2;
             double xDpi = 0, yDpi = 0;
@@ -83,7 +80,7 @@ namespace Aid.Xlsx.Graphics
                     var width = stream.ReadU16BE();
 
                     // End here, before we get to SOS segment that doesn't contain explicit segment length
-                    return new XLPictureInfo(XLPictureFormat.Jpeg, new Size(width, height), Size.Empty, xDpi, yDpi);
+                    return new XlsxPictureInfo(XlsxPictureFormat.Jpeg, new Size(width, height), Size.Empty, xDpi, yDpi);
                 }
 
                 stream.Position = segmentStart + length;

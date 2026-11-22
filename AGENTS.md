@@ -67,8 +67,8 @@ the only nested convenience folder is `Internal/IO`.
   and must have a reflection-free path. Do not introduce `dynamic`, `Expression.Compile`,
   `Activator.CreateInstance(Type)`, `Array.CreateInstance(Type, ...)`,
   `Enum.GetValues(Type)` or `Type.GetType(string)` on common paths.
-- **Public API is frozen until the rename phase.** Keep the current public type and member
-  names; do not rename public surface for cosmetic reasons, and do not add aliases.
+- **Public API:** Keep the `Xlsx*`/`IXlsx*` names and use the namespace for the owning
+  domain. Keep future public API changes intentional and do not add legacy aliases.
 - **Fonts:** metrics of `Calibri` always come from the embedded metric-compatible font,
   so column widths are identical on every OS. Do not loosen metric assertions to make a
   platform pass; if a font is genuinely missing on a platform, gate the test explicitly

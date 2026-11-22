@@ -1,4 +1,10 @@
-using Aid.Xlsx;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Styles;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.Misc
@@ -6,79 +12,79 @@ namespace Aid.Xlsx.Tests.Excel.Misc
     [TestFixture]
     public class StylesTests
     {
-        private static void SetupBorders(IXLRange range)
+        private static void SetupBorders(IXlsxRange range)
         {
-            range.FirstRow().Cell(1).Style.Border.TopBorder = XLBorderStyleValues.None;
-            range.FirstRow().Cell(2).Style.Border.TopBorder = XLBorderStyleValues.Thick;
-            range.FirstRow().Cell(3).Style.Border.TopBorder = XLBorderStyleValues.Double;
+            range.FirstRow().Cell(1).Style.Border.TopBorder = XlsxBorderStyleValues.None;
+            range.FirstRow().Cell(2).Style.Border.TopBorder = XlsxBorderStyleValues.Thick;
+            range.FirstRow().Cell(3).Style.Border.TopBorder = XlsxBorderStyleValues.Double;
 
-            range.LastRow().Cell(1).Style.Border.BottomBorder = XLBorderStyleValues.None;
-            range.LastRow().Cell(2).Style.Border.BottomBorder = XLBorderStyleValues.Thick;
-            range.LastRow().Cell(3).Style.Border.BottomBorder = XLBorderStyleValues.Double;
+            range.LastRow().Cell(1).Style.Border.BottomBorder = XlsxBorderStyleValues.None;
+            range.LastRow().Cell(2).Style.Border.BottomBorder = XlsxBorderStyleValues.Thick;
+            range.LastRow().Cell(3).Style.Border.BottomBorder = XlsxBorderStyleValues.Double;
 
-            range.FirstColumn().Cell(1).Style.Border.LeftBorder = XLBorderStyleValues.None;
-            range.FirstColumn().Cell(2).Style.Border.LeftBorder = XLBorderStyleValues.Thick;
-            range.FirstColumn().Cell(3).Style.Border.LeftBorder = XLBorderStyleValues.Double;
+            range.FirstColumn().Cell(1).Style.Border.LeftBorder = XlsxBorderStyleValues.None;
+            range.FirstColumn().Cell(2).Style.Border.LeftBorder = XlsxBorderStyleValues.Thick;
+            range.FirstColumn().Cell(3).Style.Border.LeftBorder = XlsxBorderStyleValues.Double;
 
-            range.LastColumn().Cell(1).Style.Border.RightBorder = XLBorderStyleValues.None;
-            range.LastColumn().Cell(2).Style.Border.RightBorder = XLBorderStyleValues.Thick;
-            range.LastColumn().Cell(3).Style.Border.RightBorder = XLBorderStyleValues.Double;
+            range.LastColumn().Cell(1).Style.Border.RightBorder = XlsxBorderStyleValues.None;
+            range.LastColumn().Cell(2).Style.Border.RightBorder = XlsxBorderStyleValues.Thick;
+            range.LastColumn().Cell(3).Style.Border.RightBorder = XlsxBorderStyleValues.Double;
         }
 
         [Test]
         public void InsideBorderTest()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.AddWorksheet("Sheet1");
-            IXLRange range = ws.Range("B2:D4");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
+            IXlsxRange range = ws.Range("B2:D4");
 
             SetupBorders(range);
 
-            range.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-            range.Style.Border.InsideBorderColor = XLColor.Red;
+            range.Style.Border.InsideBorder = XlsxBorderStyleValues.Thin;
+            range.Style.Border.InsideBorderColor = XlsxColor.Red;
 
-            IXLCell center = range.Cell(2, 2);
+            IXlsxCell center = range.Cell(2, 2);
 
-            Assert.AreEqual(XLColor.Red, center.Style.Border.TopBorderColor);
-            Assert.AreEqual(XLColor.Red, center.Style.Border.BottomBorderColor);
-            Assert.AreEqual(XLColor.Red, center.Style.Border.LeftBorderColor);
-            Assert.AreEqual(XLColor.Red, center.Style.Border.RightBorderColor);
+            Assert.AreEqual(XlsxColor.Red, center.Style.Border.TopBorderColor);
+            Assert.AreEqual(XlsxColor.Red, center.Style.Border.BottomBorderColor);
+            Assert.AreEqual(XlsxColor.Red, center.Style.Border.LeftBorderColor);
+            Assert.AreEqual(XlsxColor.Red, center.Style.Border.RightBorderColor);
 
-            Assert.AreEqual(XLBorderStyleValues.None, range.FirstRow().Cell(1).Style.Border.TopBorder);
-            Assert.AreEqual(XLBorderStyleValues.Thick, range.FirstRow().Cell(2).Style.Border.TopBorder);
-            Assert.AreEqual(XLBorderStyleValues.Double, range.FirstRow().Cell(3).Style.Border.TopBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.None, range.FirstRow().Cell(1).Style.Border.TopBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.Thick, range.FirstRow().Cell(2).Style.Border.TopBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.Double, range.FirstRow().Cell(3).Style.Border.TopBorder);
 
-            Assert.AreEqual(XLBorderStyleValues.None, range.LastRow().Cell(1).Style.Border.BottomBorder);
-            Assert.AreEqual(XLBorderStyleValues.Thick, range.LastRow().Cell(2).Style.Border.BottomBorder);
-            Assert.AreEqual(XLBorderStyleValues.Double, range.LastRow().Cell(3).Style.Border.BottomBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.None, range.LastRow().Cell(1).Style.Border.BottomBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.Thick, range.LastRow().Cell(2).Style.Border.BottomBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.Double, range.LastRow().Cell(3).Style.Border.BottomBorder);
 
-            Assert.AreEqual(XLBorderStyleValues.None, range.FirstColumn().Cell(1).Style.Border.LeftBorder);
-            Assert.AreEqual(XLBorderStyleValues.Thick, range.FirstColumn().Cell(2).Style.Border.LeftBorder);
-            Assert.AreEqual(XLBorderStyleValues.Double, range.FirstColumn().Cell(3).Style.Border.LeftBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.None, range.FirstColumn().Cell(1).Style.Border.LeftBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.Thick, range.FirstColumn().Cell(2).Style.Border.LeftBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.Double, range.FirstColumn().Cell(3).Style.Border.LeftBorder);
 
-            Assert.AreEqual(XLBorderStyleValues.None, range.LastColumn().Cell(1).Style.Border.RightBorder);
-            Assert.AreEqual(XLBorderStyleValues.Thick, range.LastColumn().Cell(2).Style.Border.RightBorder);
-            Assert.AreEqual(XLBorderStyleValues.Double, range.LastColumn().Cell(3).Style.Border.RightBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.None, range.LastColumn().Cell(1).Style.Border.RightBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.Thick, range.LastColumn().Cell(2).Style.Border.RightBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.Double, range.LastColumn().Cell(3).Style.Border.RightBorder);
         }
 
         [Test]
         public void ResolveThemeColors()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 string color;
-                color = wb.Theme.ResolveThemeColor(XLThemeColor.Accent1).Color.ToHex();
+                color = wb.Theme.ResolveThemeColor(XlsxThemeColor.Accent1).Color.ToHex();
                 Assert.AreEqual("FF4F81BD", color);
 
-                color = wb.Theme.ResolveThemeColor(XLThemeColor.Background1).Color.ToHex();
+                color = wb.Theme.ResolveThemeColor(XlsxThemeColor.Background1).Color.ToHex();
                 Assert.AreEqual("FFFFFFFF", color);
             }
         }
 
         [Theory]
-        public void CanResolveAllThemeColors(XLThemeColor themeColor)
+        public void CanResolveAllThemeColors(XlsxThemeColor themeColor)
         {
-            var theme = new XLWorkbook().Theme;
+            var theme = new XlsxWorkbook().Theme;
             var color = theme.ResolveThemeColor(themeColor);
             Assert.IsNotNull(color);
         }
@@ -86,12 +92,12 @@ namespace Aid.Xlsx.Tests.Excel.Misc
         [Test]
         public void SetStyleViaRowReference()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 ws.Style
                    .Font.SetFontSize(8)
-                   .Font.SetFontColor(XLColor.Green)
+                   .Font.SetFontColor(XlsxColor.Green)
                    .Font.SetBold(true);
 
                 var row = ws.Row(1);
@@ -102,7 +108,7 @@ namespace Aid.Xlsx.Tests.Excel.Misc
                 foreach (var cell in ws.CellsUsed())
                 {
                     Assert.AreEqual(8, ws.Cell("A1").Style.Font.FontSize);
-                    Assert.AreEqual(XLColor.Green, ws.Cell("B1").Style.Font.FontColor);
+                    Assert.AreEqual(XlsxColor.Green, ws.Cell("B1").Style.Font.FontColor);
                     Assert.AreEqual(true, ws.Cell("C1").Style.Font.Bold);
                 }
             }

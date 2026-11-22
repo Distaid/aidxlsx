@@ -1,11 +1,13 @@
 // Keep this file CodeMaid organised and cleaned
-using Aid.Xlsx;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.DefinedNames;
+using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Formulas;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
+using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel
 {
@@ -15,7 +17,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void Formula_must_be_valid()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             Assert.Throws<ParsingException>(() => wb.DefinedNames.Add("Test", "SUM(Sheet7!A4"));
         }
@@ -23,7 +25,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CanEvaluateNamedMultiRange()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws1 = wb.AddWorksheet("Sheet1");
                 ws1.Range("A1:C1").Value = 1;
@@ -32,14 +34,14 @@ namespace Aid.Xlsx.Tests.Excel
 
                 ws1.Cell(2, 1).FormulaA1 = "=SUM(TEST)";
 
-                Assert.AreEqual(12.0, (double)ws1.Cell(2, 1).Value, XLHelper.Epsilon);
+                Assert.AreEqual(12.0, (double)ws1.Cell(2, 1).Value, XlsxHelper.Epsilon);
             }
         }
 
         [Test]
         public void CanGetNamedFromAnother()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.Worksheets.Add("Sheet1");
             ws1.Cell("A1").SetValue(1).AddToNamed("value1");
 
@@ -66,17 +68,17 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CanGetValidNamedRanges()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws1 = wb.Worksheets.Add("Sheet 1");
                 var ws2 = wb.Worksheets.Add("Sheet 2");
                 var ws3 = wb.Worksheets.Add("Sheet'3");
 
-                ws1.Range("A1:D1").AddToNamed("Named range 1", XLScope.Worksheet);
-                ws1.Range("A2:D2").AddToNamed("Named range 2", XLScope.Workbook);
-                ws2.Range("A3:D3").AddToNamed("Named range 3", XLScope.Worksheet);
-                ws2.Range("A4:D4").AddToNamed("Named range 4", XLScope.Workbook);
-                wb.DefinedNames.Add("Named range 5", new XLRanges(wb)
+                ws1.Range("A1:D1").AddToNamed("Named range 1", XlsxScope.Worksheet);
+                ws1.Range("A2:D2").AddToNamed("Named range 2", XlsxScope.Workbook);
+                ws2.Range("A3:D3").AddToNamed("Named range 3", XlsxScope.Worksheet);
+                ws2.Range("A4:D4").AddToNamed("Named range 4", XlsxScope.Workbook);
+                wb.DefinedNames.Add("Named range 5", new XlsxRanges(wb)
                 {
                     ws1.Range("A5:D5"),
                     ws3.Range("A5:D5")
@@ -107,7 +109,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CanRenameNamedRange()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws1 = wb.AddWorksheet("Sheet1");
                 var dn1 = wb.DefinedNames.Add("TEST", "=0.1");
@@ -127,10 +129,10 @@ namespace Aid.Xlsx.Tests.Excel
                 ws1.Cell(3, 1).FormulaA1 = "TEST2";
                 ws1.Cell(4, 1).FormulaA1 = "TEST2*3";
 
-                Assert.AreEqual(0.1, (double)ws1.Cell(1, 1).Value, XLHelper.Epsilon);
-                Assert.AreEqual(1.0, (double)ws1.Cell(2, 1).Value, XLHelper.Epsilon);
-                Assert.AreEqual(0.2, (double)ws1.Cell(3, 1).Value, XLHelper.Epsilon);
-                Assert.AreEqual(0.6, (double)ws1.Cell(4, 1).Value, XLHelper.Epsilon);
+                Assert.AreEqual(0.1, (double)ws1.Cell(1, 1).Value, XlsxHelper.Epsilon);
+                Assert.AreEqual(1.0, (double)ws1.Cell(2, 1).Value, XlsxHelper.Epsilon);
+                Assert.AreEqual(0.2, (double)ws1.Cell(3, 1).Value, XlsxHelper.Epsilon);
+                Assert.AreEqual(0.6, (double)ws1.Cell(4, 1).Value, XlsxHelper.Epsilon);
             }
         }
 
@@ -139,7 +141,7 @@ namespace Aid.Xlsx.Tests.Excel
         {
             using (var ms = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var sheet1 = wb.Worksheets.Add("Sheet1");
                     var sheet2 = wb.Worksheets.Add("Sheet2");
@@ -153,7 +155,7 @@ namespace Aid.Xlsx.Tests.Excel
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var sheet1 = wb.Worksheet("Sheet1");
                     var sheet2 = wb.Worksheet("Sheet2");
@@ -179,10 +181,10 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CopyNamedRangeDifferentWorksheets()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws1 = wb.Worksheets.Add("Sheet1");
             var ws2 = wb.Worksheets.Add("Sheet2");
-            var ranges = new XLRanges(wb);
+            var ranges = new XlsxRanges(wb);
             ranges.Add(ws1.Range("B2:E6"));
             ranges.Add(ws2.Range("D1:E2"));
             var original = ws1.DefinedNames.Add("Named range", ranges);
@@ -195,10 +197,10 @@ namespace Aid.Xlsx.Tests.Excel
             Assert.AreEqual(2, copy.Ranges.Count);
             Assert.AreEqual(original.Name, copy.Name);
             Assert.AreEqual(original.Scope, copy.Scope);
-            Assert.AreEqual("Sheet1!B2:E6", original.Ranges.First().RangeAddress.ToString(XLReferenceStyle.A1, true));
-            Assert.AreEqual("Sheet2!D1:E2", original.Ranges.Last().RangeAddress.ToString(XLReferenceStyle.A1, true));
-            Assert.AreEqual("Sheet2!D1:E2", copy.Ranges.First().RangeAddress.ToString(XLReferenceStyle.A1, true));
-            Assert.AreEqual("Sheet2!B2:E6", copy.Ranges.Last().RangeAddress.ToString(XLReferenceStyle.A1, true));
+            Assert.AreEqual("Sheet1!B2:E6", original.Ranges.First().RangeAddress.ToString(XlsxReferenceStyle.A1, true));
+            Assert.AreEqual("Sheet2!D1:E2", original.Ranges.Last().RangeAddress.ToString(XlsxReferenceStyle.A1, true));
+            Assert.AreEqual("Sheet2!D1:E2", copy.Ranges.First().RangeAddress.ToString(XlsxReferenceStyle.A1, true));
+            Assert.AreEqual("Sheet2!B2:E6", copy.Ranges.Last().RangeAddress.ToString(XlsxReferenceStyle.A1, true));
         }
 
         [Test]
@@ -207,7 +209,7 @@ namespace Aid.Xlsx.Tests.Excel
             // When sheet-scoped name references a table and there is a table with same area in the
             // copied sheet, the copied defined name changes table reference to a new table. If
             // range differs, table reference is not modified.
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var orgSheet = wb.AddWorksheet();
             orgSheet.Cell("A1").InsertTable(new[] { "Data", "A", "B" }, "OrgTable", true);
             orgSheet.Cell("C1").InsertTable(new[] { "Data", "A", "B" }, "MiscTable", true);
@@ -226,7 +228,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void Copy_workbook_scoped_defined()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Sheet");
             var name = wb.DefinedNames.Add("Name", "Sheet!$A$1");
 
@@ -238,9 +240,9 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void Copy_defined_name_to_same_sheet()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.Worksheets.Add("Sheet1");
-            ws1.Range("B2:E6").AddToNamed("Named range", XLScope.Worksheet);
+            ws1.Range("B2:E6").AddToNamed("Named range", XlsxScope.Worksheet);
             var dn = ws1.DefinedName("Named range");
 
             TestDelegate action = () => dn.CopyTo(ws1);
@@ -251,7 +253,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void DeleteColumnUsedInNamedRange()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().SetValue("Column1");
@@ -270,7 +272,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void Formula_is_updated_on_sheet_rename()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Old name");
             var bookScopedName = wb.DefinedNames.Add("TEST", "ABS('Old name'!$B$5)");
             var sheetScopedName = ws.DefinedNames.Add("TEST1", "'Old name'!$D$7:$F$14");
@@ -287,10 +289,10 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void MovingRanges()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
 
-            IXLWorksheet sheet1 = wb.Worksheets.Add("Sheet1");
-            IXLWorksheet sheet2 = wb.Worksheets.Add("Sheet2");
+            IXlsxWorksheet sheet1 = wb.Worksheets.Add("Sheet1");
+            IXlsxWorksheet sheet2 = wb.Worksheets.Add("Sheet2");
 
             wb.DefinedNames.Add("wbNamedRange",
                 "Sheet1!$B$2,Sheet1!$B$3:$C$3,Sheet2!$D$3:$D$4,Sheet1!$6:$7,Sheet1!$F:$G");
@@ -309,18 +311,18 @@ namespace Aid.Xlsx.Tests.Excel
                 sheet1.DefinedNames.First().RefersTo);
             Assert.AreEqual("Sheet1!B2,Sheet2!A1", sheet2.DefinedNames.First().RefersTo);
 
-            wb.DefinedNames.ForEach(dn => Assert.AreEqual(XLNamedRangeScope.Workbook, dn.Scope));
-            sheet1.DefinedNames.ForEach(dn => Assert.AreEqual(XLNamedRangeScope.Worksheet, dn.Scope));
-            sheet2.DefinedNames.ForEach(dn => Assert.AreEqual(XLNamedRangeScope.Worksheet, dn.Scope));
+            wb.DefinedNames.ForEach(dn => Assert.AreEqual(XlsxNamedRangeScope.Workbook, dn.Scope));
+            sheet1.DefinedNames.ForEach(dn => Assert.AreEqual(XlsxNamedRangeScope.Worksheet, dn.Scope));
+            sheet2.DefinedNames.ForEach(dn => Assert.AreEqual(XlsxNamedRangeScope.Worksheet, dn.Scope));
         }
 
         [Test]
         public void NamedRangeBecomesInvalidOnWorksheetDeleting()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws1 = wb.Worksheets.Add("Sheet 1");
             var ws2 = wb.Worksheets.Add("Sheet 2");
-            ws1.Range("A1:B2").AddToNamed("Simple", XLScope.Workbook);
+            ws1.Range("A1:B2").AddToNamed("Simple", XlsxScope.Workbook);
             wb.Ranges("'Sheet 1'!C1:D2,'Sheet 2'!A10:D15").AddToNamed("Compound");
 
             ws1.Delete();
@@ -334,7 +336,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void NamedRangeBecomesInvalidOnRangeDeleting()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.Worksheets.Add("Sheet 1");
             ws.Range("A1:B2").AddToNamed("Simple");
             ws.Ranges("C1:D2,A10:D15").AddToNamed("Compound");
@@ -352,7 +354,7 @@ namespace Aid.Xlsx.Tests.Excel
         {
             using (var ms = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var ws1 = wb.AddWorksheet("Sheet1");
                     wb.DefinedNames.Add("TEST", "=0.1");
@@ -363,22 +365,22 @@ namespace Aid.Xlsx.Tests.Excel
                     ws1.Cell(3, 1).FormulaA1 = "TEST2";
                     ws1.Cell(4, 1).FormulaA1 = "TEST2*3";
 
-                    Assert.AreEqual(0.1, (double)ws1.Cell(1, 1).Value, XLHelper.Epsilon);
-                    Assert.AreEqual(1.0, (double)ws1.Cell(2, 1).Value, XLHelper.Epsilon);
-                    Assert.AreEqual(0.2, (double)ws1.Cell(3, 1).Value, XLHelper.Epsilon);
-                    Assert.AreEqual(0.6, (double)ws1.Cell(4, 1).Value, XLHelper.Epsilon);
+                    Assert.AreEqual(0.1, (double)ws1.Cell(1, 1).Value, XlsxHelper.Epsilon);
+                    Assert.AreEqual(1.0, (double)ws1.Cell(2, 1).Value, XlsxHelper.Epsilon);
+                    Assert.AreEqual(0.2, (double)ws1.Cell(3, 1).Value, XlsxHelper.Epsilon);
+                    Assert.AreEqual(0.6, (double)ws1.Cell(4, 1).Value, XlsxHelper.Epsilon);
 
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var ws1 = wb.Worksheets.First();
 
-                    Assert.AreEqual(0.1, (double)ws1.Cell(1, 1).Value, XLHelper.Epsilon);
-                    Assert.AreEqual(1.0, (double)ws1.Cell(2, 1).Value, XLHelper.Epsilon);
-                    Assert.AreEqual(0.2, (double)ws1.Cell(3, 1).Value, XLHelper.Epsilon);
-                    Assert.AreEqual(0.6, (double)ws1.Cell(4, 1).Value, XLHelper.Epsilon);
+                    Assert.AreEqual(0.1, (double)ws1.Cell(1, 1).Value, XlsxHelper.Epsilon);
+                    Assert.AreEqual(1.0, (double)ws1.Cell(2, 1).Value, XlsxHelper.Epsilon);
+                    Assert.AreEqual(0.2, (double)ws1.Cell(3, 1).Value, XlsxHelper.Epsilon);
+                    Assert.AreEqual(0.6, (double)ws1.Cell(4, 1).Value, XlsxHelper.Epsilon);
                 }
             }
         }
@@ -388,11 +390,11 @@ namespace Aid.Xlsx.Tests.Excel
         {
             using (var ms = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var ws = wb.Worksheets.Add("Sheet 1");
 
-                    wb.DefinedNames.Add("Multirange named range", new XLRanges(wb)
+                    wb.DefinedNames.Add("Multirange named range", new XlsxRanges(wb)
                     {
                         ws.Range("A5:D5"),
                         ws.Range("A15:D15")
@@ -401,14 +403,14 @@ namespace Aid.Xlsx.Tests.Excel
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     Assert.AreEqual(1, wb.DefinedNames.Count());
-                    var nr = (XLDefinedName)wb.DefinedNames.Single();
+                    var nr = (XlsxDefinedName)wb.DefinedNames.Single();
                     Assert.AreEqual("'Sheet 1'!$A$5:$D$5,'Sheet 1'!$A$15:$D$15", nr.RefersTo);
                     Assert.AreEqual(2, nr.Ranges.Count);
-                    Assert.AreEqual("'Sheet 1'!A5:D5", nr.Ranges.First().RangeAddress.ToString(XLReferenceStyle.A1, true));
-                    Assert.AreEqual("'Sheet 1'!A15:D15", nr.Ranges.Last().RangeAddress.ToString(XLReferenceStyle.A1, true));
+                    Assert.AreEqual("'Sheet 1'!A5:D5", nr.Ranges.First().RangeAddress.ToString(XlsxReferenceStyle.A1, true));
+                    Assert.AreEqual("'Sheet 1'!A15:D15", nr.Ranges.Last().RangeAddress.ToString(XlsxReferenceStyle.A1, true));
                     Assert.AreEqual(2, nr.SheetReferencesList.Count);
                     Assert.AreEqual("'Sheet 1'!$A$5:$D$5", nr.SheetReferencesList.First());
                     Assert.AreEqual("'Sheet 1'!$A$15:$D$15", nr.SheetReferencesList.Last());
@@ -419,17 +421,17 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void Defined_names_referencing_sheet_range_become_invalid_when_sheet_is_deleted()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws1 = wb.Worksheets.Add("Sheet 1");
                 var ws2 = wb.Worksheets.Add("Sheet 2");
                 var ws3 = wb.Worksheets.Add("Sheet'3");
 
-                ws1.Range("A1:D1").AddToNamed("Named range 1", XLScope.Worksheet);
-                ws1.Range("A2:D2").AddToNamed("Named range 2", XLScope.Workbook);
-                ws2.Range("A3:D3").AddToNamed("Named range 3", XLScope.Worksheet);
-                ws2.Range("A4:D4").AddToNamed("Named range 4", XLScope.Workbook);
-                wb.DefinedNames.Add("Named range 5", new XLRanges(wb)
+                ws1.Range("A1:D1").AddToNamed("Named range 1", XlsxScope.Worksheet);
+                ws1.Range("A2:D2").AddToNamed("Named range 2", XlsxScope.Workbook);
+                ws2.Range("A3:D3").AddToNamed("Named range 3", XlsxScope.Worksheet);
+                ws2.Range("A4:D4").AddToNamed("Named range 4", XlsxScope.Workbook);
+                wb.DefinedNames.Add("Named range 5", new XlsxRanges(wb)
                 {
                     ws1.Range("A5:D5"),
                     ws3.Range("A5:D5")
@@ -440,27 +442,27 @@ namespace Aid.Xlsx.Tests.Excel
 
                 Assert.AreEqual(1, ws1.DefinedNames.Count());
                 Assert.AreEqual("Named range 1", ws1.DefinedNames.First().Name);
-                Assert.AreEqual(XLNamedRangeScope.Worksheet, ws1.DefinedNames.First().Scope);
+                Assert.AreEqual(XlsxNamedRangeScope.Worksheet, ws1.DefinedNames.First().Scope);
                 Assert.AreEqual("'Sheet 1'!$A$1:$D$1", ws1.DefinedNames.First().RefersTo);
-                Assert.AreEqual("'Sheet 1'!A1:D1", ws1.DefinedNames.First().Ranges.Single().RangeAddress.ToString(XLReferenceStyle.A1, true));
+                Assert.AreEqual("'Sheet 1'!A1:D1", ws1.DefinedNames.First().Ranges.Single().RangeAddress.ToString(XlsxReferenceStyle.A1, true));
 
                 Assert.AreEqual(3, wb.DefinedNames.Count());
 
                 Assert.AreEqual("Named range 2", wb.DefinedNames.ElementAt(0).Name);
-                Assert.AreEqual(XLNamedRangeScope.Workbook, wb.DefinedNames.ElementAt(0).Scope);
+                Assert.AreEqual(XlsxNamedRangeScope.Workbook, wb.DefinedNames.ElementAt(0).Scope);
                 Assert.AreEqual("'Sheet 1'!$A$2:$D$2", wb.DefinedNames.ElementAt(0).RefersTo);
-                Assert.AreEqual("'Sheet 1'!A2:D2", wb.DefinedNames.ElementAt(0).Ranges.Single().RangeAddress.ToString(XLReferenceStyle.A1, true));
+                Assert.AreEqual("'Sheet 1'!A2:D2", wb.DefinedNames.ElementAt(0).Ranges.Single().RangeAddress.ToString(XlsxReferenceStyle.A1, true));
 
                 Assert.AreEqual("Named range 4", wb.DefinedNames.ElementAt(1).Name);
-                Assert.AreEqual(XLNamedRangeScope.Workbook, wb.DefinedNames.ElementAt(1).Scope);
+                Assert.AreEqual(XlsxNamedRangeScope.Workbook, wb.DefinedNames.ElementAt(1).Scope);
                 Assert.AreEqual("#REF!", wb.DefinedNames.ElementAt(1).RefersTo);
                 Assert.IsFalse(wb.DefinedNames.ElementAt(1).Ranges.Any());
 
                 Assert.AreEqual("Named range 5", wb.DefinedNames.ElementAt(2).Name);
-                Assert.AreEqual(XLNamedRangeScope.Workbook, wb.DefinedNames.ElementAt(2).Scope);
+                Assert.AreEqual(XlsxNamedRangeScope.Workbook, wb.DefinedNames.ElementAt(2).Scope);
                 Assert.AreEqual("'Sheet 1'!$A$5:$D$5,#REF!", wb.DefinedNames.ElementAt(2).RefersTo);
                 Assert.AreEqual(1, wb.DefinedNames.ElementAt(2).Ranges.Count);
-                Assert.AreEqual("'Sheet 1'!A5:D5", wb.DefinedNames.ElementAt(2).Ranges.Single().RangeAddress.ToString(XLReferenceStyle.A1, true));
+                Assert.AreEqual("'Sheet 1'!A5:D5", wb.DefinedNames.ElementAt(2).Ranges.Single().RangeAddress.ToString(XlsxReferenceStyle.A1, true));
             }
         }
 
@@ -473,16 +475,16 @@ namespace Aid.Xlsx.Tests.Excel
 
             using (var ms = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     wb.Worksheets.Add("Sheet 1");
                     var ws2 = wb.Worksheets.Add("Sheet 2");
-                    ws2.Range("A4:D4").AddToNamed("Test named range", XLScope.Workbook);
+                    ws2.Range("A4:D4").AddToNamed("Test named range", XlsxScope.Workbook);
                     ws2.Delete();
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     Assert.AreEqual("#REF!", wb.DefinedNames.Single().RefersTo);
                 }
@@ -492,7 +494,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void Only_worksheet_scoped_defined_names_are_copied_when_sheet_is_copied()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws1 = wb.AddWorksheet("Sheet1");
                 ws1.FirstCell().InsertData(Enumerable.Range(1, 10));
@@ -530,17 +532,17 @@ namespace Aid.Xlsx.Tests.Excel
         {
             using (var ms = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var ws1 = wb.Worksheets.Add("Sheet 1");
                     var ws2 = wb.Worksheets.Add("Sheet2");
                     var ws3 = wb.Worksheets.Add("Sheet'3");
 
-                    ws1.Range("A1:D1").AddToNamed("Named range 1", XLScope.Worksheet);
-                    ws1.Range("A2:D2").AddToNamed("Named range 2", XLScope.Workbook);
-                    ws2.Range("A3:D3").AddToNamed("Named range 3", XLScope.Worksheet);
-                    ws2.Range("A4:D4").AddToNamed("Named range 4", XLScope.Workbook);
-                    wb.DefinedNames.Add("Named range 5", new XLRanges(wb)
+                    ws1.Range("A1:D1").AddToNamed("Named range 1", XlsxScope.Worksheet);
+                    ws1.Range("A2:D2").AddToNamed("Named range 2", XlsxScope.Workbook);
+                    ws2.Range("A3:D3").AddToNamed("Named range 3", XlsxScope.Worksheet);
+                    ws2.Range("A4:D4").AddToNamed("Named range 4", XlsxScope.Workbook);
+                    wb.DefinedNames.Add("Named range 5", new XlsxRanges(wb)
                     {
                         ws1.Range("A5:D5"),
                         ws3.Range("A5:D5")
@@ -549,42 +551,42 @@ namespace Aid.Xlsx.Tests.Excel
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     wb.Worksheet("Sheet2").Delete();
                     wb.Worksheet("Sheet'3").Delete();
                     wb.Save();
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var ws1 = wb.Worksheet("Sheet 1");
                     Assert.AreEqual(1, ws1.DefinedNames.Count());
                     Assert.AreEqual("Named range 1", ws1.DefinedNames.First().Name);
-                    Assert.AreEqual(XLNamedRangeScope.Worksheet, ws1.DefinedNames.First().Scope);
+                    Assert.AreEqual(XlsxNamedRangeScope.Worksheet, ws1.DefinedNames.First().Scope);
                     Assert.AreEqual("'Sheet 1'!$A$1:$D$1", ws1.DefinedNames.First().RefersTo);
                     Assert.AreEqual("'Sheet 1'!A1:D1",
-                        ws1.DefinedNames.First().Ranges.Single().RangeAddress.ToString(XLReferenceStyle.A1, true));
+                        ws1.DefinedNames.First().Ranges.Single().RangeAddress.ToString(XlsxReferenceStyle.A1, true));
 
                     Assert.AreEqual(3, wb.DefinedNames.Count());
 
                     Assert.AreEqual("Named range 2", wb.DefinedNames.ElementAt(0).Name);
-                    Assert.AreEqual(XLNamedRangeScope.Workbook, wb.DefinedNames.ElementAt(0).Scope);
+                    Assert.AreEqual(XlsxNamedRangeScope.Workbook, wb.DefinedNames.ElementAt(0).Scope);
                     Assert.AreEqual("'Sheet 1'!$A$2:$D$2", wb.DefinedNames.ElementAt(0).RefersTo);
                     Assert.AreEqual("'Sheet 1'!A2:D2",
-                        wb.DefinedNames.ElementAt(0).Ranges.Single().RangeAddress.ToString(XLReferenceStyle.A1, true));
+                        wb.DefinedNames.ElementAt(0).Ranges.Single().RangeAddress.ToString(XlsxReferenceStyle.A1, true));
 
                     Assert.AreEqual("Named range 4", wb.DefinedNames.ElementAt(1).Name);
-                    Assert.AreEqual(XLNamedRangeScope.Workbook, wb.DefinedNames.ElementAt(1).Scope);
+                    Assert.AreEqual(XlsxNamedRangeScope.Workbook, wb.DefinedNames.ElementAt(1).Scope);
                     Assert.AreEqual("#REF!", wb.DefinedNames.ElementAt(1).RefersTo);
                     Assert.IsFalse(wb.DefinedNames.ElementAt(1).Ranges.Any());
 
                     Assert.AreEqual("Named range 5", wb.DefinedNames.ElementAt(2).Name);
-                    Assert.AreEqual(XLNamedRangeScope.Workbook, wb.DefinedNames.ElementAt(2).Scope);
+                    Assert.AreEqual(XlsxNamedRangeScope.Workbook, wb.DefinedNames.ElementAt(2).Scope);
                     Assert.AreEqual("'Sheet 1'!$A$5:$D$5,#REF!", wb.DefinedNames.ElementAt(2).RefersTo);
                     Assert.AreEqual(1, wb.DefinedNames.ElementAt(2).Ranges.Count);
                     Assert.AreEqual("'Sheet 1'!A5:D5",
-                        wb.DefinedNames.ElementAt(2).Ranges.Single().RangeAddress.ToString(XLReferenceStyle.A1, true));
+                        wb.DefinedNames.ElementAt(2).Ranges.Single().RangeAddress.ToString(XlsxReferenceStyle.A1, true));
                 }
             }
         }
@@ -592,7 +594,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void TestInvalidNamedRangeOnWorkbookScope()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().SetValue("Column1");
@@ -606,9 +608,9 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void WbContainsWsNamedRange()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Sheet1");
-            ws.FirstCell().AddToNamed("Name", XLScope.Worksheet);
+            ws.FirstCell().AddToNamed("Name", XlsxScope.Worksheet);
 
             Assert.IsTrue(wb.DefinedNames.Contains("Sheet1!Name"));
             Assert.IsFalse(wb.DefinedNames.Contains("Sheet1!NameX"));
@@ -619,7 +621,7 @@ namespace Aid.Xlsx.Tests.Excel
             Boolean found1 = wb.DefinedNames.TryGetValue("Sheet1!Name", out var definedName1);
             Assert.IsTrue(found1);
             Assert.IsNotNull(definedName1);
-            Assert.AreEqual(XLNamedRangeScope.Worksheet, definedName1.Scope);
+            Assert.AreEqual(XlsxNamedRangeScope.Worksheet, definedName1.Scope);
 
             Boolean found2 = wb.DefinedNames.TryGetValue("Sheet1!NameX", out var definedName2);
             Assert.IsFalse(found2);
@@ -629,7 +631,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void WorkbookContainsNamedRange()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Sheet1");
             ws.FirstCell().AddToNamed("Name");
 
@@ -651,9 +653,9 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void WorksheetContainsNamedRange()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Sheet1");
-            ws.FirstCell().AddToNamed("Name", XLScope.Worksheet);
+            ws.FirstCell().AddToNamed("Name", XlsxScope.Worksheet);
 
             Assert.IsTrue(ws.DefinedNames.Contains("Name"));
             Assert.IsFalse(ws.DefinedNames.Contains("NameX"));
@@ -673,7 +675,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void NamedRangeWithSameNameAsAFunction()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
 
             var a1 = ws.FirstCell();
@@ -688,7 +690,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void RefersTo_throws_on_null()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var name = wb.DefinedNames.Add("name", "1+2");
             Assert.Throws<ArgumentNullException>(() => name.RefersTo = null!);
         }
@@ -699,7 +701,7 @@ namespace Aid.Xlsx.Tests.Excel
         public void RefersTo_cant_be_empty(string formula)
         {
             // Excel will try to repair a workbook that contains a defined name with a formula that is an empty string.
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var name = wb.DefinedNames.Add("demo", "1+2");
             const string message = "Formula can't be empty.";
 

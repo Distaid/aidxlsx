@@ -1,4 +1,7 @@
 using System.Xml.Linq;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Styles;
 
 namespace Aid.Xlsx.Internal.IO;
 
@@ -6,7 +9,7 @@ internal static class ThemeXml
 {
     private static readonly XNamespace Drawing = "http://schemas.openxmlformats.org/drawingml/2006/main";
 
-    internal static void Read(Stream stream, IXLTheme theme)
+    internal static void Read(Stream stream, IXlsxTheme theme)
     {
         var scheme = GetScheme(XDocumentExtensions.Load(stream));
         if (scheme is null)
@@ -26,7 +29,7 @@ internal static class ThemeXml
         theme.FollowedHyperlink = ReadColor(scheme, "folHlink") ?? theme.FollowedHyperlink;
     }
 
-    internal static void WriteDefault(Stream stream, IXLTheme theme)
+    internal static void WriteDefault(Stream stream, IXlsxTheme theme)
     {
         using var template = typeof(ThemeXml).Assembly.GetManifestResourceStream("Aid.Xlsx.DefaultTheme.xml")
             ?? throw new InvalidOperationException("The default workbook theme is missing.");
@@ -47,7 +50,7 @@ internal static class ThemeXml
         SetColor("folHlink", theme.FollowedHyperlink);
         xml.Save(stream, System.Xml.Linq.SaveOptions.DisableFormatting);
 
-        void SetColor(string name, XLColor color, string element = "srgbClr", string attribute = "val")
+        void SetColor(string name, XlsxColor color, string element = "srgbClr", string attribute = "val")
         {
             scheme.Element(Drawing + name)!.Element(Drawing + element)!
                 .SetAttributeValue(attribute, color.Color.ToHex()[2..]);
@@ -57,11 +60,11 @@ internal static class ThemeXml
     private static XElement? GetScheme(XDocument? xml) =>
         xml?.Root?.Element(Drawing + "themeElements")?.Element(Drawing + "clrScheme");
 
-    private static XLColor? ReadColor(XElement scheme, string name)
+    private static XlsxColor? ReadColor(XElement scheme, string name)
     {
         var slot = scheme.Element(Drawing + name);
         var rgb = (string?)slot?.Element(Drawing + "srgbClr")?.Attribute("val")
             ?? (string?)slot?.Element(Drawing + "sysClr")?.Attribute("lastClr");
-        return string.IsNullOrEmpty(rgb) ? null : XLColor.FromHexRgb(rgb);
+        return string.IsNullOrEmpty(rgb) ? null : XlsxColor.FromHexRgb(rgb);
     }
 }

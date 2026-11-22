@@ -1,14 +1,10 @@
-using Aid.Xlsx;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.IO.Packaging;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Xml.Linq;
-using LoadOptions = Aid.Xlsx.LoadOptions;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
+using NUnit.Framework;
+using LoadOptions = Aid.Xlsx.Workbooks.LoadOptions;
 using Path = System.IO.Path;
 
 namespace Aid.Xlsx.Tests
@@ -36,7 +32,7 @@ namespace Aid.Xlsx.Tests
 
         private static readonly ResourceFileExtractor _extractor = new(Assembly.GetExecutingAssembly(), ".Resource.");
 
-        public static void SaveWorkbook(XLWorkbook workbook, params string[] fileNameParts)
+        public static void SaveWorkbook(XlsxWorkbook workbook, params string[] fileNameParts)
         {
             workbook.SaveAs(Path.Combine(new string[] { TestsOutputDirectory }.Concat(fileNameParts).ToArray()), true);
         }
@@ -63,17 +59,17 @@ namespace Aid.Xlsx.Tests
         /// <param name="referenceResource">Reference workbook saved in resources</param>
         /// <param name="evaluateFormulae">Should formulas of created workbook be evaluated and values saved?</param>
         /// <param name="validate">Should the created workbook be validated during by OpenXmlSdk validator?</param>
-        public static void CreateAndCompare(Action<XLWorkbook> workbookGenerator, string referenceResource, bool evaluateFormulae = false, bool validate = true)
+        public static void CreateAndCompare(Action<XlsxWorkbook> workbookGenerator, string referenceResource, bool evaluateFormulae = false, bool validate = true)
         {
             CreateAndCompare(() =>
             {
-                var wb = new XLWorkbook();
+                var wb = new XlsxWorkbook();
                 workbookGenerator(wb);
                 return wb;
             }, referenceResource, evaluateFormulae, validate);
         }
 
-        public static void CreateAndCompare(Func<IXLWorkbook> workbookGenerator, string referenceResource, bool evaluateFormulae = false, bool validate = true)
+        public static void CreateAndCompare(Func<IXlsxWorkbook> workbookGenerator, string referenceResource, bool evaluateFormulae = false, bool validate = true)
         {
             Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
 
@@ -114,13 +110,13 @@ namespace Aid.Xlsx.Tests
         /// and compare the saved file against the <paramref name="expectedOutputResourcePath"/>.
         /// </summary>
         /// <remarks>Useful for checking whether we can load data from Excel and save it while keeping various feature in the OpenXML intact.</remarks>
-        public static void LoadModifyAndCompare(string loadResourcePath, Action<XLWorkbook> modify, string expectedOutputResourcePath, bool evaluateFormulae = false, bool validate = true)
+        public static void LoadModifyAndCompare(string loadResourcePath, Action<XlsxWorkbook> modify, string expectedOutputResourcePath, bool evaluateFormulae = false, bool validate = true)
         {
             using var stream = GetStreamFromResource(GetResourcePath(loadResourcePath));
             using var ms = new MemoryStream();
             CreateAndCompare(() =>
             {
-                var wb = new XLWorkbook(stream);
+                var wb = new XlsxWorkbook(stream);
                 modify(wb);
                 return wb;
             }, expectedOutputResourcePath, evaluateFormulae, validate);
@@ -139,10 +135,10 @@ namespace Aid.Xlsx.Tests
         /// <summary>
         /// A testing method to load a workbook from resource and assert the state of the loaded workbook.
         /// </summary>
-        public static void LoadAndAssert(Action<XLWorkbook> assertWorkbook, string loadResourcePath, LoadOptions options = null)
+        public static void LoadAndAssert(Action<XlsxWorkbook> assertWorkbook, string loadResourcePath, LoadOptions options = null)
         {
             using var stream = GetStreamFromResource(GetResourcePath(loadResourcePath));
-            using var wb = new XLWorkbook(stream, options ?? new LoadOptions());
+            using var wb = new XlsxWorkbook(stream, options ?? new LoadOptions());
 
             assertWorkbook(wb);
         }
@@ -151,7 +147,7 @@ namespace Aid.Xlsx.Tests
         /// A testing method to load a workbook with a single worksheet from resource and assert
         /// the state of the loaded workbook.
         /// </summary>
-        public static void LoadAndAssert(Action<XLWorkbook, IXLWorksheet> assertWorksheet, string loadResourcePath, LoadOptions options = null)
+        public static void LoadAndAssert(Action<XlsxWorkbook, IXlsxWorksheet> assertWorksheet, string loadResourcePath, LoadOptions options = null)
         {
             LoadAndAssert(wb =>
             {
@@ -172,10 +168,10 @@ namespace Aid.Xlsx.Tests
 
         public static void LoadFile(string filePartName)
         {
-            IXLWorkbook wb;
+            IXlsxWorkbook wb;
             using (var stream = GetStreamFromResource(GetResourcePath(filePartName)))
             {
-                Assert.DoesNotThrow(() => wb = new XLWorkbook(stream), "Unable to load resource {0}", filePartName);
+                Assert.DoesNotThrow(() => wb = new XlsxWorkbook(stream), "Unable to load resource {0}", filePartName);
             }
         }
 
@@ -198,7 +194,7 @@ namespace Aid.Xlsx.Tests
         /// was loaded correctly (i.e. properties are what was set in <paramref name="createWorksheet"/>).
         /// </param>
         /// <param name="referenceResource">Saved reference file.</param>
-        public static void CreateSaveLoadAssert(Action<XLWorkbook, IXLWorksheet> createWorksheet, Action<XLWorkbook, IXLWorksheet> assertLoadedWorkbook, string referenceResource)
+        public static void CreateSaveLoadAssert(Action<XlsxWorkbook, IXlsxWorksheet> createWorksheet, Action<XlsxWorkbook, IXlsxWorksheet> assertLoadedWorkbook, string referenceResource)
         {
             CreateAndCompare(wb =>
             {
@@ -216,17 +212,17 @@ namespace Aid.Xlsx.Tests
         /// <param name="assertLoadedWorkbook">Method to assert that workbook was loaded correctly.</param>
         /// <param name="validate">Validate created workbook that it is a valid OOXML file by OpenXML SDK.</param>
         /// <param name="evaluateFormulas">Evaluate formulas during saving and save the evaluated results to the workbook file.</param>
-        public static void CreateSaveLoadAssert(Action<XLWorkbook, IXLWorksheet> createWorksheet, Action<XLWorkbook, IXLWorksheet> assertLoadedWorkbook, bool validate = true, bool evaluateFormulas = false)
+        public static void CreateSaveLoadAssert(Action<XlsxWorkbook, IXlsxWorksheet> createWorksheet, Action<XlsxWorkbook, IXlsxWorksheet> assertLoadedWorkbook, bool validate = true, bool evaluateFormulas = false)
         {
             using var ms = new MemoryStream();
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet();
                 createWorksheet(wb, ws);
                 wb.SaveAs(ms, validate, evaluateFormulas);
             }
 
-            using (var wb = new XLWorkbook(ms))
+            using (var wb = new XlsxWorkbook(ms))
             {
                 var ws = wb.Worksheets.Single();
                 assertLoadedWorkbook(wb, ws);
@@ -236,17 +232,17 @@ namespace Aid.Xlsx.Tests
         /// <summary>
         /// Test if some aspect of a workbook can survive through save and load cycle.
         /// </summary>
-        public static void CreateSaveLoadAssert(Action<XLWorkbook> createWorksheet, Action<XLWorkbook> assertLoadedWorkbook, bool validate = true, bool evaluateFormulas = false)
+        public static void CreateSaveLoadAssert(Action<XlsxWorkbook> createWorksheet, Action<XlsxWorkbook> assertLoadedWorkbook, bool validate = true, bool evaluateFormulas = false)
         {
             using var ms = new MemoryStream();
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 createWorksheet(wb);
                 wb.SaveAs(ms, validate, evaluateFormulas);
             }
 
             ms.Position = 0;
-            using (var wb = new XLWorkbook(ms))
+            using (var wb = new XlsxWorkbook(ms))
             {
                 assertLoadedWorkbook(wb);
             }
@@ -268,7 +264,7 @@ namespace Aid.Xlsx.Tests
             using var ms = new MemoryStream();
             using (var stream = GetStreamFromResource(GetResourcePath(loadResourcePath)))
             {
-                using var wb = new XLWorkbook(stream);
+                using var wb = new XlsxWorkbook(stream);
                 wb.SaveAs(ms);
             }
 

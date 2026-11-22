@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Utils;
 
 namespace Aid.Xlsx.CalcEngine
 {
@@ -9,7 +10,7 @@ namespace Aid.Xlsx.CalcEngine
     internal class FormulaDependencies
     {
         private readonly HashSet<SheetArea> _areas = new();
-        private readonly HashSet<XLName> _names = new();
+        private readonly HashSet<XlsxName> _names = new();
 
         /// <summary>
         /// List of areas the formula depends on. It is likely a superset of accurate
@@ -24,14 +25,14 @@ namespace Aid.Xlsx.CalcEngine
         /// different references (e.g. a name previously referred to <c>A5</c> and is redefined
         /// to <c>B7</c> or just value <c>7</c> =&gt; formula no longer depends on <c>A5</c>).
         /// </summary>
-        public IReadOnlyCollection<XLName> Names => _names;
+        public IReadOnlyCollection<XlsxName> Names => _names;
 
         internal void AddAreas(List<SheetArea> sheetAreas)
         {
             _areas.UnionWith(sheetAreas);
         }
 
-        internal void AddName(XLName name)
+        internal void AddName(XlsxName name)
         {
             _names.Add(name);
         }
@@ -42,7 +43,7 @@ namespace Aid.Xlsx.CalcEngine
             List<(SheetArea Original, SheetArea Replacement)>? areasToRename = null;
             foreach (var areaInFormula in _areas)
             {
-                if (XLHelper.SheetComparer.Equals(areaInFormula.Name, oldSheetName))
+                if (XlsxHelper.SheetComparer.Equals(areaInFormula.Name, oldSheetName))
                 {
                     var renamedArea = new SheetArea(newSheetName, areaInFormula.Area);
                     areasToRename ??= new List<(SheetArea Original, SheetArea Replacement)>();
@@ -59,14 +60,14 @@ namespace Aid.Xlsx.CalcEngine
                 }
             }
 
-            List<(XLName Original, XLName Replacement)>? namesToRename = null;
+            List<(XlsxName Original, XlsxName Replacement)>? namesToRename = null;
             foreach (var nameInFormula in _names)
             {
                 if (nameInFormula.SheetName is not null &&
-                    XLHelper.SheetComparer.Equals(nameInFormula.SheetName, oldSheetName))
+                    XlsxHelper.SheetComparer.Equals(nameInFormula.SheetName, oldSheetName))
                 {
-                    var renamedName = new XLName(newSheetName, nameInFormula.Name);
-                    namesToRename ??= new List<(XLName Original, XLName Replacement)>();
+                    var renamedName = new XlsxName(newSheetName, nameInFormula.Name);
+                    namesToRename ??= new List<(XlsxName Original, XlsxName Replacement)>();
                     namesToRename.Add((nameInFormula, renamedName));
                 }
             }

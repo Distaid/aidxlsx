@@ -1,8 +1,6 @@
-using System;
-using Aid.Xlsx.CalcEngine.Functions;
 using static Aid.Xlsx.CalcEngine.Functions.SignatureAdapter;
 
-namespace Aid.Xlsx.CalcEngine
+namespace Aid.Xlsx.CalcEngine.Functions
 {
     internal static class Logical
     {
@@ -22,7 +20,7 @@ namespace Aid.Xlsx.CalcEngine
             var aggResult = args.Aggregate(
                 ctx,
                 true,
-                XLError.IncompatibleValue,
+                XlsxError.IncompatibleValue,
                 static (acc, val) => acc && val,
                 static (v, _) =>
                 {
@@ -72,7 +70,7 @@ namespace Aid.Xlsx.CalcEngine
             var aggResult = args.Aggregate(
                 ctx,
                 false,
-                XLError.IncompatibleValue,
+                XlsxError.IncompatibleValue,
                 static (acc, val) => acc || val,
                 static (v, _) =>
                 {

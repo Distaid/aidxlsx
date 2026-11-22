@@ -1,7 +1,7 @@
-using Aid.Xlsx;
+using Aid.Xlsx.PageSetup;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
-using System.IO;
-using System.Linq;
 
 namespace Aid.Xlsx.Tests.Excel
 {
@@ -11,26 +11,26 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CanChangeWorksheetHeader()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
 
-            ws.PageSetup.Header.Center.AddText("Initial page header", XLHFOccurrence.EvenPages);
+            ws.PageSetup.Header.Center.AddText("Initial page header", XlsxHFOccurrence.EvenPages);
 
             var ms = new MemoryStream();
             wb.SaveAs(ms, true);
 
-            wb = new XLWorkbook(ms);
+            wb = new XlsxWorkbook(ms);
             ws = wb.Worksheets.First();
 
             ws.PageSetup.Header.Center.Clear();
-            ws.PageSetup.Header.Center.AddText("Changed header", XLHFOccurrence.EvenPages);
+            ws.PageSetup.Header.Center.AddText("Changed header", XlsxHFOccurrence.EvenPages);
 
             wb.SaveAs(ms, true);
 
-            wb = new XLWorkbook(ms);
+            wb = new XlsxWorkbook(ms);
             ws = wb.Worksheets.First();
 
-            var newHeader = ws.PageSetup.Header.Center.GetText(XLHFOccurrence.EvenPages);
+            var newHeader = ws.PageSetup.Header.Center.GetText(XlsxHFOccurrence.EvenPages);
             Assert.AreEqual("Changed header", newHeader);
         }
 
@@ -38,12 +38,12 @@ namespace Aid.Xlsx.Tests.Excel
         [TestCase("&L&C&\"Arial\"&9 19-10-2017 \n&9&\"Arial\" &P    &N &R")] // upstream issue #563
         public void CanSetHeaderFooter(string s)
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 {
-                    var header = ws.PageSetup.Header as XLHeaderFooter;
-                    header.SetInnerText(XLHFOccurrence.AllPages, s);
+                    var header = ws.PageSetup.Header as XlsxHeaderFooter;
+                    header.SetInnerText(XlsxHFOccurrence.AllPages, s);
                 }
             }
         }

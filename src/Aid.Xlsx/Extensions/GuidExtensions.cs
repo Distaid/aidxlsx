@@ -1,8 +1,6 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-using System;
-
 namespace Aid.Xlsx.Extensions
 {
     internal static class GuidExtensions

@@ -1,7 +1,8 @@
-using System;
+using Aid.Xlsx.AutoFilters;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
-using System.Linq;
-using Aid.Xlsx;
 
 namespace Aid.Xlsx.Tests.Excel.AutoFilters
 {
@@ -36,7 +37,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
             new AutoFilterTester(f => f.Top(1))
                 .AddTrue(new DateTime(1900, 2, 10))
                 .AddFalse(11, 10)
-                .AddFalse("-1000", "Text", Blank.Value, true, false, XLError.IncompatibleValue)
+                .AddFalse("-1000", "Text", Blank.Value, true, false, XlsxError.IncompatibleValue)
                 .AssertVisibility();
         }
 
@@ -46,7 +47,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
             new AutoFilterTester(f => f.Bottom(1))
                 .AddTrue(new DateTime(1900, 1, 1))
                 .AddFalse(2, 3)
-                .AddFalse("-1000", "Text", Blank.Value, true, false, XLError.IncompatibleValue)
+                .AddFalse("-1000", "Text", Blank.Value, true, false, XlsxError.IncompatibleValue)
                 .AssertVisibility();
         }
 
@@ -86,18 +87,18 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
         public void Top_percents_uses_inclusive_percent_value()
         {
             // Autofilter doesn't include value 750, which is at 75%, i.e. right at the border.
-            new AutoFilterTester(f => f.Top(25, XLTopBottomType.Percent))
-                .AddFalse(Enumerable.Range(1, 750).Select<int, XLCellValue>(x => x).ToArray())
-                .AddTrue(Enumerable.Range(751, 250).Select<int, XLCellValue>(x => x).ToArray())
+            new AutoFilterTester(f => f.Top(25, XlsxTopBottomType.Percent))
+                .AddFalse(Enumerable.Range(1, 750).Select<int, XlsxCellValue>(x => x).ToArray())
+                .AddTrue(Enumerable.Range(751, 250).Select<int, XlsxCellValue>(x => x).ToArray())
                 .AssertVisibility();
         }
 
         [Test]
         public void Bottom_percents_uses_inclusive_percent_value()
         {
-            new AutoFilterTester(f => f.Bottom(25, XLTopBottomType.Percent))
-                .AddTrue(Enumerable.Range(1, 250).Select<int, XLCellValue>(x => x).ToArray())
-                .AddFalse(Enumerable.Range(251, 750).Select<int, XLCellValue>(x => x).ToArray())
+            new AutoFilterTester(f => f.Bottom(25, XlsxTopBottomType.Percent))
+                .AddTrue(Enumerable.Range(1, 250).Select<int, XlsxCellValue>(x => x).ToArray())
+                .AddFalse(Enumerable.Range(251, 750).Select<int, XlsxCellValue>(x => x).ToArray())
                 .AssertVisibility();
         }
 
@@ -105,7 +106,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
         public void Top_percents_always_has_at_least_one_item()
         {
             // Top 1% takes one item that is 33% of all items.
-            new AutoFilterTester(f => f.Top(1, XLTopBottomType.Percent))
+            new AutoFilterTester(f => f.Top(1, XlsxTopBottomType.Percent))
                 .AddTrue(3)
                 .AddFalse(2, 1)
                 .AssertVisibility();
@@ -114,7 +115,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
         [Test]
         public void Bottom_percents_always_has_at_least_one_item()
         {
-            new AutoFilterTester(f => f.Bottom(1, XLTopBottomType.Percent))
+            new AutoFilterTester(f => f.Bottom(1, XlsxTopBottomType.Percent))
                 .AddTrue(1)
                 .AddFalse(2, 3)
                 .AssertVisibility();
@@ -126,7 +127,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
         [TestCase(501, false)]
         public void Top_and_bottom_filter_value_must_be_between_1_and_500(int value, bool top)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = "Data";
             ws.Cell("A2").Value = value;

@@ -1,8 +1,9 @@
-using Aid.Xlsx;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Sparklines;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
-using System;
-using System.IO;
-using System.Linq;
 
 namespace Aid.Xlsx.Tests.Excel.Sparklines
 {
@@ -14,29 +15,29 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CannotCreateSparklineGroupsWithoutWorksheet()
         {
-            TestDelegate action = () => new XLSparklineGroups(null);
+            TestDelegate action = () => new XlsxSparklineGroups(null);
             Assert.Throws<ArgumentNullException>(action);
         }
 
         [Test]
         public void CannotCreateSparklineGroupWithoutWorksheet()
         {
-            TestDelegate action = () => new XLSparklineGroup(null);
+            TestDelegate action = () => new XlsxSparklineGroup(null);
             Assert.Throws<ArgumentNullException>(action);
         }
 
         [Test]
         public void CannotCreateSparklineWithoutLocation()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet1");
-            TestDelegate action = () => ws.SparklineGroups.Add((IXLCell)null, ws.Range("A2:A5"));
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet1");
+            TestDelegate action = () => ws.SparklineGroups.Add((IXlsxCell)null, ws.Range("A2:A5"));
             Assert.Throws<ArgumentNullException>(action);
         }
 
         [Test]
         public void CanCreateInvalidSparklineWithoutSourceData()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var sparkline = ws.SparklineGroups.Add(ws.FirstCell(), null);
             Assert.IsNull(sparkline.Single().SourceData);
@@ -45,9 +46,9 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CanAddSparklineGroupForSingleCell()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
-            ws.SparklineGroups.Add(new XLSparklineGroup(ws, "A1", "B1:E1"));
+            ws.SparklineGroups.Add(new XlsxSparklineGroup(ws, "A1", "B1:E1"));
             ws.SparklineGroups.Add("A2", "B2:E2");
             ws.SparklineGroups.Add(ws.Cell("A3"), ws.Range("B3:E3"));
 
@@ -67,7 +68,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CanAddSparklineGroupForVerticalRange()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             ws.SparklineGroups.Add(ws.Range("A1:A3"), ws.Range("B1:E3"));
 
@@ -85,7 +86,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CanAddSparklineGroupForHorizontalRange()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             ws.SparklineGroups.Add(ws.Range("A1:C1"), ws.Range("A2:C4"));
 
@@ -103,7 +104,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CannotAddSparklineForNonLinearRange()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             TestDelegate action = () => ws.SparklineGroups.Add(ws.Range("A1:C2"), ws.Range("A3:C4"));
 
@@ -114,7 +115,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CannotAddSparklineWhenRangesHaveDifferentWidths()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             TestDelegate action = () => ws.SparklineGroups.Add(ws.Range("A1:C1"), ws.Range("A3:D4"));
 
@@ -125,7 +126,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CannotAddSparklineWhenRangesHaveDifferentHeights()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             TestDelegate action = () => ws.SparklineGroups.Add(ws.Range("A1:A3"), ws.Range("B1:B4"));
 
@@ -136,7 +137,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CannotAddSparklineForCellWhenDataRangeIsNotLinear()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             TestDelegate action = () => ws.SparklineGroups.Add(ws.Range("A1:A1"), ws.Range("B1:C4"));
 
@@ -147,9 +148,9 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CanAddSparklineToExistingGroup()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
-            var group = new XLSparklineGroup(ws);
+            var group = new XlsxSparklineGroup(ws);
 
             group.Add("A2", "B2:E2");
             group.Add(ws.Cell("A3"), ws.Range("B3:E3"));
@@ -166,11 +167,11 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CannotAddSparklineGroupFromDifferentWorksheet()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.AddWorksheet("Sheet 1");
             var ws2 = wb.AddWorksheet("Sheet 2");
 
-            var group = new XLSparklineGroup(ws1);
+            var group = new XlsxSparklineGroup(ws1);
 
             TestDelegate action = () => ws2.SparklineGroups.Add(group);
 
@@ -181,11 +182,11 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CannotAddSparklineFromDifferentWorksheet()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.AddWorksheet("Sheet 1");
             var ws2 = wb.AddWorksheet("Sheet 2");
 
-            var group = new XLSparklineGroup(ws1);
+            var group = new XlsxSparklineGroup(ws1);
 
             TestDelegate action = () => group.Add(ws2.Cell("A3"), ws1.Range("B3:E3"));
 
@@ -196,7 +197,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void AddSparklineToSameCellOverwritesItWhenSameGroup()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             var group = ws.SparklineGroups.Add("A1", "B1:E1");
             group.Add("A1", "B2:E2");
@@ -210,7 +211,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void AddSparklineToSameCellOverwritesItWhenDifferentGroup()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             ws.SparklineGroups.Add("A1", "B1:E1");
             ws.SparklineGroups.Add("A1", "B2:E2");
@@ -224,7 +225,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CanAddSparklineReferringToDifferentWorksheet()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.AddWorksheet("Sheet 1");
             var ws3 = wb.AddWorksheet("Sheet 3");
 
@@ -245,7 +246,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [TestCase("Z1", "Z2:Z100")]
         public void CanGetSparklineForExistingCell(string cellAddress, string expectedSourceDataRange)
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             ws.SparklineGroups.Add("A2:A100", "B2:Z100");
             ws.SparklineGroups.Add("B1:Z1", "B2:Z100");
@@ -262,7 +263,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [TestCase("AA1")]
         public void CannotGetSparklineForNonExistingCell(string cellAddress)
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             ws.SparklineGroups.Add("A2:A100", "B2:Z100");
             ws.SparklineGroups.Add("B1:Z1", "B2:Z100");
@@ -274,7 +275,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CanGetSparklinesForRange()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             ws.SparklineGroups.Add("A2:A100", "B2:Z100");
             ws.SparklineGroups.Add("B1:Z1", "B2:Z100");
@@ -304,7 +305,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CanRemoveSparklineFromCell()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             ws.SparklineGroups.Add("A1:A3", "B1:Z3");
             ws.SparklineGroups.Remove(ws.Cell("A2"));
@@ -320,7 +321,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CanRemoveSparklineFromRange()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             ws.SparklineGroups.Add("A1:A5", "B1:Z5");
             ws.SparklineGroups.Remove(ws.Range("A2:D4"));
@@ -336,7 +337,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void RemoveSparklineFromEmptyCellDoesNothing()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             ws.SparklineGroups.Add("A1:A2", "B1:Z2");
             ws.SparklineGroups.Remove(ws.Cell("F2"));
@@ -356,7 +357,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CanChangeSparklineLocationInsideWorksheet()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             ws.SparklineGroups.Add("A1:A2", "B1:Z2");
             ws.SparklineGroups.Single().Last().SetLocation(ws.Cell("F2"));
@@ -375,7 +376,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void ChangeSparklineLocationOverwritesExistingSparklineSameGroup()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             ws.SparklineGroups.Add("A1:A2", "B1:Z2");
             ws.SparklineGroups.Single().Last().SetLocation(ws.Cell("A1"));
@@ -389,7 +390,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void ChangeSparklineLocationOverwritesExistingSparklineDifferentGroups()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             ws.SparklineGroups.Add("A1:A2", "B1:Z2");
             ws.SparklineGroups.Add("A3", "B3:Z3");
@@ -407,7 +408,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CannotChangeSparklineLocationToAnotherWorksheet()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.AddWorksheet("Sheet 1");
             var ws2 = wb.AddWorksheet("Sheet 2");
 
@@ -422,7 +423,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CanChangeSparklineSourceDataInsideWorksheet()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
 
             ws.SparklineGroups.Add("A1:A2", "B1:Z2");
             ws.SparklineGroups.Single().Last().SetSourceData(ws.Range("D4:D50"));
@@ -438,7 +439,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CannotChangeSparklineSourceDataToNonLinearRange()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group = ws.SparklineGroups.Add("A1", "B1:Z1");
             var sparkline = group.Single();
 
@@ -451,37 +452,37 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CanChangeSparklineStyle()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group = ws.SparklineGroups.Add("A1", "B1:Z1");
 
-            group.Style = XLSparklineTheme.Colorful1;
+            group.Style = XlsxSparklineTheme.Colorful1;
 
-            Assert.AreEqual(XLColor.FromHtml("FF5F5F5F"), group.Style.SeriesColor);
-            Assert.AreEqual(XLColor.FromHtml("FFFFB620"), group.Style.NegativeColor);
-            Assert.AreEqual(XLColor.FromHtml("FFD70077"), group.Style.MarkersColor);
-            Assert.AreEqual(XLColor.FromHtml("FF56BE79"), group.Style.HighMarkerColor);
-            Assert.AreEqual(XLColor.FromHtml("FFFF5055"), group.Style.LowMarkerColor);
-            Assert.AreEqual(XLColor.FromHtml("FF5687C2"), group.Style.FirstMarkerColor);
-            Assert.AreEqual(XLColor.FromHtml("FF359CEB"), group.Style.LastMarkerColor);
+            Assert.AreEqual(XlsxColor.FromHtml("FF5F5F5F"), group.Style.SeriesColor);
+            Assert.AreEqual(XlsxColor.FromHtml("FFFFB620"), group.Style.NegativeColor);
+            Assert.AreEqual(XlsxColor.FromHtml("FFD70077"), group.Style.MarkersColor);
+            Assert.AreEqual(XlsxColor.FromHtml("FF56BE79"), group.Style.HighMarkerColor);
+            Assert.AreEqual(XlsxColor.FromHtml("FFFF5055"), group.Style.LowMarkerColor);
+            Assert.AreEqual(XlsxColor.FromHtml("FF5687C2"), group.Style.FirstMarkerColor);
+            Assert.AreEqual(XlsxColor.FromHtml("FF359CEB"), group.Style.LastMarkerColor);
         }
 
         [Test]
         public void ChangeSparklineStyleDoesNotAffectOriginal()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group = ws.SparklineGroups.Add("A1", "B1:Z1");
-            group.Style = XLSparklineTheme.Colorful1;
+            group.Style = XlsxSparklineTheme.Colorful1;
 
-            group.Style.NegativeColor = XLColor.Red;
+            group.Style.NegativeColor = XlsxColor.Red;
 
-            Assert.AreEqual(XLColor.Red, group.Style.NegativeColor);
-            Assert.AreNotEqual(XLColor.Red, XLSparklineTheme.Colorful1.NegativeColor);
+            Assert.AreEqual(XlsxColor.Red, group.Style.NegativeColor);
+            Assert.AreNotEqual(XlsxColor.Red, XlsxSparklineTheme.Colorful1.NegativeColor);
         }
 
         [Test]
         public void CannotSetSparklineStyleToNull()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group = ws.SparklineGroups.Add("A1", "B1:Z1");
 
             TestDelegate action = () => group.Style = null;
@@ -492,7 +493,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void SparklinesShiftOnRowInsert()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group1 = ws.SparklineGroups.Add("B2", "D4:F4");
             var group2 = ws.SparklineGroups.Add("B3", "D4:D8");
             var group3 = ws.SparklineGroups.Add("B4", "E1:E8");
@@ -510,7 +511,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void SparklinesShiftOnRowDelete()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group1 = ws.SparklineGroups.Add("B2", "D7:F7");
             var group2 = ws.SparklineGroups.Add("B6", "D7:D11");
             var group3 = ws.SparklineGroups.Add("B7", "E1:E11");
@@ -528,7 +529,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void SparklinesShiftOnColumnInsert()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group1 = ws.SparklineGroups.Add("B2", "D4:F4");
             var group2 = ws.SparklineGroups.Add("C3", "D4:D8");
             var group3 = ws.SparklineGroups.Add("D4", "A4:E4");
@@ -546,7 +547,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void SparklinesShiftOnColumnDelete()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group1 = ws.SparklineGroups.Add("B2", "G4:I4");
             var group2 = ws.SparklineGroups.Add("F3", "G4:G8");
             var group3 = ws.SparklineGroups.Add("G4", "A4:H4");
@@ -564,7 +565,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void SparklineRemovedWhenColumnDeleted()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group = ws.SparklineGroups.Add("A1:B1", "C2:D6");
 
             ws.Column(2).Delete();
@@ -577,7 +578,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void SparklineRemovedWhenRowDeleted()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group = ws.SparklineGroups.Add("A1:A2", "C3:F4");
 
             ws.Row(2).Delete();
@@ -590,7 +591,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void SparklineRemovedWhenShiftedTooFarRight()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group = ws.SparklineGroups.Add("XFD1", "A1:Z1");
 
             ws.Column(1).InsertColumnsBefore(1);
@@ -601,7 +602,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void SparklineRemovedWhenShiftedTooFarDown()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group = ws.SparklineGroups.Add("A1048576", "A1:Z1");
 
             ws.Row(1).InsertRowsAbove(1);
@@ -612,7 +613,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void SparklineRangeInvalidatedWhenDeleted()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group = ws.SparklineGroups.Add("A1:B1", "C2:D6");
 
             ws.Column(4).Delete();
@@ -633,44 +634,44 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         {
             using (var ms = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var ws = wb.AddWorksheet("Sheet 1");
                     var originalGroup = ws.SparklineGroups.Add("A1:A3", "B1:Z3")
                         .SetDateRange(ws.Range("B4:Z4"))
                         .SetLineWeight(5.5)
                         .SetDisplayHidden(true)
-                        .SetShowMarkers(XLSparklineMarkers.FirstPoint | XLSparklineMarkers.LastPoint |
-                                        XLSparklineMarkers.HighPoint | XLSparklineMarkers.LowPoint |
-                                        XLSparklineMarkers.NegativePoints | XLSparklineMarkers.Markers)
-                        .SetDisplayEmptyCellsAs(XLDisplayBlanksAsValues.Zero)
-                        .SetType(XLSparklineType.Stacked);
+                        .SetShowMarkers(XlsxSparklineMarkers.FirstPoint | XlsxSparklineMarkers.LastPoint |
+                                        XlsxSparklineMarkers.HighPoint | XlsxSparklineMarkers.LowPoint |
+                                        XlsxSparklineMarkers.NegativePoints | XlsxSparklineMarkers.Markers)
+                        .SetDisplayEmptyCellsAs(XlsxDisplayBlanksAsValues.Zero)
+                        .SetType(XlsxSparklineType.Stacked);
 
                     originalGroup.HorizontalAxis
-                        .SetColor(XLColor.AirForceBlue)
+                        .SetColor(XlsxColor.AirForceBlue)
                         .SetVisible(true)
                         .SetRightToLeft(true);
 
                     originalGroup.VerticalAxis
                         .SetManualMax(6.6)
                         .SetManualMin(1.2)
-                        .SetMaxAxisType(XLSparklineAxisMinMax.Custom)
-                        .SetMinAxisType(XLSparklineAxisMinMax.Custom);
+                        .SetMaxAxisType(XlsxSparklineAxisMinMax.Custom)
+                        .SetMinAxisType(XlsxSparklineAxisMinMax.Custom);
 
                     originalGroup.Style
-                        .SetFirstMarkerColor(XLColor.AliceBlue)
-                        .SetHighMarkerColor(XLColor.Alizarin)
-                        .SetLastMarkerColor(XLColor.Almond)
-                        .SetLowMarkerColor(XLColor.Amaranth)
-                        .SetMarkersColor(XLColor.Amber)
-                        .SetNegativeColor(XLColor.AmberSaeEce)
-                        .SetSeriesColor(XLColor.AmericanRose);
+                        .SetFirstMarkerColor(XlsxColor.AliceBlue)
+                        .SetHighMarkerColor(XlsxColor.Alizarin)
+                        .SetLastMarkerColor(XlsxColor.Almond)
+                        .SetLowMarkerColor(XlsxColor.Amaranth)
+                        .SetMarkersColor(XlsxColor.Amber)
+                        .SetNegativeColor(XlsxColor.AmberSaeEce)
+                        .SetSeriesColor(XlsxColor.AmericanRose);
 
                     AssertGroupIsValid(originalGroup);
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var ws = wb.Worksheets.First();
 
@@ -679,7 +680,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
                 }
             }
 
-            void AssertGroupIsValid(IXLSparklineGroup group)
+            void AssertGroupIsValid(IXlsxSparklineGroup group)
             {
                 Assert.AreEqual(3, group.Count());
 
@@ -693,34 +694,34 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
 
                 Assert.AreEqual("B4:Z4", group.DateRange.RangeAddress.ToString());
 
-                Assert.AreEqual(XLColor.AliceBlue, group.Style.FirstMarkerColor);
-                Assert.AreEqual(XLColor.Alizarin, group.Style.HighMarkerColor);
-                Assert.AreEqual(XLColor.Almond, group.Style.LastMarkerColor);
-                Assert.AreEqual(XLColor.Amaranth, group.Style.LowMarkerColor);
-                Assert.AreEqual(XLColor.Amber, group.Style.MarkersColor);
-                Assert.AreEqual(XLColor.AmberSaeEce, group.Style.NegativeColor);
-                Assert.AreEqual(XLColor.AmericanRose, group.Style.SeriesColor);
+                Assert.AreEqual(XlsxColor.AliceBlue, group.Style.FirstMarkerColor);
+                Assert.AreEqual(XlsxColor.Alizarin, group.Style.HighMarkerColor);
+                Assert.AreEqual(XlsxColor.Almond, group.Style.LastMarkerColor);
+                Assert.AreEqual(XlsxColor.Amaranth, group.Style.LowMarkerColor);
+                Assert.AreEqual(XlsxColor.Amber, group.Style.MarkersColor);
+                Assert.AreEqual(XlsxColor.AmberSaeEce, group.Style.NegativeColor);
+                Assert.AreEqual(XlsxColor.AmericanRose, group.Style.SeriesColor);
                 Assert.IsTrue(group.DisplayHidden);
-                Assert.AreEqual(5.5, group.LineWeight, XLHelper.Epsilon);
-                Assert.AreEqual(XLDisplayBlanksAsValues.Zero, group.DisplayEmptyCellsAs);
-                Assert.AreEqual(XLSparklineType.Stacked, group.Type);
+                Assert.AreEqual(5.5, group.LineWeight, XlsxHelper.Epsilon);
+                Assert.AreEqual(XlsxDisplayBlanksAsValues.Zero, group.DisplayEmptyCellsAs);
+                Assert.AreEqual(XlsxSparklineType.Stacked, group.Type);
 
-                Assert.IsTrue(group.ShowMarkers.HasFlag(XLSparklineMarkers.FirstPoint));
-                Assert.IsTrue(group.ShowMarkers.HasFlag(XLSparklineMarkers.LastPoint));
-                Assert.IsTrue(group.ShowMarkers.HasFlag(XLSparklineMarkers.HighPoint));
-                Assert.IsTrue(group.ShowMarkers.HasFlag(XLSparklineMarkers.LowPoint));
-                Assert.IsTrue(group.ShowMarkers.HasFlag(XLSparklineMarkers.NegativePoints));
-                Assert.IsTrue(group.ShowMarkers.HasFlag(XLSparklineMarkers.Markers));
+                Assert.IsTrue(group.ShowMarkers.HasFlag(XlsxSparklineMarkers.FirstPoint));
+                Assert.IsTrue(group.ShowMarkers.HasFlag(XlsxSparklineMarkers.LastPoint));
+                Assert.IsTrue(group.ShowMarkers.HasFlag(XlsxSparklineMarkers.HighPoint));
+                Assert.IsTrue(group.ShowMarkers.HasFlag(XlsxSparklineMarkers.LowPoint));
+                Assert.IsTrue(group.ShowMarkers.HasFlag(XlsxSparklineMarkers.NegativePoints));
+                Assert.IsTrue(group.ShowMarkers.HasFlag(XlsxSparklineMarkers.Markers));
 
-                Assert.AreEqual(XLColor.AirForceBlue, group.HorizontalAxis.Color);
+                Assert.AreEqual(XlsxColor.AirForceBlue, group.HorizontalAxis.Color);
                 Assert.IsTrue(group.HorizontalAxis.IsVisible);
                 Assert.IsTrue(group.HorizontalAxis.RightToLeft);
                 Assert.IsTrue(group.HorizontalAxis.DateAxis);
 
-                Assert.AreEqual(6.6, group.VerticalAxis.ManualMax.Value, XLHelper.Epsilon);
-                Assert.AreEqual(1.2, group.VerticalAxis.ManualMin.Value, XLHelper.Epsilon);
-                Assert.AreEqual(XLSparklineAxisMinMax.Custom, group.VerticalAxis.MaxAxisType);
-                Assert.AreEqual(XLSparklineAxisMinMax.Custom, group.VerticalAxis.MinAxisType);
+                Assert.AreEqual(6.6, group.VerticalAxis.ManualMax.Value, XlsxHelper.Epsilon);
+                Assert.AreEqual(1.2, group.VerticalAxis.ManualMin.Value, XlsxHelper.Epsilon);
+                Assert.AreEqual(XlsxSparklineAxisMinMax.Custom, group.VerticalAxis.MaxAxisType);
+                Assert.AreEqual(XlsxSparklineAxisMinMax.Custom, group.VerticalAxis.MinAxisType);
             }
         }
 
@@ -735,46 +736,46 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
                 @"Other\Sparklines\SparklineThemes\inputfile.xlsx");
         }
 
-        [TestCase("Accent!B1", nameof(XLSparklineTheme.Accent1))]
-        [TestCase("Accent!B2", nameof(XLSparklineTheme.Accent2))]
-        [TestCase("Accent!B3", nameof(XLSparklineTheme.Accent3))]
-        [TestCase("Accent!B4", nameof(XLSparklineTheme.Accent4))]
-        [TestCase("Accent!B5", nameof(XLSparklineTheme.Accent5))]
-        [TestCase("Accent!B6", nameof(XLSparklineTheme.Accent6))]
-        [TestCase("'Accent Darker 25%'!B1", nameof(XLSparklineTheme.Accent1Darker25))]
-        [TestCase("'Accent Darker 25%'!B2", nameof(XLSparklineTheme.Accent2Darker25))]
-        [TestCase("'Accent Darker 25%'!B3", nameof(XLSparklineTheme.Accent3Darker25))]
-        [TestCase("'Accent Darker 25%'!B4", nameof(XLSparklineTheme.Accent4Darker25))]
-        [TestCase("'Accent Darker 25%'!B5", nameof(XLSparklineTheme.Accent5Darker25))]
-        [TestCase("'Accent Darker 25%'!B6", nameof(XLSparklineTheme.Accent6Darker25))]
-        [TestCase("'Accent Darker 50%'!B1", nameof(XLSparklineTheme.Accent1Darker50))]
-        [TestCase("'Accent Darker 50%'!B2", nameof(XLSparklineTheme.Accent2Darker50))]
-        [TestCase("'Accent Darker 50%'!B3", nameof(XLSparklineTheme.Accent3Darker50))]
-        [TestCase("'Accent Darker 50%'!B4", nameof(XLSparklineTheme.Accent4Darker50))]
-        [TestCase("'Accent Darker 50%'!B5", nameof(XLSparklineTheme.Accent5Darker50))]
-        [TestCase("'Accent Darker 50%'!B6", nameof(XLSparklineTheme.Accent6Darker50))]
-        [TestCase("'Accent Lighter 40%'!B1", nameof(XLSparklineTheme.Accent1Lighter40))]
-        [TestCase("'Accent Lighter 40%'!B2", nameof(XLSparklineTheme.Accent2Lighter40))]
-        [TestCase("'Accent Lighter 40%'!B3", nameof(XLSparklineTheme.Accent3Lighter40))]
-        [TestCase("'Accent Lighter 40%'!B4", nameof(XLSparklineTheme.Accent4Lighter40))]
-        [TestCase("'Accent Lighter 40%'!B5", nameof(XLSparklineTheme.Accent5Lighter40))]
-        [TestCase("'Accent Lighter 40%'!B6", nameof(XLSparklineTheme.Accent6Lighter40))]
-        [TestCase("Dark!B1", nameof(XLSparklineTheme.Dark1))]
-        [TestCase("Dark!B2", nameof(XLSparklineTheme.Dark2))]
-        [TestCase("Dark!B3", nameof(XLSparklineTheme.Dark3))]
-        [TestCase("Dark!B4", nameof(XLSparklineTheme.Dark4))]
-        [TestCase("Dark!B5", nameof(XLSparklineTheme.Dark5))]
-        [TestCase("Dark!B6", nameof(XLSparklineTheme.Dark6))]
-        [TestCase("Colorful!B1", nameof(XLSparklineTheme.Colorful1))]
-        [TestCase("Colorful!B2", nameof(XLSparklineTheme.Colorful2))]
-        [TestCase("Colorful!B3", nameof(XLSparklineTheme.Colorful3))]
-        [TestCase("Colorful!B4", nameof(XLSparklineTheme.Colorful4))]
-        [TestCase("Colorful!B5", nameof(XLSparklineTheme.Colorful5))]
-        [TestCase("Colorful!B6", nameof(XLSparklineTheme.Colorful6))]
+        [TestCase("Accent!B1", nameof(XlsxSparklineTheme.Accent1))]
+        [TestCase("Accent!B2", nameof(XlsxSparklineTheme.Accent2))]
+        [TestCase("Accent!B3", nameof(XlsxSparklineTheme.Accent3))]
+        [TestCase("Accent!B4", nameof(XlsxSparklineTheme.Accent4))]
+        [TestCase("Accent!B5", nameof(XlsxSparklineTheme.Accent5))]
+        [TestCase("Accent!B6", nameof(XlsxSparklineTheme.Accent6))]
+        [TestCase("'Accent Darker 25%'!B1", nameof(XlsxSparklineTheme.Accent1Darker25))]
+        [TestCase("'Accent Darker 25%'!B2", nameof(XlsxSparklineTheme.Accent2Darker25))]
+        [TestCase("'Accent Darker 25%'!B3", nameof(XlsxSparklineTheme.Accent3Darker25))]
+        [TestCase("'Accent Darker 25%'!B4", nameof(XlsxSparklineTheme.Accent4Darker25))]
+        [TestCase("'Accent Darker 25%'!B5", nameof(XlsxSparklineTheme.Accent5Darker25))]
+        [TestCase("'Accent Darker 25%'!B6", nameof(XlsxSparklineTheme.Accent6Darker25))]
+        [TestCase("'Accent Darker 50%'!B1", nameof(XlsxSparklineTheme.Accent1Darker50))]
+        [TestCase("'Accent Darker 50%'!B2", nameof(XlsxSparklineTheme.Accent2Darker50))]
+        [TestCase("'Accent Darker 50%'!B3", nameof(XlsxSparklineTheme.Accent3Darker50))]
+        [TestCase("'Accent Darker 50%'!B4", nameof(XlsxSparklineTheme.Accent4Darker50))]
+        [TestCase("'Accent Darker 50%'!B5", nameof(XlsxSparklineTheme.Accent5Darker50))]
+        [TestCase("'Accent Darker 50%'!B6", nameof(XlsxSparklineTheme.Accent6Darker50))]
+        [TestCase("'Accent Lighter 40%'!B1", nameof(XlsxSparklineTheme.Accent1Lighter40))]
+        [TestCase("'Accent Lighter 40%'!B2", nameof(XlsxSparklineTheme.Accent2Lighter40))]
+        [TestCase("'Accent Lighter 40%'!B3", nameof(XlsxSparklineTheme.Accent3Lighter40))]
+        [TestCase("'Accent Lighter 40%'!B4", nameof(XlsxSparklineTheme.Accent4Lighter40))]
+        [TestCase("'Accent Lighter 40%'!B5", nameof(XlsxSparklineTheme.Accent5Lighter40))]
+        [TestCase("'Accent Lighter 40%'!B6", nameof(XlsxSparklineTheme.Accent6Lighter40))]
+        [TestCase("Dark!B1", nameof(XlsxSparklineTheme.Dark1))]
+        [TestCase("Dark!B2", nameof(XlsxSparklineTheme.Dark2))]
+        [TestCase("Dark!B3", nameof(XlsxSparklineTheme.Dark3))]
+        [TestCase("Dark!B4", nameof(XlsxSparklineTheme.Dark4))]
+        [TestCase("Dark!B5", nameof(XlsxSparklineTheme.Dark5))]
+        [TestCase("Dark!B6", nameof(XlsxSparklineTheme.Dark6))]
+        [TestCase("Colorful!B1", nameof(XlsxSparklineTheme.Colorful1))]
+        [TestCase("Colorful!B2", nameof(XlsxSparklineTheme.Colorful2))]
+        [TestCase("Colorful!B3", nameof(XlsxSparklineTheme.Colorful3))]
+        [TestCase("Colorful!B4", nameof(XlsxSparklineTheme.Colorful4))]
+        [TestCase("Colorful!B5", nameof(XlsxSparklineTheme.Colorful5))]
+        [TestCase("Colorful!B6", nameof(XlsxSparklineTheme.Colorful6))]
         public void SparklineThemesAreIdenticalToExcel(string cellAddress, string expectedThemeName)
         {
             using (var ms = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Other\Sparklines\SparklineThemes\inputfile.xlsx")))
-            using (var wb = new XLWorkbook(ms))
+            using (var wb = new XlsxWorkbook(ms))
             {
                 var expectedStyle = GetThemeByName(expectedThemeName);
                 var actualStyle = wb.Cell(cellAddress).Sparkline.SparklineGroup.Style;
@@ -782,11 +783,11 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
                 Assert.AreEqual(expectedStyle, actualStyle);
             }
 
-            IXLSparklineStyle GetThemeByName(string themeName)
+            IXlsxSparklineStyle GetThemeByName(string themeName)
             {
-                var themes = typeof(XLSparklineTheme);
+                var themes = typeof(XlsxSparklineTheme);
                 var prop = themes.GetProperty(themeName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-                return prop.GetValue(null, null) as IXLSparklineStyle;
+                return prop.GetValue(null, null) as IXlsxSparklineStyle;
             }
         }
 
@@ -796,7 +797,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
             using (var input = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Other\Sparklines\SparklineThemes\inputfile.xlsx")))
             using (var output = new MemoryStream())
             {
-                using (var wb = new XLWorkbook(input))
+                using (var wb = new XlsxWorkbook(input))
                 {
                     wb.Worksheet(1).SparklineGroups.RemoveAll();
                     wb.Worksheet(2).SparklineGroups.Remove(wb.Worksheet(2).Cell("B1"));
@@ -806,7 +807,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
                     wb.SaveAs(output);
                 }
 
-                using (var wb = new XLWorkbook(output))
+                using (var wb = new XlsxWorkbook(output))
                 {
                     Assert.AreEqual(0, wb.Worksheet(1).SparklineGroups.Count());
                     Assert.AreEqual(5, wb.Worksheet(2).SparklineGroups.Count());
@@ -878,37 +879,37 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void SetManualMinChangesAxisTypeToCustom()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var axis = ws.SparklineGroups.Add("A1:A2", "B1:Z2")
                 .VerticalAxis
-                .SetMinAxisType(XLSparklineAxisMinMax.SameForAll);
+                .SetMinAxisType(XlsxSparklineAxisMinMax.SameForAll);
 
             axis.ManualMin = 100;
 
-            Assert.AreEqual(100, axis.ManualMin.Value, XLHelper.Epsilon);
-            Assert.AreEqual(XLSparklineAxisMinMax.Custom, axis.MinAxisType);
+            Assert.AreEqual(100, axis.ManualMin.Value, XlsxHelper.Epsilon);
+            Assert.AreEqual(XlsxSparklineAxisMinMax.Custom, axis.MinAxisType);
         }
 
         [Test]
         public void SetManualMaxChangesAxisTypeToCustom()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var axis = ws.SparklineGroups.Add("A1:A2", "B1:Z2")
                 .VerticalAxis
-                .SetMaxAxisType(XLSparklineAxisMinMax.SameForAll);
+                .SetMaxAxisType(XlsxSparklineAxisMinMax.SameForAll);
 
             axis.ManualMax = 100;
 
-            Assert.AreEqual(100, axis.ManualMax.Value, XLHelper.Epsilon);
-            Assert.AreEqual(XLSparklineAxisMinMax.Custom, axis.MaxAxisType);
+            Assert.AreEqual(100, axis.ManualMax.Value, XlsxHelper.Epsilon);
+            Assert.AreEqual(XlsxSparklineAxisMinMax.Custom, axis.MaxAxisType);
         }
 
-        [TestCase(XLSparklineAxisMinMax.Custom, 100)]
-        [TestCase(XLSparklineAxisMinMax.SameForAll, null)]
-        [TestCase(XLSparklineAxisMinMax.Automatic, null)]
-        public void SetAxisTypeToNonCustomSetsManualMinToNull(XLSparklineAxisMinMax axisType, double? expectedManualMin)
+        [TestCase(XlsxSparklineAxisMinMax.Custom, 100)]
+        [TestCase(XlsxSparklineAxisMinMax.SameForAll, null)]
+        [TestCase(XlsxSparklineAxisMinMax.Automatic, null)]
+        public void SetAxisTypeToNonCustomSetsManualMinToNull(XlsxSparklineAxisMinMax axisType, double? expectedManualMin)
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var axis = ws.SparklineGroups.Add("A1", "B1:Z1")
                 .VerticalAxis
                 .SetManualMin(100);
@@ -916,17 +917,17 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
             axis.MinAxisType = axisType;
 
             if (expectedManualMin.HasValue)
-                Assert.AreEqual(expectedManualMin.Value, axis.ManualMin.Value, XLHelper.Epsilon);
+                Assert.AreEqual(expectedManualMin.Value, axis.ManualMin.Value, XlsxHelper.Epsilon);
             else
                 Assert.IsNull(axis.ManualMin);
         }
 
-        [TestCase(XLSparklineAxisMinMax.Custom, 100)]
-        [TestCase(XLSparklineAxisMinMax.SameForAll, null)]
-        [TestCase(XLSparklineAxisMinMax.Automatic, null)]
-        public void SetAxisTypeToNonCustomSetsManualMaxToNull(XLSparklineAxisMinMax axisType, double? expectedManualMax)
+        [TestCase(XlsxSparklineAxisMinMax.Custom, 100)]
+        [TestCase(XlsxSparklineAxisMinMax.SameForAll, null)]
+        [TestCase(XlsxSparklineAxisMinMax.Automatic, null)]
+        public void SetAxisTypeToNonCustomSetsManualMaxToNull(XlsxSparklineAxisMinMax axisType, double? expectedManualMax)
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var axis = ws.SparklineGroups.Add("A1", "B1:Z1")
                 .VerticalAxis
                 .SetManualMax(100);
@@ -934,7 +935,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
             axis.MaxAxisType = axisType;
 
             if (expectedManualMax.HasValue)
-                Assert.AreEqual(expectedManualMax.Value, axis.ManualMax.Value, XLHelper.Epsilon);
+                Assert.AreEqual(expectedManualMax.Value, axis.ManualMax.Value, XlsxHelper.Epsilon);
             else
                 Assert.IsNull(axis.ManualMax);
         }
@@ -942,7 +943,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void SetDateRangeChangesAxisType()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group = ws.SparklineGroups.Add("A1:A2", "B1:Z2");
 
             group.DateRange = ws.Range("B3:Z3");
@@ -953,7 +954,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void SetDateRangeToNullChangesAxisType()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group = ws.SparklineGroups.Add("A1:A2", "B1:Z2");
             group.DateRange = ws.Range("B3:Z3");
 
@@ -965,7 +966,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CannotSetNonLinearDateRange()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             var group = ws.SparklineGroups.Add("A1:A2", "B1:Z2");
 
             TestDelegate action = () => group.DateRange = ws.Range("B3:Z4");
@@ -980,7 +981,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CopyCellToSameWorksheetCopiesSparkline()
         {
-            var ws = new XLWorkbook().AddWorksheet("Sheet 1");
+            var ws = new XlsxWorkbook().AddWorksheet("Sheet 1");
             ws.SparklineGroups.Add("A1:A3", "B1:F3");
             var target = ws.Cell("D4");
 
@@ -995,7 +996,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void CopyCellToDifferentWorksheetCopiesSparklineGroup()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.AddWorksheet("Sheet 1");
             var ws2 = wb.AddWorksheet("Sheet 2");
             var ws3 = wb.AddWorksheet("Sheet 3");
@@ -1011,14 +1012,14 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
             Assert.AreEqual(2, ws2.SparklineGroups.Count());
             Assert.IsTrue(target1.HasSparkline);
             Assert.IsTrue(target2.HasSparkline);
-            Assert.AreEqual("'Sheet 2'!E4:I4", target1.Sparkline.SourceData.RangeAddress.ToString(XLReferenceStyle.A1, true));
-            Assert.AreEqual("'Sheet 3'!E5:I5", target2.Sparkline.SourceData.RangeAddress.ToString(XLReferenceStyle.A1, true));
+            Assert.AreEqual("'Sheet 2'!E4:I4", target1.Sparkline.SourceData.RangeAddress.ToString(XlsxReferenceStyle.A1, true));
+            Assert.AreEqual("'Sheet 3'!E5:I5", target2.Sparkline.SourceData.RangeAddress.ToString(XlsxReferenceStyle.A1, true));
         }
 
         [Test]
         public void CopySparklineIfDateRangeOnSameWorksheet()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.AddWorksheet("Sheet 1");
             var ws2 = wb.AddWorksheet("Sheet 2");
             var group = ws1.SparklineGroups.Add("A1:A3", "B1:F3");
@@ -1030,13 +1031,13 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
             Assert.AreEqual(1, ws1.SparklineGroups.Count());
             Assert.AreEqual(1, ws2.SparklineGroups.Count());
             Assert.IsTrue(target.HasSparkline);
-            Assert.AreEqual("'Sheet 2'!D6:H6", target.Sparkline.SparklineGroup.DateRange.RangeAddress.ToString(XLReferenceStyle.A1, true));
+            Assert.AreEqual("'Sheet 2'!D6:H6", target.Sparkline.SparklineGroup.DateRange.RangeAddress.ToString(XlsxReferenceStyle.A1, true));
         }
 
         [Test]
         public void CopySparklineIfDateRangeSourceOnDifferentWorksheet()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.AddWorksheet("Sheet 1");
             var ws2 = wb.AddWorksheet("Sheet 2");
             var ws3 = wb.AddWorksheet("Sheet 3");
@@ -1049,7 +1050,7 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
             Assert.AreEqual(1, ws1.SparklineGroups.Count());
             Assert.AreEqual(1, ws2.SparklineGroups.Count());
             Assert.IsTrue(target.HasSparkline);
-            Assert.AreEqual("'Sheet 3'!D6:H6", target.Sparkline.SparklineGroup.DateRange.RangeAddress.ToString(XLReferenceStyle.A1, true));
+            Assert.AreEqual("'Sheet 3'!D6:H6", target.Sparkline.SparklineGroup.DateRange.RangeAddress.ToString(XlsxReferenceStyle.A1, true));
         }
 
         #endregion Copy sparkline groups

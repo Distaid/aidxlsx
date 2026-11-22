@@ -1,13 +1,18 @@
-using Aid.Xlsx;
-using Aid.Xlsx.Drawings;
-using Aid.Xlsx.Tests.Utils;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
-using System.IO;
-using System.Linq;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.DataValidation;
+using Aid.Xlsx.Drawings;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.PivotTables.Areas;
+using Aid.Xlsx.PivotTables;
+using Aid.Xlsx.Protection;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Styles;
+using Aid.Xlsx.Tests.Utils;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
+using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel;
 
@@ -76,15 +81,15 @@ public class LoadingTests
         using var stream = TestHelper.GetStreamFromResource(path);
 
         // Act
-        using var wb = new XLWorkbook(stream);
+        using var wb = new XlsxWorkbook(stream);
 
         // Assert
         var ws = wb.Worksheet("UI Sheet");
         var B2 = ws.Cell("B2");
-        Assert.AreEqual(XLAllowedValues.List, B2.GetDataValidation().AllowedValues);
+        Assert.AreEqual(XlsxAllowedValues.List, B2.GetDataValidation().AllowedValues);
         Assert.AreEqual("$E$1:$E$4", B2.GetDataValidation().Value);
         var A2 = ws.Cell("A2");
-        Assert.AreEqual(XLAllowedValues.List, A2.GetDataValidation().AllowedValues);
+        Assert.AreEqual(XlsxAllowedValues.List, A2.GetDataValidation().AllowedValues);
         Assert.AreEqual("ValuesSheet!$A$1:$A$4", A2.GetDataValidation().Value);
     }
 
@@ -92,7 +97,7 @@ public class LoadingTests
     public void CanLoadAndManipulateFileWithEmptyTable()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\EmptyTable.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheets.First();
             var table = ws.Tables.First();
@@ -106,22 +111,22 @@ public class LoadingTests
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\Date1904System.xlsx")))
         using (var ms = new MemoryStream())
         {
-            using (var wb = new XLWorkbook(stream))
+            using (var wb = new XlsxWorkbook(stream))
             {
                 var ws = wb.Worksheets.First();
                 var c = ws.Cell("A2");
-                Assert.AreEqual(XLDataType.DateTime, c.DataType);
+                Assert.AreEqual(XlsxDataType.DateTime, c.DataType);
                 Assert.AreEqual(new DateTime(2017, 10, 27, 21, 0, 0), c.GetDateTime());
                 wb.SaveAs(ms);
             }
 
             ms.Seek(0, SeekOrigin.Begin);
 
-            using (var wb = new XLWorkbook(ms))
+            using (var wb = new XlsxWorkbook(ms))
             {
                 var ws = wb.Worksheets.First();
                 var c = ws.Cell("A2");
-                Assert.AreEqual(XLDataType.DateTime, c.DataType);
+                Assert.AreEqual(XlsxDataType.DateTime, c.DataType);
                 Assert.AreEqual(new DateTime(2017, 10, 27, 21, 0, 0), c.GetDateTime());
                 wb.SaveAs(ms);
             }
@@ -135,7 +140,7 @@ public class LoadingTests
         // <x:sheet name="Data" sheetId="13" r:id="rId1" />
         // and the mismatch between the sheetId and r:id can create problems.
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\FileWithMismatchSheetIdAndRelId.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             using (var ms = new MemoryStream())
             {
@@ -148,7 +153,7 @@ public class LoadingTests
     public void CanLoadBasicPivotTable()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\LoadPivotTables.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheet("PivotTable1");
             var pt = ws.PivotTable("PivotTable1");
@@ -170,13 +175,13 @@ public class LoadingTests
     public void CanLoadOrderedPivotTable()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\LoadPivotTables.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheet("OrderedPivotTable");
             var pt = ws.PivotTable("OrderedPivotTable");
 
-            Assert.AreEqual(XLPivotSortType.Ascending, pt.RowLabels.Single().SortType);
-            Assert.AreEqual(XLPivotSortType.Descending, pt.ColumnLabels.Single().SortType);
+            Assert.AreEqual(XlsxPivotSortType.Ascending, pt.RowLabels.Single().SortType);
+            Assert.AreEqual(XlsxPivotSortType.Descending, pt.ColumnLabels.Single().SortType);
         }
     }
 
@@ -184,7 +189,7 @@ public class LoadingTests
     public void CanLoadPivotTableSubtotals()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\LoadPivotTables.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheet("PivotTableSubtotals");
             var pt = ws.PivotTable("PivotTableSubtotals");
@@ -193,9 +198,9 @@ public class LoadingTests
 
             CollectionAssert.AreEquivalent(new[]
             {
-                    XLSubtotalFunction.Average,
-                    XLSubtotalFunction.Count,
-                    XLSubtotalFunction.Sum,
+                    XlsxSubtotalFunction.Average,
+                    XlsxSubtotalFunction.Count,
+                    XlsxSubtotalFunction.Sum,
                 }, subtotals);
         }
     }
@@ -205,15 +210,15 @@ public class LoadingTests
     public void CanLoadPivotTableWithBorder()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\PivotTableWithBorder.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var pt = wb.Worksheet(1).PivotTables.PivotTable("PivotTable1");
             var border = pt.RowLabels.Single().StyleFormats.DataValuesFormat.Style.Border;
 
-            Assert.AreEqual(XLBorderStyleValues.Thin, border.LeftBorder);
-            Assert.AreEqual(XLBorderStyleValues.Thin, border.TopBorder);
-            Assert.AreEqual(XLBorderStyleValues.Thin, border.RightBorder);
-            Assert.AreEqual(XLBorderStyleValues.Thin, border.BottomBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.Thin, border.LeftBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.Thin, border.TopBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.Thin, border.RightBorder);
+            Assert.AreEqual(XlsxBorderStyleValues.Thin, border.BottomBorder);
         }
     }
 
@@ -227,7 +232,7 @@ public class LoadingTests
     public void CanSaveFileWithDefaultStyleNameNotInEnglish()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\FileWithDefaultStyleNameNotInEnglish.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             using (var ms = new MemoryStream())
             {
@@ -246,12 +251,12 @@ public class LoadingTests
     public void CanLoadLibreOfficeFileWithDates()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\LibreOfficeFileWithDates.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheets.First();
             foreach (var cell in ws.CellsUsed())
             {
-                Assert.AreEqual(XLDataType.DateTime, cell.DataType);
+                Assert.AreEqual(XlsxDataType.DateTime, cell.DataType);
             }
         }
     }
@@ -260,16 +265,16 @@ public class LoadingTests
     public void CanLoadFileWithImagesWithCorrectAnchorTypes()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Examples\ImageHandling\ImageAnchors.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheets.First();
             Assert.AreEqual(2, ws.Pictures.Count);
-            Assert.AreEqual(XLPicturePlacement.FreeFloating, ws.Pictures.First().Placement);
-            Assert.AreEqual(XLPicturePlacement.Move, ws.Pictures.Skip(1).First().Placement);
+            Assert.AreEqual(XlsxPicturePlacement.FreeFloating, ws.Pictures.First().Placement);
+            Assert.AreEqual(XlsxPicturePlacement.Move, ws.Pictures.Skip(1).First().Placement);
 
             var ws2 = wb.Worksheets.Skip(1).First();
             Assert.AreEqual(1, ws2.Pictures.Count);
-            Assert.AreEqual(XLPicturePlacement.MoveAndSize, ws2.Pictures.First().Placement);
+            Assert.AreEqual(XlsxPicturePlacement.MoveAndSize, ws2.Pictures.First().Placement);
         }
     }
 
@@ -277,15 +282,15 @@ public class LoadingTests
     public void CanLoadFileWithImagesWithCorrectImageType()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Examples\ImageHandling\ImageFormats.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheets.First();
             Assert.AreEqual(1, ws.Pictures.Count);
-            Assert.AreEqual(XLPictureFormat.Jpeg, ws.Pictures.First().Format);
+            Assert.AreEqual(XlsxPictureFormat.Jpeg, ws.Pictures.First().Format);
 
             var ws2 = wb.Worksheets.Skip(1).First();
             Assert.AreEqual(1, ws2.Pictures.Count);
-            Assert.AreEqual(XLPictureFormat.Png, ws2.Pictures.First().Format);
+            Assert.AreEqual(XlsxPictureFormat.Png, ws2.Pictures.First().Format);
         }
     }
 
@@ -296,14 +301,14 @@ public class LoadingTests
         // There is actually only 1 embedded image if you inspect the file's internals.
         // Additionally, Excel saves all image anchors as TwoCellAnchor, but uses the EditAs attribute to distinguish the types
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\ExcelProducedWorkbookWithImages.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheets.First();
             Assert.AreEqual(3, ws.Pictures.Count);
 
-            Assert.AreEqual(XLPicturePlacement.MoveAndSize, ws.Picture("Picture 1").Placement);
-            Assert.AreEqual(XLPicturePlacement.Move, ws.Picture("Picture 2").Placement);
-            Assert.AreEqual(XLPicturePlacement.FreeFloating, ws.Picture("Picture 3").Placement);
+            Assert.AreEqual(XlsxPicturePlacement.MoveAndSize, ws.Picture("Picture 1").Placement);
+            Assert.AreEqual(XlsxPicturePlacement.Move, ws.Picture("Picture 2").Placement);
+            Assert.AreEqual(XlsxPicturePlacement.FreeFloating, ws.Picture("Picture 3").Placement);
 
             using (var ms = new MemoryStream())
                 wb.SaveAs(ms, true);
@@ -317,13 +322,13 @@ public class LoadingTests
         using (var tf2 = new TemporaryFile())
         {
             using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\AllShapes.xlsx")))
-            using (var wb = new XLWorkbook(stream))
+            using (var wb = new XlsxWorkbook(stream))
             {
                 // Save as temporary file
                 wb.SaveAs(tf1.Path);
             }
 
-            var workbook = XLWorkbook.OpenFromTemplate(tf1.Path);
+            var workbook = XlsxWorkbook.OpenFromTemplate(tf1.Path);
             Assert.True(workbook.Worksheets.Any());
             Assert.Throws<InvalidOperationException>(() => workbook.Save());
 
@@ -341,7 +346,7 @@ public class LoadingTests
         TestDelegate openWorkbook = () =>
         {
             using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\EscapedApostrophe.xlsx")))
-            using (var wb = new XLWorkbook(stream))
+            using (var wb = new XlsxWorkbook(stream))
             {
                 var ws = wb.Worksheets.First();
                 title = ws.Name;
@@ -355,19 +360,19 @@ public class LoadingTests
     [Test]
     public void CanRoundTripSheetProtectionForObjects()
     {
-        using (var book = new XLWorkbook())
+        using (var book = new XlsxWorkbook())
         {
             var sheet = book.AddWorksheet("TestSheet");
             sheet.Protect()
-                .AllowElement(XLSheetProtectionElements.EditObjects | XLSheetProtectionElements.EditScenarios);
+                .AllowElement(XlsxSheetProtectionElements.EditObjects | XlsxSheetProtectionElements.EditScenarios);
 
-            Assert.AreEqual(XLSheetProtectionElements.SelectEverything | XLSheetProtectionElements.EditObjects | XLSheetProtectionElements.EditScenarios, sheet.Protection.AllowedElements);
+            Assert.AreEqual(XlsxSheetProtectionElements.SelectEverything | XlsxSheetProtectionElements.EditObjects | XlsxSheetProtectionElements.EditScenarios, sheet.Protection.AllowedElements);
 
             using (var xlStream = new MemoryStream())
             {
                 book.SaveAs(xlStream);
 
-                using (var persistedBook = new XLWorkbook(xlStream))
+                using (var persistedBook = new XlsxWorkbook(xlStream))
                 {
                     var persistedSheet = persistedBook.Worksheets.Worksheet(1);
 
@@ -389,7 +394,7 @@ public class LoadingTests
     {
         using (var ms = new MemoryStream())
         {
-            using (XLWorkbook book1 = new XLWorkbook())
+            using (XlsxWorkbook book1 = new XlsxWorkbook())
             {
                 var sheet = book1.AddWorksheet("sheet1");
                 sheet.Cell("A1").Value = 123;
@@ -400,7 +405,7 @@ public class LoadingTests
             }
             ms.Position = 0;
 
-            using (XLWorkbook book2 = new XLWorkbook(ms))
+            using (XlsxWorkbook book2 = new XlsxWorkbook(ms))
             {
                 var ws = book2.Worksheet(1);
                 Assert.IsFalse(ws.Cell("A2").NeedsRecalculation);
@@ -417,19 +422,19 @@ public class LoadingTests
             Assert.DoesNotThrow(() =>
             {
                 // The value in the file is blank and kept.
-                using var wb = new XLWorkbook(stream, new LoadOptions { RecalculateAllFormulas = false });
+                using var wb = new XlsxWorkbook(stream, new LoadOptions { RecalculateAllFormulas = false });
                 Assert.AreEqual(Blank.Value, wb.Worksheets.Single().Cell("C2").CachedValue);
             });
 
             Assert.DoesNotThrow(() =>
             {
                 // The value in the file is blank, but recalculation sets it to correct 3.
-                using var wb = new XLWorkbook(stream, new LoadOptions { RecalculateAllFormulas = true });
+                using var wb = new XlsxWorkbook(stream, new LoadOptions { RecalculateAllFormulas = true });
                 Assert.AreEqual(3, wb.Worksheets.Single().Cell("C2").CachedValue);
             });
 
-            Assert.AreEqual(30, new XLWorkbook(stream, new LoadOptions { Dpi = new System.Drawing.Point(30, 14) }).DpiX);
-            Assert.AreEqual(14, new XLWorkbook(stream, new LoadOptions { Dpi = new System.Drawing.Point(30, 14) }).DpiY);
+            Assert.AreEqual(30, new XlsxWorkbook(stream, new LoadOptions { Dpi = new System.Drawing.Point(30, 14) }).DpiX);
+            Assert.AreEqual(14, new XlsxWorkbook(stream, new LoadOptions { Dpi = new System.Drawing.Point(30, 14) }).DpiY);
         }
     }
 
@@ -437,7 +442,7 @@ public class LoadingTests
     public void CanLoadWorksheetStyle()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\BaseColumnWidth.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheet(1);
 
@@ -452,10 +457,10 @@ public class LoadingTests
     public void CanCorrectLoadWorkbookCellWithStringDataType()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\CellWithStringDataType.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var cellToCheck = wb.Worksheet(1).Cell("B2");
-            Assert.AreEqual(XLDataType.Text, cellToCheck.DataType);
+            Assert.AreEqual(XlsxDataType.Text, cellToCheck.DataType);
             Assert.AreEqual("String with String Data type", cellToCheck.Value);
         }
     }
@@ -469,7 +474,7 @@ public class LoadingTests
             for (int row = 2; row < 18; row++)
             {
                 var cellToCheck = wb.Worksheet(1).Cell(row, 2);
-                Assert.AreEqual(XLDataType.DateTime, cellToCheck.DataType, $"Cell B{row} has incorrect DataType");
+                Assert.AreEqual(XlsxDataType.DateTime, cellToCheck.DataType, $"Cell B{row} has incorrect DataType");
                 Assert.AreEqual(expected, cellToCheck.Value.ToString(CultureInfo.InvariantCulture), $"Cell B{row} value differs");
             }
         }, @"TryToLoad\CellsWithDateTimeDataTypeOrFormatting.xlsx");
@@ -484,7 +489,7 @@ public class LoadingTests
             for (int i = 0, row = 2; i < expected.Length; i++, row++)
             {
                 var cellToCheck = wb.Worksheet(1).Cell(row, 2);
-                Assert.AreEqual(XLDataType.TimeSpan, cellToCheck.DataType, $"Cell B{row} has incorrect DataType");
+                Assert.AreEqual(XlsxDataType.TimeSpan, cellToCheck.DataType, $"Cell B{row} has incorrect DataType");
                 Assert.AreEqual(expected[i], cellToCheck.Value.ToString(CultureInfo.InvariantCulture), $"Cell B{row} value differs");
             }
         }, @"TryToLoad\CellsWithTimeSpanDataTypeOrFormatting.xlsx");
@@ -512,20 +517,20 @@ public class LoadingTests
     public void CanCorrectLoadWorkbookDefaultColumnWidth()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Examples\Styles\DefaultStyles.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var defaultColumnWidth = wb.ColumnWidth;
-            var pixelWidth = XLHelper.NoCToPixels(defaultColumnWidth, wb.Format.Font, wb);
-            Assert.AreEqual(8.43, defaultColumnWidth, XLHelper.Epsilon);
+            var pixelWidth = XlsxHelper.NoCToPixels(defaultColumnWidth, wb.Format.Font, wb);
+            Assert.AreEqual(8.43, defaultColumnWidth, XlsxHelper.Epsilon);
             Assert.AreEqual(64, pixelWidth);
         }
 
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\DefaultColumnWidth.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var defaultColumnWidth = wb.ColumnWidth;
-            var pixelWidth = XLHelper.NoCToPixels(defaultColumnWidth, wb.Format.Font, wb);
-            Assert.AreEqual(8.5, defaultColumnWidth, XLHelper.Epsilon);
+            var pixelWidth = XlsxHelper.NoCToPixels(defaultColumnWidth, wb.Format.Font, wb);
+            Assert.AreEqual(8.5, defaultColumnWidth, XlsxHelper.Epsilon);
             Assert.AreEqual(56, pixelWidth);
         }
     }
@@ -539,20 +544,20 @@ public class LoadingTests
     {
         // default calibi font case
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Examples\Styles\DefaultStyles.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheet(1);
-            Assert.AreEqual(8.43, ws.ColumnWidth, XLHelper.Epsilon);
-            Assert.AreEqual(8.43, ws.Column(1).Width, XLHelper.Epsilon);
+            Assert.AreEqual(8.43, ws.ColumnWidth, XlsxHelper.Epsilon);
+            Assert.AreEqual(8.43, ws.Column(1).Width, XlsxHelper.Epsilon);
         }
 
         // worksheet has base column width.
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\BaseColumnWidth.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheet(1);
-            Assert.AreEqual(11.17, ws.ColumnWidth, XLHelper.Epsilon);
-            Assert.AreEqual(11.17, ws.Column(1).Width, XLHelper.Epsilon);
+            Assert.AreEqual(11.17, ws.ColumnWidth, XlsxHelper.Epsilon);
+            Assert.AreEqual(11.17, ws.Column(1).Width, XlsxHelper.Epsilon);
         }
     }
 
@@ -564,12 +569,12 @@ public class LoadingTests
     {
         // worksheet has default column width.
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\SheetDefaultColumnWidth.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheet(1);
-            double pixelWidth = XLHelper.NoCToPixels(ws.Column(1).Width, ws.Style.Font, wb);
-            Assert.AreEqual(19.75, ws.ColumnWidth, XLHelper.Epsilon);
-            Assert.AreEqual(163, pixelWidth, XLHelper.Epsilon);
+            double pixelWidth = XlsxHelper.NoCToPixels(ws.Column(1).Width, ws.Style.Font, wb);
+            Assert.AreEqual(19.75, ws.ColumnWidth, XlsxHelper.Epsilon);
+            Assert.AreEqual(163, pixelWidth, XlsxHelper.Epsilon);
         }
     }
 
@@ -577,7 +582,7 @@ public class LoadingTests
     public void CanLoadFileWithInvalidSelectedRanges()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Other\SelectedRanges\InvalidSelectedRange.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheet(1);
 
@@ -591,13 +596,13 @@ public class LoadingTests
     public void CanLoadCellsWithoutReferencesCorrectly()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\LO\xlsx\row-index-1-based.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheet(1);
 
             Assert.AreEqual("Page 1", ws.Name);
 
-            var expected = new Dictionary<string, XLCellValue>
+            var expected = new Dictionary<string, XlsxCellValue>
             {
                 ["A1"] = "Action Plan.Name",
                 ["B1"] = "Action Plan.Description",
@@ -616,23 +621,23 @@ public class LoadingTests
     public void CorrectlyLoadThemeColors()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Other\StyleReferenceFiles\ThemeColors\inputfile.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheet(1);
 
             var c = ws.Cell("A1");
             var themeColor = c.Style.Fill.BackgroundColor.ThemeColor;
-            Assert.AreEqual(XLThemeColor.Accent2, themeColor);
+            Assert.AreEqual(XlsxThemeColor.Accent2, themeColor);
             Assert.AreEqual("FFED7D31", wb.Theme.ResolveThemeColor(themeColor).Color.ToHex());
 
             c = ws.Cell("A2");
             themeColor = c.Style.Fill.BackgroundColor.ThemeColor;
-            Assert.AreEqual(XLThemeColor.Accent4, themeColor);
+            Assert.AreEqual(XlsxThemeColor.Accent4, themeColor);
             Assert.AreEqual("FFFFC000", wb.Theme.ResolveThemeColor(themeColor).Color.ToHex());
 
             c = ws.Cell("A3");
             themeColor = c.Style.Fill.BackgroundColor.ThemeColor;
-            Assert.AreEqual(XLThemeColor.Accent6, themeColor);
+            Assert.AreEqual(XlsxThemeColor.Accent6, themeColor);
             Assert.AreEqual("FF70AD47", wb.Theme.ResolveThemeColor(themeColor).Color.ToHex());
         }
     }
@@ -641,14 +646,14 @@ public class LoadingTests
     public void CorrectlyLoadMergedCellsBorder()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Other\StyleReferenceFiles\MergedCellsBorder\inputfile.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheet(1);
 
             var c = ws.Cell("B2");
-            Assert.AreEqual(XLColorType.Theme, c.Style.Border.TopBorderColor.ColorType);
-            Assert.AreEqual(XLThemeColor.Accent1, c.Style.Border.TopBorderColor.ThemeColor);
-            Assert.AreEqual(0.39994506668294322d, c.Style.Border.TopBorderColor.ThemeTint, XLHelper.Epsilon);
+            Assert.AreEqual(XlsxColorType.Theme, c.Style.Border.TopBorderColor.ColorType);
+            Assert.AreEqual(XlsxThemeColor.Accent1, c.Style.Border.TopBorderColor.ThemeColor);
+            Assert.AreEqual(0.39994506668294322d, c.Style.Border.TopBorderColor.ThemeTint, XlsxHelper.Epsilon);
         }
     }
 
@@ -656,7 +661,7 @@ public class LoadingTests
     public void CorrectlyLoadDefaultRowAndColumnStyles()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Other\StyleReferenceFiles\RowAndColumnStyles\inputfile.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheet(1);
 
@@ -670,11 +675,11 @@ public class LoadingTests
     public void EmptyNumberFormatIdTreatedAsGeneral()
     {
         using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\EmptyNumberFormatId.xlsx")))
-        using (var wb = new XLWorkbook(stream))
+        using (var wb = new XlsxWorkbook(stream))
         {
             var ws = wb.Worksheet(1);
 
-            Assert.AreEqual(XLPredefinedFormat.General, ws.Cell("A2").Style.NumberFormat.NumberFormatId);
+            Assert.AreEqual(XlsxPredefinedFormat.General, ws.Cell("A2").Style.NumberFormat.NumberFormatId);
         }
     }
 
@@ -696,7 +701,7 @@ public class LoadingTests
 
         using (var stream = new MemoryStream())
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var sheet = wb.AddWorksheet("sheet1");
 
@@ -718,7 +723,7 @@ public class LoadingTests
 
             stream.Position = 0;
 
-            using (var wb = new XLWorkbook(stream))
+            using (var wb = new XlsxWorkbook(stream))
             {
                 Assert.AreEqual(author, wb.Properties.Author);
                 Assert.AreEqual(title, wb.Properties.Title);
@@ -768,8 +773,8 @@ public class LoadingTests
         TestHelper.LoadAndAssert(wb =>
         {
             var ws = wb.Worksheets.Single();
-            Assert.AreEqual(XLColor.FromArgb(0xFF000000), ws.Cell("A1").Style.Font.FontColor);
-            Assert.AreEqual(XLColor.FromArgb(0xFF000FED), ws.Cell("A2").Style.Fill.BackgroundColor);
+            Assert.AreEqual(XlsxColor.FromArgb(0xFF000000), ws.Cell("A1").Style.Font.FontColor);
+            Assert.AreEqual(XlsxColor.FromArgb(0xFF000FED), ws.Cell("A2").Style.Fill.BackgroundColor);
         }, @"TryToLoad\InvalidColors.xlsx");
     }
 
@@ -826,10 +831,10 @@ public class LoadingTests
         TestHelper.LoadAndAssert((_, ws) =>
         {
             // "Center" - wrong case.
-            Assert.AreEqual(XLAlignmentVerticalValues.Bottom, ws.Cell("A1").Style.Alignment.Vertical);
+            Assert.AreEqual(XlsxAlignmentVerticalValues.Bottom, ws.Cell("A1").Style.Alignment.Vertical);
 
             // "richtig" - invalid value.
-            Assert.AreEqual(XLAlignmentHorizontalValues.General, ws.Cell("A2").Style.Alignment.Horizontal);
+            Assert.AreEqual(XlsxAlignmentHorizontalValues.General, ws.Cell("A2").Style.Alignment.Horizontal);
 
             // "three" - not a number.
             Assert.AreEqual(0, ws.Cell("A3").Style.Alignment.Indent);

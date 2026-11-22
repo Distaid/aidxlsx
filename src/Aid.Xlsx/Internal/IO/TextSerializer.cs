@@ -1,17 +1,17 @@
 #nullable disable
 
-using System;
 using System.Xml;
-using Aid.Xlsx.Formatting;
 using Aid.Xlsx.Extensions;
-using static Aid.Xlsx.XLWorkbook;
+using Aid.Xlsx.RichText;
+using Aid.Xlsx.Styles.Formatting;
 using static Aid.Xlsx.Internal.IO.OpenXmlConst;
+using static Aid.Xlsx.Workbooks.XlsxWorkbook;
 
 namespace Aid.Xlsx.Internal.IO
 {
     internal class TextSerializer
     {
-        internal static void WriteRichTextElements(XmlWriter w, XLImmutableRichText richText, SaveContext context)
+        internal static void WriteRichTextElements(XmlWriter w, XlsxImmutableRichText richText, SaveContext context)
         {
             foreach (var textRun in richText.Runs)
             {
@@ -46,25 +46,25 @@ namespace Aid.Xlsx.Internal.IO
                 w.WriteStartElement("phoneticPr", Main2006SsNs);
                 w.WriteAttribute("fontId", phoneticsFontId);
 
-                if (phoneticsProps.Alignment != XLPhoneticAlignment.Left)
+                if (phoneticsProps.Alignment != XlsxPhoneticAlignment.Left)
                     w.WriteAttributeString("alignment", phoneticsProps.Alignment.ToOpenXmlString());
 
-                if (phoneticsProps.Type != XLPhoneticType.FullWidthKatakana)
+                if (phoneticsProps.Type != XlsxPhoneticType.FullWidthKatakana)
                     w.WriteAttributeString("type", phoneticsProps.Type.ToOpenXmlString());
 
                 w.WriteEndElement(); // phoneticPr
             }
         }
 
-        internal static void WriteRun(XmlWriter w, XLImmutableRichText richText, XLImmutableRichText.RichTextRun run)
+        internal static void WriteRun(XmlWriter w, XlsxImmutableRichText richText, XlsxImmutableRichText.RichTextRun run)
         {
             var runText = richText.GetRunText(run);
             WriteRun(w, runText, run.Font);
         }
 
-        private static void WriteRun(XmlWriter w, string text, XLFontFormatValue font)
+        private static void WriteRun(XmlWriter w, string text, XlsxFontFormatValue font)
         {
-            var defaultFont = XLFontFormatValue.Default;
+            var defaultFont = XlsxFontFormatValue.Default;
             w.WriteStartElement("r", Main2006SsNs);
             w.WriteStartElement("rPr", Main2006SsNs);
 

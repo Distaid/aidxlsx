@@ -1,10 +1,8 @@
 #nullable disable
 
-using System;
-
 namespace Aid.Xlsx.Exceptions
 {
-    public class EmptyTableException : ClosedXMLException
+    public class EmptyTableException : XlsxException
     {
         public EmptyTableException()
             : base()

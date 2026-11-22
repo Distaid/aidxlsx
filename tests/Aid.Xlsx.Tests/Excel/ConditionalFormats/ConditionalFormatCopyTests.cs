@@ -1,7 +1,7 @@
-using Aid.Xlsx;
+using Aid.Xlsx.ConditionalFormats;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
-using System;
-using System.Linq;
 
 namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
 {
@@ -11,26 +11,26 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void StylesAreCreatedDuringCopy()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws = wb.Worksheets.Add("Sheet");
             var format = ws.Range("A1:A1").AddConditionalFormat();
             format.WhenEquals("=" + format.Ranges.First().FirstCell().CellRight(4).Address.ToStringRelative()).Fill
-                  .SetBackgroundColor(XLColor.Blue);
+                  .SetBackgroundColor(XlsxColor.Blue);
 
-            var wb2 = new XLWorkbook();
+            var wb2 = new XlsxWorkbook();
             var ws2 = wb2.Worksheets.Add("Sheet2");
             ws2.FirstCell().CopyFrom(ws.FirstCell());
-            Assert.That(ws2.ConditionalFormats.First().Style.Fill.BackgroundColor, Is.EqualTo(XLColor.Blue)); //Added blue style
+            Assert.That(ws2.ConditionalFormats.First().Style.Fill.BackgroundColor, Is.EqualTo(XlsxColor.Blue)); //Added blue style
         }
 
         [Test]
         public void CopyConditionalFormatSingleWorksheet()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws = wb.Worksheets.Add("Sheet");
             var format = ws.Range("A1:A1").AddConditionalFormat();
             format.WhenEquals("=" + format.Ranges.First().FirstCell().CellRight(4).Address.ToStringRelative()).Fill
-                .SetBackgroundColor(XLColor.Blue);
+                .SetBackgroundColor(XlsxColor.Blue);
 
             ws.Cell("A1").CopyTo("B2");
 
@@ -41,11 +41,11 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void CopyConditionalFormatSameRange()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws = wb.Worksheets.Add("Sheet");
             var format = ws.Range("A1:C3").AddConditionalFormat();
             format.WhenEquals("=" + format.Ranges.First().FirstCell().CellRight(4).Address.ToStringRelative()).Fill
-                .SetBackgroundColor(XLColor.Blue);
+                .SetBackgroundColor(XlsxColor.Blue);
 
             ws.Cell("A1").CopyTo("B2");
 
@@ -56,11 +56,11 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void CopyConditionalFormatsDifferentWorksheets()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.Worksheets.Add("Sheet1");
             var format = ws1.Range("A1:A1").AddConditionalFormat();
             format.WhenEquals("=" + format.Ranges.First().FirstCell().CellRight(4).Address.ToStringRelative()).Fill
-                .SetBackgroundColor(XLColor.Blue);
+                .SetBackgroundColor(XlsxColor.Blue);
             var ws2 = wb.Worksheets.Add("Sheet2");
             var otherCell = ws2.Cell("B2");
 
@@ -76,11 +76,11 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void FullCopyConditionalFormatSameWorksheet()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.Worksheets.Add("Sheet1");
-            var format = (XLConditionalFormat)ws1.Range("A1:A1").AddConditionalFormat();
+            var format = (XlsxConditionalFormat)ws1.Range("A1:A1").AddConditionalFormat();
             format.WhenEquals("=" + format.Ranges.First().FirstCell().CellRight(4).Address.ToStringRelative()).Fill
-                .SetBackgroundColor(XLColor.Blue);
+                .SetBackgroundColor(XlsxColor.Blue);
 
             TestDelegate action = () => format.CopyTo(ws1);
 
@@ -90,11 +90,11 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void FullCopyConditionalFormatDifferentWorksheets()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.Worksheets.Add("Sheet1");
-            var format = (XLConditionalFormat)ws1.Range("A1:C3").AddConditionalFormat();
+            var format = (XlsxConditionalFormat)ws1.Range("A1:C3").AddConditionalFormat();
             format.WhenEquals("=" + format.Ranges.First().FirstCell().CellRight(4).Address.ToStringRelative()).Fill
-                .SetBackgroundColor(XLColor.Blue);
+                .SetBackgroundColor(XlsxColor.Blue);
             var ws2 = wb.Worksheets.Add("Sheet2");
 
             format.CopyTo(ws2);

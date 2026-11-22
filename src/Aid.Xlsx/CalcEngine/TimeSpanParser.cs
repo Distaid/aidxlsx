@@ -1,6 +1,5 @@
 #nullable disable
 
-using System;
 using System.Globalization;
 
 namespace Aid.Xlsx.CalcEngine

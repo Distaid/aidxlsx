@@ -1,6 +1,6 @@
 using Aid.Xlsx.Utils;
 using NUnit.Framework;
-using static Aid.Xlsx.XLProtectionAlgorithm;
+using static Aid.Xlsx.Protection.XlsxProtectionAlgorithm;
 
 namespace Aid.Xlsx.Tests.Excel.Protection
 {

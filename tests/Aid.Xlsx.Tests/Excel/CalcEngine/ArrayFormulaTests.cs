@@ -1,6 +1,5 @@
-using System;
-using System.Linq;
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine
@@ -40,7 +39,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void CanBeOnlyForOneCell()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var oneCell = ws.Cell("B3");
 
@@ -56,7 +55,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("A1:D7")]
         public void SettingValueToContainingRangeClearsArrayFormula(string containingRange)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var arrayFormulaRange = ws.Range("B2:C3");
             arrayFormulaRange.FormulaArrayA1 = "5";
@@ -76,7 +75,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("A1:E4")]
         public void SettingFormulaToContainingRangeClearsOriginalArrayFormula(string overlapRange)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Range("B2:D3").FormulaArrayA1 = "1";
 
@@ -91,7 +90,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("2:2")]
         public void ArrayFormulaCantPartiallyOverlapWithAnotherArrayFormula(string partialOverlapRange)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Range("B2:D3").FormulaArrayA1 = "1";
 
@@ -104,7 +103,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("A2")]
         public void ArrayFormulaCantOverlapWithMergedRange(string partialOverlapRange)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Range("A1:A2").Merge();
 
@@ -117,7 +116,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("A1:C1")]
         public void ArrayFormulaCantOverlapWithTable(string formulaRange)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = "Name";
             ws.Cell("A2").Value = 5;
@@ -131,7 +130,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void SettingArrayFormulaInvalidatesCells()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             Assert.False(ws.Cell("A1").NeedsRecalculation);
             Assert.False(ws.Cell("A2").NeedsRecalculation);
@@ -145,7 +144,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void ReferencingItselfIsCircularError()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").FormulaA1 = "A2";
             ws.Range("A2").FormulaArrayA1 = "A1";

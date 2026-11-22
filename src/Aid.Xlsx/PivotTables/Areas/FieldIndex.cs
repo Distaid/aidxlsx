@@ -1,7 +1,7 @@
-using System;
 using System.Diagnostics;
+using Aid.Xlsx.Utils;
 
-namespace Aid.Xlsx;
+namespace Aid.Xlsx.PivotTables.Areas;
 
 /// <summary>
 /// A type for field index, so there is a better idea what is a semantic content of some
@@ -19,12 +19,12 @@ internal readonly record struct FieldIndex
     }
 
     /// <summary>
-    /// The index of a 'data' field (<see cref="XLConstants.PivotTable.ValuesSentinalLabel"/>).
+    /// The index of a 'data' field (<see cref="XlsxConstants.PivotTable.ValuesSentinalLabel"/>).
     /// </summary>
     internal static FieldIndex DataField => -2;
 
     /// <summary>
-    /// Index of a field in <see cref="XLPivotTable.PivotFields"/>. Can be -2 for 'data' field,
+    /// Index of a field in <see cref="XlsxPivotTable.PivotFields"/>. Can be -2 for 'data' field,
     /// otherwise non-negative.
     /// </summary>
     internal int Value { get; }

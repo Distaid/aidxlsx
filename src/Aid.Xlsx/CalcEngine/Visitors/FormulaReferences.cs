@@ -1,7 +1,9 @@
+using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Formulas;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 
 namespace Aid.Xlsx.CalcEngine.Visitors;
 
@@ -26,12 +28,12 @@ internal class FormulaReferences
     /// <summary>
     /// Areas without a sheet found in the formula.
     /// </summary>
-    internal HashSet<XLReference> References { get; } = new();
+    internal HashSet<XlsxReference> References { get; } = new();
 
     /// <summary>
     /// Areas with a sheet found in the formula.
     /// </summary>
-    internal HashSet<XLSheetReference> SheetReferences { get; } = new();
+    internal HashSet<XlsxSheetReference> SheetReferences { get; } = new();
 
     internal HashSet<(string Table, string Column, string Symbol)> StructuredReferences { get; } = new();
 
@@ -44,15 +46,15 @@ internal class FormulaReferences
 
     internal bool ContainsSheet(string worksheetName)
     {
-        return SheetReferences.Any(x => XLHelper.SheetComparer.Equals(x.Sheet, worksheetName));
+        return SheetReferences.Any(x => XlsxHelper.SheetComparer.Equals(x.Sheet, worksheetName));
     }
 
-    internal XLRanges GetExternalRanges(XLWorkbook workbook, Point anchor)
+    internal XlsxRanges GetExternalRanges(XlsxWorkbook workbook, Point anchor)
     {
-        var list = new XLRanges(workbook);
+        var list = new XlsxRanges(workbook);
         foreach (var reference in SheetReferences)
         {
-            if (workbook.TryGetWorksheet(reference.Sheet, out XLWorksheet sheet))
+            if (workbook.TryGetWorksheet(reference.Sheet, out XlsxWorksheet sheet))
             {
                 var rangeAddress = reference.Reference.ToRangeAddress(sheet, anchor);
                 list.Add(sheet.Range(rangeAddress));
@@ -83,13 +85,13 @@ internal class FormulaReferences
 
         public override object? Reference(FormulaReferences context, SymbolRange range, ReferenceArea reference)
         {
-            context.References.Add(new XLReference(reference));
+            context.References.Add(new XlsxReference(reference));
             return base.Reference(context, range, reference);
         }
 
         public override object? SheetReference(FormulaReferences context, SymbolRange range, string sheet, ReferenceArea reference)
         {
-            context.SheetReferences.Add(new XLSheetReference(sheet, new XLReference(reference)));
+            context.SheetReferences.Add(new XlsxSheetReference(sheet, new XlsxReference(reference)));
             return base.SheetReference(context, range, sheet, reference);
         }
 

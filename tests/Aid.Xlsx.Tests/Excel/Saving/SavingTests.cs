@@ -1,18 +1,20 @@
-using System;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Xml.Linq;
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.ConditionalFormats;
+using Aid.Xlsx.DataValidation;
 using Aid.Xlsx.Drawings;
 using Aid.Xlsx.Internal.IO;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Styles;
 using Aid.Xlsx.Tests.Utils;
-using DocumentFormat.OpenXml;
+using Aid.Xlsx.Workbooks;
 using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml;
 using NUnit.Framework;
-using SaveOptions = Aid.Xlsx.SaveOptions;
+using SaveOptions = Aid.Xlsx.Workbooks.SaveOptions;
 
 namespace Aid.Xlsx.Tests.Excel.Saving
 {
@@ -34,7 +36,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         public void CanSaveEmptyFile()
         {
             using (var ms = new MemoryStream())
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 wb.AddWorksheet("Sheet1");
                 wb.SaveAs(ms);
@@ -45,7 +47,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         public void CanSuccessfullySaveFileMultipleTimes()
         {
             using (var memoryStream = new MemoryStream())
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var sheet = wb.Worksheets.Add("TestSheet");
 
@@ -67,7 +69,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         {
             using (var ms = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var ws = wb.AddWorksheet("Sheet1");
                     ws.FirstCell().Value = "Reserve_TT_A_BLOCAGE_CAG_x6904_2";
@@ -76,7 +78,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
 
                 ms.Seek(0, SeekOrigin.Begin);
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var ws = wb.Worksheets.First();
                     Assert.AreEqual("Reserve_TT_A_BLOCAGE_CAG_x6904_2", ws.FirstCell().Value);
@@ -91,7 +93,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
 
             using (var ms = new MemoryStream())
             {
-                using (XLWorkbook book1 = new XLWorkbook())
+                using (XlsxWorkbook book1 = new XlsxWorkbook())
                 {
                     book1.AddWorksheet("sheet1");
                     book1.AddWorksheet("sheet2");
@@ -100,7 +102,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
                 }
                 ms.Position = 0;
 
-                using (XLWorkbook book2 = new XLWorkbook(ms))
+                using (XlsxWorkbook book2 = new XlsxWorkbook(ms))
                 {
                     var ws = book2.Worksheet(1);
                     Assert.AreEqual("sheet1", ws.Name);
@@ -120,7 +122,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
             {
                 Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo(culture);
 
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var memoryStream = new MemoryStream();
                     var ws = wb.Worksheets.Add("Sheet1");
@@ -135,7 +137,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         {
             using (var ms = new MemoryStream())
             {
-                using (XLWorkbook book1 = new XLWorkbook())
+                using (XlsxWorkbook book1 = new XlsxWorkbook())
                 {
                     var sheet = book1.AddWorksheet("sheet1");
                     sheet.Cell("A1").Value = 123;
@@ -147,7 +149,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
                 }
                 ms.Position = 0;
 
-                using (XLWorkbook book2 = new XLWorkbook(ms))
+                using (XlsxWorkbook book2 = new XlsxWorkbook(ms))
                 {
                     var ws = book2.Worksheet(1);
 
@@ -161,7 +163,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         {
             using (var ms = new MemoryStream())
             {
-                using (XLWorkbook book1 = new XLWorkbook())
+                using (XlsxWorkbook book1 = new XlsxWorkbook())
                 {
                     var sheet = book1.AddWorksheet("sheet1");
                     sheet.Cell("A1").Value = 123;
@@ -173,7 +175,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
                 }
                 ms.Position = 0;
 
-                using (XLWorkbook book2 = new XLWorkbook(ms))
+                using (XlsxWorkbook book2 = new XlsxWorkbook(ms))
                 {
                     var ws = book2.Worksheet(1);
 
@@ -194,7 +196,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
                     using (var copy = new TemporaryFile())
                     {
                         // Arrange
-                        using (var wb = new XLWorkbook())
+                        using (var wb = new XlsxWorkbook())
                         {
                             var sheet = wb.Worksheets.Add("TestSheet");
                             wb.SaveAs(original.Path);
@@ -202,7 +204,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
                         File.SetAttributes(original.Path, FileAttributes.ReadOnly);
 
                         // Act
-                        using (var wb = new XLWorkbook(original.Path))
+                        using (var wb = new XlsxWorkbook(original.Path))
                         {
                             wb.SaveAs(copy.Path);
                         }
@@ -229,7 +231,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
                 File.WriteAllText(existing.Path, "");
 
                 // Act
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var sheet = wb.Worksheets.Add("TestSheet");
                     wb.SaveAs(existing.Path);
@@ -260,7 +262,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
                     // Act
                     TestDelegate saveAs = () =>
                     {
-                        using (var wb = new XLWorkbook())
+                        using (var wb = new XlsxWorkbook())
                         {
                             var sheet = wb.Worksheets.Add("TestSheet");
                             wb.SaveAs(existing.Path);
@@ -285,7 +287,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
 
             using (var ms = new MemoryStream())
             {
-                using (var wb1 = new XLWorkbook())
+                using (var wb1 = new XlsxWorkbook())
                 {
                     var ws = wb1.Worksheets.Add("Page Breaks");
                     ws.PageSetup.PrintAreas.Add("A1:D5");
@@ -294,7 +296,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
                     wb1.SaveAs(ms);
                     wb1.Save();
                 }
-                using (var wb2 = new XLWorkbook(ms))
+                using (var wb2 = new XlsxWorkbook(ms))
                 {
                     var ws = wb2.Worksheets.First();
 
@@ -308,14 +310,14 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         public void CanSaveFileWithPictureAndComment()
         {
             using (var ms = new MemoryStream())
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             using (var imageStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Aid.Xlsx.Tests.Resource.Images.SampleImageExif.jpg"))
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 ws.Cell("D4").Value = "Hello world.";
 
                 ws.AddPicture(imageStream, "MyPicture")
-                    .WithPlacement(XLPicturePlacement.FreeFloating)
+                    .WithPlacement(XlsxPicturePlacement.FreeFloating)
                     .MoveTo(50, 50)
                     .WithSize(200, 200);
 
@@ -359,7 +361,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         {
             using (var tf = new TemporaryFile(Path.ChangeExtension(Path.GetTempFileName(), extension)))
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     wb.Worksheets.Add("Sheet1");
                     wb.SaveAs(tf.Path);
@@ -379,12 +381,12 @@ namespace Aid.Xlsx.Tests.Excel.Saving
             using (var template = new TemporaryFile(Path.ChangeExtension(Path.GetTempFileName(), "xltx")))
             using (var workbook = new TemporaryFile())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     wb.AddWorksheet();
                     wb.SaveAs(template.Path);
                 }
-                using (var wb = new XLWorkbook(template.Path))
+                using (var wb = new XlsxWorkbook(template.Path))
                 {
                     wb.SaveAs(workbook.Path);
                 }
@@ -399,7 +401,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         public void SaveAsWithNoExtensionFails()
         {
             using (var tf = new TemporaryFile("FileWithNoExtension"))
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 wb.Worksheets.Add("Sheet1");
                 TestDelegate action = () => wb.SaveAs(tf.Path);
@@ -412,7 +414,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         public void SaveAsWithUnsupportedExtensionFails()
         {
             using (var tf = new TemporaryFile("FileWithBadExtension.bad"))
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 wb.Worksheets.Add("Sheet1");
                 TestDelegate action = () => wb.SaveAs(tf.Path);
@@ -428,14 +430,14 @@ namespace Aid.Xlsx.Tests.Excel.Saving
             var quotedFormulaValue = '\'' + formulaValue;
             using (var ms = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var ws = wb.AddWorksheet("Sheet1");
                     var cell = ws.FirstCell();
                     cell.SetValue(quotedFormulaValue);
                     Assert.IsFalse(cell.HasFormula);
                     Assert.AreEqual(formulaValue, cell.Value);
-                    Assert.AreEqual(XLDataType.Text, cell.DataType);
+                    Assert.AreEqual(XlsxDataType.Text, cell.DataType);
                     Assert.True(cell.Style.IncludeQuotePrefix);
 
                     wb.SaveAs(ms);
@@ -443,14 +445,14 @@ namespace Aid.Xlsx.Tests.Excel.Saving
 
                 ms.Seek(0, SeekOrigin.Begin);
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var ws = wb.Worksheets.First();
                     var cell = ws.FirstCell();
                     Assert.IsFalse(cell.HasFormula);
                     Assert.IsFalse(cell.HasFormula);
                     Assert.AreEqual(formulaValue, cell.Value);
-                    Assert.AreEqual(XLDataType.Text, cell.DataType);
+                    Assert.AreEqual(XlsxDataType.Text, cell.DataType);
                     Assert.True(cell.Style.IncludeQuotePrefix);
                 }
             }
@@ -461,7 +463,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         {
             using (var ms = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var ws = wb.AddWorksheet("Sheet1");
                     ws.RowHeight = 50;
@@ -475,7 +477,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
 
                 ms.Seek(0, SeekOrigin.Begin);
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     foreach (var sheetName in new[] { "Sheet1", "Sheet2" })
                     {
@@ -495,7 +497,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         {
             using (var ms = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var ws = wb.AddWorksheet("Sheet1");
                     ws.Column(2).Width = 0;
@@ -508,7 +510,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
 
                 ms.Seek(0, SeekOrigin.Begin);
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     foreach (var sheetName in new[] { "Sheet1", "Sheet2" })
                     {
@@ -529,14 +531,14 @@ namespace Aid.Xlsx.Tests.Excel.Saving
             using (var input = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\HorizontalAlignment.xlsx")))
             using (var output = new MemoryStream())
             {
-                using (var wb = new XLWorkbook(input))
+                using (var wb = new XlsxWorkbook(input))
                 {
                     wb.SaveAs(output);
                 }
 
-                using (var wb = new XLWorkbook(output))
+                using (var wb = new XlsxWorkbook(output))
                 {
-                    Assert.AreEqual(XLAlignmentHorizontalValues.Center, wb.Worksheets.First().Cell("B1").Style.Alignment.Horizontal);
+                    Assert.AreEqual(XlsxAlignmentHorizontalValues.Center, wb.Worksheets.First().Cell("B1").Style.Alignment.Horizontal);
                 }
             }
         }
@@ -546,35 +548,35 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         {
             using (var output = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var sheet = wb.Worksheets.Add("test");
-                    sheet.Column(1).AddConditionalFormat().ColorScale().LowestValue(XLColor.Red)
-                        .HighestValue(XLColor.Green);
+                    sheet.Column(1).AddConditionalFormat().ColorScale().LowestValue(XlsxColor.Red)
+                        .HighestValue(XlsxColor.Green);
 
-                    sheet.Column(2).AddConditionalFormat().ColorScale().LowestValue(XLColor.Alizarin)
-                        .HighestValue(XLColor.Blue);
+                    sheet.Column(2).AddConditionalFormat().ColorScale().LowestValue(XlsxColor.Alizarin)
+                        .HighestValue(XlsxColor.Blue);
 
                     wb.SaveAs(output);
                 }
 
-                using (var wb = new XLWorkbook(output))
+                using (var wb = new XlsxWorkbook(output))
                 {
                     var sheet = wb.Worksheets.First();
                     var cf = sheet.ConditionalFormats
                         .OrderBy(x => x.Range.RangeAddress.FirstAddress.ColumnNumber)
                         .ToArray();
                     Assert.AreEqual(2, cf.Length);
-                    Assert.AreEqual(XLConditionalFormatType.ColorScale, cf[0].ConditionalFormatType);
-                    Assert.AreEqual(XLColor.Red, cf[0].Colors[1]);
-                    Assert.AreEqual(XLCFContentType.Minimum, cf[0].ContentTypes[1]);
-                    Assert.AreEqual(XLColor.Green, cf[0].Colors[2]);
-                    Assert.AreEqual(XLCFContentType.Maximum, cf[0].ContentTypes[2]);
-                    Assert.AreEqual(XLConditionalFormatType.ColorScale, cf[1].ConditionalFormatType);
-                    Assert.AreEqual(XLColor.Alizarin, cf[1].Colors[1]);
-                    Assert.AreEqual(XLCFContentType.Minimum, cf[1].ContentTypes[1]);
-                    Assert.AreEqual(XLColor.Blue, cf[1].Colors[2]);
-                    Assert.AreEqual(XLCFContentType.Maximum, cf[1].ContentTypes[2]);
+                    Assert.AreEqual(XlsxConditionalFormatType.ColorScale, cf[0].ConditionalFormatType);
+                    Assert.AreEqual(XlsxColor.Red, cf[0].Colors[1]);
+                    Assert.AreEqual(XlsxCFContentType.Minimum, cf[0].ContentTypes[1]);
+                    Assert.AreEqual(XlsxColor.Green, cf[0].Colors[2]);
+                    Assert.AreEqual(XlsxCFContentType.Maximum, cf[0].ContentTypes[2]);
+                    Assert.AreEqual(XlsxConditionalFormatType.ColorScale, cf[1].ConditionalFormatType);
+                    Assert.AreEqual(XlsxColor.Alizarin, cf[1].Colors[1]);
+                    Assert.AreEqual(XlsxCFContentType.Minimum, cf[1].ContentTypes[1]);
+                    Assert.AreEqual(XlsxColor.Blue, cf[1].Colors[2]);
+                    Assert.AreEqual(XlsxCFContentType.Maximum, cf[1].ContentTypes[2]);
                 }
             }
         }
@@ -593,7 +595,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
 
                     foreach (var cell in numericCells)
                     {
-                        cell.Clear(XLClearOptions.AllFormats);
+                        cell.Clear(XlsxClearOptions.AllFormats);
                         Assert.True(cell.Value.TryConvert(out double val, CultureInfo.CurrentCulture));
                         cell.Value = val;
                     }
@@ -610,7 +612,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         public void CanSaveFileWithEmptyFill()
         {
             using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\EmptyFill.xlsx")))
-            using (var wb = new XLWorkbook(stream))
+            using (var wb = new XlsxWorkbook(stream))
             using (var ms = new MemoryStream())
             {
                 Assert.DoesNotThrow(() => wb.SaveAs(ms, false));
@@ -621,7 +623,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         public void CanSaveSingleRowAutoFilter()
         {
             using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\SingleRowAutoFilter.xlsx")))
-            using (var wb = new XLWorkbook(stream))
+            using (var wb = new XlsxWorkbook(stream))
             using (var ms = new MemoryStream())
             {
                 Assert.DoesNotThrow(() => wb.SaveAs(ms, false));
@@ -633,7 +635,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         {
             TestHelper.CreateAndCompare(() =>
             {
-                var wb = new XLWorkbook();
+                var wb = new XlsxWorkbook();
                 var ws = wb.AddWorksheet();
 
                 var longText = string.Join(" ", Enumerable.Range(0, 40).Select(i => "1234567890"));
@@ -702,7 +704,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         {
             //See #1285
             using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\FileWithButton.xlsm")))
-            using (var wb = new XLWorkbook(stream))
+            using (var wb = new XlsxWorkbook(stream))
             using (var ms = new MemoryStream())
             {
                 Assert.DoesNotThrow(() => wb.SaveAs(ms));
@@ -714,7 +716,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         {
             using var ms = new MemoryStream();
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 wb.AddWorksheet();
                 wb.SaveAs(ms, new SaveOptions { FilterPrivacy = true });
@@ -733,7 +735,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         {
             using var ms = new MemoryStream();
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 wb.AddWorksheet();
                 wb.SaveAs(ms);
@@ -760,7 +762,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         [Test]
         public void CanSaveAsWithDataValidationAfterInsertFirstRowsAboveAndInsertFirstColumnsBefore()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             using (var ms = new MemoryStream())
             {
                 var ws = wb.AddWorksheet("WithDataValidation");
@@ -788,7 +790,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         {
             using var ms = new MemoryStream();
             using var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Other\GoogleSheets\file1.xlsx"));
-            using var wb = new XLWorkbook(stream);
+            using var wb = new XlsxWorkbook(stream);
             var ws = wb.Worksheets.First();
             ws.Cell(1, 1).CreateComment().AddText("Test");
             Assert.DoesNotThrow(() => wb.SaveAs(ms));
@@ -800,7 +802,7 @@ namespace Aid.Xlsx.Tests.Excel.Saving
             var filename = $"test-{Guid.NewGuid()}.xlsx";
             try
             {
-                using var wb = new XLWorkbook();
+                using var wb = new XlsxWorkbook();
                 wb.AddWorksheet().FirstCell().SetValue("Hello, world!");
                 Assert.DoesNotThrow(() => wb.SaveAs(filename));
             }
@@ -854,19 +856,19 @@ namespace Aid.Xlsx.Tests.Excel.Saving
                 var path = TestHelper.GetResourcePath(@"TryToLoad\ValidationWithSheetReference.xlsx");
                 using var stream = TestHelper.GetStreamFromResource(path);
 
-                using var originalWorkbook = new XLWorkbook(stream);
+                using var originalWorkbook = new XlsxWorkbook(stream);
                 Assert.DoesNotThrow(() => originalWorkbook.SaveAs(filename1));
 
-                using var workbook1 = new XLWorkbook(filename1);
+                using var workbook1 = new XlsxWorkbook(filename1);
                 Assert.DoesNotThrow(() => workbook1.SaveAs(filename2));
 
-                using var workbook2 = new XLWorkbook(filename2);
+                using var workbook2 = new XlsxWorkbook(filename2);
                 var ws = workbook2.Worksheet("UI Sheet");
                 var B2 = ws.Cell("B2");
-                Assert.AreEqual(XLAllowedValues.List, B2.GetDataValidation().AllowedValues);
+                Assert.AreEqual(XlsxAllowedValues.List, B2.GetDataValidation().AllowedValues);
                 Assert.AreEqual("$E$1:$E$4", B2.GetDataValidation().Value);
                 var A2 = ws.Cell("A2");
-                Assert.AreEqual(XLAllowedValues.List, A2.GetDataValidation().AllowedValues);
+                Assert.AreEqual(XlsxAllowedValues.List, A2.GetDataValidation().AllowedValues);
                 Assert.AreEqual("ValuesSheet!$A$1:$A$4", A2.GetDataValidation().Value);
             }
             finally

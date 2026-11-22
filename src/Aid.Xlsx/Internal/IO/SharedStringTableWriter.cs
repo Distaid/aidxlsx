@@ -1,29 +1,30 @@
-using System.IO;
 using System.Xml;
-using Aid.Xlsx.Utils;
 using Aid.Xlsx.Extensions;
-using static Aid.Xlsx.XLWorkbook;
+using Aid.Xlsx.Tables;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
 using static Aid.Xlsx.Internal.IO.OpenXmlConst;
+using static Aid.Xlsx.Workbooks.XlsxWorkbook;
 
 namespace Aid.Xlsx.Internal.IO
 {
     internal class SharedStringTableWriter
     {
-        internal static void GenerateSharedStringTablePartContent(XLWorkbook workbook, Stream partStream,
+        internal static void GenerateSharedStringTablePartContent(XlsxWorkbook workbook, Stream partStream,
             SaveContext context)
         {
             // Call all table headers to make sure their names are filled
-            workbook.Worksheets.ForEach(w => w.Tables.ForEach(t => _ = ((XLTable)t).FieldNames.Count));
+            workbook.Worksheets.ForEach(w => w.Tables.ForEach(t => _ = ((XlsxTable)t).FieldNames.Count));
 
             var settings = new XmlWriterSettings
             {
-                Encoding = XLHelper.NoBomUTF8
+                Encoding = XlsxHelper.NoBomUTF8
             };
             using var xml = XmlWriter.Create(partStream, settings);
 
             xml.WriteStartDocument();
 
-            // Due to streaming and XLWorkbook structure, we don't know count before strings are written.
+            // Due to streaming and XlsxWorkbook structure, we don't know count before strings are written.
             // Attributes count and uniqueCount are optional thus are omitted.
             xml.WriteStartElement("x", "sst", Main2006SsNs);
 

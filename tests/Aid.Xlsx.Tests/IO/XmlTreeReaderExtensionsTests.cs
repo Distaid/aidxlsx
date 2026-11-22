@@ -1,8 +1,7 @@
-using NUnit.Framework;
-using System.IO;
 using System.Text;
 using Aid.Xlsx.Internal.IO;
 using Aid.Xlsx.Opc;
+using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.IO;
 

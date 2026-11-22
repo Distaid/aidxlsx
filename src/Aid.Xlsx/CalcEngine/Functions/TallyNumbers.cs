@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace Aid.Xlsx.CalcEngine.Functions;
 
 internal class TallyNumbers : ITally
@@ -45,7 +42,7 @@ internal class TallyNumbers : ITally
     /// The method tries to convert scalar arguments to numbers, but ignores non-numbers in
     /// reference/array. Any error found is propagated to the result.
     /// </summary>
-    public OneOf<T, XLError> Tally<T>(CalcContext ctx, Span<AnyValue> args, T initialState)
+    public OneOf<T, XlsxError> Tally<T>(CalcContext ctx, Span<AnyValue> args, T initialState)
         where T : ITallyState<T>
     {
         var tally = initialState;

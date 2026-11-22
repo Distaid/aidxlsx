@@ -1,6 +1,5 @@
 using Aid.Xlsx.Formulas;
-using System.Collections.Generic;
-using System.Linq;
+using Aid.Xlsx.Utils;
 
 namespace Aid.Xlsx.CalcEngine.Visitors;
 
@@ -18,12 +17,12 @@ internal class RenameRefModVisitor : RefModVisitor
     /// </summary>
     internal IReadOnlyDictionary<string, string?> Sheets
     {
-        init => _sheets = value.ToDictionary(x => x.Key, x => x.Value, XLHelper.SheetComparer);
+        init => _sheets = value.ToDictionary(x => x.Key, x => x.Value, XlsxHelper.SheetComparer);
     }
 
     internal IReadOnlyDictionary<string, string> Tables
     {
-        init => _tables = value.ToDictionary(x => x.Key, x => x.Value, XLHelper.NameComparer);
+        init => _tables = value.ToDictionary(x => x.Key, x => x.Value, XlsxHelper.NameComparer);
     }
 
     protected override string? ModifySheet(ModContext ctx, string sheetName)

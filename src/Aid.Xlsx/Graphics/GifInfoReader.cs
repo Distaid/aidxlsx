@@ -1,8 +1,6 @@
 #nullable disable
 
-using System;
 using System.Drawing;
-using System.IO;
 using Aid.Xlsx.Drawings;
 using Aid.Xlsx.Utils;
 
@@ -30,12 +28,12 @@ namespace Aid.Xlsx.Graphics
             return hasSignature;
         }
 
-        protected override XLPictureInfo ReadInfo(Stream stream)
+        protected override XlsxPictureInfo ReadInfo(Stream stream)
         {
             stream.Position += 6; // header length
             var width = stream.ReadU16LE();
             var height = stream.ReadU16LE();
-            return new XLPictureInfo(XLPictureFormat.Gif, new Size(width, height), Size.Empty);
+            return new XlsxPictureInfo(XlsxPictureFormat.Gif, new Size(width, height), Size.Empty);
         }
     }
 }

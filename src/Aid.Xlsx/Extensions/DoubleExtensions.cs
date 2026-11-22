@@ -1,9 +1,9 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-using System;
+using Aid.Xlsx.Utils;
 
-namespace Aid.Xlsx
+namespace Aid.Xlsx.Extensions
 {
     internal static class DoubleExtensions
     {
@@ -14,7 +14,7 @@ namespace Aid.Xlsx
 
         public static TimeSpan ToSerialTimeSpan(this Double value)
         {
-            return XLHelper.GetTimeSpan(value);
+            return XlsxHelper.GetTimeSpan(value);
         }
 
         public static DateTime ToSerialDateTime(this Double value)

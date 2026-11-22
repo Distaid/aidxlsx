@@ -1,0 +1,92 @@
+#nullable disable
+
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Utils;
+
+namespace Aid.Xlsx.Columns
+{
+    internal class XlsxColumnsCollection : IDictionary<Int32, XlsxColumn>
+    {
+        private readonly Dictionary<Int32, XlsxColumn> _dictionary = new();
+
+        public void ShiftColumnsRight(Int32 startingColumn, Int32 columnsToShift)
+        {
+            foreach (var co in _dictionary.Keys.Where(k => k >= startingColumn).OrderByDescending(k => k))
+            {
+                var columnToMove = _dictionary[co];
+                _dictionary.Remove(co);
+                Int32 newColumnNum = co + columnsToShift;
+                if (newColumnNum <= XlsxHelper.MaxColumnNumber)
+                {
+                    columnToMove.SetColumnNumber(newColumnNum);
+                    _dictionary.Add(newColumnNum, columnToMove);
+                }
+            }
+        }
+
+        public void Add(int key, XlsxColumn value)
+        {
+            _dictionary.Add(key, value);
+        }
+
+        public bool ContainsKey(int key) => _dictionary.ContainsKey(key);
+
+        public ICollection<int> Keys => _dictionary.Keys;
+
+        public bool Remove(int key)
+        {
+            return _dictionary.Remove(key);
+        }
+
+        public bool TryGetValue(int key, out XlsxColumn value)
+        {
+            return _dictionary.TryGetValue(key, out value);
+        }
+
+        public ICollection<XlsxColumn> Values => _dictionary.Values;
+
+        public XlsxColumn this[int key]
+        {
+            get => _dictionary[key];
+            set => _dictionary[key] = value;
+        }
+
+        public void Add(KeyValuePair<int, XlsxColumn> item)
+        {
+            _dictionary.Add(item.Key, item.Value);
+        }
+
+        public void Clear()
+        {
+            _dictionary.Clear();
+        }
+
+        public bool Contains(KeyValuePair<int, XlsxColumn> item)
+        {
+            return _dictionary.Contains(item);
+        }
+
+        public void CopyTo(KeyValuePair<int, XlsxColumn>[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int Count => _dictionary.Count;
+
+        public bool IsReadOnly => false;
+
+        public bool Remove(KeyValuePair<int, XlsxColumn> item)
+        {
+            return _dictionary.Remove(item.Key);
+        }
+
+        public IEnumerator<KeyValuePair<int, XlsxColumn>> GetEnumerator() => _dictionary.GetEnumerator();
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => _dictionary.GetEnumerator();
+
+        public void RemoveAll(Func<XlsxColumn, Boolean> predicate)
+        {
+            _dictionary.RemoveAll(predicate);
+        }
+    }
+}

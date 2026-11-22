@@ -1,6 +1,6 @@
-using Aid.Xlsx;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
-using System.Linq;
 
 namespace Aid.Xlsx.Tests.Excel.Ranges
 {
@@ -10,9 +10,9 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Test]
         public void ConsolidateRangesSameWorksheet()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.Worksheets.Add("Sheet1");
-            var ranges = new XLRanges(wb);
+            var ranges = new XlsxRanges(wb);
             ranges.Add(ws.Range("A1:E3"));
             ranges.Add(ws.Range("A4:B10"));
             ranges.Add(ws.Range("E2:F12"));
@@ -37,9 +37,9 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Test]
         public void ConsolidateWideRangesSameWorksheet()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.Worksheets.Add("Sheet1");
-            var ranges = new XLRanges(wb);
+            var ranges = new XlsxRanges(wb);
             ranges.Add(ws.Row(5));
             ranges.Add(ws.Row(7));
             ranges.Add(ws.Row(6));
@@ -62,10 +62,10 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Test]
         public void ConsolidateRangesDifferentWorksheets()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws1 = wb.Worksheets.Add("Sheet1");
             var ws2 = wb.Worksheets.Add("Sheet2");
-            var ranges = new XLRanges(wb);
+            var ranges = new XlsxRanges(wb);
             ranges.Add(ws1.Range("A1:E3"));
             ranges.Add(ws1.Range("A4:B10"));
             ranges.Add(ws1.Range("E2:F12"));
@@ -91,24 +91,24 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
                 .ToList();
 
             Assert.AreEqual(9, consRanges.Count);
-            Assert.AreEqual("Sheet1!$A$1:$E$9", consRanges[0].RangeAddress.ToStringFixed(XLReferenceStyle.Default, true));
-            Assert.AreEqual("Sheet1!$F$2:$F$12", consRanges[1].RangeAddress.ToStringFixed(XLReferenceStyle.Default, true));
-            Assert.AreEqual("Sheet1!$G$6:$I$9", consRanges[2].RangeAddress.ToStringFixed(XLReferenceStyle.Default, true));
-            Assert.AreEqual("Sheet1!$A$10:$B$10", consRanges[3].RangeAddress.ToStringFixed(XLReferenceStyle.Default, true));
-            Assert.AreEqual("Sheet1!$E$10:$E$12", consRanges[4].RangeAddress.ToStringFixed(XLReferenceStyle.Default, true));
-            Assert.AreEqual("Sheet1!$I$10:$I$13", consRanges[5].RangeAddress.ToStringFixed(XLReferenceStyle.Default, true));
+            Assert.AreEqual("Sheet1!$A$1:$E$9", consRanges[0].RangeAddress.ToStringFixed(XlsxReferenceStyle.Default, true));
+            Assert.AreEqual("Sheet1!$F$2:$F$12", consRanges[1].RangeAddress.ToStringFixed(XlsxReferenceStyle.Default, true));
+            Assert.AreEqual("Sheet1!$G$6:$I$9", consRanges[2].RangeAddress.ToStringFixed(XlsxReferenceStyle.Default, true));
+            Assert.AreEqual("Sheet1!$A$10:$B$10", consRanges[3].RangeAddress.ToStringFixed(XlsxReferenceStyle.Default, true));
+            Assert.AreEqual("Sheet1!$E$10:$E$12", consRanges[4].RangeAddress.ToStringFixed(XlsxReferenceStyle.Default, true));
+            Assert.AreEqual("Sheet1!$I$10:$I$13", consRanges[5].RangeAddress.ToStringFixed(XlsxReferenceStyle.Default, true));
 
-            Assert.AreEqual("Sheet2!$D:$F", consRanges[6].RangeAddress.ToStringFixed(XLReferenceStyle.Default, true));
-            Assert.AreEqual("Sheet2!$A$5:$C$7", consRanges[7].RangeAddress.ToStringFixed(XLReferenceStyle.Default, true));
-            Assert.AreEqual("Sheet2!$G$5:$XFD$7", consRanges[8].RangeAddress.ToStringFixed(XLReferenceStyle.Default, true));
+            Assert.AreEqual("Sheet2!$D:$F", consRanges[6].RangeAddress.ToStringFixed(XlsxReferenceStyle.Default, true));
+            Assert.AreEqual("Sheet2!$A$5:$C$7", consRanges[7].RangeAddress.ToStringFixed(XlsxReferenceStyle.Default, true));
+            Assert.AreEqual("Sheet2!$G$5:$XFD$7", consRanges[8].RangeAddress.ToStringFixed(XlsxReferenceStyle.Default, true));
         }
 
         [Test]
         public void ConsolidateSparsedRanges()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.Worksheets.Add("Sheet1");
-            var ranges = new XLRanges(wb);
+            var ranges = new XlsxRanges(wb);
             ranges.Add(ws.Range("A1:C1"));
             ranges.Add(ws.Range("E1:G1"));
             ranges.Add(ws.Range("A3:C3"));

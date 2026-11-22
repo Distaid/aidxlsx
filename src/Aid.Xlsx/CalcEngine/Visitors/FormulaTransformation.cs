@@ -1,16 +1,16 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
+using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Formulas;
+using Aid.Xlsx.Utils;
 
 namespace Aid.Xlsx.CalcEngine.Visitors;
 
 internal static class FormulaTransformation
 {
-    private static readonly Lazy<PrefixTree> FutureFunctionSet = new(() => PrefixTree.Build(XLConstants.FutureFunctionMap.Value.Keys));
+    private static readonly Lazy<PrefixTree> FutureFunctionSet = new(() => PrefixTree.Build(XlsxConstants.FutureFunctionMap.Value.Keys));
 
-    private static readonly RenameFunctionsVisitor RemapFutureFunctions = new(XLConstants.FutureFunctionMap);
+    private static readonly RenameFunctionsVisitor RemapFutureFunctions = new(XlsxConstants.FutureFunctionMap);
 
     /// <summary>
     /// Add necessary prefixes to a user-supplied future functions without a prefix (e.g.

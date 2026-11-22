@@ -1,7 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.DefinedNames;
 using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Worksheets;
 
 namespace Aid.Xlsx.CalcEngine
 {
@@ -95,7 +96,7 @@ namespace Aid.Xlsx.CalcEngine
                     // e.g. `IF(G4,Sheet1!A1,Sheet2!A2):IF(H3,Sheet2!C4,Sheet1!C5)`
                     // that creates a valid range.
                     var sheetGroups = leftAreas.Concat(rightAreas)
-                        .GroupBy(area => area.Name, XLHelper.SheetComparer);
+                        .GroupBy(area => area.Name, XlsxHelper.SheetComparer);
 
                     // There is no simple way to go through all paths, so try to find
                     // largest possible ranges that could be the result. For normal
@@ -167,7 +168,7 @@ namespace Aid.Xlsx.CalcEngine
             // However, OFFSET and INDIRECT are volatile function that always have to be
             // recalculated (=are always marked dirty).
 
-            if (XLHelper.FunctionComparer.Equals(node.Name, "IF"))
+            if (XlsxHelper.FunctionComparer.Equals(node.Name, "IF"))
             {
                 // Tested value is not propagated, it's evaluated as an argument
                 var testReference = node.Parameters[0].Accept(context, this);
@@ -190,7 +191,7 @@ namespace Aid.Xlsx.CalcEngine
                 return valueIfFalseReference ?? valueIfTrueReference;
             }
 
-            if (XLHelper.FunctionComparer.Equals(node.Name, "INDEX"))
+            if (XlsxHelper.FunctionComparer.Equals(node.Name, "INDEX"))
             {
                 // Add argument references, INDEX can have 2 or 3 arguments
                 for (var i = 1; i < node.Parameters.Count; ++i)
@@ -207,7 +208,7 @@ namespace Aid.Xlsx.CalcEngine
                 return arrayReference;
             }
 
-            if (XLHelper.FunctionComparer.Equals(node.Name, "CHOOSE"))
+            if (XlsxHelper.FunctionComparer.Equals(node.Name, "CHOOSE"))
             {
                 // Index argument is used to select value, so don't propagate
                 var indexReference = node.Parameters[0].Accept(context, this);
@@ -282,13 +283,13 @@ namespace Aid.Xlsx.CalcEngine
                 return null;
 
             var name = node.Prefix?.Sheet is { } sheetName
-                ? new XLName(sheetName, node.Name)
-                : new XLName(node.Name);
+                ? new XlsxName(sheetName, node.Name)
+                : new XlsxName(node.Name);
             context.AddName(name);
 
             // First, try to interpret name as a sheet scoped name.
             sheetName = node.Prefix?.Sheet ?? context.FormulaArea.Name;
-            if (context.Workbook.TryGetWorksheet(sheetName, out XLWorksheet sheet) &&
+            if (context.Workbook.TryGetWorksheet(sheetName, out XlsxWorksheet sheet) &&
                 sheet.DefinedNames.TryGetScopedValue(node.Name, out var sheetDefinedName))
             {
                 return VisitName(sheetDefinedName);
@@ -303,7 +304,7 @@ namespace Aid.Xlsx.CalcEngine
             // Name is not found in the workbook
             return null;
 
-            List<SheetArea>? VisitName(XLDefinedName definedName)
+            List<SheetArea>? VisitName(XlsxDefinedName definedName)
             {
                 // The named range is stored as A1 and thus parsed as A1, but should be interpreted as R1C1
                 var namedFormula = definedName.RefersTo;

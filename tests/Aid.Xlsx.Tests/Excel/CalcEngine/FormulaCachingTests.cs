@@ -1,7 +1,6 @@
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
-using System;
-using System.Linq;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine
 {
@@ -11,7 +10,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void StaticCellDoesNotNeedRecalculation()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var sheet = wb.Worksheets.Add("TestSheet");
                 var cell = sheet.Cell(1, 1);
@@ -24,7 +23,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void EditCellInvalidatesDependentCells()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var sheet = wb.Worksheets.Add("TestSheet");
                 var cell = sheet.Cell(1, 1);
@@ -41,7 +40,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void EditFormulaA1InvalidatesDependentCells()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var sheet = wb.Worksheets.Add("TestSheet");
                 var a1 = sheet.Cell("A1");
@@ -65,7 +64,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void EditFormulaR1C1InvalidatesDependentCells()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var sheet = wb.Worksheets.Add("TestSheet");
                 var a1 = sheet.Cell("A1");
@@ -89,7 +88,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void InsertRowInvalidatesValues()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var sheet = wb.Worksheets.Add("TestSheet");
                 var a4 = sheet.Cell("A4");
@@ -106,7 +105,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void DeleteRowModifiesFormulaAndInvalidatesValues()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var sheet = wb.Worksheets.Add("TestSheet");
                 var original = sheet.Cell("A4");
@@ -125,7 +124,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void ChainedCalculationPreservesIntermediateValues()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var sheet = wb.Worksheets.Add("TestSheet");
                 var a1 = sheet.Cell("A1");
@@ -152,7 +151,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void EditingAffectsDependentCells()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var sheet = wb.Worksheets.Add("TestSheet");
                 var a1 = sheet.Cell("A1");
@@ -181,7 +180,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("C2", new string[] { "C5" })]
         public void EditingDoesNotAffectNonDependingCells(string changedCell, string[] affectedCells)
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var sheet = wb.Worksheets.Add("TestSheet");
                 sheet.Cell("A2").FormulaA1 = "A1+1";
@@ -212,7 +211,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void CircularReferenceFailsCalculating()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var sheet = wb.Worksheets.Add("TestSheet");
                 var a1 = sheet.Cell("A1");
@@ -240,7 +239,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void CircularReferenceRecalculationNeededDoesNotFail()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var sheet = wb.Worksheets.Add("TestSheet");
                 var a1 = sheet.Cell("A1");
@@ -269,7 +268,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void DeleteWorksheetInvalidatesValues()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var sheet1 = wb.Worksheets.Add("Sheet1");
                 var sheet2 = wb.Worksheets.Add("Sheet2");
@@ -283,7 +282,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
                 var valueAfterDeletion = sheet1_a1.Value;
 
                 Assert.AreEqual("TestValue", valueBeforeDeletion);
-                Assert.AreEqual(XLError.CellReference, valueAfterDeletion);
+                Assert.AreEqual(XlsxError.CellReference, valueAfterDeletion);
             }
         }
 
@@ -291,7 +290,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         public void CachedValueToExternalWorkbook()
         {
             using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Other\ExternalLinks\WorkbookWithExternalLink.xlsx")))
-            using (var wb = new XLWorkbook(stream))
+            using (var wb = new XlsxWorkbook(stream))
             {
                 var ws = wb.Worksheets.First();
                 var cell = ws.Cell("B2");
@@ -313,7 +312,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void ChangingValueChangesCachedValue()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Test");
                 var cell = ws.Cell(1, 1);

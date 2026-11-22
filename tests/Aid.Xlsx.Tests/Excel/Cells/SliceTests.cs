@@ -1,4 +1,6 @@
-using Aid.Xlsx;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Utils;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.Cells
@@ -145,7 +147,7 @@ namespace Aid.Xlsx.Tests.Excel.Cells
             var slice = new Slice<int>();
             slice.Set(1, 1, 1);
             slice.Set(3, 1, 2);
-            var purgedAddress = new Point(XLHelper.MaxRowNumber, 2);
+            var purgedAddress = new Point(XlsxHelper.MaxRowNumber, 2);
             slice.Set(purgedAddress, 3);
 
             var outsideAddress = new Point(1, 3);
@@ -155,7 +157,7 @@ namespace Aid.Xlsx.Tests.Excel.Cells
 
             Assert.AreEqual(1, slice[3, 1]);
             Assert.AreEqual(2, slice[5, 1]);
-            Assert.AreEqual(0, slice[XLHelper.MaxRowNumber, 2]);
+            Assert.AreEqual(0, slice[XlsxHelper.MaxRowNumber, 2]);
             Assert.AreEqual(4, slice[outsideAddress]);
         }
 
@@ -165,7 +167,7 @@ namespace Aid.Xlsx.Tests.Excel.Cells
             var slice = new Slice<int>();
             slice.Set(1, 1, 1);
             slice.Set(1, 3, 2);
-            var purgedAddress = new Point(2, XLHelper.MaxColumnNumber);
+            var purgedAddress = new Point(2, XlsxHelper.MaxColumnNumber);
             slice.Set(purgedAddress, 3);
 
             var outsideAddress = new Point(3, 1);

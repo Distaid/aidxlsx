@@ -1,7 +1,5 @@
-using System;
+using Aid.Xlsx.CalcEngine;
 using NUnit.Framework;
-using System.Linq;
-using Aid.Xlsx;
 
 namespace Aid.Xlsx.Tests.Excel.AutoFilters
 {
@@ -55,7 +53,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
                 .AddTrue(new DateTime(1900, 1, 1)) // Serial date time 1
                 .AddFalse(1.1)
                 .AddFalse(1.2)
-                .AddFalse(XLError.NoValueAvailable, true, false, "-100", "Text", Blank.Value)
+                .AddFalse(XlsxError.NoValueAvailable, true, false, "-100", "Text", Blank.Value)
                 .AssertVisibility();
         }
 
@@ -63,7 +61,7 @@ namespace Aid.Xlsx.Tests.Excel.AutoFilters
         public void All_rows_are_hidden_when_column_has_no_number()
         {
             new AutoFilterTester(f => f.AboveAverage())
-                .AddFalse(Blank.Value, true, false, "-100", "Text", XLError.NoValueAvailable)
+                .AddFalse(Blank.Value, true, false, "-100", "Text", XlsxError.NoValueAvailable)
                 .AssertVisibility();
         }
     }

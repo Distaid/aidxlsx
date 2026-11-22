@@ -1,7 +1,8 @@
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
-using System;
-using System.Threading;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine;
 
@@ -14,7 +15,7 @@ public class FunctionsTests
     {
         Object actual;
 
-        actual = XLWorkbook.EvaluateExpr(@"Asc(""Text"")");
+        actual = XlsxWorkbook.EvaluateExpr(@"Asc(""Text"")");
         Assert.AreEqual("Text", actual);
     }
 
@@ -23,14 +24,14 @@ public class FunctionsTests
     {
         Object actual;
 
-        actual = XLWorkbook.EvaluateExpr(String.Format(@"Clean(""A{0}B"")", Environment.NewLine));
+        actual = XlsxWorkbook.EvaluateExpr(String.Format(@"Clean(""A{0}B"")", Environment.NewLine));
         Assert.AreEqual("AB", actual);
     }
 
     [Test]
     public void Dollar()
     {
-        using var wb = new XLWorkbook();
+        using var wb = new XlsxWorkbook();
         object actual = wb.Evaluate("DOLLAR(12345.123)");
         Assert.AreEqual(TestHelper.CurrencySymbol + "12,345.12", actual);
 
@@ -43,20 +44,20 @@ public class FunctionsTests
     [TestCase("", "", true)]
     public void Exact(string lhs, string rhs, bool result)
     {
-        var actual = XLWorkbook.EvaluateExpr($"EXACT(\"{lhs}\", \"{rhs}\")");
+        var actual = XlsxWorkbook.EvaluateExpr($"EXACT(\"{lhs}\", \"{rhs}\")");
         Assert.AreEqual(result, actual);
     }
 
     [Test]
     public void Exact_converts_values_to_text()
     {
-        Assert.AreEqual(false, XLWorkbook.EvaluateExpr("EXACT(TRUE, \"true\")"));
-        Assert.AreEqual(true, XLWorkbook.EvaluateExpr("EXACT(TRUE, \"TRUE\")"));
-        Assert.AreEqual(true, XLWorkbook.EvaluateExpr("EXACT(1, \"1\")"));
-        Assert.AreEqual(true, XLWorkbook.EvaluateExpr("EXACT(IF(TRUE,), \"\")"));
+        Assert.AreEqual(false, XlsxWorkbook.EvaluateExpr("EXACT(TRUE, \"true\")"));
+        Assert.AreEqual(true, XlsxWorkbook.EvaluateExpr("EXACT(TRUE, \"TRUE\")"));
+        Assert.AreEqual(true, XlsxWorkbook.EvaluateExpr("EXACT(1, \"1\")"));
+        Assert.AreEqual(true, XlsxWorkbook.EvaluateExpr("EXACT(IF(TRUE,), \"\")"));
 
         // Check blank cell
-        using var wb = new XLWorkbook();
+        using var wb = new XlsxWorkbook();
         var ws = wb.AddWorksheet();
         Assert.AreEqual(true, ws.Evaluate("EXACT(A1, \"\")"));
     }
@@ -64,8 +65,8 @@ public class FunctionsTests
     [Test]
     public void Exact_propagates_errors()
     {
-        Assert.AreEqual(XLError.DivisionByZero, XLWorkbook.EvaluateExpr("EXACT(#DIV/0!, \"A\")"));
-        Assert.AreEqual(XLError.DivisionByZero, XLWorkbook.EvaluateExpr("EXACT(\"A\", #DIV/0!)"));
+        Assert.AreEqual(XlsxError.DivisionByZero, XlsxWorkbook.EvaluateExpr("EXACT(#DIV/0!, \"A\")"));
+        Assert.AreEqual(XlsxError.DivisionByZero, XlsxWorkbook.EvaluateExpr("EXACT(\"A\", #DIV/0!)"));
     }
 
     [Test]
@@ -73,23 +74,23 @@ public class FunctionsTests
     {
         Object actual;
 
-        actual = XLWorkbook.EvaluateExpr("Fixed(12345.123)");
+        actual = XlsxWorkbook.EvaluateExpr("Fixed(12345.123)");
         Assert.AreEqual("12,345.12", actual);
 
-        actual = XLWorkbook.EvaluateExpr("Fixed(12345.123, 1)");
+        actual = XlsxWorkbook.EvaluateExpr("Fixed(12345.123, 1)");
         Assert.AreEqual("12,345.1", actual);
 
-        actual = XLWorkbook.EvaluateExpr("Fixed(12345.123, 1, TRUE)");
+        actual = XlsxWorkbook.EvaluateExpr("Fixed(12345.123, 1, TRUE)");
         Assert.AreEqual("12345.1", actual);
     }
 
     [Test]
     public void Formula_from_another_sheet()
     {
-        var wb = new XLWorkbook();
-        IXLWorksheet ws1 = wb.AddWorksheet("ws1");
+        var wb = new XlsxWorkbook();
+        IXlsxWorksheet ws1 = wb.AddWorksheet("ws1");
         ws1.FirstCell().SetValue(1).CellRight().SetFormulaA1("A1 + 1");
-        IXLWorksheet ws2 = wb.AddWorksheet("ws2");
+        IXlsxWorksheet ws2 = wb.AddWorksheet("ws2");
         ws2.FirstCell().SetFormulaA1("ws1!B1 + 1");
         object v = ws2.FirstCell().Value;
         Assert.AreEqual(3.0, v);
@@ -98,8 +99,8 @@ public class FunctionsTests
     [Test]
     public void TextConcat()
     {
-        var wb = new XLWorkbook();
-        IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+        var wb = new XlsxWorkbook();
+        IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
         ws.Cell("A1").Value = 1;
         ws.Cell("A2").Value = 1;
         ws.Cell("B1").Value = 1;
@@ -114,18 +115,18 @@ public class FunctionsTests
     [Test]
     public void Trim()
     {
-        Assert.AreEqual("Test", XLWorkbook.EvaluateExpr("Trim(\"Test    \")"));
+        Assert.AreEqual("Test", XlsxWorkbook.EvaluateExpr("Trim(\"Test    \")"));
 
         //Should not trim non breaking space
         //See http://office.microsoft.com/en-us/excel-help/trim-function-HP010062581.aspx
-        Assert.AreEqual("Test\u00A0", XLWorkbook.EvaluateExpr("Trim(\"Test\u00A0 \")"));
+        Assert.AreEqual("Test\u00A0", XlsxWorkbook.EvaluateExpr("Trim(\"Test\u00A0 \")"));
     }
 
     [Test]
     public void TestEmptyTallyOperations()
     {
         //In these test no values have been set
-        XLWorkbook wb = new XLWorkbook();
+        XlsxWorkbook wb = new XlsxWorkbook();
         wb.Worksheets.Add("TallyTests");
         var cell = wb.Worksheet(1).Cell(1, 1).SetFormulaA1("=MAX(D1,D2)");
         Assert.AreEqual(0, cell.Value);
@@ -138,7 +139,7 @@ public class FunctionsTests
     [Test]
     public void TestOmittedParameters()
     {
-        using (var wb = new XLWorkbook())
+        using (var wb = new XlsxWorkbook())
         {
             object value;
             value = wb.Evaluate("=IF(TRUE,1)");
@@ -158,9 +159,9 @@ public class FunctionsTests
     [Test]
     public void TestDefaultExcelFunctionNamespace()
     {
-        Assert.DoesNotThrow(() => XLWorkbook.EvaluateExpr("TODAY()"));
-        Assert.DoesNotThrow(() => XLWorkbook.EvaluateExpr("_xlfn.TODAY()"));
-        Assert.IsTrue((bool)XLWorkbook.EvaluateExpr("_xlfn.TODAY() = TODAY()"));
+        Assert.DoesNotThrow(() => XlsxWorkbook.EvaluateExpr("TODAY()"));
+        Assert.DoesNotThrow(() => XlsxWorkbook.EvaluateExpr("_xlfn.TODAY()"));
+        Assert.IsTrue((bool)XlsxWorkbook.EvaluateExpr("_xlfn.TODAY() = TODAY()"));
     }
 
     [TestCase("=1234%", 12.34)]
@@ -173,9 +174,9 @@ public class FunctionsTests
     [TestCase("=SUM(100,200,300)%", 6.0)]
     public void PercentOperator(string formula, double expectedResult)
     {
-        var res = (double)XLWorkbook.EvaluateExpr(formula);
+        var res = (double)XlsxWorkbook.EvaluateExpr(formula);
 
-        Assert.AreEqual(expectedResult, res, XLHelper.Epsilon);
+        Assert.AreEqual(expectedResult, res, XlsxHelper.Epsilon);
     }
 
     [TestCase("=--1", 1)]
@@ -184,9 +185,9 @@ public class FunctionsTests
     [TestCase("=2^---2", 0.25)]
     public void MultipleUnaryOperators(string formula, double expectedResult)
     {
-        var res = (double)XLWorkbook.EvaluateExpr(formula);
+        var res = (double)XlsxWorkbook.EvaluateExpr(formula);
 
-        Assert.AreEqual(expectedResult, res, XLHelper.Epsilon);
+        Assert.AreEqual(expectedResult, res, XlsxHelper.Epsilon);
     }
 
     [TestCase("RIGHT(\"2020\", 2) + 1", 21)]
@@ -196,7 +197,7 @@ public class FunctionsTests
     [TestCase("\"7\" & \"4\"", "74")]
     public void TestStringSubExpression(string formula, object expectedResult)
     {
-        var actual = XLWorkbook.EvaluateExpr(formula);
+        var actual = XlsxWorkbook.EvaluateExpr(formula);
 
         Assert.AreEqual(expectedResult, actual);
     }
@@ -204,11 +205,11 @@ public class FunctionsTests
     [Test]
     public void Cell_function_is_evaluated_to_reference_error()
     {
-        using var wb = new XLWorkbook();
+        using var wb = new XlsxWorkbook();
         var ws = wb.AddWorksheet();
         ws.Cell("A1").FormulaA1 = "$B$4(5)";
 
-        Assert.AreEqual(XLError.CellReference, ws.Cell("A1").Value);
+        Assert.AreEqual(XlsxError.CellReference, ws.Cell("A1").Value);
     }
 
     [TestCase("BASE(1E15,30)", "MathTrig.Base")]
@@ -283,7 +284,7 @@ public class FunctionsTests
     public void Can_cancel_function_execution(string formula, string expectedStackTrace)
     {
         var cts = new CancellationTokenSource();
-        using var wb = new XLWorkbook(new LoadOptions { CancellationToken = cts.Token });
+        using var wb = new XlsxWorkbook(new LoadOptions { CancellationToken = cts.Token });
         var ws = wb.AddWorksheet();
         ws.Cell("D1").Value = 4; // Need a non-blank cell for COUNTBLANK check
         ws.Cell("A1").FormulaA1 = formula;

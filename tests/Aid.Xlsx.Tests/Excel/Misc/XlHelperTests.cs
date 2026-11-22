@@ -1,7 +1,5 @@
-using Aid.Xlsx;
+using Aid.Xlsx.Utils;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 
 namespace Aid.Xlsx.Tests.Excel
 {
@@ -10,55 +8,55 @@ namespace Aid.Xlsx.Tests.Excel
     {
         private static void CheckColumnNumber(int column)
         {
-            Assert.AreEqual(column, XLHelper.GetColumnNumberFromLetter(XLHelper.GetColumnLetterFromNumber(column)));
+            Assert.AreEqual(column, XlsxHelper.GetColumnNumberFromLetter(XlsxHelper.GetColumnLetterFromNumber(column)));
         }
 
         [Test]
         public void InvalidA1Addresses()
         {
-            Assert.IsFalse(XLHelper.IsValidA1Address(""));
-            Assert.IsFalse(XLHelper.IsValidA1Address("A"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("a"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("1"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("-1"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("AAAA1"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("XFG1"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address(""));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("A"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("a"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("1"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("-1"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("AAAA1"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("XFG1"));
 
-            Assert.IsFalse(XLHelper.IsValidA1Address("@A1"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("@AA1"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("@AAA1"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("[A1"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("[AA1"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("[AAA1"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("{A1"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("{AA1"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("{AAA1"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("@A1"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("@AA1"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("@AAA1"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("[A1"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("[AA1"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("[AAA1"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("{A1"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("{AA1"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("{AAA1"));
 
-            Assert.IsFalse(XLHelper.IsValidA1Address("A1@"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("AA1@"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("AAA1@"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("A1["));
-            Assert.IsFalse(XLHelper.IsValidA1Address("AA1["));
-            Assert.IsFalse(XLHelper.IsValidA1Address("AAA1["));
-            Assert.IsFalse(XLHelper.IsValidA1Address("A1{"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("AA1{"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("AAA1{"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("A1@"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("AA1@"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("AAA1@"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("A1["));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("AA1["));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("AAA1["));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("A1{"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("AA1{"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("AAA1{"));
 
-            Assert.IsFalse(XLHelper.IsValidA1Address("@A1@"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("@AA1@"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("@AAA1@"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("[A1["));
-            Assert.IsFalse(XLHelper.IsValidA1Address("[AA1["));
-            Assert.IsFalse(XLHelper.IsValidA1Address("[AAA1["));
-            Assert.IsFalse(XLHelper.IsValidA1Address("{A1{"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("{AA1{"));
-            Assert.IsFalse(XLHelper.IsValidA1Address("{AAA1{"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("@A1@"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("@AA1@"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("@AAA1@"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("[A1["));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("[AA1["));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("[AAA1["));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("{A1{"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("{AA1{"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("{AAA1{"));
         }
 
         [Test]
         public void PlusAA1_Is_Not_an_address()
         {
-            Assert.IsFalse(XLHelper.IsValidA1Address("+AA1"));
+            Assert.IsFalse(XlsxHelper.IsValidA1Address("+AA1"));
         }
 
         [Test]
@@ -76,38 +74,38 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void ValidA1Addresses()
         {
-            Assert.IsTrue(XLHelper.IsValidA1Address("A1"));
-            Assert.IsTrue(XLHelper.IsValidA1Address("A" + XLHelper.MaxRowNumber));
-            Assert.IsTrue(XLHelper.IsValidA1Address("Z1"));
-            Assert.IsTrue(XLHelper.IsValidA1Address("Z" + XLHelper.MaxRowNumber));
+            Assert.IsTrue(XlsxHelper.IsValidA1Address("A1"));
+            Assert.IsTrue(XlsxHelper.IsValidA1Address("A" + XlsxHelper.MaxRowNumber));
+            Assert.IsTrue(XlsxHelper.IsValidA1Address("Z1"));
+            Assert.IsTrue(XlsxHelper.IsValidA1Address("Z" + XlsxHelper.MaxRowNumber));
 
-            Assert.IsTrue(XLHelper.IsValidA1Address("AA1"));
-            Assert.IsTrue(XLHelper.IsValidA1Address("AA" + XLHelper.MaxRowNumber));
-            Assert.IsTrue(XLHelper.IsValidA1Address("ZZ1"));
-            Assert.IsTrue(XLHelper.IsValidA1Address("ZZ" + XLHelper.MaxRowNumber));
+            Assert.IsTrue(XlsxHelper.IsValidA1Address("AA1"));
+            Assert.IsTrue(XlsxHelper.IsValidA1Address("AA" + XlsxHelper.MaxRowNumber));
+            Assert.IsTrue(XlsxHelper.IsValidA1Address("ZZ1"));
+            Assert.IsTrue(XlsxHelper.IsValidA1Address("ZZ" + XlsxHelper.MaxRowNumber));
 
-            Assert.IsTrue(XLHelper.IsValidA1Address("AAA1"));
-            Assert.IsTrue(XLHelper.IsValidA1Address("AAA" + XLHelper.MaxRowNumber));
-            Assert.IsTrue(XLHelper.IsValidA1Address(XLHelper.MaxColumnLetter + "1"));
-            Assert.IsTrue(XLHelper.IsValidA1Address(XLHelper.MaxColumnLetter + XLHelper.MaxRowNumber));
+            Assert.IsTrue(XlsxHelper.IsValidA1Address("AAA1"));
+            Assert.IsTrue(XlsxHelper.IsValidA1Address("AAA" + XlsxHelper.MaxRowNumber));
+            Assert.IsTrue(XlsxHelper.IsValidA1Address(XlsxHelper.MaxColumnLetter + "1"));
+            Assert.IsTrue(XlsxHelper.IsValidA1Address(XlsxHelper.MaxColumnLetter + XlsxHelper.MaxRowNumber));
         }
 
         [Test]
         public void TestColumnLetterLookup()
         {
             var columnLetters = new List<String>();
-            for (int c = 1; c <= XLHelper.MaxColumnNumber; c++)
+            for (int c = 1; c <= XlsxHelper.MaxColumnNumber; c++)
             {
                 var columnLetter = NaiveGetColumnLetterFromNumber(c);
                 columnLetters.Add(columnLetter);
 
-                Assert.AreEqual(columnLetter, XLHelper.GetColumnLetterFromNumber(c));
+                Assert.AreEqual(columnLetter, XlsxHelper.GetColumnLetterFromNumber(c));
             }
 
             foreach (var cl in columnLetters)
             {
                 var columnNumber = NaiveGetColumnNumberFromLetter(cl);
-                Assert.AreEqual(columnNumber, XLHelper.GetColumnNumberFromLetter(cl));
+                Assert.AreEqual(columnNumber, XlsxHelper.GetColumnNumberFromLetter(cl));
             }
         }
 
@@ -124,7 +122,7 @@ namespace Aid.Xlsx.Tests.Excel
         [TestCase("R[-111]C[-222]")]
         public void ValidRCAddresses(string address)
         {
-            Assert.IsTrue(XLHelper.IsValidRCAddress(address));
+            Assert.IsTrue(XlsxHelper.IsValidRCAddress(address));
         }
 
         [TestCase("RD")]
@@ -134,15 +132,15 @@ namespace Aid.Xlsx.Tests.Excel
         [TestCase("_R111C222")]
         public void InvalidRCAddresses(string address)
         {
-            Assert.IsFalse(XLHelper.IsValidRCAddress(address));
+            Assert.IsFalse(XlsxHelper.IsValidRCAddress(address));
         }
 
-        #region Old XLHelper methods
+        #region Old XlsxHelper methods
 
         private static readonly string[] letters = new[] { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
 
         /// <summary>
-        /// These used to be the methods in XLHelper, but were later changed
+        /// These used to be the methods in XlsxHelper, but were later changed
         /// We now use them as a check against the new methods
         /// Gets the column number of a given column letter.
         /// </summary>
@@ -157,7 +155,7 @@ namespace Aid.Xlsx.Tests.Excel
             //Extra check because we allow users to pass row col positions in as strings
             if (columnLetter[0] <= '9')
             {
-                retVal = Int32.Parse(columnLetter, XLHelper.NumberStyle, XLHelper.ParseCulture);
+                retVal = Int32.Parse(columnLetter, XlsxHelper.NumberStyle, XlsxHelper.ParseCulture);
                 return retVal;
             }
 
@@ -179,7 +177,7 @@ namespace Aid.Xlsx.Tests.Excel
         /// <param name="trimToAllowed">if set to <c>true</c> the column letter will be restricted to the allowed range.</param>
         private static string NaiveGetColumnLetterFromNumber(int columnNumber, bool trimToAllowed = false)
         {
-            if (trimToAllowed) columnNumber = XLHelper.TrimColumnNumber(columnNumber);
+            if (trimToAllowed) columnNumber = XlsxHelper.TrimColumnNumber(columnNumber);
 
             columnNumber--; // Adjust for start on column 1
             if (columnNumber <= 25)
@@ -191,6 +189,6 @@ namespace Aid.Xlsx.Tests.Excel
             return NaiveGetColumnLetterFromNumber(firstPart) + NaiveGetColumnLetterFromNumber(remainder);
         }
 
-        #endregion Old XLHelper methods
+        #endregion Old XlsxHelper methods
     }
 }

@@ -1,13 +1,10 @@
 // Keep this file CodeMaid organised and cleaned
-using Aid.Xlsx.CalcEngine.Functions;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
+using Aid.Xlsx.Utils;
 using static Aid.Xlsx.CalcEngine.Functions.SignatureAdapter;
 
-namespace Aid.Xlsx.CalcEngine
+namespace Aid.Xlsx.CalcEngine.Functions
 {
     internal static class MathTrig
     {
@@ -162,7 +159,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Acos(double number)
         {
             if (Math.Abs(number) > 1)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return Math.Acos(number);
         }
@@ -170,9 +167,9 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Acosh(double number)
         {
             if (number < 1)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
-            return XLMath.ACosh(number);
+            return XlsxMath.ACosh(number);
         }
 
         private static ScalarValue Acot(double angle)
@@ -193,7 +190,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Acoth(double angle)
         {
             if (Math.Abs(angle) < 1)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return 0.5 * Math.Log((angle + 1) / (angle - 1));
         }
@@ -201,7 +198,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Arabic(CalcContext ctx, string input)
         {
             if (input.Length > 255)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             // Check minus sign
             var text = input.AsSpan().Trim();
@@ -214,7 +211,7 @@ namespace Aid.Xlsx.CalcEngine
             {
                 var addSymbol = char.ToUpperInvariant(text[i]);
                 if (!RomanSymbolValues.TryGetValue(addSymbol, out var addValue))
-                    return XLError.IncompatibleValue;
+                    return XlsxError.IncompatibleValue;
 
                 total += addValue;
 
@@ -224,7 +221,7 @@ namespace Aid.Xlsx.CalcEngine
                 {
                     var subtractSymbol = char.ToUpperInvariant(text[i - 1]);
                     if (!RomanSymbolValues.TryGetValue(subtractSymbol, out var subtractValue))
-                        return XLError.IncompatibleValue;
+                        return XlsxError.IncompatibleValue;
 
                     if (subtractValue >= addValue)
                         break;
@@ -235,7 +232,7 @@ namespace Aid.Xlsx.CalcEngine
             }
 
             if (minusSign && total == 0)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return minusSign ? -total : total;
         }
@@ -243,14 +240,14 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Asin(double number)
         {
             if (Math.Abs(number) > 1)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return Math.Asin(number);
         }
 
         private static ScalarValue Asinh(double number)
         {
-            return XLMath.Asinh(number);
+            return XlsxMath.Asinh(number);
         }
 
         private static ScalarValue Atan(double number)
@@ -261,7 +258,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Atan2(CalcContext ctx, double x, double y)
         {
             if (x == 0 && y == 0)
-                return XLError.DivisionByZero;
+                return XlsxError.DivisionByZero;
 
             return Math.Atan2(y, x);
         }
@@ -269,9 +266,9 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Atanh(double number)
         {
             if (Math.Abs(number) >= 1)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
-            return XLMath.ATanh(number);
+            return XlsxMath.ATanh(number);
         }
 
         private static ScalarValue Base(CalcContext ctx, double number, double radix, double minLength)
@@ -280,7 +277,7 @@ namespace Aid.Xlsx.CalcEngine
             radix = Math.Truncate(radix);
             minLength = Math.Truncate(minLength);
             if (number is < 0 or > MaxDoubleInt || radix is < 2 or > 36 || minLength is < 0 or > 255)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             var sb = new StringBuilder();
             while (number > 0)
@@ -304,7 +301,7 @@ namespace Aid.Xlsx.CalcEngine
                 return 0;
 
             if (significance < 0 && number > 0)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (number < 0)
                 return -Math.Ceiling(-number / -significance) * -significance;
@@ -330,7 +327,7 @@ namespace Aid.Xlsx.CalcEngine
 
         private static ScalarValue Combin(CalcContext ctx, double number, double numberChosen)
         {
-            var combinationsResult = XLMath.CombinChecked(ctx, number, numberChosen);
+            var combinationsResult = XlsxMath.CombinChecked(ctx, number, numberChosen);
             if (!combinationsResult.TryPickT0(out var combinations, out var error))
                 return error;
 
@@ -343,19 +340,19 @@ namespace Aid.Xlsx.CalcEngine
             chosen = Math.Truncate(chosen);
 
             if (number < 0)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (chosen < 0)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             var n = number + chosen - 1;
             if (n > int.MaxValue)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             var k = number - 1;
             return chosen == 0 || k == 0
                 ? 1
-                : XLMath.Combin(ctx, n, k);
+                : XlsxMath.Combin(ctx, n, k);
         }
 
         private static ScalarValue Cos(double number)
@@ -367,7 +364,7 @@ namespace Aid.Xlsx.CalcEngine
         {
             var cosh = Math.Cosh(number);
             if (double.IsInfinity(cosh))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return cosh;
         }
@@ -376,7 +373,7 @@ namespace Aid.Xlsx.CalcEngine
         {
             var tan = Math.Tan(angle);
             if (tan == 0)
-                return XLError.DivisionByZero;
+                return XlsxError.DivisionByZero;
 
             return 1 / tan;
         }
@@ -384,7 +381,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Coth(double angle)
         {
             if (angle == 0)
-                return XLError.DivisionByZero;
+                return XlsxError.DivisionByZero;
 
             return 1 / Math.Tanh(angle);
         }
@@ -392,7 +389,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Csc(double angle)
         {
             if (angle == 0)
-                return XLError.DivisionByZero;
+                return XlsxError.DivisionByZero;
 
             return 1 / Math.Sin(angle);
         }
@@ -400,7 +397,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Csch(double angle)
         {
             if (angle == 0)
-                return XLError.DivisionByZero;
+                return XlsxError.DivisionByZero;
 
             return 1 / Math.Sinh(angle);
         }
@@ -409,10 +406,10 @@ namespace Aid.Xlsx.CalcEngine
         {
             radix = Math.Truncate(radix);
             if (radix is < 2 or > 36)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (text.Length > 255)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var result = 0d;
             foreach (var digit in text.AsSpan().TrimStart())
@@ -427,12 +424,12 @@ namespace Aid.Xlsx.CalcEngine
                 };
 
                 if (digitNumber > radix - 1)
-                    return XLError.NumberInvalid;
+                    return XlsxError.NumberInvalid;
 
                 result = result * radix + digitNumber;
 
                 if (double.IsInfinity(result))
-                    return XLError.NumberInvalid;
+                    return XlsxError.NumberInvalid;
             }
 
             return result;
@@ -447,14 +444,14 @@ namespace Aid.Xlsx.CalcEngine
         {
             var num = Math.Ceiling(number);
             var addValue = num >= 0 ? 1 : -1;
-            return XLMath.IsEven(num) ? num : num + addValue;
+            return XlsxMath.IsEven(num) ? num : num + addValue;
         }
 
         private static ScalarValue Exp(double number)
         {
             var exp = Math.Exp(number);
             if (double.IsInfinity(exp))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return exp;
         }
@@ -462,27 +459,27 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Fact(double n)
         {
             if (n is < 0 or >= 171)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
-            return XLMath.Factorial((int)Math.Floor(n));
+            return XlsxMath.Factorial((int)Math.Floor(n));
         }
 
         private static ScalarValue FactDouble(double n)
         {
             var num = Math.Floor(n);
             if (num < -1)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             var fact = 1.0;
 
             if (num > 1)
             {
-                var start = XLMath.IsEven(num) ? 2 : 1;
+                var start = XlsxMath.IsEven(num) ? 2 : 1;
                 for (var i = start; i <= num; i += 2)
                 {
                     fact *= i;
                     if (double.IsInfinity(fact))
-                        return XLError.NumberInvalid;
+                        return XlsxError.NumberInvalid;
                 }
             }
 
@@ -496,10 +493,10 @@ namespace Aid.Xlsx.CalcEngine
                 return 0;
 
             if (number > 0 && significance < 0)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (significance == 0)
-                return XLError.DivisionByZero;
+                return XlsxError.DivisionByZero;
 
             if (significance < 0)
                 return -Math.Floor(-number / -significance) * -significance;
@@ -533,13 +530,13 @@ namespace Aid.Xlsx.CalcEngine
                 {
                     ctx.ThrowIfCancelled();
                     if (scalar.IsLogical)
-                        return XLError.IncompatibleValue;
+                        return XlsxError.IncompatibleValue;
 
                     if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out var error))
                         return error;
 
                     if (number is < 0 or > MaxDoubleInt)
-                        return XLError.NumberInvalid;
+                        return XlsxError.NumberInvalid;
 
                     result = Gcd(number, Math.Truncate(result));
                 }
@@ -558,7 +555,7 @@ namespace Aid.Xlsx.CalcEngine
             return a;
         }
 
-        private static OneOf<double[,], XLError> GetArray(AnyValue value, CalcContext ctx)
+        private static OneOf<double[,], XlsxError> GetArray(AnyValue value, CalcContext ctx)
         {
             if (value.TryPickSingleOrMultiValue(out var scalar, out var array, ctx))
                 array = new ScalarArray(scalar, 1, 1);
@@ -595,13 +592,13 @@ namespace Aid.Xlsx.CalcEngine
                 {
                     ctx.ThrowIfCancelled();
                     if (scalar.IsLogical)
-                        return XLError.IncompatibleValue;
+                        return XlsxError.IncompatibleValue;
 
                     if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out var error))
                         return error;
 
                     if (number is < 0 or > MaxDoubleInt)
-                        return XLError.NumberInvalid;
+                        return XlsxError.NumberInvalid;
 
                     result = Lcm(result, Math.Truncate(number));
                 }
@@ -619,7 +616,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Ln(double x)
         {
             if (x <= 0)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return Math.Log(x);
         }
@@ -627,10 +624,10 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Log(CalcContext ctx, double x, double @base)
         {
             if (x <= 0 || @base <= 0)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
-            if (Math.Abs(@base - 1.0) < XLHelper.Epsilon)
-                return XLError.DivisionByZero;
+            if (Math.Abs(@base - 1.0) < XlsxHelper.Epsilon)
+                return XlsxError.DivisionByZero;
 
             return Math.Log(x, @base);
         }
@@ -638,7 +635,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Log10(double x)
         {
             if (x <= 0)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return Math.Log10(x);
         }
@@ -650,9 +647,9 @@ namespace Aid.Xlsx.CalcEngine
 
             var isSquare = array.GetLength(0) == array.GetLength(1);
             if (!isSquare)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
-            var matrix = new XLMatrix(array, ctx);
+            var matrix = new XlsxMatrix(array, ctx);
             return matrix.Determinant();
         }
 
@@ -663,12 +660,12 @@ namespace Aid.Xlsx.CalcEngine
 
             var isSquare = array.GetLength(0) == array.GetLength(1);
             if (!isSquare)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
-            var matrix = new XLMatrix(array, ctx);
+            var matrix = new XlsxMatrix(array, ctx);
             var inverse = matrix.Invert();
             if (inverse.IsSingular())
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return new NumberArray(inverse.mat);
         }
@@ -682,7 +679,7 @@ namespace Aid.Xlsx.CalcEngine
                 return errorB;
 
             if (matrixA.GetLength(1) != matrixB.GetLength(0))
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var matrixC = ctx.AllocateArray<double>(matrixA.GetLength(0), matrixB.GetLength(1));
             for (var i = 0; i < matrixA.GetLength(0); i++)
@@ -703,7 +700,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Mod(CalcContext ctx, double number, double divisor)
         {
             if (divisor == 0)
-                return XLError.DivisionByZero;
+                return XlsxError.DivisionByZero;
 
             return number - Math.Floor(number / divisor) * divisor;
         }
@@ -717,7 +714,7 @@ namespace Aid.Xlsx.CalcEngine
                 return 0;
 
             if (Math.Sign(number) != Math.Sign(multiple))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return Math.Round(number / multiple, MidpointRounding.AwayFromZero) * multiple;
         }
@@ -732,25 +729,25 @@ namespace Aid.Xlsx.CalcEngine
                 {
                     ctx.ThrowIfCancelled();
                     if (scalar.IsLogical)
-                        return XLError.IncompatibleValue;
+                        return XlsxError.IncompatibleValue;
 
                     if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out var error))
                         return error;
 
                     if (number < 0)
-                        return XLError.NumberInvalid;
+                        return XlsxError.NumberInvalid;
 
                     number = Math.Truncate(number);
                     numbersSum += number;
-                    denominator *= XLMath.Factorial(number);
+                    denominator *= XlsxMath.Factorial(number);
                     if (double.IsInfinity(denominator))
-                        return XLError.NumberInvalid;
+                        return XlsxError.NumberInvalid;
                 }
             }
 
-            var numerator = XLMath.Factorial(numbersSum);
+            var numerator = XlsxMath.Factorial(numbersSum);
             if (double.IsInfinity(numerator))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return numerator / denominator;
         }
@@ -759,7 +756,7 @@ namespace Aid.Xlsx.CalcEngine
         {
             var num = Math.Ceiling(number);
             var addValue = num >= 0 ? 1 : -1;
-            return XLMath.IsOdd(num) ? num : num + addValue;
+            return XlsxMath.IsOdd(num) ? num : num + addValue;
         }
 
         private static ScalarValue Pi()
@@ -772,17 +769,17 @@ namespace Aid.Xlsx.CalcEngine
             // The value of x is negative and y is not a whole number, #NUM! is returned.
             var isPowerFraction = y % 1 != 0;
             if (x < 0 && isPowerFraction)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (x == 0 && y == 0)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (x == 0 && y < 0)
-                return XLError.DivisionByZero;
+                return XlsxError.DivisionByZero;
 
             var power = Math.Pow(x, y);
             if (double.IsInfinity(power) || double.IsNaN(power))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return power;
         }
@@ -804,7 +801,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Quotient(CalcContext ctx, double dividend, double divisor)
         {
             if (divisor == 0)
-                return XLError.DivisionByZero;
+                return XlsxError.DivisionByZero;
 
             return Math.Truncate(dividend / divisor);
         }
@@ -822,7 +819,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue RandBetween(CalcContext ctx, double lowerBound, double upperBound)
         {
             if (lowerBound > upperBound)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             lowerBound = Math.Ceiling(lowerBound);
             upperBound = Math.Ceiling(upperBound);
@@ -837,11 +834,11 @@ namespace Aid.Xlsx.CalcEngine
                 return string.Empty;
 
             if (number is < 0 or > 3999)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var form = (int)Math.Truncate(formValue);
             if (form is < 0 or > 4)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             // The result can have at most 15 chars
             var result = new StringBuilder(15);
@@ -861,7 +858,7 @@ namespace Aid.Xlsx.CalcEngine
 
         private static ScalarValue Round(CalcContext ctx, double value, double digits)
         {
-            return XLMath.Round(value, digits);
+            return XlsxMath.Round(value, digits);
         }
 
         private static ScalarValue RoundDown(CalcContext ctx, double value, double digits)
@@ -904,7 +901,7 @@ namespace Aid.Xlsx.CalcEngine
 
                 total += coef * Math.Pow(input, initial + i * step);
                 if (double.IsInfinity(total))
-                    return XLError.NumberInvalid;
+                    return XlsxError.NumberInvalid;
 
                 i++;
             }
@@ -926,7 +923,7 @@ namespace Aid.Xlsx.CalcEngine
         {
             var sinh = Math.Sinh(number);
             if (double.IsInfinity(sinh))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return sinh;
         }
@@ -934,7 +931,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Sqrt(double number)
         {
             if (number < 0)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return Math.Sqrt(number);
         }
@@ -942,7 +939,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue SqrtPi(double number)
         {
             if (number < 0)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return Math.Sqrt(Math.PI * number);
         }
@@ -957,7 +954,7 @@ namespace Aid.Xlsx.CalcEngine
             };
 
             if (funcNumber < 0)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var args = fnArgs.AsSpan();
             return funcNumber switch
@@ -1039,7 +1036,7 @@ namespace Aid.Xlsx.CalcEngine
                 // from SUMIF where areas can have different size.
                 if (sumArea.RowSpan != selectionArea.RowSpan ||
                     sumArea.ColumnSpan != selectionArea.ColumnSpan)
-                    return XLError.IncompatibleValue;
+                    return XlsxError.IncompatibleValue;
 
                 tally.Add(selectionArea, criteria);
             }
@@ -1050,7 +1047,7 @@ namespace Aid.Xlsx.CalcEngine
         private static AnyValue SumProduct(CalcContext ctx, Array[] areas)
         {
             if (areas.Length < 1)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var width = 0;
             var height = 0;
@@ -1066,14 +1063,14 @@ namespace Aid.Xlsx.CalcEngine
                 if (areaWidth == 1 &&
                     areaHeight == 1 &&
                     area[0, 0].IsBlank)
-                    return XLError.IncompatibleValue;
+                    return XlsxError.IncompatibleValue;
 
                 // If this is the first argument, use it as a baseline width and height
                 if (width == 0) width = areaWidth;
                 if (height == 0) height = areaHeight;
 
                 if (width != areaWidth || height != areaHeight)
-                    return XLError.IncompatibleValue;
+                    return XlsxError.IncompatibleValue;
             }
 
             // Calculate SumProduct
@@ -1119,7 +1116,7 @@ namespace Aid.Xlsx.CalcEngine
             // To ensure consistent behavior for all platforms, respect Excel limit. It's
             // lower than both the .NET Core and the .NET Fx one.
             if (Math.Abs(radians) >= 134217728)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return Math.Tan(radians);
         }

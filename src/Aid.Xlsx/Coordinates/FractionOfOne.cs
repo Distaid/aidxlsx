@@ -1,6 +1,4 @@
-using System;
-
-namespace Aid.Xlsx;
+namespace Aid.Xlsx.Coordinates;
 
 /// <summary>
 /// Represents a percentage position from 0 to 1 represented as a double (=inherently imprecise).

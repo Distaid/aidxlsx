@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace Aid.Xlsx.CalcEngine.Functions;
 
 /// <summary>
@@ -60,7 +57,7 @@ internal class TallyAll : ITally
         _getNonBlankValues = getNonBlankValues ?? (static (ctx, reference) => ctx.GetNonBlankValues(reference));
     }
 
-    public OneOf<T, XLError> Tally<T>(CalcContext ctx, Span<AnyValue> args, T initialState)
+    public OneOf<T, XlsxError> Tally<T>(CalcContext ctx, Span<AnyValue> args, T initialState)
         where T : ITallyState<T>
     {
         var state = initialState;

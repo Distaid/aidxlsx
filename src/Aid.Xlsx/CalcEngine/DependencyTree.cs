@@ -1,6 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using RBush;
 
 namespace Aid.Xlsx.CalcEngine
@@ -33,7 +35,7 @@ namespace Aid.Xlsx.CalcEngine
         /// The source of the truth, a storage of formula dependencies. The dependency tree is
         /// constructed from this collection.
         /// </summary>
-        private readonly Dictionary<XLCellFormula, FormulaDependencies> _dependencies = new();
+        private readonly Dictionary<XlsxCellFormula, FormulaDependencies> _dependencies = new();
 
         /// <summary>
         /// Visitor to extract precedents of formulas.
@@ -43,7 +45,7 @@ namespace Aid.Xlsx.CalcEngine
         /// <summary>
         /// A dependency tree for each sheet (key is sheet name).
         /// </summary>
-        private readonly Dictionary<string, SheetDependencyTree> _sheetTrees = new(XLHelper.SheetComparer);
+        private readonly Dictionary<string, SheetDependencyTree> _sheetTrees = new(XlsxHelper.SheetComparer);
 
         public DependencyTree()
         {
@@ -52,7 +54,7 @@ namespace Aid.Xlsx.CalcEngine
 
         internal bool IsEmpty => _sheetTrees.All(sheetTree => sheetTree.Value.IsEmpty) && _dependencies.Count == 0;
 
-        internal static DependencyTree CreateFrom(XLWorkbook workbook)
+        internal static DependencyTree CreateFrom(XlsxWorkbook workbook)
         {
             var tree = new DependencyTree();
 
@@ -100,7 +102,7 @@ namespace Aid.Xlsx.CalcEngine
         /// <param name="workbook">Workbook that is used to find precedents (names ect.).</param>
         /// <returns>Added cell formula dependencies.</returns>
         /// <exception cref="ArgumentException">Formula already is in the tree.</exception>
-        internal FormulaDependencies AddFormula(SheetArea formulaArea, XLCellFormula formula, XLWorkbook workbook)
+        internal FormulaDependencies AddFormula(SheetArea formulaArea, XlsxCellFormula formula, XlsxWorkbook workbook)
         {
             var precedents = GetFormulaPrecedents(formulaArea, formula, workbook);
 
@@ -126,7 +128,7 @@ namespace Aid.Xlsx.CalcEngine
         /// Remove formula from the dependency tree.
         /// </summary>
         /// <param name="formula">Formula to remove.</param>
-        internal void RemoveFormula(XLCellFormula formula)
+        internal void RemoveFormula(XlsxCellFormula formula)
         {
             if (!_dependencies.TryGetValue(formula, out var dependencies))
                 return;
@@ -141,7 +143,7 @@ namespace Aid.Xlsx.CalcEngine
             }
         }
 
-        internal void AddSheetTree(IXLWorksheet sheet)
+        internal void AddSheetTree(IXlsxWorksheet sheet)
         {
             _sheetTrees.Add(sheet.Name, new SheetDependencyTree());
         }
@@ -188,7 +190,7 @@ namespace Aid.Xlsx.CalcEngine
             }
         }
 
-        private FormulaDependencies GetFormulaPrecedents(SheetArea formulaArea, XLCellFormula formula, XLWorkbook workbook)
+        private FormulaDependencies GetFormulaPrecedents(SheetArea formulaArea, XlsxCellFormula formula, XlsxWorkbook workbook)
         {
             var ast = formula.GetAst(workbook.CalcEngine);
             var context = new DependenciesContext(formulaArea, workbook);
@@ -238,7 +240,7 @@ namespace Aid.Xlsx.CalcEngine
                 _dependents.Add(dependent);
             }
 
-            internal void RemoveDependent(XLCellFormula formula)
+            internal void RemoveDependent(XlsxCellFormula formula)
             {
                 for (var i = 0; i < _dependents.Count; ++i)
                 {
@@ -263,7 +265,7 @@ namespace Aid.Xlsx.CalcEngine
                 for (var i = 0; i < _dependents.Count; ++i)
                 {
                     var dependent = _dependents[i];
-                    if (XLHelper.SheetComparer.Equals(dependent.FormulaArea.Name, oldSheetName))
+                    if (XlsxHelper.SheetComparer.Equals(dependent.FormulaArea.Name, oldSheetName))
                     {
                         var renamedArea = new SheetArea(newSheetName, dependent.FormulaArea.Area);
                         _dependents[i] = new Dependent(renamedArea, dependent.Formula);
@@ -287,7 +289,7 @@ namespace Aid.Xlsx.CalcEngine
             /// </summary>
             internal readonly SheetArea FormulaArea;
 
-            internal Dependent(SheetArea formulaArea, XLCellFormula formula)
+            internal Dependent(SheetArea formulaArea, XlsxCellFormula formula)
             {
                 FormulaArea = formulaArea;
                 Formula = formula;
@@ -296,7 +298,7 @@ namespace Aid.Xlsx.CalcEngine
             /// <summary>
             /// The formula that is affected by changes in precedent area.
             /// </summary>
-            internal XLCellFormula Formula { get; }
+            internal XlsxCellFormula Formula { get; }
 
             internal bool IsDirty => Formula.IsDirty;
 
@@ -354,7 +356,7 @@ namespace Aid.Xlsx.CalcEngine
             /// </summary>
             /// <param name="precedentRange">A precedent area in the sheet.</param>
             /// <param name="formula">Formula depending on the <paramref name="precedentRange"/>.</param>
-            internal void RemoveDependent(Area precedentRange, XLCellFormula formula)
+            internal void RemoveDependent(Area precedentRange, XlsxCellFormula formula)
             {
                 if (!_precedentAreas.TryGetValue(precedentRange, out var precedentArea))
                     return;

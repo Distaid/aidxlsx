@@ -1,12 +1,10 @@
 // Keep this file CodeMaid organised and cleaned
-using Aid.Xlsx.Attributes;
-using Aid.Xlsx.Extensions;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
+using Aid.Xlsx.Attributes;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Extensions;
 
 namespace Aid.Xlsx.InsertData
 {
@@ -20,7 +18,7 @@ namespace Aid.Xlsx.InsertData
         private readonly MemberInfo[] _members;
         private readonly bool[] _staticMembers;
 
-        [RequiresUnreferencedCode("Objects are read as rows with reflection over their public fields and properties. Use a DataTable or explicit XLCellValue rows to stay trim-compatible.")]
+        [RequiresUnreferencedCode("Objects are read as rows with reflection over their public fields and properties. Use a DataTable or explicit XlsxCellValue rows to stay trim-compatible.")]
         public ObjectReader(IEnumerable data)
             : this(data, data.GetItemType()!)
         {
@@ -32,7 +30,7 @@ namespace Aid.Xlsx.InsertData
         /// data by runtime type) where <see cref="EnumerableExtensions.GetItemType"/> would return
         /// <see cref="object"/> instead of the real item type.
         /// </summary>
-        [RequiresUnreferencedCode("Objects are read as rows with reflection over their public fields and properties. Use a DataTable or explicit XLCellValue rows to stay trim-compatible.")]
+        [RequiresUnreferencedCode("Objects are read as rows with reflection over their public fields and properties. Use a DataTable or explicit XlsxCellValue rows to stay trim-compatible.")]
         internal ObjectReader(IEnumerable data, Type itemType)
         {
             _data = data.Cast<object>();
@@ -42,16 +40,16 @@ namespace Aid.Xlsx.InsertData
 
             _members = itemType.GetFields(MemberBindingFlags).Cast<MemberInfo>()
                 .Concat(itemType.GetProperties(MemberBindingFlags).Where(pi => !pi.GetIndexParameters().Any()))
-                .Where(mi => !XLColumnAttribute.IgnoreMember(mi))
-                .OrderBy(XLColumnAttribute.GetOrder)
+                .Where(mi => !XlsxColumnAttribute.IgnoreMember(mi))
+                .OrderBy(XlsxColumnAttribute.GetOrder)
                 .ToArray();
 
             _staticMembers = _members.Select(ReflectionExtensions.IsStatic).ToArray();
         }
 
-        public IEnumerable<IEnumerable<XLCellValue>> GetRecords()
+        public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
         {
-            return _data.Select(item => GetItemData(item).Select(XLCellValue.FromInsertedObject));
+            return _data.Select(item => GetItemData(item).Select(XlsxCellValue.FromInsertedObject));
         }
 
         public int GetPropertiesCount()
@@ -68,7 +66,7 @@ namespace Aid.Xlsx.InsertData
                 throw new ArgumentOutOfRangeException($"{propertyIndex} exceeds the number of the object properties");
 
             var memberInfo = _members[propertyIndex];
-            var fieldName = XLColumnAttribute.GetHeader(memberInfo);
+            var fieldName = XlsxColumnAttribute.GetHeader(memberInfo);
             if (String.IsNullOrWhiteSpace(fieldName))
                 fieldName = memberInfo.Name;
 

@@ -1,11 +1,9 @@
-using Aid.Xlsx;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading;
+using Aid.Xlsx.AutoFilters;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Tables;
+using Aid.Xlsx.Workbooks;
+using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests
 {
@@ -15,7 +13,7 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void AutoFilterExpandsWithTable()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.Worksheets.Add("Sheet1");
 
@@ -23,7 +21,7 @@ namespace Aid.Xlsx.Tests
                     .CellBelow().SetValue("1")
                     .CellBelow().SetValue("2");
 
-                IXLTable table = ws.RangeUsed().CreateTable();
+                IXlsxTable table = ws.RangeUsed().CreateTable();
 
                 var listOfArr = new List<Int32>();
                 listOfArr.Add(3);
@@ -42,7 +40,7 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void AutoFilterSortWhenNotInFirstRow()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.Worksheets.Add("Sheet1");
 
@@ -58,7 +56,7 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void CanClearAutoFilter()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws = wb.Worksheets.Add("AutoFilter");
             ws.Cell("A1").Value = "Names";
             ws.Cell("A2").Value = "John";
@@ -78,7 +76,7 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void CanClearAutoFilter2()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.Worksheets.Add("AutoFilter");
                 ws.Cell("A1").Value = "Names";
@@ -103,8 +101,8 @@ namespace Aid.Xlsx.Tests
             using (var ms1 = new MemoryStream())
             using (var ms2 = new MemoryStream())
             {
-                using (var wb1 = new XLWorkbook())
-                using (var wb2 = new XLWorkbook())
+                using (var wb1 = new XlsxWorkbook())
+                using (var wb2 = new XlsxWorkbook())
                 {
                     var ws = wb1.Worksheets.Add("AutoFilter");
                     ws.Cell("A1").Value = "Names";
@@ -120,7 +118,7 @@ namespace Aid.Xlsx.Tests
                     wb2.SaveAs(ms2);
                 }
 
-                using (var wb2 = new XLWorkbook(ms2))
+                using (var wb2 = new XlsxWorkbook(ms2))
                 {
                     Assert.IsTrue(wb2.Worksheets.First().AutoFilter.IsEnabled);
                 }
@@ -130,7 +128,7 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void CannotAddAutoFilterOverExistingTable()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
 
             var data = Enumerable.Range(1, 10).Select(i => new
             {
@@ -153,7 +151,7 @@ namespace Aid.Xlsx.Tests
             //Arrange
             using (var ms1 = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var ws = wb.Worksheets.Add("AutoFilter");
                     ws.Cell("A1").Value = "Ids";
@@ -178,7 +176,7 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void AutoFilterVisibleRows()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.Worksheets.Add("Sheet1");
 
@@ -202,7 +200,7 @@ namespace Aid.Xlsx.Tests
         [Test]
         public void ReapplyAutoFilter()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.Worksheets.Add("Sheet1");
 
@@ -249,13 +247,13 @@ namespace Aid.Xlsx.Tests
                 Thread.CurrentThread.CurrentCulture = culture;
 
                 using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Other\AutoFilter\AutoFilterWithThousandsSeparator.xlsx")))
-                using (var wb = new XLWorkbook(stream))
+                using (var wb = new XlsxWorkbook(stream))
                 {
                     var ws = wb.Worksheets.First();
 
-                    // Regular filter compares values as strings, doesn't convert to XLCellValue,
+                    // Regular filter compares values as strings, doesn't convert to XlsxCellValue,
                     // so the value is read from the file as a text despite looking like a number.
-                    Assert.AreEqual("10 000.00", ((XLAutoFilter)ws.AutoFilter).Column(1).Single().Value);
+                    Assert.AreEqual("10 000.00", ((XlsxAutoFilter)ws.AutoFilter).Column(1).Single().Value);
                     Assert.AreEqual(2, ws.AutoFilter.VisibleRows.Count());
 
                     ws.AutoFilter.Reapply();
@@ -265,10 +263,10 @@ namespace Aid.Xlsx.Tests
                 Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-US");
 
                 using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Other\AutoFilter\AutoFilterWithThousandsSeparator.xlsx")))
-                using (var wb = new XLWorkbook(stream))
+                using (var wb = new XlsxWorkbook(stream))
                 {
                     var ws = wb.Worksheets.First();
-                    Assert.AreEqual("10 000.00", ((XLAutoFilter)ws.AutoFilter).Column(1).Single().Value);
+                    Assert.AreEqual("10 000.00", ((XlsxAutoFilter)ws.AutoFilter).Column(1).Single().Value);
 
                     var v = ws.AutoFilter.VisibleRows.Select(r => r.FirstCell().Value).ToList();
                     Assert.AreEqual(2, ws.AutoFilter.VisibleRows.Count());
@@ -288,7 +286,7 @@ namespace Aid.Xlsx.Tests
         {
             using (var ms = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var ws = wb.Worksheets.Add("Test");
                     ws.Cell(1, 1).SetValue("StringCol");
@@ -308,7 +306,7 @@ namespace Aid.Xlsx.Tests
                 }
 
                 ms.Position = 0;
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var ws = wb.Worksheets.Worksheet("Test");
                     var autoFilter = ws.AutoFilter;
@@ -328,7 +326,7 @@ namespace Aid.Xlsx.Tests
         {
             using (var ms = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var ws = wb.Worksheets.Add("Test");
                     ws.Cell(1, 1).SetValue("StringCol");
@@ -363,7 +361,7 @@ namespace Aid.Xlsx.Tests
                 }
 
                 ms.Position = 0;
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var ws = wb.Worksheets.Worksheet("Test");
                     var autoFilter = ws.AutoFilter;

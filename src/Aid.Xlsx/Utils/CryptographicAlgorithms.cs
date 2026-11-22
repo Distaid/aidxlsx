@@ -1,11 +1,9 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-using System;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using static Aid.Xlsx.XLProtectionAlgorithm;
+using static Aid.Xlsx.Protection.XlsxProtectionAlgorithm;
 
 namespace Aid.Xlsx.Utils
 {

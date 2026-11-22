@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
-using Aid.Xlsx.CalcEngine.Functions;
+using Aid.Xlsx.Utils;
 using ExcelNumberFormat;
 using static Aid.Xlsx.CalcEngine.Functions.SignatureAdapter;
 
-namespace Aid.Xlsx.CalcEngine
+namespace Aid.Xlsx.CalcEngine.Functions
 {
     internal static class Text
     {
@@ -131,7 +128,7 @@ namespace Aid.Xlsx.CalcEngine
         {
             number = Math.Truncate(number);
             if (number is < 1 or > 255)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             // Spec says to interpret numbers as values encoded in iso-8859-1. The actual
             // encoding depends on authoring language, e.g. JP uses JIS X 0201. Fun fact,
@@ -170,7 +167,7 @@ namespace Aid.Xlsx.CalcEngine
         {
             // CODE should be an inverse function to CHAR
             if (text.Length == 0)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             if (!Windows1252Code.Value.TryGetValue(text[0], out var code))
                 return Windows1252Code.Value['?'];
@@ -191,7 +188,7 @@ namespace Aid.Xlsx.CalcEngine
 
                     sb.Append(text);
                     if (sb.Length > 32767)
-                        return XLError.IncompatibleValue;
+                        return XlsxError.IncompatibleValue;
                 }
             }
 
@@ -207,7 +204,7 @@ namespace Aid.Xlsx.CalcEngine
                 ctx.ThrowIfCancelled();
                 sb.Append(text);
                 if (sb.Length > 32767)
-                    return XLError.IncompatibleValue;
+                    return XlsxError.IncompatibleValue;
             }
 
             return sb.ToString();
@@ -217,12 +214,12 @@ namespace Aid.Xlsx.CalcEngine
         {
             var startIndex = startNum.TryPickT0(out var startNumber, out _) ? (int)Math.Truncate(startNumber) - 1 : 0;
             if (startIndex < 0 || startIndex > withinText.Length)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var text = withinText.AsSpan(startIndex);
             var index = text.IndexOf(findText.AsSpan());
             return index == -1
-                ? XLError.IncompatibleValue
+                ? XlsxError.IncompatibleValue
                 : index + startIndex + 1;
         }
 
@@ -233,7 +230,7 @@ namespace Aid.Xlsx.CalcEngine
             // Excel allows up to 127 decimal digits. The .NET Core 8+ allows it, but older Core and
             // Fx are more limited. To keep code sane, use 99, so N99 formatting string works everywhere.
             if (numDecimals > 99)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var culture = ctx.Culture;
             if (suppressComma)
@@ -242,7 +239,7 @@ namespace Aid.Xlsx.CalcEngine
                 culture.NumberFormat.NumberGroupSeparator = string.Empty;
             }
 
-            var rounded = XLMath.Round(number, numDecimals);
+            var rounded = XlsxMath.Round(number, numDecimals);
 
             // Number rounded to tens, hundreds... should be displayed without any decimal places
             var digits = Math.Max(numDecimals, 0);
@@ -252,7 +249,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Left(CalcContext ctx, string text, double numChars)
         {
             if (numChars < 0)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             numChars = Math.Truncate(numChars);
             if (numChars >= text.Length)
@@ -316,7 +313,7 @@ namespace Aid.Xlsx.CalcEngine
             // Unlike LEFT, MID uses code units and even cuts off half of surrogates,
             // e.g. LEN(MID("😊😊",1,3)) = 3. Also, spec has parameters at wrong places.
             if (startPos is < 1 or >= int.MaxValue + 1d || numChars is < 0 or >= int.MaxValue + 1d)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var start = checked((int)Math.Truncate(startPos)) - 1;
             var length = checked((int)Math.Truncate(numChars));
@@ -352,11 +349,11 @@ namespace Aid.Xlsx.CalcEngine
 
         private static ScalarValue Replace(CalcContext ctx, string oldText, double startPos, double numChars, string replacement)
         {
-            if (startPos is < 1 or >= XLHelper.CellTextLimit + 1)
-                return XLError.IncompatibleValue;
+            if (startPos is < 1 or >= XlsxHelper.CellTextLimit + 1)
+                return XlsxError.IncompatibleValue;
 
-            if (numChars is < 0 or >= XLHelper.CellTextLimit + 1)
-                return XLError.IncompatibleValue;
+            if (numChars is < 0 or >= XlsxHelper.CellTextLimit + 1)
+                return XlsxError.IncompatibleValue;
 
             var prefixLength = checked((int)startPos) - 1;
             if (prefixLength > oldText.Length)
@@ -367,8 +364,8 @@ namespace Aid.Xlsx.CalcEngine
                 deletedLength = oldText.Length - prefixLength;
 
             var resultLength = (long)oldText.Length - deletedLength + replacement.Length;
-            if (resultLength > XLHelper.CellTextLimit)
-                return XLError.IncompatibleValue;
+            if (resultLength > XlsxHelper.CellTextLimit)
+                return XlsxError.IncompatibleValue;
 
             // Excel does everything is in code units, produces invalid surrogate pairs and everything.
             var sb = new StringBuilder((int)resultLength);
@@ -383,7 +380,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Rept(CalcContext ctx, string text, double replicationCount)
         {
             if (replicationCount is < 0 or >= int.MaxValue + 1d)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             // If text is empty, loop could run too many times
             if (text.Length == 0)
@@ -391,8 +388,8 @@ namespace Aid.Xlsx.CalcEngine
 
             var count = checked((int)replicationCount);
             var resultLength = (long)text.Length * count;
-            if (resultLength > XLHelper.CellTextLimit)
-                return XLError.IncompatibleValue;
+            if (resultLength > XlsxHelper.CellTextLimit)
+                return XlsxError.IncompatibleValue;
 
             var sb = new StringBuilder((int)resultLength);
             for (var i = 0; i < count; ++i)
@@ -408,7 +405,7 @@ namespace Aid.Xlsx.CalcEngine
         {
             // Unlike MID, RIGHT uses codepoint semantic
             if (numChars < 0)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             numChars = Math.Truncate(numChars);
             if (numChars >= text.Length)
@@ -428,18 +425,18 @@ namespace Aid.Xlsx.CalcEngine
         private static AnyValue Search(CalcContext ctx, String findText, String withinText, OneOf<double, Blank> startNum)
         {
             if (withinText.Length == 0)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var startIndex = startNum.TryPickT0(out var startNumber, out _) ? (int)Math.Truncate(startNumber) : 1;
             startIndex -= 1;
             if (startIndex < 0 || startIndex >= withinText.Length)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var wildcard = new Wildcard(findText);
             ReadOnlySpan<char> text = withinText.AsSpan().Slice(startIndex);
             var firstIdx = wildcard.Search(text);
             if (firstIdx < 0)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             return firstIdx + startIndex + 1;
         }
@@ -448,15 +445,15 @@ namespace Aid.Xlsx.CalcEngine
         {
             // Replace is case sensitive
             if (occurrenceOrMissing is < 1 or >= 2147483647)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             if (text.Length == 0 || oldText.Length == 0)
                 return text;
 
             if (occurrenceOrMissing is null)
             {
-                if (SubstituteLength(text, oldText, newText) > XLHelper.CellTextLimit)
-                    return XLError.IncompatibleValue;
+                if (SubstituteLength(text, oldText, newText) > XlsxHelper.CellTextLimit)
+                    return XlsxError.IncompatibleValue;
 
                 return text.Replace(oldText, newText);
             }
@@ -473,8 +470,8 @@ namespace Aid.Xlsx.CalcEngine
 
             var textSpan = text.AsSpan();
             var resultLength = (long)text.Length - oldText.Length + newText.Length;
-            if (resultLength > XLHelper.CellTextLimit)
-                return XLError.IncompatibleValue;
+            if (resultLength > XlsxHelper.CellTextLimit)
+                return XlsxError.IncompatibleValue;
 
             var sb = new StringBuilder((int)resultLength);
             sb.Append(textSpan[..pos]);
@@ -565,7 +562,7 @@ namespace Aid.Xlsx.CalcEngine
             // Values formated as date/time must be in the limit for dates
             var isDateFormat = nf.IsDateTimeFormat || nf.IsTimeSpanFormat;
             if (isDateFormat && number < 0 || number >= ctx.DateSystemUpperLimit)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             try
             {
@@ -573,7 +570,7 @@ namespace Aid.Xlsx.CalcEngine
             }
             catch
             {
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
             }
         }
 
@@ -606,8 +603,8 @@ namespace Aid.Xlsx.CalcEngine
                         sb.Append(delimiter).Append(text);
                     }
 
-                    if (sb.Length > XLHelper.CellTextLimit)
-                        return XLError.IncompatibleValue;
+                    if (sb.Length > XlsxHelper.CellTextLimit)
+                        return XlsxError.IncompatibleValue;
                 }
             }
 
@@ -682,16 +679,16 @@ namespace Aid.Xlsx.CalcEngine
             if (DateTime.TryParseExact(text, dateTimeFormats, ctx.Culture, dateTimeStyle, out var parsedDate))
                 return parsedDate.ToOADate();
 
-            return XLError.IncompatibleValue;
+            return XlsxError.IncompatibleValue;
         }
 
         private static ScalarValue NumberValue(CalcContext ctx, string text, string decimalSeparator, string groupSeparator)
         {
             if (decimalSeparator.Length == 0)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             if (groupSeparator.Length == 0)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             if (text.Length == 0)
                 return 0;
@@ -699,11 +696,11 @@ namespace Aid.Xlsx.CalcEngine
             var decimalSep = decimalSeparator[0];
             var groupSep = groupSeparator[0];
             if (decimalSep == groupSep)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             // Protect against taking up too much stack in stackalloc
             if (text.Length >= 256)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             // Process by ODF specification. Add one character for optional 0 before decimal.
             Span<char> textSpan = stackalloc char[text.Length + 1];
@@ -746,20 +743,20 @@ namespace Aid.Xlsx.CalcEngine
             }
 
             if (!double.TryParse(textSpan.ToString(), NumberStyles.Float | NumberStyles.AllowParentheses, CultureInfo.InvariantCulture, out var number))
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             // Too large exponent can return infinity
             if (double.IsInfinity(number))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             for (var i = 0; i < percentCount; ++i)
                 number /= 100.0;
 
             if (number is <= -1e308 or >= 1e308)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             if (number is >= -1e-309 and <= 1e-309 && number != 0)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             if (number is >= -1e-308 and <= 1e-308)
                 number = 0d;
@@ -772,7 +769,7 @@ namespace Aid.Xlsx.CalcEngine
             // Excel has limit of 127 decimal places, but C# has limit of 99.
             decimals = Math.Truncate(decimals);
             if (decimals > 99)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             if (decimals >= 0)
                 return number.ToString("C" + decimals, ctx.Culture);

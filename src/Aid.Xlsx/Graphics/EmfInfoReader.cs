@@ -1,7 +1,6 @@
 #nullable disable
 
 using System.Drawing;
-using System.IO;
 using Aid.Xlsx.Drawings;
 using Aid.Xlsx.Utils;
 
@@ -27,11 +26,11 @@ namespace Aid.Xlsx.Graphics
             return true;
         }
 
-        protected override XLPictureInfo ReadInfo(Stream stream)
+        protected override XlsxPictureInfo ReadInfo(Stream stream)
         {
             stream.Position += 24;
             var frame = ReadRectL(stream);
-            return new XLPictureInfo(XLPictureFormat.Emf, Size.Empty, frame.Size);
+            return new XlsxPictureInfo(XlsxPictureFormat.Emf, Size.Empty, frame.Size);
         }
 
         private static Rectangle ReadRectL(Stream stream)

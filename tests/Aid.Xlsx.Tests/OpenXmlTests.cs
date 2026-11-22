@@ -1,6 +1,5 @@
 using DocumentFormat.OpenXml.Packaging;
 using NUnit.Framework;
-using System.IO;
 
 namespace Aid.Xlsx.Tests
 {

@@ -1,7 +1,7 @@
-using Aid.Xlsx.CodeGen.Model;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System;
+using Aid.Xlsx.CodeGen.Model;
 
 namespace Aid.Xlsx.CodeGen;
 
@@ -90,6 +90,8 @@ public class SchemeTypeMap
         var simpleTypeName = attribute.Type ?? throw new InvalidOperationException();
         var simpleType = _simpleTypeMap[simpleTypeName];
         var expressionTemplate = attribute.IsOptional ? simpleType.OptionalTemplate : simpleType.RequiredTemplate;
+        if (expressionTemplate.Contains("{0}", StringComparison.Ordinal))
+            return expressionTemplate.Replace("{0}", attribute.Name, StringComparison.Ordinal);
 
         return attribute.NsName is null
             ? $"""{expressionTemplate}("{attribute.Name}")"""

@@ -1,8 +1,6 @@
 #nullable disable
 
-using System;
 using System.Drawing;
-using System.IO;
 using Aid.Xlsx.Drawings;
 using Aid.Xlsx.Utils;
 
@@ -27,7 +25,7 @@ namespace Aid.Xlsx.Graphics
             return s[0] == 'B' && (s[1] == 'M' || s[0] == 'A');
         }
 
-        protected override XLPictureInfo ReadInfo(Stream stream)
+        protected override XlsxPictureInfo ReadInfo(Stream stream)
         {
             stream.Position += 14;
             var infoHeaderSize = stream.ReadS32LE();
@@ -40,21 +38,21 @@ namespace Aid.Xlsx.Graphics
             return ReadBmpV2X(stream);
         }
 
-        private static XLPictureInfo ReadBmpV1X(Stream stream)
+        private static XlsxPictureInfo ReadBmpV1X(Stream stream)
         {
             var widthPx = stream.ReadU16LE();
             var heightPx = stream.ReadU16LE();
-            return new XLPictureInfo(XLPictureFormat.Bmp, new Size(widthPx, heightPx), Size.Empty);
+            return new XlsxPictureInfo(XlsxPictureFormat.Bmp, new Size(widthPx, heightPx), Size.Empty);
         }
 
-        private static XLPictureInfo ReadBmpV2X(Stream stream)
+        private static XlsxPictureInfo ReadBmpV2X(Stream stream)
         {
             var widthPx = stream.ReadU32LE();
             var heightPx = stream.ReadU32LE();
             stream.Position += 12;
             var dpiX = PixelsPerMeterToDpi(stream.ReadU32LE());
             var dpiY = PixelsPerMeterToDpi(stream.ReadU32LE());
-            return new XLPictureInfo(XLPictureFormat.Bmp, widthPx, heightPx, dpiX, dpiY);
+            return new XlsxPictureInfo(XlsxPictureFormat.Bmp, widthPx, heightPx, dpiX, dpiY);
         }
 
         private static double PixelsPerMeterToDpi(uint pixelsPerMeter)

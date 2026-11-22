@@ -1,6 +1,6 @@
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Opc;
-using System;
+using Aid.Xlsx.PivotTables;
 
 namespace Aid.Xlsx.Internal.IO;
 
@@ -8,14 +8,14 @@ internal partial class PivotCacheRecordsReader
 {
     private readonly string _ns = OpenXmlConst.Main2006SsNs;
     private readonly XmlTreeReader _reader;
-    private readonly XLPivotCache _pivotCache;
+    private readonly XlsxPivotCache _pivotCache;
 
     /// <summary>
     /// Index of current field that is read from the <c>r</c> element.
     /// </summary>
     private int _fieldIdx;
 
-    public PivotCacheRecordsReader(XmlTreeReader reader, XLPivotCache pivotCache)
+    public PivotCacheRecordsReader(XmlTreeReader reader, XlsxPivotCache pivotCache)
     {
         _reader = reader;
         _pivotCache = pivotCache;
@@ -73,7 +73,7 @@ internal partial class PivotCacheRecordsReader
     partial void OnErrorParsed(string v, bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b)
     {
         var fieldValues = GetFieldValues();
-        if (!XLErrorParser.TryParseError(v, out var error))
+        if (!XlsxErrorParser.TryParseError(v, out var error))
             throw PartStructureException.InvalidAttributeFormat();
 
         fieldValues.AddError(error);
@@ -100,7 +100,7 @@ internal partial class PivotCacheRecordsReader
         fieldValues.AddIndex(v);
     }
 
-    private XLPivotCacheValues GetFieldValues()
+    private XlsxPivotCacheValues GetFieldValues()
     {
         if (_fieldIdx >= _pivotCache.FieldCount)
             throw PartStructureException.IncorrectElementsCount();

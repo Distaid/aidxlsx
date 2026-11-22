@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Aid.Xlsx;
+using Aid.Xlsx.Styles;
 using Aid.Xlsx.Tests.Utils;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.Styles
@@ -54,7 +52,7 @@ namespace Aid.Xlsx.Tests.Excel.Styles
         {
             Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
-                using var wb = new XLWorkbook();
+                using var wb = new XlsxWorkbook();
                 var ws = wb.AddWorksheet();
                 ws.FirstCell().Style.Alignment.TextRotation = textRotation;
             });
@@ -62,9 +60,9 @@ namespace Aid.Xlsx.Tests.Excel.Styles
 
         [Test]
         [TestCaseSource(nameof(AlignmentApiSetters))]
-        public void Alignment_property_can_be_individually_set(FormatTestCase<IXLAlignment> testCase)
+        public void Alignment_property_can_be_individually_set(FormatTestCase<IXlsxAlignment> testCase)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
 
             var cellFormat = ws.Cell("B2").Style;
@@ -78,9 +76,9 @@ namespace Aid.Xlsx.Tests.Excel.Styles
 
         [Test]
         [TestCaseSource(nameof(AlignmentApiSettersLimits))]
-        public void Alignment_property_limits_throw_exception<T>(Action<IXLAlignment, T> setter, params T[] invalidValues)
+        public void Alignment_property_limits_throw_exception<T>(Action<IXlsxAlignment, T> setter, params T[] invalidValues)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var alignment = ws.Cell("A1").Style.Alignment;
 
@@ -93,7 +91,7 @@ namespace Aid.Xlsx.Tests.Excel.Styles
         [Test]
         public void TextRotation_is_connected_with_TopToBottom()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var alignment = ws.Cell("A1").Style.Alignment;
 
@@ -116,14 +114,14 @@ namespace Aid.Xlsx.Tests.Excel.Styles
         [Test]
         public void Alignment_can_be_copied()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var source = ws.Cell("A1").Style
-                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Right)
-                .Alignment.SetVertical(XLAlignmentVerticalValues.Top)
+                .Alignment.SetHorizontal(XlsxAlignmentHorizontalValues.Right)
+                .Alignment.SetVertical(XlsxAlignmentVerticalValues.Top)
                 .Alignment.SetIndent(2)
                 .Alignment.SetJustifyLastLine()
-                .Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.LeftToRight)
+                .Alignment.SetReadingOrder(XlsxAlignmentReadingOrderValues.LeftToRight)
                 .Alignment.SetRelativeIndent(3)
                 .Alignment.SetShrinkToFit()
                 .Alignment.SetTextRotation(12)
@@ -132,11 +130,11 @@ namespace Aid.Xlsx.Tests.Excel.Styles
             ws.Cell("A2").Style.Alignment = source.Alignment;
 
             var targetAlignment = ws.Cell("A2").Style.Alignment;
-            Assert.AreEqual(XLAlignmentHorizontalValues.Right, targetAlignment.Horizontal);
-            Assert.AreEqual(XLAlignmentVerticalValues.Top, targetAlignment.Vertical);
+            Assert.AreEqual(XlsxAlignmentHorizontalValues.Right, targetAlignment.Horizontal);
+            Assert.AreEqual(XlsxAlignmentVerticalValues.Top, targetAlignment.Vertical);
             Assert.AreEqual(2, targetAlignment.Indent);
             Assert.IsTrue(targetAlignment.JustifyLastLine);
-            Assert.AreEqual(XLAlignmentReadingOrderValues.LeftToRight, targetAlignment.ReadingOrder);
+            Assert.AreEqual(XlsxAlignmentReadingOrderValues.LeftToRight, targetAlignment.ReadingOrder);
             Assert.AreEqual(3, targetAlignment.RelativeIndent);
             Assert.IsTrue(targetAlignment.ShrinkToFit);
             Assert.AreEqual(12, targetAlignment.TextRotation);
@@ -146,20 +144,20 @@ namespace Aid.Xlsx.Tests.Excel.Styles
         [Test]
         public void Alignment_has_equality_comparison()
         {
-            Action<IXLAlignment>[] changePropertyToNonDefault =
+            Action<IXlsxAlignment>[] changePropertyToNonDefault =
             {
-                x => x.SetHorizontal(XLAlignmentHorizontalValues.Right),
-                x => x.SetVertical(XLAlignmentVerticalValues.Top),
+                x => x.SetHorizontal(XlsxAlignmentHorizontalValues.Right),
+                x => x.SetVertical(XlsxAlignmentVerticalValues.Top),
                 x => x.SetIndent(2),
                 x => x.SetJustifyLastLine(),
-                x => x.SetReadingOrder(XLAlignmentReadingOrderValues.LeftToRight),
+                x => x.SetReadingOrder(XlsxAlignmentReadingOrderValues.LeftToRight),
                 x => x.SetRelativeIndent(3),
                 x => x.SetShrinkToFit(),
                 x => x.SetTextRotation(12),
                 x => x.SetWrapText()
             };
 
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             foreach (var changeProperty in changePropertyToNonDefault)
             {
                 var ws = wb.AddWorksheet();
@@ -172,43 +170,43 @@ namespace Aid.Xlsx.Tests.Excel.Styles
             }
         }
 
-        private static IEnumerable<FormatTestCase<IXLAlignment>> AlignmentApiSetters()
+        private static IEnumerable<FormatTestCase<IXlsxAlignment>> AlignmentApiSetters()
         {
-            var hAlignValues = EnumPolyfill.GetValues<XLAlignmentHorizontalValues>();
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.Horizontal, (align, value) => align.Horizontal = value, hAlignValues);
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.Horizontal, (align, value) => align.SetHorizontal(value), hAlignValues);
+            var hAlignValues = EnumPolyfill.GetValues<XlsxAlignmentHorizontalValues>();
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.Horizontal, (align, value) => align.Horizontal = value, hAlignValues);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.Horizontal, (align, value) => align.SetHorizontal(value), hAlignValues);
 
-            var vAlignValues = EnumPolyfill.GetValues<XLAlignmentVerticalValues>();
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.Vertical, (align, value) => align.Vertical = value, vAlignValues);
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.Vertical, (align, value) => align.SetVertical(value), vAlignValues);
+            var vAlignValues = EnumPolyfill.GetValues<XlsxAlignmentVerticalValues>();
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.Vertical, (align, value) => align.Vertical = value, vAlignValues);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.Vertical, (align, value) => align.SetVertical(value), vAlignValues);
 
             var testIndentValues = new[] { 0, 1, 5, 255 };
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.Indent, (align, value) => align.Indent = value, testIndentValues);
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.Indent, (align, value) => align.SetIndent(value), testIndentValues);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.Indent, (align, value) => align.Indent = value, testIndentValues);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.Indent, (align, value) => align.SetIndent(value), testIndentValues);
 
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.JustifyLastLine, (align, value) => align.JustifyLastLine = value, false, true);
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.JustifyLastLine, (align, value) => align.SetJustifyLastLine(value), false, true);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.JustifyLastLine, (align, value) => align.JustifyLastLine = value, false, true);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.JustifyLastLine, (align, value) => align.SetJustifyLastLine(value), false, true);
 
-            var readingOrderValues = EnumPolyfill.GetValues<XLAlignmentReadingOrderValues>();
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.ReadingOrder, (align, value) => align.ReadingOrder = value, readingOrderValues);
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.ReadingOrder, (align, value) => align.SetReadingOrder(value), readingOrderValues);
+            var readingOrderValues = EnumPolyfill.GetValues<XlsxAlignmentReadingOrderValues>();
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.ReadingOrder, (align, value) => align.ReadingOrder = value, readingOrderValues);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.ReadingOrder, (align, value) => align.SetReadingOrder(value), readingOrderValues);
 
             // This is likely a property slated for deletion, but at least test for now
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.RelativeIndent, (align, value) => align.RelativeIndent = value, -10, 0, 10);
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.RelativeIndent, (align, value) => align.SetRelativeIndent(value), -10, 0, 10);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.RelativeIndent, (align, value) => align.RelativeIndent = value, -10, 0, 10);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.RelativeIndent, (align, value) => align.SetRelativeIndent(value), -10, 0, 10);
 
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.ShrinkToFit, (align, value) => align.ShrinkToFit = value, false, true);
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.ShrinkToFit, (align, value) => align.SetShrinkToFit(value), false, true);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.ShrinkToFit, (align, value) => align.ShrinkToFit = value, false, true);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.ShrinkToFit, (align, value) => align.SetShrinkToFit(value), false, true);
 
             var testTextRotationValues = new[] { -90, -5, 0, 5, 90, 255 };
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.TextRotation, (align, value) => align.TextRotation = value, testTextRotationValues);
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.TextRotation, (align, value) => align.SetTextRotation(value), testTextRotationValues);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.TextRotation, (align, value) => align.TextRotation = value, testTextRotationValues);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.TextRotation, (align, value) => align.SetTextRotation(value), testTextRotationValues);
 
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.WrapText, (align, value) => align.WrapText = value, false, true);
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.WrapText, (align, value) => align.SetWrapText(value), false, true);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.WrapText, (align, value) => align.WrapText = value, false, true);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.WrapText, (align, value) => align.SetWrapText(value), false, true);
 
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.TopToBottom, (align, value) => align.TopToBottom = value, false, true);
-            yield return FormatTestCase<IXLAlignment>.ForAlignment(align => align.TopToBottom, (align, value) => align.SetTopToBottom(value), false, true);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.TopToBottom, (align, value) => align.TopToBottom = value, false, true);
+            yield return FormatTestCase<IXlsxAlignment>.ForAlignment(align => align.TopToBottom, (align, value) => align.SetTopToBottom(value), false, true);
         }
 
         private static IEnumerable<TestCaseData> AlignmentApiSettersLimits()
@@ -217,7 +215,7 @@ namespace Aid.Xlsx.Tests.Excel.Styles
             yield return MakeCase((align, value) => align.TextRotation = value, -91, 91, 254, 256);
             yield break;
 
-            static TestCaseData MakeCase<T>(Action<IXLAlignment, T> setter, params T[] invalidValues)
+            static TestCaseData MakeCase<T>(Action<IXlsxAlignment, T> setter, params T[] invalidValues)
             {
                 return new TestCaseData(setter, invalidValues);
             }

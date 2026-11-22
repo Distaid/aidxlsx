@@ -1,7 +1,6 @@
+using System.Data;
 using Aid.Xlsx.InsertData;
 using NUnit.Framework;
-using System.Data;
-using System.Linq;
 
 namespace Aid.Xlsx.Tests.Excel.InsertData
 {

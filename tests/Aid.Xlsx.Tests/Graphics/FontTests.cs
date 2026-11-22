@@ -1,6 +1,7 @@
-using System;
-using Aid.Xlsx;
 using Aid.Xlsx.Graphics;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Styles;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Graphics
@@ -8,7 +9,7 @@ namespace Aid.Xlsx.Tests.Graphics
     [TestFixture]
     public class FontTests
     {
-        private readonly IXLGraphicEngine _engine = DefaultGraphicEngine.Instance.Value;
+        private readonly IXlsxGraphicEngine _engine = DefaultGraphicEngine.Instance.Value;
 
         [TestCase]
         public void CalculatedTextWidth()
@@ -102,13 +103,13 @@ namespace Aid.Xlsx.Tests.Graphics
         [TestCase]
         public void Issue_1916_CanMeasureSpecificArabicText()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell(1, 1).Value = @"اصين";
             ws.Column(1).AdjustToContents();
         }
 
-        private class DummyFont : IXLFontBase
+        private class DummyFont : IXlsxFontBase
         {
             public DummyFont(string name, double size)
             {
@@ -126,19 +127,19 @@ namespace Aid.Xlsx.Tests.Graphics
 
             public bool Strikethrough { get; set; }
 
-            public XLFontUnderlineValues Underline { get; set; } = XLFontUnderlineValues.None;
+            public XlsxFontUnderlineValues Underline { get; set; } = XlsxFontUnderlineValues.None;
 
-            public XLFontVerticalTextAlignmentValues VerticalAlignment { get; set; }
+            public XlsxFontVerticalTextAlignmentValues VerticalAlignment { get; set; }
 
             public bool Shadow { get; set; }
 
-            public XLColor FontColor { get; set; } = XLColor.Black;
+            public XlsxColor FontColor { get; set; } = XlsxColor.Black;
 
-            public XLFontFamilyNumberingValues FontFamilyNumbering { get; set; } = XLFontFamilyNumberingValues.NotApplicable;
+            public XlsxFontFamilyNumberingValues FontFamilyNumbering { get; set; } = XlsxFontFamilyNumberingValues.NotApplicable;
 
-            public XLFontCharSet FontCharSet { get; set; } = XLFontCharSet.Default;
+            public XlsxFontCharSet FontCharSet { get; set; } = XlsxFontCharSet.Default;
 
-            public XLFontScheme FontScheme { get; set; }
+            public XlsxFontScheme FontScheme { get; set; }
         }
     }
 }

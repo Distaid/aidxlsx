@@ -1,11 +1,11 @@
-using Aid.Xlsx.Attributes;
-using Aid.Xlsx;
-using NUnit.Framework;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using Aid.Xlsx.Attributes;
+using Aid.Xlsx.Columns;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Tables;
+using Aid.Xlsx.Workbooks;
+using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.Tables
 {
@@ -22,25 +22,25 @@ namespace Aid.Xlsx.Tests.Excel.Tables
         {
             public int Age { get; set; }
 
-            [XLColumn(Header = "Last name", Order = 2)]
+            [XlsxColumn(Header = "Last name", Order = 2)]
             public String LastName { get; set; }
 
-            [XLColumn(Header = "First name", Order = 1)]
+            [XlsxColumn(Header = "First name", Order = 1)]
             public String FirstName { get; set; }
 
-            [XLColumn(Header = "Full name", Order = 0)]
+            [XlsxColumn(Header = "Full name", Order = 0)]
             public String FullName { get => string.Concat(FirstName, " ", LastName); }
 
-            [XLColumn(Order = 3)]
+            [XlsxColumn(Order = 3)]
             public DateTime DateOfBirth { get; set; }
 
-            [XLColumn(Header = "Is active", Order = 4)]
+            [XlsxColumn(Header = "Is active", Order = 4)]
             public bool IsActive;
         }
 
-        private XLWorkbook PrepareWorkbook()
+        private XlsxWorkbook PrepareWorkbook()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Tables");
 
             var data = new[]
@@ -57,7 +57,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
             return wb;
         }
 
-        private XLWorkbook PrepareWorkbookWithAdditionalColumns()
+        private XlsxWorkbook PrepareWorkbookWithAdditionalColumns()
         {
             var wb = PrepareWorkbook();
             var ws = wb.Worksheets.First();
@@ -155,7 +155,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
@@ -176,7 +176,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
 
                     var table = ws.Tables.First();
                     table.SetShowTotalsRow(true);
-                    table.Fields.Last().TotalsRowFunction = XLTotalsRowFunction.Average;
+                    table.Fields.Last().TotalsRowFunction = XlsxTotalsRowFunction.Average;
 
                     IEnumerable<Person> personEnumerable = NewData;
                     var addedRange = table.AppendData(personEnumerable);
@@ -187,7 +187,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
@@ -203,7 +203,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
             using (var ms = new MemoryStream())
             {
                 var value = "Some value that will be overwritten";
-                IXLAddress address;
+                IXlsxAddress address;
                 using (var wb = PrepareWorkbook())
                 {
                     var ws = wb.Worksheets.First();
@@ -223,7 +223,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var ws = wb.Worksheets.First();
 
@@ -262,7 +262,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
@@ -296,7 +296,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
@@ -326,7 +326,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
@@ -359,7 +359,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
@@ -393,7 +393,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
@@ -414,7 +414,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
 
                     var table = ws.Tables.First();
                     table.SetShowTotalsRow(true);
-                    table.Fields.Last().TotalsRowFunction = XLTotalsRowFunction.Average;
+                    table.Fields.Last().TotalsRowFunction = XlsxTotalsRowFunction.Average;
 
                     // Will cause table to overflow
                     IEnumerable<Person> personEnumerable = NewData.Union(NewData).Union(NewData);
@@ -426,7 +426,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
@@ -447,7 +447,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
 
                     var table = ws.Tables.First();
                     table.SetShowTotalsRow(true);
-                    table.Fields.Last().TotalsRowFunction = XLTotalsRowFunction.Average;
+                    table.Fields.Last().TotalsRowFunction = XlsxTotalsRowFunction.Average;
 
                     // Will cause table to shrink
                     IEnumerable<Person> personEnumerable = NewData.Take(1);
@@ -459,7 +459,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
@@ -492,7 +492,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
@@ -540,7 +540,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
@@ -594,7 +594,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
@@ -627,7 +627,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 
@@ -680,7 +680,7 @@ namespace Aid.Xlsx.Tests.Excel.Tables
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var table = wb.Worksheets.SelectMany(ws => ws.Tables).First();
 

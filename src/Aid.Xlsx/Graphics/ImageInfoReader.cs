@@ -1,12 +1,10 @@
 #nullable disable
 
-using System.IO;
-
 namespace Aid.Xlsx.Graphics
 {
     internal abstract class ImageInfoReader
     {
-        public bool TryGetInfo(Stream stream, out XLPictureInfo info)
+        public bool TryGetInfo(Stream stream, out XlsxPictureInfo info)
         {
             info = default;
             stream.Position = 0;
@@ -23,6 +21,6 @@ namespace Aid.Xlsx.Graphics
 
         protected abstract bool CheckHeader(Stream stream);
 
-        protected abstract XLPictureInfo ReadInfo(Stream stream);
+        protected abstract XlsxPictureInfo ReadInfo(Stream stream);
     }
 }

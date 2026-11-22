@@ -1,6 +1,6 @@
-using System;
 using System.Text;
-using Aid.Xlsx;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.Cells
@@ -11,7 +11,7 @@ namespace Aid.Xlsx.Tests.Excel.Cells
         [Test]
         public void SameStringIsNotStoredTwice()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws1 = wb.AddWorksheet();
             var ws2 = wb.AddWorksheet();
             var txt1 = "Hello";

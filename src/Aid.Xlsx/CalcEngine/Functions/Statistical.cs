@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Aid.Xlsx.CalcEngine.Functions;
 using static Aid.Xlsx.CalcEngine.Functions.SignatureAdapter;
 
-namespace Aid.Xlsx.CalcEngine
+namespace Aid.Xlsx.CalcEngine.Functions
 {
     internal static class Statistical
     {
@@ -107,13 +103,13 @@ namespace Aid.Xlsx.CalcEngine
         internal static AnyValue Average(CalcContext ctx, Span<AnyValue> args, ITally tally)
         {
             if (args.Length < 1)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             if (!tally.Tally(ctx, args, new SumState()).TryPickT0(out var state, out var error))
                 return error;
 
             if (state.Count == 0)
-                return XLError.DivisionByZero;
+                return XlsxError.DivisionByZero;
 
             return state.Sum / state.Count;
         }
@@ -126,7 +122,7 @@ namespace Aid.Xlsx.CalcEngine
         private static AnyValue BinomDist(CalcContext ctx, double numberSuccesses, double numberTrials, double successProbability, bool cumulativeFlag)
         {
             if (successProbability is < 0 or > 1)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             if (cumulativeFlag)
             {
@@ -141,7 +137,7 @@ namespace Aid.Xlsx.CalcEngine
                 }
 
                 if (double.IsNaN(cdf) || double.IsInfinity(cdf))
-                    return XLError.NumberInvalid;
+                    return XlsxError.NumberInvalid;
 
                 return cdf;
             }
@@ -155,16 +151,16 @@ namespace Aid.Xlsx.CalcEngine
             }
         }
 
-        private static OneOf<double, XLError> BinomDist(CalcContext ctx, double x, double n, double p)
+        private static OneOf<double, XlsxError> BinomDist(CalcContext ctx, double x, double n, double p)
         {
-            if (!XLMath.CombinChecked(ctx, n, x).TryPickT0(out var combinations, out var error))
+            if (!XlsxMath.CombinChecked(ctx, n, x).TryPickT0(out var combinations, out var error))
                 return error;
 
             x = Math.Floor(x);
             n = Math.Floor(n);
             var binomDist = combinations * Math.Pow(p, x) * Math.Pow(1 - p, n - x);
             if (double.IsNaN(binomDist) || double.IsInfinity(binomDist))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return binomDist;
         }
@@ -177,7 +173,7 @@ namespace Aid.Xlsx.CalcEngine
         internal static AnyValue Count(CalcContext ctx, Span<AnyValue> args, ITally tally)
         {
             if (args.Length < 1)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var result = tally.Tally(ctx, args, new CountState(0));
             if (!result.TryPickT0(out var state, out var error))
@@ -242,7 +238,7 @@ namespace Aid.Xlsx.CalcEngine
                 // All areas must have same size.
                 if (countArea.RowSpan != selectionArea.RowSpan ||
                     countArea.ColumnSpan != selectionArea.ColumnSpan)
-                    return XLError.IncompatibleValue;
+                    return XlsxError.IncompatibleValue;
 
                 tally.Add(selectionArea, criteria);
             }
@@ -263,7 +259,7 @@ namespace Aid.Xlsx.CalcEngine
 
             // An outlier, most others return #DIV/0! when they can't calculate mean.
             if (squareDiff.Count == 0)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return squareDiff.Sum;
         }
@@ -271,7 +267,7 @@ namespace Aid.Xlsx.CalcEngine
         private static ScalarValue Fisher(CalcContext ctx, double x)
         {
             if (x is <= -1 or >= 1)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return 0.5 * Math.Log((1 + x) / (1 - x));
         }
@@ -286,12 +282,12 @@ namespace Aid.Xlsx.CalcEngine
                 return error;
 
             if (geoMean.Count == 0)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             // Some value was negative or zero. NaN plus whatever is NaN, infinity
             // plus whatever is also infinity.
             if (double.IsInfinity(geoMean.LogSum) || double.IsNaN(geoMean.LogSum))
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return Math.Exp(geoMean.LogSum / geoMean.Count);
         }
@@ -328,7 +324,7 @@ namespace Aid.Xlsx.CalcEngine
 
             var allNumbers = state.Values;
             if (allNumbers.Count == 0)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             allNumbers.Sort();
 
@@ -375,7 +371,7 @@ namespace Aid.Xlsx.CalcEngine
                 return error;
 
             if (squareDiff.Count <= 1)
-                return XLError.DivisionByZero;
+                return XlsxError.DivisionByZero;
 
             return Math.Sqrt(squareDiff.Sum / (squareDiff.Count - 1));
         }
@@ -396,7 +392,7 @@ namespace Aid.Xlsx.CalcEngine
                 return error;
 
             if (squareDiff.Count < 1)
-                return XLError.DivisionByZero;
+                return XlsxError.DivisionByZero;
 
             return Math.Sqrt(squareDiff.Sum / squareDiff.Count);
         }
@@ -417,7 +413,7 @@ namespace Aid.Xlsx.CalcEngine
                 return error;
 
             if (squareDiff.Count <= 1)
-                return XLError.DivisionByZero;
+                return XlsxError.DivisionByZero;
 
             return squareDiff.Sum / (squareDiff.Count - 1);
         }
@@ -438,7 +434,7 @@ namespace Aid.Xlsx.CalcEngine
                 return error;
 
             if (squareDiff.Count < 1)
-                return XLError.DivisionByZero;
+                return XlsxError.DivisionByZero;
 
             return squareDiff.Sum / squareDiff.Count;
         }
@@ -451,7 +447,7 @@ namespace Aid.Xlsx.CalcEngine
         private static AnyValue Large(CalcContext ctx, AnyValue arrayParam, double kParam)
         {
             if (kParam < 1)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             var k = (int)Math.Ceiling(kParam);
 
@@ -490,7 +486,7 @@ namespace Aid.Xlsx.CalcEngine
             }
 
             if (k > count)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             System.Array.Sort(total, 0, count);
 
@@ -504,7 +500,7 @@ namespace Aid.Xlsx.CalcEngine
         /// those one-pass formulas in the past (see <em>Statistical flaws in Excel</em>), but doesn't seem to
         /// be using them anymore.
         /// </summary>
-        private static OneOf<SquareDiff, XLError> GetSquareDiffSum(CalcContext ctx, Span<AnyValue> args, ITally tally)
+        private static OneOf<SquareDiff, XlsxError> GetSquareDiffSum(CalcContext ctx, Span<AnyValue> args, ITally tally)
         {
             if (!tally.Tally(ctx, args, new SumState(0.0, 0)).TryPickT0(out var sumState, out var sumError))
                 return sumError;

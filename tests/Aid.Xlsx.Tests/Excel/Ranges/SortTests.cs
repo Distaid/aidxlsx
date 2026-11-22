@@ -1,4 +1,7 @@
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Ranges.Sort;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.Ranges
@@ -10,9 +13,9 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         public void Values_are_sorted_by_type_first()
         {
             // The values in asc order are number, text, logical, error, blanks.
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
-            var values = new XLCellValue[]
+            var values = new XlsxCellValue[]
             {
                 1,
                 "",
@@ -21,7 +24,7 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
                 "Text",
                 "TRUE",
                 true,
-                XLError.IncompatibleValue,
+                XlsxError.IncompatibleValue,
                 Blank.Value,
             };
 
@@ -38,15 +41,15 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
             }
         }
 
-        [TestCase(XLSortOrder.Ascending)]
-        [TestCase(XLSortOrder.Descending)]
-        public void Blanks_are_always_last(XLSortOrder sortOrder)
+        [TestCase(XlsxSortOrder.Ascending)]
+        [TestCase(XlsxSortOrder.Descending)]
+        public void Blanks_are_always_last(XlsxSortOrder sortOrder)
         {
             // When range contains blank, it is always last, no matter
             // if the sort order is ascending or descending
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
-            var values = new XLCellValue[]
+            var values = new XlsxCellValue[]
             {
                 1,
                 Blank.Value,
@@ -63,7 +66,7 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Test]
         public void IgnoreBlanks_set_to_false_treats_blanks_as_empty_strings()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
 
             ws.Cell("A1").Value = "Text";
@@ -83,7 +86,7 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Culture("en-US")]
         public void MatchCase_flag_determines_if_texts_are_compared_case_sensitive(bool matchCase, string expectedFirst, string expectedSecond)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
 
             // In US locale, lower-case is before upper case.
@@ -99,7 +102,7 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Test]
         public void Sort_can_use_multiple_columns()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.FirstCell().InsertData(new object[]
             {
@@ -121,7 +124,7 @@ namespace Aid.Xlsx.Tests.Excel.Ranges
         [Test]
         public void Sort_columns_in_range_by_rows()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.FirstCell().InsertData(new object[]
             {

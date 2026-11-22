@@ -1,8 +1,5 @@
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-
 namespace Aid.Xlsx.CalcEngine
 {
     /// <summary>Which parameters of a function allow ranges. That is important for implicit intersection.</summary>

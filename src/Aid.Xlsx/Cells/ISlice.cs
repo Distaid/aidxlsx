@@ -1,6 +1,6 @@
-using System.Collections.Generic;
+using Aid.Xlsx.Coordinates;
 
-namespace Aid.Xlsx
+namespace Aid.Xlsx.Cells
 {
     /// <summary>
     /// An interface for methods of <see cref="Slice{TElement}"/> without specified type of an element.

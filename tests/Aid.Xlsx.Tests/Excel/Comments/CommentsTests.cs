@@ -1,11 +1,10 @@
-using Aid.Xlsx;
+using System.Xml.Linq;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Workbooks;
 using DocumentFormat.OpenXml.Packaging;
 using NUnit.Framework;
-using System;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Xml.Linq;
 
 namespace Aid.Xlsx.Tests.Excel.Comments
 {
@@ -15,7 +14,7 @@ namespace Aid.Xlsx.Tests.Excel.Comments
         public void LoadsPlainAndFormattedCommentText()
         {
             using var stream = new MemoryStream();
-            using (var workbook = new XLWorkbook())
+            using (var workbook = new XlsxWorkbook())
             {
                 var worksheet = workbook.AddWorksheet("Sheet1");
                 worksheet.Cell("A1").CreateComment().AddText("Placeholder");
@@ -42,7 +41,7 @@ namespace Aid.Xlsx.Tests.Excel.Comments
             }
 
             stream.Position = 0;
-            using var reloaded = new XLWorkbook(stream);
+            using var reloaded = new XlsxWorkbook(stream);
             var sheet = reloaded.Worksheet(1);
             var plain = sheet.Cell("A1").GetComment();
             var formatted = sheet.Cell("A2").GetComment();
@@ -52,25 +51,25 @@ namespace Aid.Xlsx.Tests.Excel.Comments
             Assert.AreEqual("Plain\ttext", plain.Text);
             Assert.AreEqual("Rich text", formatted.Text);
             Assert.IsTrue(firstRun.Bold);
-            Assert.AreEqual(XLColor.Red, firstRun.FontColor);
+            Assert.AreEqual(XlsxColor.Red, firstRun.FontColor);
         }
 
         [Test]
         public void CanConvertVmlPaletteEntriesToColors()
         {
             using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\CommentsWithColorNamesAndIndexes.xlsx")))
-            using (var wb = new XLWorkbook(stream))
+            using (var wb = new XlsxWorkbook(stream))
             {
                 var ws = wb.Worksheets.First();
                 var c = ws.FirstCellUsed();
 
                 // None indicates an absence of a color
                 var lineColor = c.GetComment().Style.ColorsAndLines.LineColor;
-                Assert.AreEqual(XLColorType.Color, lineColor.ColorType);
+                Assert.AreEqual(XlsxColorType.Color, lineColor.ColorType);
                 Assert.AreEqual("00000000", lineColor.Color.ToHex());
 
                 var bgColor = c.GetComment().Style.ColorsAndLines.FillColor;
-                Assert.AreEqual(XLColorType.Color, bgColor.ColorType);
+                Assert.AreEqual(XlsxColorType.Color, bgColor.ColorType);
                 Assert.AreEqual("FFFFFFE1", bgColor.Color.ToHex());
             }
         }
@@ -78,7 +77,7 @@ namespace Aid.Xlsx.Tests.Excel.Comments
         [Test]
         public void CopyCommentStyle()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
 
@@ -107,14 +106,14 @@ namespace Aid.Xlsx.Tests.Excel.Comments
                 cell.GetComment()
                     .Style
                     .ColorsAndLines
-                    .SetFillColor(XLColor.Red);
+                    .SetFillColor(XlsxColor.Red);
 
                 ws.Row(1).InsertRowsAbove(1);
 
-                Action<IXLCell> validate = c =>
+                Action<IXlsxCell> validate = c =>
                 {
                     Assert.IsTrue(c.GetComment().Style.Alignment.AutomaticSize);
-                    Assert.AreEqual(XLColor.Red, c.GetComment().Style.ColorsAndLines.FillColor);
+                    Assert.AreEqual(XlsxColor.Red, c.GetComment().Style.ColorsAndLines.FillColor);
                 };
 
                 validate(ws.Cell("B3"));
@@ -163,7 +162,7 @@ namespace Aid.Xlsx.Tests.Excel.Comments
                 stream.CopyTo(ms);
                 ms.Position = 0;
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var ws = wb.Worksheets.First();
                     Assert.IsTrue(ws.FirstCell().HasComment);
@@ -195,12 +194,12 @@ namespace Aid.Xlsx.Tests.Excel.Comments
             using (var ms = new MemoryStream())
             {
                 using (var stream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\CommentAndButton.xlsx")))
-                using (var wb = new XLWorkbook(stream))
+                using (var wb = new XlsxWorkbook(stream))
                 {
                     wb.SaveAs(ms);
                 }
 
-                Assert.DoesNotThrow(() => new XLWorkbook(ms));
+                Assert.DoesNotThrow(() => new XlsxWorkbook(ms));
             }
         }
 
@@ -228,7 +227,7 @@ namespace Aid.Xlsx.Tests.Excel.Comments
 
             editable.Position = 0;
             using var saved = new MemoryStream();
-            using (var workbook = new XLWorkbook(editable))
+            using (var workbook = new XlsxWorkbook(editable))
             {
                 workbook.Worksheets.First().FirstCell().GetComment().Delete();
                 workbook.SaveAs(saved);
@@ -247,7 +246,7 @@ namespace Aid.Xlsx.Tests.Excel.Comments
         public void CanLoadCommentVisibility()
         {
             using (var inputStream = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Other\Drawings\Comments\inputfile.xlsx")))
-            using (var workbook = new XLWorkbook(inputStream))
+            using (var workbook = new XlsxWorkbook(inputStream))
             {
                 var ws = workbook.Worksheets.First();
 
@@ -280,7 +279,7 @@ namespace Aid.Xlsx.Tests.Excel.Comments
                     Assert.AreEqual(0, margins.Right);
                     Assert.AreEqual(0, margins.Bottom);
                 }
-            }, @"Other\Comments\InsetsUnitConversion.xlsx", new LoadOptions { Dpi = new System.Drawing.Point(120, 120) });
+            }, @"Other\Comments\InsetsUnitConversion.xlsx", new Workbooks.LoadOptions { Dpi = new System.Drawing.Point(120, 120) });
         }
     }
 }

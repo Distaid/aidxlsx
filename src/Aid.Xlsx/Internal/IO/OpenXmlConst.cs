@@ -1,5 +1,3 @@
-using System;
-
 namespace Aid.Xlsx.Internal.IO
 {
     /// <summary>

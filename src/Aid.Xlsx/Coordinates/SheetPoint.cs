@@ -1,7 +1,8 @@
-using System;
+using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Formulas;
+using Aid.Xlsx.Utils;
 
-namespace Aid.Xlsx
+namespace Aid.Xlsx.Coordinates
 {
     /// <summary>
     /// A single point in a workbook. The book point might point to a deleted
@@ -29,10 +30,10 @@ namespace Aid.Xlsx
         /// </summary>
         public string SheetName { get; }
 
-        /// <inheritdoc cref="Aid.Xlsx.Point.Row"/>
+        /// <inheritdoc cref="Aid.Xlsx.Coordinates.Point.Row"/>
         public int Row => Point.Column;
 
-        /// <inheritdoc cref="Aid.Xlsx.Point.Column"/>
+        /// <inheritdoc cref="Aid.Xlsx.Coordinates.Point.Column"/>
         public int Column => Point.Column;
 
         /// <summary>
@@ -46,7 +47,7 @@ namespace Aid.Xlsx
 
         public bool Equals(SheetPoint other)
         {
-            return Point.Equals(other.Point) && XLHelper.SheetComparer.Equals(SheetName, other.SheetName);
+            return Point.Equals(other.Point) && XlsxHelper.SheetComparer.Equals(SheetName, other.SheetName);
         }
 
         public override bool Equals(object? obj)
@@ -58,7 +59,7 @@ namespace Aid.Xlsx
         {
             unchecked
             {
-                return (XLHelper.SheetComparer.GetHashCode(SheetName) * 397) ^ Point.GetHashCode();
+                return (XlsxHelper.SheetComparer.GetHashCode(SheetName) * 397) ^ Point.GetHashCode();
             }
         }
 

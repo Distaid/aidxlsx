@@ -1,10 +1,9 @@
-using Aid.Xlsx;
-using NUnit.Framework;
-using System;
 using System.Data;
 using System.Globalization;
-using System.IO;
-using System.Linq;
+using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Styles;
+using Aid.Xlsx.Workbooks;
+using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.Styles
 {
@@ -13,7 +12,7 @@ namespace Aid.Xlsx.Tests.Excel.Styles
         [Test]
         public void PreserveCellFormat()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
 
@@ -38,7 +37,7 @@ namespace Aid.Xlsx.Tests.Excel.Styles
         [Test]
         public void TestExcelNumberFormats()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 var c = ws.FirstCell()
@@ -54,7 +53,7 @@ namespace Aid.Xlsx.Tests.Excel.Styles
         [SetCulture("en-US")]
         public void Cell_value_is_formatted_by_current_culture_unless_specified_otherwise()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var cell = ws.Cell("A1").SetValue(10000.5);
 
@@ -70,7 +69,7 @@ namespace Aid.Xlsx.Tests.Excel.Styles
         {
             using (var memoryStream = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var ws = wb.AddWorksheet();
                     var sourceColumn = ws.Column(1);
@@ -80,7 +79,7 @@ namespace Aid.Xlsx.Tests.Excel.Styles
 
                 memoryStream.Position = 0;
 
-                using (var wb = new XLWorkbook(memoryStream))
+                using (var wb = new XlsxWorkbook(memoryStream))
                 {
                     var column = wb.Worksheets.Single().Column(1);
                     Assert.AreEqual("0.000", column.Style.NumberFormat.Format);
@@ -89,19 +88,19 @@ namespace Aid.Xlsx.Tests.Excel.Styles
         }
 
         [Test]
-        public void XLNumberFormat_GetHashCode_IsCaseSensitive()
+        public void XlsxNumberFormat_GetHashCode_IsCaseSensitive()
         {
-            var numberFormatKey1 = new XLNumberFormat("MM");
-            var numberFormatKey2 = new XLNumberFormat("mm");
+            var numberFormatKey1 = new XlsxNumberFormat("MM");
+            var numberFormatKey2 = new XlsxNumberFormat("mm");
 
             Assert.AreNotEqual(numberFormatKey1.GetHashCode(), numberFormatKey2.GetHashCode());
         }
 
         [Test]
-        public void XLNumberFormat_Equals_IsCaseSensitive()
+        public void XlsxNumberFormat_Equals_IsCaseSensitive()
         {
-            var numberFormatKey1 = new XLNumberFormat("MM");
-            var numberFormatKey2 = new XLNumberFormat("mm");
+            var numberFormatKey1 = new XlsxNumberFormat("MM");
+            var numberFormatKey2 = new XlsxNumberFormat("mm");
 
             Assert.IsFalse(numberFormatKey1.Equals(numberFormatKey2));
         }
@@ -127,10 +126,10 @@ namespace Aid.Xlsx.Tests.Excel.Styles
         [Test]
         public void NumberFormatId_sets_format_to_predefined_format()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var cellFormat = ws.Cell("A1").Style;
-            const int predefinedFormatId = (int)XLPredefinedFormat.Number.Precision2;
+            const int predefinedFormatId = (int)XlsxPredefinedFormat.Number.Precision2;
 
             cellFormat.NumberFormat.NumberFormatId = predefinedFormatId;
 
@@ -141,17 +140,17 @@ namespace Aid.Xlsx.Tests.Excel.Styles
         [Test]
         public void NumberFormatId_throws_on_non_predefined_formats()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
 
             Assert.Throws<ArgumentOutOfRangeException>(() => ws.Cell("A1").Style.NumberFormat.NumberFormatId = 160);
         }
 
         [TestCase("0.000000 Cute", -1)]
-        [TestCase("0.00", XLPredefinedFormat.Number.Precision2)]
+        [TestCase("0.00", XlsxPredefinedFormat.Number.Precision2)]
         public void Format_sets_number_format(string numberFormat, int numFmtId)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
 
             ws.Cell("A1").Style.NumberFormat.Format = numberFormat;
@@ -163,7 +162,7 @@ namespace Aid.Xlsx.Tests.Excel.Styles
         [Test]
         public void Number_format_can_be_set_by_assigning()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Style.NumberFormat.Format = "0.000";
 
@@ -175,7 +174,7 @@ namespace Aid.Xlsx.Tests.Excel.Styles
         [Test]
         public void Equal_compares_formats()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Style.NumberFormat.Format = "0.000";
             ws.Cell("A2").Style.NumberFormat.Format = "0.000";

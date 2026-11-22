@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Workbooks;
 
 namespace Aid.Xlsx.CalcEngine
 {
@@ -8,7 +9,7 @@ namespace Aid.Xlsx.CalcEngine
     /// </summary>
     internal class DependenciesContext
     {
-        internal DependenciesContext(SheetArea formulaArea, XLWorkbook workbook)
+        internal DependenciesContext(SheetArea formulaArea, XlsxWorkbook workbook)
         {
             FormulaArea = formulaArea;
             Workbook = workbook;
@@ -19,7 +20,7 @@ namespace Aid.Xlsx.CalcEngine
         /// </summary>
         internal SheetArea FormulaArea { get; }
 
-        internal XLWorkbook Workbook { get; }
+        internal XlsxWorkbook Workbook { get; }
 
         /// <summary>
         /// The result. Visitor adds all areas/names formula depends on to this.
@@ -34,6 +35,6 @@ namespace Aid.Xlsx.CalcEngine
         /// <summary>
         /// Add name to a list of names the formula depends on. Disregards duplicate entries.
         /// </summary>
-        internal void AddName(XLName name) => Dependencies.AddName(name);
+        internal void AddName(XlsxName name) => Dependencies.AddName(name);
     }
 }

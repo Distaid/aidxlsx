@@ -1,7 +1,7 @@
 #nullable disable
 
-using System;
 using System.Globalization;
+using Aid.Xlsx.Cells;
 using Aid.Xlsx.Extensions;
 
 namespace Aid.Xlsx.CalcEngine
@@ -29,9 +29,9 @@ namespace Aid.Xlsx.CalcEngine
         private readonly bool _logical;
         private readonly double _number;
         private readonly string _text;
-        private readonly XLError _error;
+        private readonly XlsxError _error;
 
-        private ScalarValue(byte index, bool logical, double number, string text, XLError error)
+        private ScalarValue(byte index, bool logical, double number, string text, XlsxError error)
         {
             _index = index;
             _logical = logical;
@@ -68,7 +68,7 @@ namespace Aid.Xlsx.CalcEngine
             return new ScalarValue(TextValue, default, default, text, default);
         }
 
-        public static ScalarValue From(XLError error) => new(ErrorValue, default, default, default, error);
+        public static ScalarValue From(XlsxError error) => new(ErrorValue, default, default, default, error);
 
         public static implicit operator ScalarValue(bool logical) => From(logical);
 
@@ -76,19 +76,19 @@ namespace Aid.Xlsx.CalcEngine
 
         public static implicit operator ScalarValue(string text) => From(text);
 
-        public static implicit operator ScalarValue(XLError error) => From(error);
+        public static implicit operator ScalarValue(XlsxError error) => From(error);
 
-        public static implicit operator ScalarValue(XLCellValue cellValue)
+        public static implicit operator ScalarValue(XlsxCellValue cellValue)
         {
             return cellValue.Type switch
             {
-                XLDataType.Blank => ScalarValue.Blank,
-                XLDataType.Boolean => cellValue.GetBoolean(),
-                XLDataType.Number => cellValue.GetNumber(),
-                XLDataType.Text => cellValue.GetText(),
-                XLDataType.Error => cellValue.GetError(),
-                XLDataType.DateTime => cellValue.GetDateTime().ToSerialDateTime(),
-                XLDataType.TimeSpan => cellValue.GetTimeSpan().ToSerialDateTime(),
+                XlsxDataType.Blank => ScalarValue.Blank,
+                XlsxDataType.Boolean => cellValue.GetBoolean(),
+                XlsxDataType.Number => cellValue.GetNumber(),
+                XlsxDataType.Text => cellValue.GetText(),
+                XlsxDataType.Error => cellValue.GetError(),
+                XlsxDataType.DateTime => cellValue.GetDateTime().ToSerialDateTime(),
+                XlsxDataType.TimeSpan => cellValue.GetTimeSpan().ToSerialDateTime(),
                 _ => throw new InvalidOperationException()
             };
         }
@@ -99,9 +99,9 @@ namespace Aid.Xlsx.CalcEngine
 
         public string GetText() => IsText ? _text : throw new InvalidCastException();
 
-        public XLError GetError() => IsError ? _error : throw new InvalidCastException();
+        public XlsxError GetError() => IsError ? _error : throw new InvalidCastException();
 
-        internal XLCellValue ToCellValue()
+        internal XlsxCellValue ToCellValue()
         {
             return _index switch
             {
@@ -114,7 +114,7 @@ namespace Aid.Xlsx.CalcEngine
             };
         }
 
-        public TResult Match<TResult>(Func<TResult> transformBlank, Func<bool, TResult> transformLogical, Func<double, TResult> transformNumber, Func<string, TResult> transformText, Func<XLError, TResult> transformError)
+        public TResult Match<TResult>(Func<TResult> transformBlank, Func<bool, TResult> transformLogical, Func<double, TResult> transformNumber, Func<string, TResult> transformText, Func<XlsxError, TResult> transformError)
         {
             return _index switch
             {
@@ -127,7 +127,7 @@ namespace Aid.Xlsx.CalcEngine
             };
         }
 
-        public TResult Match<TResult, TParam1>(TParam1 param, Func<TParam1, TResult> transformBlank, Func<bool, TParam1, TResult> transformLogical, Func<double, TParam1, TResult> transformNumber, Func<string, TParam1, TResult> transformText, Func<XLError, TParam1, TResult> transformError)
+        public TResult Match<TResult, TParam1>(TParam1 param, Func<TParam1, TResult> transformBlank, Func<bool, TParam1, TResult> transformLogical, Func<double, TParam1, TResult> transformNumber, Func<string, TParam1, TResult> transformText, Func<XlsxError, TParam1, TResult> transformError)
         {
             return _index switch
             {
@@ -140,7 +140,7 @@ namespace Aid.Xlsx.CalcEngine
             };
         }
 
-        public TResult Match<TResult, TParam1, TParam2>(TParam1 param1, TParam2 param2, Func<TParam1, TParam2, TResult> transformBlank, Func<bool, TParam1, TParam2, TResult> transformLogical, Func<double, TParam1, TParam2, TResult> transformNumber, Func<string, TParam1, TParam2, TResult> transformText, Func<XLError, TParam1, TParam2, TResult> transformError)
+        public TResult Match<TResult, TParam1, TParam2>(TParam1 param1, TParam2 param2, Func<TParam1, TParam2, TResult> transformBlank, Func<bool, TParam1, TParam2, TResult> transformLogical, Func<double, TParam1, TParam2, TResult> transformNumber, Func<string, TParam1, TParam2, TResult> transformText, Func<XlsxError, TParam1, TParam2, TResult> transformError)
         {
             return _index switch
             {
@@ -169,7 +169,7 @@ namespace Aid.Xlsx.CalcEngine
         /// <summary>
         /// Convert value to text. Error is not convertible.
         /// </summary>
-        public OneOf<string, XLError> ToText(CultureInfo culture)
+        public OneOf<string, XlsxError> ToText(CultureInfo culture)
         {
             return _index switch
             {
@@ -185,7 +185,7 @@ namespace Aid.Xlsx.CalcEngine
         /// <summary>
         /// Convert value to number. Error is not convertible.
         /// </summary>
-        public OneOf<double, XLError> ToNumber(CultureInfo culture)
+        public OneOf<double, XlsxError> ToNumber(CultureInfo culture)
         {
             return _index switch
             {
@@ -216,16 +216,16 @@ namespace Aid.Xlsx.CalcEngine
                 return false;
             if (TextToNumber(text, culture).TryPickT0(out var number, out _))
                 return number;
-            if (XLErrorParser.TryParseError(text, out var error))
+            if (XlsxErrorParser.TryParseError(text, out var error))
                 return error;
 
             return text;
         }
 
-        public static OneOf<double, XLError> TextToNumber(string text, CultureInfo culture)
+        public static OneOf<double, XlsxError> TextToNumber(string text, CultureInfo culture)
         {
             if (string.IsNullOrWhiteSpace(text))
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             // Numbers. The parsing method recognizes braces as negative number, includes currency parsing.
             // Format 1 '0'
@@ -262,9 +262,9 @@ namespace Aid.Xlsx.CalcEngine
             if (ToSerialDateTime(text, culture, out var serialDateTime))
                 return serialDateTime;
 
-            return XLError.IncompatibleValue;
+            return XlsxError.IncompatibleValue;
 
-            static OneOf<double, XLError> ParsePercent(string text, int start, int length, CultureInfo c)
+            static OneOf<double, XlsxError> ParsePercent(string text, int start, int length, CultureInfo c)
             {
                 text = text.Substring(start, length);
                 if (double.TryParse(text, NumberStyles.Float
@@ -273,7 +273,7 @@ namespace Aid.Xlsx.CalcEngine
                     return percents / 100;
 
                 // other formats don't use '%' sign, but text has it, so just stop for invalid inputs like 'hundred%'
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
             }
         }
 
@@ -369,7 +369,7 @@ namespace Aid.Xlsx.CalcEngine
             return TryPickNumber(out number, out _);
         }
 
-        public bool TryPickNumber(out double number, out XLError error)
+        public bool TryPickNumber(out double number, out XlsxError error)
         {
             if (_index == NumberValue)
             {
@@ -379,14 +379,14 @@ namespace Aid.Xlsx.CalcEngine
             }
 
             number = default;
-            error = IsError ? _error : XLError.IncompatibleValue;
+            error = IsError ? _error : XlsxError.IncompatibleValue;
             return false;
         }
 
         /// <summary>
         /// Try to pick a number (interpret blank as number 0).
         /// </summary>
-        public bool TryPickNumberOrBlank(out double number, out XLError error)
+        public bool TryPickNumberOrBlank(out double number, out XlsxError error)
         {
             if (_index == NumberValue)
             {
@@ -405,11 +405,11 @@ namespace Aid.Xlsx.CalcEngine
             }
 
             number = default;
-            error = IsError ? _error : XLError.IncompatibleValue;
+            error = IsError ? _error : XlsxError.IncompatibleValue;
             return false;
         }
 
-        public bool TryPickText(out string text, out XLError error)
+        public bool TryPickText(out string text, out XlsxError error)
         {
             if (_index == TextValue)
             {
@@ -419,11 +419,11 @@ namespace Aid.Xlsx.CalcEngine
             }
 
             text = default;
-            error = _index == ErrorValue ? _error : XLError.IncompatibleValue;
+            error = _index == ErrorValue ? _error : XlsxError.IncompatibleValue;
             return false;
         }
 
-        public bool TryPickError(out XLError error)
+        public bool TryPickError(out XlsxError error)
         {
             if (_index == ErrorValue)
             {
@@ -444,7 +444,7 @@ namespace Aid.Xlsx.CalcEngine
         /// Get the logical value, if it is either blank (false), logical or number (0 = false, otherwise true)a text <c>TRUE</c> or <c>FALSE</c> (case insensitive).
         /// </summary>
         /// <remarks>Used for coercion in functions.</remarks>
-        public bool TryCoerceLogicalOrBlankOrNumberOrText(out Boolean value, out XLError error)
+        public bool TryCoerceLogicalOrBlankOrNumberOrText(out Boolean value, out XlsxError error)
         {
             switch (_index)
             {
@@ -474,7 +474,7 @@ namespace Aid.Xlsx.CalcEngine
                     return false;
                 default:
                     value = default;
-                    error = XLError.IncompatibleValue;
+                    error = XlsxError.IncompatibleValue;
                     return false;
             }
         }

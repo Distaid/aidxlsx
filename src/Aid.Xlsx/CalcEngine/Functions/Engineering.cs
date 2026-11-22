@@ -1,6 +1,6 @@
 #nullable disable
 
-namespace Aid.Xlsx.CalcEngine
+namespace Aid.Xlsx.CalcEngine.Functions
 {
     internal static class Engineering
     {

@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Rename `XL*` and `IXL*` types to `Xlsx*` and `IXlsx*`. Public types now live in
+  domain namespaces such as `Aid.Xlsx.Workbooks`, `Aid.Xlsx.Worksheets`, and `Aid.Xlsx.Cells`.
+  Existing consumers must update their imports and type names.
 - Write formula calculation chains, styles, shared strings, comments and pivot cache records through XML streams.
 - Read and write core, custom and extended workbook properties directly through OPC, retaining metadata outside the workbook model.
 - Read theme colors and generate default themes from XML. The streaming worksheet data reader uses its own cell and formula types.

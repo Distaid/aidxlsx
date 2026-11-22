@@ -1,6 +1,6 @@
 #nullable disable
 
-namespace Aid.Xlsx
+namespace Aid.Xlsx.CalcEngine
 {
     /// <summary>
     /// A blank value. Used as a value of blank cells or as an optional argument for function calls.

@@ -1,7 +1,6 @@
-using Aid.Xlsx;
+using Aid.Xlsx.Extensions;
 using DocumentFormat.OpenXml;
 using NUnit.Framework;
-using System;
 
 namespace Aid.Xlsx.Tests.Excel
 {

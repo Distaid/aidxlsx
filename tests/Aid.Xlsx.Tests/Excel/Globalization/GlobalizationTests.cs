@@ -1,7 +1,5 @@
-using Aid.Xlsx;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
-using System.IO;
-using System.Threading;
 
 namespace Aid.Xlsx.Tests.Excel.Globalization
 {
@@ -22,7 +20,7 @@ namespace Aid.Xlsx.Tests.Excel.Globalization
 
             using (var ms = new MemoryStream())
             {
-                using (XLWorkbook book1 = new XLWorkbook())
+                using (XlsxWorkbook book1 = new XlsxWorkbook())
                 {
                     var sheet = book1.AddWorksheet("sheet1");
                     sheet.Cell("A1").Value = 123;
@@ -33,7 +31,7 @@ namespace Aid.Xlsx.Tests.Excel.Globalization
                 }
                 ms.Position = 0;
 
-                using (XLWorkbook book2 = new XLWorkbook(ms))
+                using (XlsxWorkbook book2 = new XlsxWorkbook(ms))
                 {
                     var ws = book2.Worksheet(1);
                     var storedValueA2 = ws.Cell("A2").CachedValue;

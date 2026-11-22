@@ -1,11 +1,10 @@
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Aid.Xlsx.Extensions;
 
-namespace Aid.Xlsx
+namespace Aid.Xlsx.Cells
 {
     internal partial class Slice<TElement>
     {

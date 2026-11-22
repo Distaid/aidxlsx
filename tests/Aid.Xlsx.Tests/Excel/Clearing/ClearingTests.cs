@@ -1,21 +1,23 @@
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Styles;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
-using System;
-using System.IO;
-using System.Linq;
 
 namespace Aid.Xlsx.Tests
 {
     [TestFixture]
     public class ClearingTests
     {
-        private static XLColor backgroundColor = XLColor.LightBlue;
-        private static XLColor foregroundColor = XLColor.DarkBrown;
+        private static XlsxColor backgroundColor = XlsxColor.LightBlue;
+        private static XlsxColor foregroundColor = XlsxColor.DarkBrown;
 
-        private IXLWorkbook SetupWorkbook()
+        private IXlsxWorkbook SetupWorkbook()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet1");
 
             var c = ws.FirstCell()
                 .SetValue("Hello world!");
@@ -50,14 +52,14 @@ namespace Aid.Xlsx.Tests
 
             ws.Column(1)
                 .AddConditionalFormat().WhenStartsWith("Hell")
-                .Fill.SetBackgroundColor(XLColor.Red)
-                .Border.SetOutsideBorder(XLBorderStyleValues.Thick)
-                .Border.SetOutsideBorderColor(XLColor.Blue)
+                .Fill.SetBackgroundColor(XlsxColor.Red)
+                .Border.SetOutsideBorder(XlsxBorderStyleValues.Thick)
+                .Border.SetOutsideBorderColor(XlsxColor.Blue)
                 .Font.SetBold();
 
-            Assert.AreEqual(XLDataType.Text, ws.Cell("A1").Value.Type);
-            Assert.AreEqual(XLDataType.Text, ws.Cell("A2").Value.Type);
-            Assert.AreEqual(XLDataType.DateTime, ws.Cell("A3").Value.Type);
+            Assert.AreEqual(XlsxDataType.Text, ws.Cell("A1").Value.Type);
+            Assert.AreEqual(XlsxDataType.Text, ws.Cell("A2").Value.Type);
+            Assert.AreEqual(XlsxDataType.DateTime, ws.Cell("A3").Value.Type);
 
             Assert.AreEqual(false, ws.Cell("A1").HasFormula);
             Assert.AreEqual(true, ws.Cell("A2").HasFormula);
@@ -83,12 +85,12 @@ namespace Aid.Xlsx.Tests
             {
                 var ws = wb.Worksheets.First();
 
-                ws.Clear(XLClearOptions.All);
+                ws.Clear(XlsxClearOptions.All);
 
                 foreach (var c in ws.Range("A1:A10").Cells())
                 {
                     Assert.IsTrue(c.IsEmpty());
-                    Assert.AreEqual(XLDataType.Blank, c.DataType);
+                    Assert.AreEqual(XlsxDataType.Blank, c.DataType);
                     Assert.AreEqual(ws.Style.Fill.BackgroundColor, c.Style.Fill.BackgroundColor);
                     Assert.AreEqual(ws.Style.Font.FontColor, c.Style.Font.FontColor);
                     Assert.IsFalse(ws.ConditionalFormats.Any());
@@ -105,12 +107,12 @@ namespace Aid.Xlsx.Tests
             {
                 var ws = wb.Worksheets.First();
 
-                ws.Clear(XLClearOptions.Contents);
+                ws.Clear(XlsxClearOptions.Contents);
 
                 foreach (var c in ws.Range("A1:A3").Cells())
                 {
-                    Assert.AreEqual(XLDataType.Blank, ws.Cell("A1").DataType);
-                    Assert.IsTrue(c.IsEmpty(XLCellsUsedOptions.Contents));
+                    Assert.AreEqual(XlsxDataType.Blank, ws.Cell("A1").DataType);
+                    Assert.IsTrue(c.IsEmpty(XlsxCellsUsedOptions.Contents));
 
                     Assert.AreEqual(backgroundColor, c.Style.Fill.BackgroundColor);
                     Assert.AreEqual(foregroundColor, c.Style.Font.FontColor);
@@ -129,7 +131,7 @@ namespace Aid.Xlsx.Tests
             {
                 var ws = wb.Worksheets.First();
 
-                ws.Clear(XLClearOptions.NormalFormats);
+                ws.Clear(XlsxClearOptions.NormalFormats);
 
                 foreach (var c in ws.Range("A1:A3").Cells())
                 {
@@ -140,9 +142,9 @@ namespace Aid.Xlsx.Tests
                     Assert.IsTrue(c.HasComment);
                 }
 
-                Assert.AreEqual(XLDataType.Text, ws.Cell("A1").DataType);
-                Assert.AreEqual(XLDataType.Text, ws.Cell("A2").DataType);
-                Assert.AreEqual(XLDataType.DateTime, ws.Cell("A3").DataType);
+                Assert.AreEqual(XlsxDataType.Text, ws.Cell("A1").DataType);
+                Assert.AreEqual(XlsxDataType.Text, ws.Cell("A2").DataType);
+                Assert.AreEqual(XlsxDataType.DateTime, ws.Cell("A3").DataType);
 
                 Assert.AreEqual("B1", ws.Cell("A1").GetDataValidation().Value);
             }
@@ -155,7 +157,7 @@ namespace Aid.Xlsx.Tests
             {
                 var ws = wb.Worksheets.First();
 
-                ws.Clear(XLClearOptions.ConditionalFormats);
+                ws.Clear(XlsxClearOptions.ConditionalFormats);
 
                 foreach (var c in ws.Range("A1:A3").Cells())
                 {
@@ -166,9 +168,9 @@ namespace Aid.Xlsx.Tests
                     Assert.IsTrue(c.HasComment);
                 }
 
-                Assert.AreEqual(XLDataType.Text, ws.Cell("A1").DataType);
-                Assert.AreEqual(XLDataType.Text, ws.Cell("A2").DataType);
-                Assert.AreEqual(XLDataType.DateTime, ws.Cell("A3").DataType);
+                Assert.AreEqual(XlsxDataType.Text, ws.Cell("A1").DataType);
+                Assert.AreEqual(XlsxDataType.Text, ws.Cell("A2").DataType);
+                Assert.AreEqual(XlsxDataType.DateTime, ws.Cell("A3").DataType);
 
                 Assert.AreEqual("B1", ws.Cell("A1").GetDataValidation().Value);
             }
@@ -181,7 +183,7 @@ namespace Aid.Xlsx.Tests
             {
                 var ws = wb.Worksheets.First();
 
-                ws.Clear(XLClearOptions.Comments);
+                ws.Clear(XlsxClearOptions.Comments);
 
                 foreach (var c in ws.Range("A1:A3").Cells())
                 {
@@ -192,9 +194,9 @@ namespace Aid.Xlsx.Tests
                     Assert.IsFalse(c.HasComment);
                 }
 
-                Assert.AreEqual(XLDataType.Text, ws.Cell("A1").DataType);
-                Assert.AreEqual(XLDataType.Text, ws.Cell("A2").DataType);
-                Assert.AreEqual(XLDataType.DateTime, ws.Cell("A3").DataType);
+                Assert.AreEqual(XlsxDataType.Text, ws.Cell("A1").DataType);
+                Assert.AreEqual(XlsxDataType.Text, ws.Cell("A2").DataType);
+                Assert.AreEqual(XlsxDataType.DateTime, ws.Cell("A3").DataType);
 
                 Assert.AreEqual("B1", ws.Cell("A1").GetDataValidation().Value);
             }
@@ -207,7 +209,7 @@ namespace Aid.Xlsx.Tests
             {
                 var ws = wb.Worksheets.First();
 
-                ws.Clear(XLClearOptions.DataValidation);
+                ws.Clear(XlsxClearOptions.DataValidation);
 
                 foreach (var c in ws.Range("A1:A3").Cells())
                 {
@@ -218,9 +220,9 @@ namespace Aid.Xlsx.Tests
                     Assert.IsTrue(c.HasComment);
                 }
 
-                Assert.AreEqual(XLDataType.Text, ws.Cell("A1").DataType);
-                Assert.AreEqual(XLDataType.Text, ws.Cell("A2").DataType);
-                Assert.AreEqual(XLDataType.DateTime, ws.Cell("A3").DataType);
+                Assert.AreEqual(XlsxDataType.Text, ws.Cell("A1").DataType);
+                Assert.AreEqual(XlsxDataType.Text, ws.Cell("A2").DataType);
+                Assert.AreEqual(XlsxDataType.DateTime, ws.Cell("A3").DataType);
 
                 Assert.AreEqual(string.Empty, ws.Cell("A1").GetDataValidation().Value);
             }
@@ -240,17 +242,17 @@ namespace Aid.Xlsx.Tests
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var ws = wb.Worksheets.First();
-                    ws.Clear(XLClearOptions.Contents);
+                    ws.Clear(XlsxClearOptions.Contents);
                     Assert.AreEqual(Blank.Value, ws.Cell("A1").Value);
                     Assert.Throws<InvalidCastException>(() => ws.Cell("A3").GetDateTime());
 
                     wb.Save();
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var ws = wb.Worksheets.First();
                     Assert.AreEqual(Blank.Value, ws.Cell("A1").Value);
@@ -259,14 +261,14 @@ namespace Aid.Xlsx.Tests
             }
         }
 
-        [TestCase(XLClearOptions.All, 2)]
-        [TestCase(XLClearOptions.AllContents, 4)]
-        [TestCase(XLClearOptions.AllFormats, 4)]
-        [TestCase(XLClearOptions.Contents, 4)]
-        [TestCase(XLClearOptions.MergedRanges, 2)]
-        public void CanClearMergedRanges(XLClearOptions options, int expectedCount)
+        [TestCase(XlsxClearOptions.All, 2)]
+        [TestCase(XlsxClearOptions.AllContents, 4)]
+        [TestCase(XlsxClearOptions.AllFormats, 4)]
+        [TestCase(XlsxClearOptions.Contents, 4)]
+        [TestCase(XlsxClearOptions.MergedRanges, 2)]
+        public void CanClearMergedRanges(XlsxClearOptions options, int expectedCount)
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Test");
 

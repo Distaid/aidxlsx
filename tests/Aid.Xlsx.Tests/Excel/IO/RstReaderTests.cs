@@ -1,13 +1,13 @@
-using Aid.Xlsx;
 using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.Formatting;
 using Aid.Xlsx.Internal.IO;
 using Aid.Xlsx.Opc;
+using Aid.Xlsx.RichText;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Styles;
+using Aid.Xlsx.Utils;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using static Aid.Xlsx.XLImmutableRichText;
+using static Aid.Xlsx.RichText.XlsxImmutableRichText;
 
 namespace Aid.Xlsx.Tests.Excel.IO;
 
@@ -78,7 +78,7 @@ internal class RstReaderTests
             """);
 
         Assert.AreEqual("Hello", richText.Text);
-        Assert.AreEqual(richText.Runs, new[] { new RichTextRun(XLDifferentialFontValue.Empty, 0, 5) });
+        Assert.AreEqual(richText.Runs, new[] { new RichTextRun(XlsxDifferentialFontValue.Empty, 0, 5) });
         Assert.AreEqual(0, richText.PhoneticRuns.Count);
         Assert.IsNull(richText.PhoneticsProperties);
     }
@@ -103,8 +103,8 @@ internal class RstReaderTests
         Assert.AreEqual("Hello", richText.Text);
         Assert.AreEqual(richText.Runs, new[]
         {
-            new RichTextRun(XLDifferentialFontValue.Empty with { Bold = true }, 0, 3),
-            new RichTextRun(XLDifferentialFontValue.Empty, 3, 2),
+            new RichTextRun(XlsxDifferentialFontValue.Empty with { Bold = true }, 0, 3),
+            new RichTextRun(XlsxDifferentialFontValue.Empty, 3, 2),
         });
     }
 
@@ -140,7 +140,7 @@ internal class RstReaderTests
         Assert.AreEqual(2, richText.Runs.Count);
         Assert.AreEqual("Head", richText.GetRunText(richText.Runs[0]));
         Assert.AreEqual("Tail", richText.GetRunText(richText.Runs[1]));
-        Assert.AreEqual(XLDifferentialFontValue.Empty, richText.Runs[1].Dxf);
+        Assert.AreEqual(XlsxDifferentialFontValue.Empty, richText.Runs[1].Dxf);
     }
 
     [Test]
@@ -243,8 +243,8 @@ internal class RstReaderTests
 
         var dxf = richText.Runs[0].Dxf;
         Assert.AreEqual("Calibri", dxf.Name?.Text);
-        Assert.AreEqual(XLFontCharSet.ShiftJIS, dxf.Charset);
-        Assert.AreEqual(XLFontFamilyNumberingValues.Swiss, dxf.Family);
+        Assert.AreEqual(XlsxFontCharSet.ShiftJIS, dxf.Charset);
+        Assert.AreEqual(XlsxFontFamilyNumberingValues.Swiss, dxf.Family);
         Assert.IsTrue(dxf.Bold);
         Assert.IsFalse(dxf.Italic);
         Assert.IsTrue(dxf.Strikethrough);
@@ -252,11 +252,11 @@ internal class RstReaderTests
         Assert.IsFalse(dxf.Shadow);
         Assert.IsFalse(dxf.Condense);
         Assert.IsTrue(dxf.Extend);
-        Assert.AreEqual(XLColor.FromRgb(0x802010), dxf.Color);
+        Assert.AreEqual(XlsxColor.FromRgb(0x802010), dxf.Color);
         Assert.AreEqual(8.5, dxf.Size);
-        Assert.AreEqual(XLFontUnderlineValues.Double, dxf.Underline);
-        Assert.AreEqual(XLFontVerticalTextAlignmentValues.Superscript, dxf.VerticalAlignment);
-        Assert.AreEqual(XLFontScheme.None, dxf.Scheme);
+        Assert.AreEqual(XlsxFontUnderlineValues.Double, dxf.Underline);
+        Assert.AreEqual(XlsxFontVerticalTextAlignmentValues.Superscript, dxf.VerticalAlignment);
+        Assert.AreEqual(XlsxFontScheme.None, dxf.Scheme);
     }
 
     [Test]
@@ -273,7 +273,7 @@ internal class RstReaderTests
             </si>
             """);
 
-        Assert.AreEqual(XLFontUnderlineValues.Single, richText.Runs[0].Dxf.Underline);
+        Assert.AreEqual(XlsxFontUnderlineValues.Single, richText.Runs[0].Dxf.Underline);
     }
 
     [TestCase(6)]
@@ -292,7 +292,7 @@ internal class RstReaderTests
             </si>
             """);
 
-        Assert.AreEqual(XLFontFamilyNumberingValues.NotApplicable, richText.Runs[0].Dxf.Family);
+        Assert.AreEqual(XlsxFontFamilyNumberingValues.NotApplicable, richText.Runs[0].Dxf.Family);
     }
 
     [TestCase(-1)]
@@ -352,7 +352,7 @@ internal class RstReaderTests
     [Test]
     public void Can_read_phonetic_runs_and_properties()
     {
-        var phoneticFont = XLFontFormatValue.Default with { Name = @"Meiryo", Size = XLFontSize.FromPoints(6) };
+        var phoneticFont = XlsxFontFormatValue.Default with { Name = @"Meiryo", Size = XlsxFontSize.FromPoints(6) };
         var richText = ParseRichText(
             """
             <si>
@@ -369,7 +369,7 @@ internal class RstReaderTests
 
         Assert.AreEqual("東京", richText.Text);
         Assert.That(richText.PhoneticRuns, Is.EqualTo([new PhoneticRun("とうきょう", 0, 2)]));
-        Assert.That(richText.PhoneticsProperties, Is.EqualTo(new PhoneticProperties(phoneticFont, XLPhoneticType.Hiragana, XLPhoneticAlignment.Distributed)));
+        Assert.That(richText.PhoneticsProperties, Is.EqualTo(new PhoneticProperties(phoneticFont, XlsxPhoneticType.Hiragana, XlsxPhoneticAlignment.Distributed)));
     }
 
     [Test]
@@ -515,21 +515,21 @@ internal class RstReaderTests
         Assert.AreEqual(expected, text);
     }
 
-    private static XLImmutableRichText ParseRichText(string siXml, Action<XLWorkbookStyles> configureStyles = null)
+    private static XlsxImmutableRichText ParseRichText(string siXml, Action<XlsxWorkbookStyles> configureStyles = null)
     {
         return GetRichText(ParseSi(siXml, configureStyles));
     }
 
-    private static XLImmutableRichText GetRichText(OneOf<string, XLImmutableRichText> parsed)
+    private static XlsxImmutableRichText GetRichText(OneOf<string, XlsxImmutableRichText> parsed)
     {
         Assert.False(parsed.TryPickT0(out _, out var richText));
         Assert.NotNull(richText);
         return richText;
     }
 
-    private static OneOf<string, XLImmutableRichText> ParseSi(string xml, Action<XLWorkbookStyles> configureStyles = null)
+    private static OneOf<string, XlsxImmutableRichText> ParseSi(string xml, Action<XlsxWorkbookStyles> configureStyles = null)
     {
-        OneOf<string, XLImmutableRichText>? parsed = null;
+        OneOf<string, XlsxImmutableRichText>? parsed = null;
         ParseItems(
             $"""
              <sst xmlns="{OpenXmlConst.Main2006SsNs}">
@@ -550,11 +550,11 @@ internal class RstReaderTests
     private static void ParseItems(
         string xml,
         Action<RstReader, XmlTreeReader> act,
-        Action<XLWorkbookStyles> configureStyles = null)
+        Action<XlsxWorkbookStyles> configureStyles = null)
     {
-        using var stream = new MemoryStream(XLHelper.NoBomUTF8.GetBytes(xml));
+        using var stream = new MemoryStream(XlsxHelper.NoBomUTF8.GetBytes(xml));
         using var xmlReader = new XmlTreeReader(stream, XmlToEnumMapper.Instance, true);
-        var styles = new XLWorkbookStyles();
+        var styles = new XlsxWorkbookStyles();
         configureStyles?.Invoke(styles);
         var rstReader = new RstReader(xmlReader, styles);
         act(rstReader, xmlReader);

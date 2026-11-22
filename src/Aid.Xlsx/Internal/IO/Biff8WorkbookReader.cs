@@ -1,4 +1,9 @@
 using System.Buffers.Binary;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
+using Array = System.Array;
 
 namespace Aid.Xlsx.Internal.IO;
 
@@ -17,7 +22,7 @@ internal sealed class Biff8WorkbookReader(byte[] data)
     private string[] _strings = [];
     private int _materializedCells;
 
-    public void ReadInto(XLWorkbook workbook)
+    public void ReadInto(XlsxWorkbook workbook)
     {
         var offset = 0;
         ReadBof(ref offset, 0x0005);
@@ -78,9 +83,9 @@ internal sealed class Biff8WorkbookReader(byte[] data)
 
         var visibility = record[4] switch
         {
-            0 => XLWorksheetVisibility.Visible,
-            1 => XLWorksheetVisibility.Hidden,
-            2 => XLWorksheetVisibility.VeryHidden,
+            0 => XlsxWorksheetVisibility.Visible,
+            1 => XlsxWorksheetVisibility.Hidden,
+            2 => XlsxWorksheetVisibility.VeryHidden,
             _ => throw new InvalidDataException("Invalid BIFF sheet visibility.")
         };
         var offset = U32(record);
@@ -92,7 +97,7 @@ internal sealed class Biff8WorkbookReader(byte[] data)
         _sheets.Add(new SheetInfo((int)offset, name, visibility));
     }
 
-    private void ReadWorksheet(IXLWorksheet sheet, int offset, int end)
+    private void ReadWorksheet(IXlsxWorksheet sheet, int offset, int end)
     {
         ReadBof(ref offset, 0x0010);
         while (offset < end)
@@ -131,7 +136,7 @@ internal sealed class Biff8WorkbookReader(byte[] data)
                     SetCell(sheet, record, ReadUnicodeString(record[6..], ref offset));
                     break;
                 case 0x0205: // BOOLERR
-                    SetCell(sheet, record, record[7] == 0 ? (XLCellValue)(record[6] != 0) : ReadError(record[6]));
+                    SetCell(sheet, record, record[7] == 0 ? (XlsxCellValue)(record[6] != 0) : ReadError(record[6]));
                     break;
                 case 0x0006: // FORMULA
                     SetCell(sheet, record, ReadFormulaResult(record[6..], ref offset));
@@ -172,7 +177,7 @@ internal sealed class Biff8WorkbookReader(byte[] data)
         return value;
     }
 
-    private XLCellValue ReadFormulaResult(ReadOnlySpan<byte> record, ref int offset)
+    private XlsxCellValue ReadFormulaResult(ReadOnlySpan<byte> record, ref int offset)
     {
         if (U16(record[6..]) != 0xFFFF)
             return BinaryPrimitives.ReadDoubleLittleEndian(record);
@@ -200,7 +205,7 @@ internal sealed class Biff8WorkbookReader(byte[] data)
         }
     }
 
-    private void ReadMultipleCells(IXLWorksheet sheet, ReadOnlySpan<byte> record, bool hasValues)
+    private void ReadMultipleCells(IXlsxWorksheet sheet, ReadOnlySpan<byte> record, bool hasValues)
     {
         var row = U16(record);
         var first = U16(record[2..]);
@@ -212,14 +217,14 @@ internal sealed class Biff8WorkbookReader(byte[] data)
         for (var column = (int)first; column <= last; column++)
         {
             var field = record[(4 + (column - first) * size)..];
-            SetCell(sheet, row, column, U16(field), hasValues ? ReadRk(field[2..]) : (XLCellValue)Blank.Value);
+            SetCell(sheet, row, column, U16(field), hasValues ? ReadRk(field[2..]) : (XlsxCellValue)Blank.Value);
         }
     }
 
-    private void SetCell(IXLWorksheet sheet, ReadOnlySpan<byte> record, XLCellValue value)
+    private void SetCell(IXlsxWorksheet sheet, ReadOnlySpan<byte> record, XlsxCellValue value)
         => SetCell(sheet, U16(record), U16(record[2..]), U16(record[4..]), value);
 
-    private void SetCell(IXLWorksheet sheet, int row, int column, int xf, XLCellValue value)
+    private void SetCell(IXlsxWorksheet sheet, int row, int column, int xf, XlsxCellValue value)
     {
         if (column > 255 || xf >= _formatsByXf.Count || ++_materializedCells > MaxMaterializedCells)
             throw new InvalidDataException("Invalid BIFF cell index or workbook cell limit exceeded.");
@@ -233,7 +238,7 @@ internal sealed class Biff8WorkbookReader(byte[] data)
             cell.Style.NumberFormat.NumberFormatId = format;
     }
 
-    private static void ReadRowInfo(IXLWorksheet sheet, ReadOnlySpan<byte> record)
+    private static void ReadRowInfo(IXlsxWorksheet sheet, ReadOnlySpan<byte> record)
     {
         var flags = U16(record[12..]);
         if ((flags & 0x60) == 0)
@@ -246,7 +251,7 @@ internal sealed class Biff8WorkbookReader(byte[] data)
             row.Hide();
     }
 
-    private static void ReadColumnInfo(IXLWorksheet sheet, ReadOnlySpan<byte> record)
+    private static void ReadColumnInfo(IXlsxWorksheet sheet, ReadOnlySpan<byte> record)
     {
         var first = U16(record);
         var last = Math.Min((int)U16(record[2..]), 255);
@@ -264,7 +269,7 @@ internal sealed class Biff8WorkbookReader(byte[] data)
         }
     }
 
-    private void ReadMerges(IXLWorksheet sheet, ReadOnlySpan<byte> record)
+    private void ReadMerges(IXlsxWorksheet sheet, ReadOnlySpan<byte> record)
     {
         var count = U16(record);
         if (record.Length != 2 + count * 8)
@@ -328,15 +333,15 @@ internal sealed class Biff8WorkbookReader(byte[] data)
         return (bits & 1) != 0 ? number / 100 : number;
     }
 
-    private static XLError ReadError(byte code) => code switch
+    private static XlsxError ReadError(byte code) => code switch
     {
-        0x00 => XLError.NullValue,
-        0x07 => XLError.DivisionByZero,
-        0x0F => XLError.IncompatibleValue,
-        0x17 => XLError.CellReference,
-        0x1D => XLError.NameNotRecognized,
-        0x24 => XLError.NumberInvalid,
-        0x2A => XLError.NoValueAvailable,
+        0x00 => XlsxError.NullValue,
+        0x07 => XlsxError.DivisionByZero,
+        0x0F => XlsxError.IncompatibleValue,
+        0x17 => XlsxError.CellReference,
+        0x1D => XlsxError.NameNotRecognized,
+        0x24 => XlsxError.NumberInvalid,
+        0x2A => XlsxError.NoValueAvailable,
         _ => throw new InvalidDataException("Invalid BIFF cell error code.")
     };
 
@@ -344,7 +349,7 @@ internal sealed class Biff8WorkbookReader(byte[] data)
 
     private static uint U32(ReadOnlySpan<byte> bytes) => BinaryPrimitives.ReadUInt32LittleEndian(bytes);
 
-    private sealed record SheetInfo(int Offset, string Name, XLWorksheetVisibility Visibility);
+    private sealed record SheetInfo(int Offset, string Name, XlsxWorksheetVisibility Visibility);
 
     private ref struct StringSegments(byte[] buffer, ReadOnlySpan<byte> initial, int offset)
     {

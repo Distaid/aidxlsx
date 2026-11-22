@@ -1,6 +1,6 @@
-using System;
-using Aid.Xlsx;
+using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Formulas;
+using Aid.Xlsx.Utils;
 
 namespace Aid.Xlsx.Extensions
 {
@@ -45,10 +45,10 @@ namespace Aid.Xlsx.Extensions
             if (area.Style != ReferenceStyle.A1)
                 throw new ArgumentException(nameof(area));
 
-            var row1 = A1ToPosition(area.First.RowType, area.First.RowValue, XLHelper.MinRowNumber);
-            var col1 = A1ToPosition(area.First.ColumnType, area.First.ColumnValue, XLHelper.MinColumnNumber);
-            var row2 = A1ToPosition(area.Second.RowType, area.Second.RowValue, XLHelper.MaxRowNumber);
-            var col2 = A1ToPosition(area.Second.ColumnType, area.Second.ColumnValue, XLHelper.MaxColumnNumber);
+            var row1 = A1ToPosition(area.First.RowType, area.First.RowValue, XlsxHelper.MinRowNumber);
+            var col1 = A1ToPosition(area.First.ColumnType, area.First.ColumnValue, XlsxHelper.MinColumnNumber);
+            var row2 = A1ToPosition(area.Second.RowType, area.Second.RowValue, XlsxHelper.MaxRowNumber);
+            var col2 = A1ToPosition(area.Second.ColumnType, area.Second.ColumnValue, XlsxHelper.MaxColumnNumber);
             return ToArea(row1, row2, col1, col2);
         }
 
@@ -57,10 +57,10 @@ namespace Aid.Xlsx.Extensions
             if (area.Style != ReferenceStyle.R1C1)
                 throw new ArgumentException(nameof(area));
 
-            var row1 = R1C1ToPosition(area.First.RowType, area.First.RowValue, anchor.Row, XLHelper.MinRowNumber, XLHelper.MaxRowNumber);
-            var col1 = R1C1ToPosition(area.First.ColumnType, area.First.ColumnValue, anchor.Column, XLHelper.MinColumnNumber, XLHelper.MaxColumnNumber);
-            var row2 = R1C1ToPosition(area.Second.RowType, area.Second.RowValue, anchor.Row, XLHelper.MaxRowNumber, XLHelper.MaxRowNumber);
-            var col2 = R1C1ToPosition(area.Second.ColumnType, area.Second.ColumnValue, anchor.Column, XLHelper.MaxColumnNumber, XLHelper.MaxColumnNumber);
+            var row1 = R1C1ToPosition(area.First.RowType, area.First.RowValue, anchor.Row, XlsxHelper.MinRowNumber, XlsxHelper.MaxRowNumber);
+            var col1 = R1C1ToPosition(area.First.ColumnType, area.First.ColumnValue, anchor.Column, XlsxHelper.MinColumnNumber, XlsxHelper.MaxColumnNumber);
+            var row2 = R1C1ToPosition(area.Second.RowType, area.Second.RowValue, anchor.Row, XlsxHelper.MaxRowNumber, XlsxHelper.MaxRowNumber);
+            var col2 = R1C1ToPosition(area.Second.ColumnType, area.Second.ColumnValue, anchor.Column, XlsxHelper.MaxColumnNumber, XlsxHelper.MaxColumnNumber);
             return ToArea(row1, row2, col1, col2);
         }
 

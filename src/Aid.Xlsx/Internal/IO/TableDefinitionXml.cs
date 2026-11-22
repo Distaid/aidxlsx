@@ -1,13 +1,13 @@
-using System;
-using System.IO;
-using System.Xml;
 using System.Xml.Linq;
+using System.Xml;
+using Aid.Xlsx.Tables;
+using Aid.Xlsx.Worksheets;
 
 namespace Aid.Xlsx.Internal.IO;
 
 internal static class TableDefinitionXml
 {
-    internal static void Load(Stream input, XLWorksheet worksheet, string relationshipId)
+    internal static void Load(Stream input, XlsxWorksheet worksheet, string relationshipId)
     {
         using var reader = XmlReader.Create(input, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
         var root = XElement.Load(reader);
@@ -21,7 +21,7 @@ internal static class TableDefinitionXml
         if (range is null)
             throw new InvalidDataException($"Invalid table range '{reference}'.");
 
-        var table = (XLTable)range.CreateTable(name, false);
+        var table = (XlsxTable)range.CreateTable(name, false);
         table.RelId = relationshipId;
         var formats = worksheet.Workbook.Styles.DifferentialFormats;
 
@@ -52,7 +52,7 @@ internal static class TableDefinitionXml
             table.ShowRowStripes = (bool?)style.Attribute("showRowStripes") ?? table.ShowRowStripes;
             table.ShowColumnStripes = (bool?)style.Attribute("showColumnStripes") ?? table.ShowColumnStripes;
             var theme = (string?)style.Attribute("name");
-            table.Theme = theme is null ? XLTableTheme.None : XLTableTheme.FromName(theme) ?? new XLTableTheme(theme);
+            table.Theme = theme is null ? XlsxTableTheme.None : XlsxTableTheme.FromName(theme) ?? new XlsxTableTheme(theme);
         }
 
         var filter = root.Element(ns + "autoFilter");
@@ -87,33 +87,33 @@ internal static class TableDefinitionXml
         return name.Replace("_x000a_", Environment.NewLine).Replace("_x005f_x000a_", "_x000a_");
     }
 
-    internal static string FormatTotalsFunction(XLTotalsRowFunction value) => value switch
+    internal static string FormatTotalsFunction(XlsxTotalsRowFunction value) => value switch
     {
-        XLTotalsRowFunction.None => "none",
-        XLTotalsRowFunction.Sum => "sum",
-        XLTotalsRowFunction.Minimum => "min",
-        XLTotalsRowFunction.Maximum => "max",
-        XLTotalsRowFunction.Average => "average",
-        XLTotalsRowFunction.Count => "count",
-        XLTotalsRowFunction.CountNumbers => "countNums",
-        XLTotalsRowFunction.StandardDeviation => "stdDev",
-        XLTotalsRowFunction.Variance => "var",
-        XLTotalsRowFunction.Custom => "custom",
+        XlsxTotalsRowFunction.None => "none",
+        XlsxTotalsRowFunction.Sum => "sum",
+        XlsxTotalsRowFunction.Minimum => "min",
+        XlsxTotalsRowFunction.Maximum => "max",
+        XlsxTotalsRowFunction.Average => "average",
+        XlsxTotalsRowFunction.Count => "count",
+        XlsxTotalsRowFunction.CountNumbers => "countNums",
+        XlsxTotalsRowFunction.StandardDeviation => "stdDev",
+        XlsxTotalsRowFunction.Variance => "var",
+        XlsxTotalsRowFunction.Custom => "custom",
         _ => throw new ArgumentOutOfRangeException(nameof(value))
     };
 
-    private static XLTotalsRowFunction ParseTotalsFunction(string value) => value switch
+    private static XlsxTotalsRowFunction ParseTotalsFunction(string value) => value switch
     {
-        "none" => XLTotalsRowFunction.None,
-        "sum" => XLTotalsRowFunction.Sum,
-        "min" => XLTotalsRowFunction.Minimum,
-        "max" => XLTotalsRowFunction.Maximum,
-        "average" => XLTotalsRowFunction.Average,
-        "count" => XLTotalsRowFunction.Count,
-        "countNums" => XLTotalsRowFunction.CountNumbers,
-        "stdDev" => XLTotalsRowFunction.StandardDeviation,
-        "var" => XLTotalsRowFunction.Variance,
-        "custom" => XLTotalsRowFunction.Custom,
+        "none" => XlsxTotalsRowFunction.None,
+        "sum" => XlsxTotalsRowFunction.Sum,
+        "min" => XlsxTotalsRowFunction.Minimum,
+        "max" => XlsxTotalsRowFunction.Maximum,
+        "average" => XlsxTotalsRowFunction.Average,
+        "count" => XlsxTotalsRowFunction.Count,
+        "countNums" => XlsxTotalsRowFunction.CountNumbers,
+        "stdDev" => XlsxTotalsRowFunction.StandardDeviation,
+        "var" => XlsxTotalsRowFunction.Variance,
+        "custom" => XlsxTotalsRowFunction.Custom,
         _ => throw new InvalidDataException($"Unknown totals row function '{value}'.")
     };
 }

@@ -1,22 +1,23 @@
-using System;
 using System.Diagnostics;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Utils;
 
-namespace Aid.Xlsx;
+namespace Aid.Xlsx.Coordinates;
 
 /// <summary>
 /// An point (address) in a worksheet, an equivalent of <c>ST_CellRef</c>.
 /// </summary>
-/// <remarks>Unlike the XLAddress, point can never be invalid. To ensure that, the stored coordinate values are
+/// <remarks>Unlike the XlsxAddress, point can never be invalid. To ensure that, the stored coordinate values are
 /// off-by-one, so the <c>default(Point)</c> is a valid <c>A1</c>.</remarks>
-[DebuggerDisplay("{XLHelper.GetColumnLetterFromNumber(Column)+Row}")]
+[DebuggerDisplay("{XlsxHelper.GetColumnLetterFromNumber(Column)+Row}")]
 internal readonly struct Point : IEquatable<Point>, IComparable<Point>
 {
     internal Point(int row, int column)
     {
-        if (row is < XLHelper.MinRowNumber or > XLHelper.MaxRowNumber)
+        if (row is < XlsxHelper.MinRowNumber or > XlsxHelper.MaxRowNumber)
             throw new ArgumentOutOfRangeException(nameof(row));
 
-        if (column is < XLHelper.MinColumnNumber or > XLHelper.MaxColumnNumber)
+        if (column is < XlsxHelper.MinColumnNumber or > XlsxHelper.MaxColumnNumber)
             throw new ArgumentOutOfRangeException(nameof(column));
 
         Row = row - 1;
@@ -66,9 +67,9 @@ internal readonly struct Point : IEquatable<Point>, IComparable<Point>
     /// <summary>
     /// Get offset that must be added to <paramref name="origin"/> so we can get <paramref name="target"/>.
     /// </summary>
-    public static XLSheetOffset operator -(Point target, Point origin)
+    public static XlsxSheetOffset operator -(Point target, Point origin)
     {
-        return new XLSheetOffset(target.Row - origin.Row, target.Column - origin.Column);
+        return new XlsxSheetOffset(target.Row - origin.Row, target.Column - origin.Column);
     }
 
     /// <inheritdoc cref="Parse(ReadOnlySpan{char})"/>
@@ -97,7 +98,7 @@ internal readonly struct Point : IEquatable<Point>, IComparable<Point>
         point = default;
 
         // If we get some text that is either too short or long, bail out. Also protects against overflow.
-        if (input.Length < 2 || input.Length > XLHelper.LastSheetAddress.Length)
+        if (input.Length < 2 || input.Length > XlsxHelper.LastSheetAddress.Length)
             return false;
 
         var i = 0;
@@ -135,7 +136,7 @@ internal readonly struct Point : IEquatable<Point>, IComparable<Point>
         if (i != input.Length)
             return false;
 
-        if (rowIndex > XLHelper.MaxRowNumber || columnIndex > XLHelper.MaxColumnNumber)
+        if (rowIndex > XlsxHelper.MaxRowNumber || columnIndex > XlsxHelper.MaxColumnNumber)
             return false;
 
         point = new Point(rowIndex, columnIndex);
@@ -152,7 +153,7 @@ internal readonly struct Point : IEquatable<Point>, IComparable<Point>
     /// <returns>Number of chars </returns>
     public int Format(Span<char> output)
     {
-        var columnLetters = XLHelper.GetColumnLetterFromNumber(Column);
+        var columnLetters = XlsxHelper.GetColumnLetterFromNumber(Column);
         for (var i = 0; i < columnLetters.Length; ++i)
             output[i] = columnLetters[i];
 
@@ -190,12 +191,12 @@ internal readonly struct Point : IEquatable<Point>, IComparable<Point>
     /// <summary>
     /// Create a sheet point from the address. Workbook is ignored.
     /// </summary>
-    internal static Point FromAddress(IXLAddress address)
+    internal static Point FromAddress(IXlsxAddress address)
         => new(address.RowNumber, address.ColumnNumber);
 
-    internal static Point FromCell(IXLCell cell)
+    internal static Point FromCell(IXlsxCell cell)
     {
-        return ((XLCell)cell).Point;
+        return ((XlsxCell)cell).Point;
     }
 
     public int CompareTo(Point other)

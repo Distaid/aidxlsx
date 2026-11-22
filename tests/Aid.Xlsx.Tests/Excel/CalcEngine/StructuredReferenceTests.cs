@@ -1,8 +1,11 @@
 #nullable enable
 
-using System.Collections.Generic;
 using System.Data;
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Tables;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine
@@ -101,7 +104,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
             string expectedWithTotals,
             string expectedWithoutTotals)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
 
             var table = Add4X3Table(ws, "E7");
@@ -122,7 +125,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
             // the intersection of table-name[[column - name]:[column - name2]] and the current row; for example,
             // the row of the cell that contains the formula with such structure reference.These two forms allow
             //formulas to perform implicit intersection using structure references.
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
 
             Add4X3Table(ws, "E7");
@@ -143,23 +146,23 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         {
             // table-name[[#This Row],[column-name]] and table-name[[#This Row],[column-name1]:[column-name2]]
             // return #VALUE! when the row is not in data range of rows.
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
 
             var table = Add4X3Table(ws, "E7");
             table.ShowTotalsRow = true;
 
             // Right above header row
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Evaluate(formula, "D6"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Evaluate(formula, "D6"));
 
             // Header row
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Evaluate(formula, "D7"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Evaluate(formula, "D7"));
 
             // Whether there is a totals row or not, the result is #VALUE!
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Evaluate(formula, "D11"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Evaluate(formula, "D11"));
 
             table.ShowTotalsRow = false;
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Evaluate(formula, "D11"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Evaluate(formula, "D11"));
         }
 
         [Test]
@@ -167,7 +170,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         {
             // Structured reference uses cells from the sheet of the table, not sheet where is the formula.
             // upstream issue #2871
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var tableSheet = wb.AddWorksheet("TableSheet");
             tableSheet.Cell("B3").InsertTable(
                 [
@@ -182,7 +185,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
             Assert.That(formulaSheet.Cell("A1").Value, Is.EqualTo(16));
         }
 
-        private static IXLTable Add4X3Table(IXLWorksheet ws, string origin)
+        private static IXlsxTable Add4X3Table(IXlsxWorksheet ws, string origin)
         {
             var dt = new DataTable("TableName");
             dt.Columns.AddRange(new[]
@@ -208,11 +211,11 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
             return table;
         }
 
-        private static void AssertRange(string structureReference, string expectedArea, IXLWorksheet ws, string? formulaAddress = null)
+        private static void AssertRange(string structureReference, string expectedArea, IXlsxWorksheet ws, string? formulaAddress = null)
         {
             if (expectedArea == "#REF!")
             {
-                Assert.AreEqual(XLError.CellReference, ws.Evaluate(structureReference, formulaAddress));
+                Assert.AreEqual(XlsxError.CellReference, ws.Evaluate(structureReference, formulaAddress));
                 return;
             }
 

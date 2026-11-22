@@ -1,7 +1,6 @@
-using System;
 using static Aid.Xlsx.CalcEngine.Functions.SignatureAdapter;
 
-namespace Aid.Xlsx.CalcEngine
+namespace Aid.Xlsx.CalcEngine.Functions
 {
     internal static class Financial
     {
@@ -86,12 +85,12 @@ namespace Aid.Xlsx.CalcEngine
         private static AnyValue Ipmt(double rate, double period, double numberOfPayments, double presentValue, double futureValue, double type)
         {
             if (numberOfPayments <= 0 || rate <= -1)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             numberOfPayments = Math.Ceiling(numberOfPayments);
 
             if (period < 1 || period > numberOfPayments)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             double ipmt = FvInternal(rate, period - 1, PmtInternal(rate, numberOfPayments, presentValue, futureValue, type), presentValue, type) * rate;
 
@@ -104,7 +103,7 @@ namespace Aid.Xlsx.CalcEngine
         private static AnyValue Pmt(double rate, double numberOfPayments, double presentValue, double futureValue, double type)
         {
             if (numberOfPayments == 0 || rate <= -1)
-                return XLError.NumberInvalid;
+                return XlsxError.NumberInvalid;
 
             return PmtInternal(rate, numberOfPayments, presentValue, futureValue, type);
         }

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Formulas;
 
@@ -186,7 +184,7 @@ namespace Aid.Xlsx.CalcEngine
                     return new FunctionNode(functionName, args);
 
                 // Nonexistent function is evaluated to #NAME?, but cell function should be evaluated to #REF!
-                return new ScalarNode(XLError.CellReference);
+                return new ScalarNode(XlsxError.CellReference);
             }
 
             public ValueNode StructureReference(string context, SymbolRange range, StructuredReferenceArea area,
@@ -309,9 +307,9 @@ namespace Aid.Xlsx.CalcEngine
                 return new FunctionNode(prefixNode, functionName, argumentNodes);
             }
 
-            private static XLError GetErrorValue(ReadOnlySpan<char> error)
+            private static XlsxError GetErrorValue(ReadOnlySpan<char> error)
             {
-                if (!XLErrorParser.TryParseError(error.ToString(), out var errorEnum))
+                if (!XlsxErrorParser.TryParseError(error.ToString(), out var errorEnum))
                     throw new InvalidOperationException($"'{error.ToString()}' is not error.");
                 return errorEnum;
             }

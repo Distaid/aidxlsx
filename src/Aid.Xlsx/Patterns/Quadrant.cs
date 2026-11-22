@@ -1,8 +1,8 @@
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Utils;
 
 namespace Aid.Xlsx.Patterns
 {
@@ -51,7 +51,7 @@ namespace Aid.Xlsx.Patterns
         /// <summary>
         /// Collection of ranges belonging to this quadrant (does not include ranges from child quadrants).
         /// </summary>
-        public IEnumerable<IXLAddressable> Ranges
+        public IEnumerable<IXlsxAddressable> Ranges
         {
             get => _ranges?.Values.AsEnumerable();
         }
@@ -79,14 +79,14 @@ namespace Aid.Xlsx.Patterns
             X = x;
             Y = y;
 
-            MinimumColumn = (Level == 0) ? 1 : 1 + XLHelper.MaxColumnNumber / (int)Math.Pow(2, Level) * X;
-            MinimumRow = (Level == 0) ? 1 : 1 + XLHelper.MaxColumnNumber / (int)Math.Pow(2, Level) * Y; //MaxColumnNumber here is not a mistake
+            MinimumColumn = (Level == 0) ? 1 : 1 + XlsxHelper.MaxColumnNumber / (int)Math.Pow(2, Level) * X;
+            MinimumRow = (Level == 0) ? 1 : 1 + XlsxHelper.MaxColumnNumber / (int)Math.Pow(2, Level) * Y; //MaxColumnNumber here is not a mistake
             MaximumColumn = (Level == 0)
-                ? XLHelper.MaxColumnNumber
-                : XLHelper.MaxColumnNumber / (int)Math.Pow(2, Level) * (X + 1);
+                ? XlsxHelper.MaxColumnNumber
+                : XlsxHelper.MaxColumnNumber / (int)Math.Pow(2, Level) * (X + 1);
             MaximumRow = (Level == 0)
-                ? XLHelper.MaxRowNumber
-                : XLHelper.MaxColumnNumber / (int)Math.Pow(2, Level) * (Y + 1); //MaxColumnNumber here is not a mistake
+                ? XlsxHelper.MaxRowNumber
+                : XlsxHelper.MaxColumnNumber / (int)Math.Pow(2, Level) * (Y + 1); //MaxColumnNumber here is not a mistake
         }
 
         #endregion Constructors
@@ -97,7 +97,7 @@ namespace Aid.Xlsx.Patterns
         /// Add a range to the quadrant or to one of the child quadrants (recursively).
         /// </summary>
         /// <returns>True, if range was successfully added, false if it has been added before.</returns>
-        public bool Add(IXLAddressable range)
+        public bool Add(IXlsxAddressable range)
         {
             bool res = false;
             var children = Children ?? CreateChildren().ToList();
@@ -125,7 +125,7 @@ namespace Aid.Xlsx.Patterns
         /// <summary>
         /// Get all ranges from the quadrant and all child quadrants (recursively).
         /// </summary>
-        public IEnumerable<IXLAddressable> GetAll()
+        public IEnumerable<IXlsxAddressable> GetAll()
         {
             if (Ranges != null)
             {
@@ -147,7 +147,7 @@ namespace Aid.Xlsx.Patterns
         /// <summary>
         /// Get all ranges from the quadrant and all child quadrants (recursively) that intersect the specified address.
         /// </summary>
-        public IEnumerable<IXLAddressable> GetIntersectedRanges(IXLRangeAddress rangeAddress)
+        public IEnumerable<IXlsxAddressable> GetIntersectedRanges(IXlsxRangeAddress rangeAddress)
         {
             if (Ranges != null)
             {
@@ -175,7 +175,7 @@ namespace Aid.Xlsx.Patterns
         /// <summary>
         /// Get all ranges from the quadrant and all child quadrants (recursively) that cover the specified address.
         /// </summary>
-        public IEnumerable<IXLAddressable> GetIntersectedRanges(IXLAddress address)
+        public IEnumerable<IXlsxAddressable> GetIntersectedRanges(IXlsxAddress address)
         {
             if (Ranges != null)
             {
@@ -204,7 +204,7 @@ namespace Aid.Xlsx.Patterns
         /// Remove the range from the quadrant or from child quadrants (recursively).
         /// </summary>
         /// <returns>True if the range was removed, false if it does not exist in the QuadTree.</returns>
-        public bool Remove(IXLRangeAddress rangeAddress)
+        public bool Remove(IXlsxRangeAddress rangeAddress)
         {
             bool res = false;
 
@@ -232,14 +232,14 @@ namespace Aid.Xlsx.Patterns
 
         /// <summary>
         /// Remove all the ranges matching specified criteria from the quadrant and its child quadrants (recursively).
-        /// Don't use it for searching intersections as it would be much less efficient than <see cref="GetIntersectedRanges(IXLRangeAddress)"/>.
+        /// Don't use it for searching intersections as it would be much less efficient than <see cref="GetIntersectedRanges(IXlsxRangeAddress)"/>.
         /// </summary>
-        public IEnumerable<IXLAddressable> RemoveAll(Predicate<IXLAddressable> predicate)
+        public IEnumerable<IXlsxAddressable> RemoveAll(Predicate<IXlsxAddressable> predicate)
         {
             if (_ranges != null)
             {
                 var ranges = _ranges.Values.Where(r => predicate(r));
-                var keysToRemove = new List<IXLRangeAddress>();
+                var keysToRemove = new List<IXlsxRangeAddress>();
                 foreach (var range in ranges)
                 {
                     keysToRemove.Add(range.RangeAddress);
@@ -274,7 +274,7 @@ namespace Aid.Xlsx.Patterns
         /// <summary>
         /// Collection of ranges belonging to the current quadrant (that cannot fit into child quadrants).
         /// </summary>
-        private Dictionary<IXLRangeAddress, IXLAddressable> _ranges;
+        private Dictionary<IXlsxRangeAddress, IXlsxAddressable> _ranges;
 
         #endregion Private Fields
 
@@ -284,10 +284,10 @@ namespace Aid.Xlsx.Patterns
         /// Add a range to the collection of quadrant's own ranges.
         /// </summary>
         /// <returns>True if the range was successfully added, false if it had been added before.</returns>
-        private bool AddInternal(IXLAddressable range)
+        private bool AddInternal(IXlsxAddressable range)
         {
             if (_ranges == null)
-                _ranges = new Dictionary<IXLRangeAddress, IXLAddressable>();
+                _ranges = new Dictionary<IXlsxRangeAddress, IXlsxAddressable>();
 
             if (_ranges.ContainsKey(range.RangeAddress))
                 return false;
@@ -299,7 +299,7 @@ namespace Aid.Xlsx.Patterns
         /// <summary>
         /// Check if the current quadrant fully covers the specified address.
         /// </summary>
-        private bool Covers(in IXLRangeAddress rangeAddress)
+        private bool Covers(in IXlsxRangeAddress rangeAddress)
         {
             return MinimumColumn <= rangeAddress.FirstAddress.ColumnNumber &&
                    MaximumColumn >= rangeAddress.LastAddress.ColumnNumber &&
@@ -310,7 +310,7 @@ namespace Aid.Xlsx.Patterns
         /// <summary>
         /// Check if the current quadrant covers the specified address.
         /// </summary>
-        private bool Covers(in IXLAddress address)
+        private bool Covers(in IXlsxAddress address)
         {
             return MinimumColumn <= address.ColumnNumber &&
                    MaximumColumn >= address.ColumnNumber &&
@@ -321,7 +321,7 @@ namespace Aid.Xlsx.Patterns
         /// <summary>
         /// Check if the current quadrant intersects the specified address.
         /// </summary>
-        private bool Intersects(in IXLRangeAddress rangeAddress)
+        private bool Intersects(in IXlsxRangeAddress rangeAddress)
         {
             return ((MinimumRow <= rangeAddress.FirstAddress.RowNumber && rangeAddress.FirstAddress.RowNumber <= MaximumRow) ||
                     (rangeAddress.FirstAddress.RowNumber <= MinimumRow && MinimumRow <= rangeAddress.LastAddress.RowNumber))
@@ -339,7 +339,7 @@ namespace Aid.Xlsx.Patterns
             if (childLevel > MAX_LEVEL)
                 yield break;
             byte xCount = 2; // Always divide on halves
-            byte yCount = (byte)((Level == 0) ? (XLHelper.MaxRowNumber / XLHelper.MaxColumnNumber) : 2); // Level 0 divide onto 64 parts, the rest - on halves
+            byte yCount = (byte)((Level == 0) ? (XlsxHelper.MaxRowNumber / XlsxHelper.MaxColumnNumber) : 2); // Level 0 divide onto 64 parts, the rest - on halves
 
             for (byte dy = 0; dy < yCount; dy++)
             {
@@ -357,7 +357,7 @@ namespace Aid.Xlsx.Patterns
     /// A generic version of <see cref="Quadrant"/>
     /// </summary>
     internal class Quadrant<T> : Quadrant
-        where T : IXLAddressable
+        where T : IXlsxAddressable
     {
         public new IEnumerable<T> Ranges => base.Ranges.Cast<T>();
 
@@ -371,12 +371,12 @@ namespace Aid.Xlsx.Patterns
             return base.GetAll().Cast<T>();
         }
 
-        public new IEnumerable<T> GetIntersectedRanges(IXLRangeAddress rangeAddress)
+        public new IEnumerable<T> GetIntersectedRanges(IXlsxRangeAddress rangeAddress)
         {
             return base.GetIntersectedRanges(rangeAddress).Cast<T>();
         }
 
-        public new IEnumerable<T> GetIntersectedRanges(IXLAddress address)
+        public new IEnumerable<T> GetIntersectedRanges(IXlsxAddress address)
         {
             return base.GetIntersectedRanges(address).Cast<T>();
         }

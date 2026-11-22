@@ -13,9 +13,7 @@ workbooks. It targets `net10.0`.
 - read, create and edit `.xlsx`/`.xlsm`: cells, values, formulas, cached values, styles,
   number formats, shared strings and rich text, tables, conditional formatting, data
   validation, comments, hyperlinks, images, page setup and protection;
-- a public API whose structure matches the upstream project after namespace normalization
-  and the `XL*` → `Xlsx*` rename; source and binary compatibility with upstream is not
-  offered;
+- a public API organized by domain, with `Xlsx*` and `IXlsx*` type names;
 - no `DocumentFormat.OpenXml` dependency at runtime: workbooks are read and written by a
   custom OPC/XML layer (`Aid.Xlsx.Opc`);
 - preservation of unknown parts on round-trip, including `.xlsm` VBA projects;
@@ -36,21 +34,24 @@ creates, saves and reloads a workbook after a fully trimmed or NativeAOT publish
 package includes the generator.
 
 ```csharp
-using Aid.Xlsx;
 using Aid.Xlsx.Attributes;
+using Aid.Xlsx.InsertData;
+using Aid.Xlsx.Workbooks;
 
-using var workbook = new XLWorkbook();
+using var workbook = new XlsxWorkbook();
 var sheet = workbook.Worksheets.Add("Sales");
 sheet.Cell("A1").InsertMappedTable(new[] { new Sale("Pears", 22m) });
 workbook.SaveAs("sales.xlsx");
 
 [XlsxTable("SalesData")]
-internal record Sale(string Item, [property: XLColumn(Format = "0.00")] decimal Amount);
+internal record Sale(string Item, [property: XlsxColumn(Format = "0.00")] decimal Amount);
 ```
 
 ## Convert an Excel 97–2003 workbook
 
 ```csharp
+using Aid.Xlsx.Conversion;
+
 XlsConverter.Convert("legacy.xls", "converted.xlsx");
 ```
 
@@ -59,7 +60,7 @@ values, cached formula results, number formats, row and column dimensions, visib
 merged cells. Formulas become static values. Charts, drawings, macros, encryption, and
 formatting other than number formats are outside the supported conversion scope.
 
-## Repository layout (planned)
+## Repository layout
 
 ```text
 src/Aid.Xlsx/                   core library: domain folders at the top level

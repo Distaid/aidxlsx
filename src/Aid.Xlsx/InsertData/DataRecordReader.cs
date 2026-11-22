@@ -1,16 +1,14 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
+using Aid.Xlsx.Cells;
 
 namespace Aid.Xlsx.InsertData
 {
     internal class DataRecordReader : IInsertDataReader
     {
-        private readonly IEnumerable<XLCellValue>[] _inMemoryData;
+        private readonly IEnumerable<XlsxCellValue>[] _inMemoryData;
         private string[] _columns;
 
         public DataRecordReader(IEnumerable<IDataRecord> data)
@@ -20,7 +18,7 @@ namespace Aid.Xlsx.InsertData
             _inMemoryData = ReadToEnd(data).ToArray();
         }
 
-        public IEnumerable<IEnumerable<XLCellValue>> GetRecords()
+        public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
         {
             return _inMemoryData;
         }
@@ -44,7 +42,7 @@ namespace Aid.Xlsx.InsertData
             return _columns[propertyIndex];
         }
 
-        private IEnumerable<IEnumerable<XLCellValue>> ReadToEnd(IEnumerable<IDataRecord> data)
+        private IEnumerable<IEnumerable<XlsxCellValue>> ReadToEnd(IEnumerable<IDataRecord> data)
         {
             foreach (var dataRecord in data)
             {
@@ -52,7 +50,7 @@ namespace Aid.Xlsx.InsertData
             }
         }
 
-        private IEnumerable<XLCellValue> ToEnumerable(IDataRecord dataRecord)
+        private IEnumerable<XlsxCellValue> ToEnumerable(IDataRecord dataRecord)
         {
             var firstRow = false;
             if (_columns == null)
@@ -67,7 +65,7 @@ namespace Aid.Xlsx.InsertData
                     _columns[i] = dataRecord.GetName(i);
 
                 var value = dataRecord[i];
-                yield return XLCellValue.FromInsertedObject(value);
+                yield return XlsxCellValue.FromInsertedObject(value);
             }
         }
     }

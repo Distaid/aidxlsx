@@ -1,8 +1,9 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.ConditionalFormats;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
@@ -13,14 +14,14 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void ConsecutivelyRowsConsolidateTest()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet");
 
             SetFormat1(ws.Range("B2:C2").AddConditionalFormat());
             SetFormat1(ws.Range("B4:C4").AddConditionalFormat());
             SetFormat1(ws.Range("B3:C3").AddConditionalFormat());
 
-            ((XLConditionalFormats)ws.ConditionalFormats).Consolidate();
+            ((XlsxConditionalFormats)ws.ConditionalFormats).Consolidate();
 
             Assert.AreEqual(1, ws.ConditionalFormats.Count());
             var format = ws.ConditionalFormats.First();
@@ -31,14 +32,14 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void ConsecutivelyColumnsConsolidateTest()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet");
 
             SetFormat1(ws.Range("D2:D3").AddConditionalFormat());
             SetFormat1(ws.Range("B2:B3").AddConditionalFormat());
             SetFormat1(ws.Range("C2:C3").AddConditionalFormat());
 
-            ((XLConditionalFormats)ws.ConditionalFormats).Consolidate();
+            ((XlsxConditionalFormats)ws.ConditionalFormats).Consolidate();
 
             Assert.AreEqual(1, ws.ConditionalFormats.Count());
             var format = ws.ConditionalFormats.First();
@@ -49,13 +50,13 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void Contains1ConsolidateTest()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet");
 
             SetFormat1(ws.Range("B11:D12").AddConditionalFormat());
             SetFormat1(ws.Range("C12:D12").AddConditionalFormat());
 
-            ((XLConditionalFormats)ws.ConditionalFormats).Consolidate();
+            ((XlsxConditionalFormats)ws.ConditionalFormats).Consolidate();
 
             Assert.AreEqual(1, ws.ConditionalFormats.Count());
             var format = ws.ConditionalFormats.First();
@@ -66,13 +67,13 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void Contains2ConsolidateTest()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet");
 
             SetFormat1(ws.Range("B14:C14").AddConditionalFormat());
             SetFormat1(ws.Range("B14:B14").AddConditionalFormat());
 
-            ((XLConditionalFormats)ws.ConditionalFormats).Consolidate();
+            ((XlsxConditionalFormats)ws.ConditionalFormats).Consolidate();
 
             Assert.AreEqual(1, ws.ConditionalFormats.Count());
             var format = ws.ConditionalFormats.First();
@@ -83,13 +84,13 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void SuperimposedConsolidateTest()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet");
 
             SetFormat1(ws.Range("B16:D18").AddConditionalFormat());
             SetFormat1(ws.Range("B18:D19").AddConditionalFormat());
 
-            ((XLConditionalFormats)ws.ConditionalFormats).Consolidate();
+            ((XlsxConditionalFormats)ws.ConditionalFormats).Consolidate();
 
             Assert.AreEqual(1, ws.ConditionalFormats.Count());
             var format = ws.ConditionalFormats.First();
@@ -100,13 +101,13 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void DifferentFormatNoConsolidateTest()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet");
 
             SetFormat1(ws.Range("B11:D12").AddConditionalFormat());
             SetFormat2(ws.Range("C12:D12").AddConditionalFormat());
 
-            ((XLConditionalFormats)ws.ConditionalFormats).Consolidate();
+            ((XlsxConditionalFormats)ws.ConditionalFormats).Consolidate();
 
             Assert.AreEqual(2, ws.ConditionalFormats.Count());
         }
@@ -114,7 +115,7 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void ConsolidatePreservesPriorities()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.Worksheets.Add();
 
             // Format2 A1:A5 and A6:A10 can be consolidated without changing a priority if other CF rules.
@@ -124,7 +125,7 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
             SetFormat2(ws.Range("A6:A10").AddConditionalFormat());
             SetFormat1(ws.Range("A6:A10").AddConditionalFormat());
 
-            ((XLConditionalFormats)ws.ConditionalFormats).Consolidate();
+            ((XlsxConditionalFormats)ws.ConditionalFormats).Consolidate();
 
             Assert.AreEqual(3, ws.ConditionalFormats.Count());
             var cf1 = ws.ConditionalFormats.First();
@@ -137,7 +138,7 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void ConsolidatePreservesPriorities2()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.Worksheets.Add();
 
             SetFormat1(ws.Range("A1:A1").AddConditionalFormat());
@@ -145,7 +146,7 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
             SetFormat1(ws.Range("A2:A6").AddConditionalFormat());
             SetFormat1(ws.Range("A7:A8").AddConditionalFormat());
 
-            ((XLConditionalFormats)ws.ConditionalFormats).Consolidate();
+            ((XlsxConditionalFormats)ws.ConditionalFormats).Consolidate();
 
             Assert.AreEqual(3, ws.ConditionalFormats.Count());
             var cf1 = ws.ConditionalFormats.ElementAt(0);
@@ -162,17 +163,17 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void ConsolidateShiftsFormulaRelativelyToTopMostCell()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.Worksheets.Add();
 
             var ranges = ws.Ranges("B3:B8,C3:C4,A3:A4,C5:C8,A5:A8");
             var cf = ranges.First().AddConditionalFormat();
             cf.Ranges = ranges;
-            cf.Values.Add(new XLFormula("=A3=$D3"));
-            cf.Style.Fill.SetBackgroundColor(XLColor.Red);
+            cf.Values.Add(new XlsxFormula("=A3=$D3"));
+            cf.Style.Fill.SetBackgroundColor(XlsxColor.Red);
             ws.ConditionalFormats.Add(cf);
 
-            ((XLConditionalFormats)ws.ConditionalFormats).Consolidate();
+            ((XlsxConditionalFormats)ws.ConditionalFormats).Consolidate();
 
             Assert.AreEqual(1, ws.ConditionalFormats.Count());
             var consolidatedCf = ws.ConditionalFormats.Single();
@@ -185,7 +186,7 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void ColorScaleComparing()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.Worksheets.Add("Sheet");
 
@@ -193,41 +194,41 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
                 var cf1 = ranges.First().AddConditionalFormat();
                 cf1.Ranges = ranges;
                 cf1.ColorScale()
-                    .LowestValue(XLColor.Red)
-                    .HighestValue(XLColor.Green);
+                    .LowestValue(XlsxColor.Red)
+                    .HighestValue(XlsxColor.Green);
 
                 var cf2 = ranges.First().AddConditionalFormat();
                 cf2.Ranges = ranges;
                 cf2.ColorScale()
-                    .LowestValue(XLColor.Red)
-                    .HighestValue(XLColor.Green);
+                    .LowestValue(XlsxColor.Red)
+                    .HighestValue(XlsxColor.Green);
                 Assert.AreNotSame(cf1, cf2);
-                Assert.True(XLConditionalFormat.NoRangeComparer.Equals((XLConditionalFormat)cf1, (XLConditionalFormat)cf2));
+                Assert.True(XlsxConditionalFormat.NoRangeComparer.Equals((XlsxConditionalFormat)cf1, (XlsxConditionalFormat)cf2));
             }
         }
 
-        private static void SetFormat1(IXLConditionalFormat format)
+        private static void SetFormat1(IXlsxConditionalFormat format)
         {
-            format.WhenEquals("=" + format.Range.FirstCell().CellRight(4).Address.ToStringRelative()).Fill.SetBackgroundColor(XLColor.Blue);
+            format.WhenEquals("=" + format.Range.FirstCell().CellRight(4).Address.ToStringRelative()).Fill.SetBackgroundColor(XlsxColor.Blue);
         }
 
-        private static void SetFormat2(IXLConditionalFormat format)
+        private static void SetFormat2(IXlsxConditionalFormat format)
         {
-            format.WhenEquals(5).Fill.SetBackgroundColor(XLColor.AliceBlue);
+            format.WhenEquals(5).Fill.SetBackgroundColor(XlsxColor.AliceBlue);
         }
 
-        private class CfFormatComaparer : IEqualityComparer<IXLConditionalFormat>
+        private class CfFormatComaparer : IEqualityComparer<IXlsxConditionalFormat>
         {
-            public bool Equals(IXLConditionalFormat x, IXLConditionalFormat y)
+            public bool Equals(IXlsxConditionalFormat x, IXlsxConditionalFormat y)
             {
-                var lhs = (XLConditionalFormat)x;
-                var rhs = (XLConditionalFormat)y;
+                var lhs = (XlsxConditionalFormat)x;
+                var rhs = (XlsxConditionalFormat)y;
                 return lhs.FormatValue == rhs.FormatValue;
             }
 
-            public int GetHashCode([DisallowNull] IXLConditionalFormat obj)
+            public int GetHashCode([DisallowNull] IXlsxConditionalFormat obj)
             {
-                return HashCode.Combine(((XLConditionalFormat)obj).FormatValue);
+                return HashCode.Combine(((XlsxConditionalFormat)obj).FormatValue);
             }
         }
     }

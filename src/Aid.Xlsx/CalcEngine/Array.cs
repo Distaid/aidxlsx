@@ -1,9 +1,7 @@
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using Aid.Xlsx.Ranges;
 
 namespace Aid.Xlsx.CalcEngine;
 
@@ -74,8 +72,8 @@ internal abstract class Array : IEnumerable<ScalarValue>
         {
             for (var x = 0; x < width; ++x)
             {
-                var leftItem = x < leftArray.Width && y < leftArray.Height ? leftArray[y, x] : XLError.NoValueAvailable;
-                var rightItem = x < rightArray.Width && y < rightArray.Height ? rightArray[y, x] : XLError.NoValueAvailable;
+                var leftItem = x < leftArray.Width && y < leftArray.Height ? leftArray[y, x] : XlsxError.NoValueAvailable;
+                var rightItem = x < rightArray.Width && y < rightArray.Height ? rightArray[y, x] : XlsxError.NoValueAvailable;
                 data[y, x] = func(leftItem, rightItem, ctx);
             }
         }
@@ -190,12 +188,12 @@ internal class NumberArray : Array
 /// </summary>
 internal class ReferenceArray : Array
 {
-    private readonly XLRangeAddress _area;
+    private readonly XlsxRangeAddress _area;
     private readonly CalcContext _context;
     private readonly int _offsetColumn;
     private readonly int _offsetRow;
 
-    public ReferenceArray(XLRangeAddress area, CalcContext context)
+    public ReferenceArray(XlsxRangeAddress area, CalcContext context)
     {
         _area = area;
         _context = context;
@@ -234,7 +232,7 @@ internal class RepeatedColumnArray : Array
                 throw new IndexOutOfRangeException();
 
             if (row >= _columnArray.Height)
-                return XLError.NoValueAvailable;
+                return XlsxError.NoValueAvailable;
 
             return _columnArray[row, 0];
         }
@@ -265,7 +263,7 @@ internal class RepeatedRowArray : Array
                 throw new IndexOutOfRangeException();
 
             if (column >= _rowArray.Width)
-                return XLError.NoValueAvailable;
+                return XlsxError.NoValueAvailable;
 
             return _rowArray[0, column];
         }
@@ -299,7 +297,7 @@ internal class ResizedArray : Array
 
             return y < _original.Height && x < _original.Width
                 ? _original[y, x]
-                : XLError.NoValueAvailable;
+                : XlsxError.NoValueAvailable;
         }
     }
 }

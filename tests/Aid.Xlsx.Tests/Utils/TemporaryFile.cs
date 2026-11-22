@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-
 namespace Aid.Xlsx.Tests.Utils
 {
     internal class TemporaryFile : IDisposable

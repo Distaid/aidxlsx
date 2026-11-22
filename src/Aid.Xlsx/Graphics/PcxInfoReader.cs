@@ -1,8 +1,6 @@
 #nullable disable
 
-using System;
 using System.Drawing;
-using System.IO;
 using Aid.Xlsx.Drawings;
 using Aid.Xlsx.Utils;
 
@@ -25,7 +23,7 @@ namespace Aid.Xlsx.Graphics
                    header[2] <= 1; // encoding, nearly always should be 1
         }
 
-        protected override XLPictureInfo ReadInfo(Stream stream)
+        protected override XlsxPictureInfo ReadInfo(Stream stream)
         {
             stream.Position += 4;
             var winXMin = stream.ReadU16LE();
@@ -37,7 +35,7 @@ namespace Aid.Xlsx.Graphics
 
             var widthPx = winXMax - winXMin + 1;
             var heightPx = winYMax - winYMin + 1;
-            return new XLPictureInfo(XLPictureFormat.Pcx, new Size(widthPx, heightPx), Size.Empty, dpiX, dpiY);
+            return new XlsxPictureInfo(XlsxPictureFormat.Pcx, new Size(widthPx, heightPx), Size.Empty, dpiX, dpiY);
         }
     }
 }

@@ -1,10 +1,12 @@
 #nullable enable
 
 using System.Collections.Generic;
-using Aid.Xlsx.Formatting;
 using Aid.Xlsx.CalcEngine;
 using Aid.Xlsx.Opc;
-using PhoneticProperties = Aid.Xlsx.XLImmutableRichText.PhoneticProperties;
+using Aid.Xlsx.RichText;
+using Aid.Xlsx.Styles;
+using Aid.Xlsx.Styles.Formatting;
+using PhoneticProperties = Aid.Xlsx.RichText.XlsxImmutableRichText.PhoneticProperties;
 using PhoneticRunDto = (string Text, int StartIndex, int EndIndex);
 
 namespace Aid.Xlsx.Internal.IO;
@@ -21,33 +23,43 @@ internal partial class RstReader
         var sb = _reader.GetUInt("sb");
         var eb = _reader.GetUInt("eb");
 
+        OnPhoneticRunParsing(sb, eb);
+
         var t = _reader.ParseXString("t", _ns).Value;
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnPhoneticRunParsed(t, sb, eb));
     }
 
-    private Xpr<(string Text, XLDifferentialFontValue Font)> ParseRElt(string elementName, string ns)
+    partial void OnPhoneticRunParsing(uint sb, uint eb);
+
+    private Xpr<(string Text, XlsxDifferentialFontValue Font)> ParseRElt(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<(string Text, XLDifferentialFontValue Font)>();
+            return Xpr.Fail<(string Text, XlsxDifferentialFontValue Font)>();
         }
 
+        OnREltParsing();
+
         var rPrResult = ParseRPrElt("rPr", _ns);
-        var rPr = rPrResult.IsSuccess ? rPrResult.Value : default(XLDifferentialFontValue?);
+        var rPr = rPrResult.IsSuccess ? rPrResult.Value : default(XlsxDifferentialFontValue?);
         var t = _reader.ParseXString("t", _ns).Value;
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnREltParsed(rPr, t));
     }
 
-    private Xpr<XLDifferentialFontValue> ParseRPrElt(string elementName, string ns)
+    partial void OnREltParsing();
+
+    private Xpr<XlsxDifferentialFontValue> ParseRPrElt(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<XLDifferentialFontValue>();
+            return Xpr.Fail<XlsxDifferentialFontValue>();
         }
+
+        OnRPrEltParsing();
 
         // Choice with cardinality 1-n
         var choiceList = new List<Unit>();
@@ -131,16 +143,20 @@ internal partial class RstReader
         return Xpr.From(OnRPrEltParsed(choiceList));
     }
 
-    private Xpr<OneOf<string, XLImmutableRichText>> ParseRst(string elementName, string ns)
+    partial void OnRPrEltParsing();
+
+    private Xpr<OneOf<string, XlsxImmutableRichText>> ParseRst(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<OneOf<string, XLImmutableRichText>>();
+            return Xpr.Fail<OneOf<string, XlsxImmutableRichText>>();
         }
+
+        OnRstParsing();
 
         var tResult = _reader.ParseXString("t", _ns);
         var t = tResult.IsSuccess ? tResult.Value : default(string?);
-        var r = new List<(string Text, XLDifferentialFontValue Font)>();
+        var r = new List<(string Text, XlsxDifferentialFontValue Font)>();
         while (ParseRElt("r", _ns) is { IsSuccess: true} rItem)
         {
             r.Add(rItem.Value);
@@ -157,6 +173,8 @@ internal partial class RstReader
         return Xpr.From(OnRstParsed(t, r, rPh, phoneticPr));
     }
 
+    partial void OnRstParsing();
+
     private Xpr<PhoneticProperties> ParsePhoneticPr(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
@@ -165,13 +183,17 @@ internal partial class RstReader
         }
 
         var fontId = _reader.GetUInt("fontId");
-        var type = _reader.GetOptionalEnum<XLPhoneticType>("type") ?? XLPhoneticType.FullWidthKatakana;
-        var alignment = _reader.GetOptionalEnum<XLPhoneticAlignment>("alignment") ?? XLPhoneticAlignment.Left;
+        var type = _reader.GetOptionalEnum<XlsxPhoneticType>("type") ?? XlsxPhoneticType.FullWidthKatakana;
+        var alignment = _reader.GetOptionalEnum<XlsxPhoneticAlignment>("alignment") ?? XlsxPhoneticAlignment.Left;
+
+        OnPhoneticPrParsing(fontId, type, alignment);
 
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnPhoneticPrParsed(fontId, type, alignment));
     }
+
+    partial void OnPhoneticPrParsing(uint fontId, XlsxPhoneticType type, XlsxPhoneticAlignment alignment);
 
     private Xpr<bool> ParseBooleanProperty(string elementName, string ns)
     {
@@ -182,24 +204,32 @@ internal partial class RstReader
 
         var val = _reader.GetOptionalBool("val") ?? true;
 
+        OnBooleanPropertyParsing(val);
+
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnBooleanPropertyParsed(val));
     }
 
-    private Xpr<XLFontSize> ParseFontSize(string elementName, string ns)
+    partial void OnBooleanPropertyParsing(bool val);
+
+    private Xpr<XlsxFontSize> ParseFontSize(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<XLFontSize>();
+            return Xpr.Fail<XlsxFontSize>();
         }
 
         var val = _reader.GetDouble("val");
+
+        OnFontSizeParsing(val);
 
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnFontSizeParsed(val));
     }
+
+    partial void OnFontSizeParsing(double val);
 
     private Xpr<int> ParseIntProperty(string elementName, string ns)
     {
@@ -210,64 +240,84 @@ internal partial class RstReader
 
         var val = _reader.GetInt("val");
 
+        OnIntPropertyParsing(val);
+
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnIntPropertyParsed(val));
     }
 
-    private Xpr<XLFontName> ParseFontName(string elementName, string ns)
+    partial void OnIntPropertyParsing(int val);
+
+    private Xpr<XlsxFontName> ParseFontName(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<XLFontName>();
+            return Xpr.Fail<XlsxFontName>();
         }
 
         var val = _reader.GetXString("val");
+
+        OnFontNameParsing(val);
 
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnFontNameParsed(val));
     }
 
-    private Xpr<XLFontVerticalTextAlignmentValues> ParseVerticalAlignFontProperty(string elementName, string ns)
+    partial void OnFontNameParsing(string val);
+
+    private Xpr<XlsxFontVerticalTextAlignmentValues> ParseVerticalAlignFontProperty(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<XLFontVerticalTextAlignmentValues>();
+            return Xpr.Fail<XlsxFontVerticalTextAlignmentValues>();
         }
 
-        var val = _reader.GetEnum<XLFontVerticalTextAlignmentValues>("val");
+        var val = _reader.GetEnum<XlsxFontVerticalTextAlignmentValues>("val");
+
+        OnVerticalAlignFontPropertyParsing(val);
 
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnVerticalAlignFontPropertyParsed(val));
     }
 
-    private Xpr<XLFontScheme> ParseFontScheme(string elementName, string ns)
+    partial void OnVerticalAlignFontPropertyParsing(XlsxFontVerticalTextAlignmentValues val);
+
+    private Xpr<XlsxFontScheme> ParseFontScheme(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<XLFontScheme>();
+            return Xpr.Fail<XlsxFontScheme>();
         }
 
-        var val = _reader.GetEnum<XLFontScheme>("val");
+        var val = _reader.GetEnum<XlsxFontScheme>("val");
+
+        OnFontSchemeParsing(val);
 
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnFontSchemeParsed(val));
     }
 
-    private Xpr<XLFontUnderlineValues> ParseUnderlineProperty(string elementName, string ns)
+    partial void OnFontSchemeParsing(XlsxFontScheme val);
+
+    private Xpr<XlsxFontUnderlineValues> ParseUnderlineProperty(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<XLFontUnderlineValues>();
+            return Xpr.Fail<XlsxFontUnderlineValues>();
         }
 
-        var val = _reader.GetOptionalEnum<XLFontUnderlineValues>("val") ?? XLFontUnderlineValues.Single;
+        var val = _reader.GetOptionalEnum<XlsxFontUnderlineValues>("val") ?? XlsxFontUnderlineValues.Single;
+
+        OnUnderlinePropertyParsing(val);
 
         _reader.Close(elementName, ns);
 
         return Xpr.From(OnUnderlinePropertyParsed(val));
     }
+
+    partial void OnUnderlinePropertyParsing(XlsxFontUnderlineValues val);
 }

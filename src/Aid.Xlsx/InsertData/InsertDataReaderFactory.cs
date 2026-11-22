@@ -1,12 +1,10 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using Aid.Xlsx.Extensions;
 
 namespace Aid.Xlsx.InsertData
 {
@@ -53,7 +51,7 @@ namespace Aid.Xlsx.InsertData
             return new ArrayReader(data);
         }
 
-        [RequiresUnreferencedCode("Inserting data from an IEnumerable of rows uses reflection to discover the row element type. Use the DataTable overloads or write XLCellValue values explicitly to stay trim-compatible.")]
+        [RequiresUnreferencedCode("Inserting data from an IEnumerable of rows uses reflection to discover the row element type. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
         public IInsertDataReader CreateReader(IEnumerable<IEnumerable> data)
         {
             if (data == null) throw new ArgumentNullException(nameof(data));

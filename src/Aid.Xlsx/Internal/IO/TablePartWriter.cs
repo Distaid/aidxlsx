@@ -1,9 +1,8 @@
-using DocumentFormat.OpenXml.Packaging;
-using System;
-using System.IO;
-using System.Linq;
 using System.Xml.Linq;
-using static Aid.Xlsx.XLWorkbook;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Tables;
+using DocumentFormat.OpenXml.Packaging;
+using static Aid.Xlsx.Workbooks.XlsxWorkbook;
 
 namespace Aid.Xlsx.Internal.IO
 {
@@ -12,20 +11,20 @@ namespace Aid.Xlsx.Internal.IO
     /// </summary>
     internal class TablePartWriter
     {
-        internal static void SynchronizeTableParts(XLTables tables, WorksheetPart worksheetPart, SaveContext context)
+        internal static void SynchronizeTableParts(XlsxTables tables, WorksheetPart worksheetPart, SaveContext context)
         {
             // Remove table definition parts that are not a part of workbook
             foreach (var tableDefinitionPart in worksheetPart.GetPartsOfType<TableDefinitionPart>().ToList())
             {
                 var partId = worksheetPart.GetIdOfPart(tableDefinitionPart);
-                var xlWorkbookContainsTable = tables.Cast<XLTable>().Any(t => t.RelId == partId);
+                var xlWorkbookContainsTable = tables.Cast<XlsxTable>().Any(t => t.RelId == partId);
                 if (!xlWorkbookContainsTable)
                 {
                     worksheetPart.DeletePart(tableDefinitionPart);
                 }
             }
 
-            foreach (var xlTable in tables.Cast<XLTable>())
+            foreach (var xlTable in tables.Cast<XlsxTable>())
             {
                 if (String.IsNullOrEmpty(xlTable.RelId))
                 {
@@ -35,9 +34,9 @@ namespace Aid.Xlsx.Internal.IO
             }
         }
 
-        internal static void GenerateTableParts(XLTables tables, WorksheetPart worksheetPart, SaveContext context)
+        internal static void GenerateTableParts(XlsxTables tables, WorksheetPart worksheetPart, SaveContext context)
         {
-            foreach (var xlTable in tables.Cast<XLTable>())
+            foreach (var xlTable in tables.Cast<XlsxTable>())
             {
                 var relId = xlTable.RelId;
                 var tableDefinitionPart = (TableDefinitionPart)worksheetPart.GetPartById(relId);
@@ -46,7 +45,7 @@ namespace Aid.Xlsx.Internal.IO
             }
         }
 
-        private static void Write(Stream output, XLTable xlTable, SaveContext context)
+        private static void Write(Stream output, XlsxTable xlTable, SaveContext context)
         {
             XNamespace ns = OpenXmlConst.Main2006SsNs;
             context.TableId++;
@@ -104,11 +103,11 @@ namespace Aid.Xlsx.Internal.IO
 
                 if (xlTable.ShowTotalsRow)
                 {
-                    if (xlField.TotalsRowFunction != XLTotalsRowFunction.None)
+                    if (xlField.TotalsRowFunction != XlsxTotalsRowFunction.None)
                     {
                         tableColumn.SetAttributeValue("totalsRowFunction", TableDefinitionXml.FormatTotalsFunction(xlField.TotalsRowFunction));
 
-                        if (xlField.TotalsRowFunction == XLTotalsRowFunction.Custom)
+                        if (xlField.TotalsRowFunction == XlsxTotalsRowFunction.Custom)
                             tableColumn.Add(new XElement(ns + "totalsRowFormula", xlField.TotalsRowFormulaA1));
                     }
 
@@ -124,7 +123,7 @@ namespace Aid.Xlsx.Internal.IO
                 new XAttribute("showRowStripes", xlTable.ShowRowStripes ? "1" : "0"),
                 new XAttribute("showColumnStripes", xlTable.ShowColumnStripes ? "1" : "0"));
 
-            if (xlTable.Theme != XLTableTheme.None)
+            if (xlTable.Theme != XlsxTableTheme.None)
                 tableStyleInfo.SetAttributeValue("name", xlTable.Theme.Name);
 
             if (xlTable.ShowAutoFilter)

@@ -1,14 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Xml;
+using Aid.Xlsx.Comments;
+using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Opc;
+using Aid.Xlsx.Worksheets;
 
 namespace Aid.Xlsx.Internal.IO;
 
 internal static class CommentPartReader
 {
-    internal static void Load(Stream input, XLWorksheet worksheet, Func<int, int?> getShapeId, Action<int, XLComment> applyShape)
+    internal static void Load(Stream input, XlsxWorksheet worksheet, Func<int, int?> getShapeId, Action<int, XlsxComment> applyShape)
     {
         using var xml = XmlReader.Create(input, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, IgnoreWhitespace = true });
         xml.MoveToContent();

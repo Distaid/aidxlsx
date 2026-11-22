@@ -1,5 +1,6 @@
-using System;
-using System.IO;
+using Aid.Xlsx.Conversion;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.IO;
@@ -18,7 +19,7 @@ public class XlsConverterTests
         Assert.That(source.CanRead, Is.True);
         Assert.That(destination.CanWrite, Is.True);
         destination.Position = 0;
-        using var workbook = new XLWorkbook(destination);
+        using var workbook = new XlsxWorkbook(destination);
         var sheet = workbook.Worksheet("Résumé");
         Assert.Multiple(() =>
         {
@@ -36,7 +37,7 @@ public class XlsConverterTests
             Assert.That(sheet.Row(8).Height, Is.EqualTo(22.5));
             Assert.That(sheet.Column(3).IsHidden, Is.True);
             Assert.That(sheet.Column(3).Width, Is.EqualTo(22).Within(0.01));
-            Assert.That(workbook.Worksheet("Hidden").Visibility, Is.EqualTo(XLWorksheetVisibility.Hidden));
+            Assert.That(workbook.Worksheet("Hidden").Visibility, Is.EqualTo(XlsxWorksheetVisibility.Hidden));
             Assert.That(workbook.Worksheet("Hidden").Cell("A1").GetDouble(), Is.EqualTo(42));
         });
     }
@@ -54,7 +55,7 @@ public class XlsConverterTests
         XlsConverter.Convert(source, destination);
 
         destination.Position = 0;
-        using var workbook = new XLWorkbook(destination);
+        using var workbook = new XlsxWorkbook(destination);
         Assert.That(workbook.Worksheet("Hidden").Cell("A1").GetDouble(), Is.EqualTo(42));
     }
 

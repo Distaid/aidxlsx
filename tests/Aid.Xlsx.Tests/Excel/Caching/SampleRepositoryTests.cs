@@ -1,8 +1,6 @@
-using Aid.Xlsx;
 using Aid.Xlsx.Caching;
+using Aid.Xlsx.Extensions;
 using NUnit.Framework;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Aid.Xlsx.Tests.Excel.Caching
 {
@@ -200,7 +198,7 @@ namespace Aid.Xlsx.Tests.Excel.Caching
         /// <summary>
         /// Class under testing
         /// </summary>
-        internal class SampleRepository : XLRepositoryBase<int, SampleEntity>
+        internal class SampleRepository : XlsxRepositoryBase<int, SampleEntity>
         {
             public SampleRepository() : base(key => new SampleEntity(key))
             {
@@ -220,7 +218,7 @@ namespace Aid.Xlsx.Tests.Excel.Caching
         /// <summary>
         /// Class under testing
         /// </summary>
-        internal class EditableRepository : XLRepositoryBase<int, EditableEntity>
+        internal class EditableRepository : XlsxRepositoryBase<int, EditableEntity>
         {
             public EditableRepository() : base(key => new EditableEntity(key))
             {

@@ -1,8 +1,6 @@
+using System.Reflection;
 using Aid.Xlsx.Extensions;
 using NUnit.Framework;
-using System;
-using System.Linq;
-using System.Reflection;
 
 namespace Aid.Xlsx.Tests.Extensions
 {

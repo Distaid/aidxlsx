@@ -1,10 +1,9 @@
-using System;
-using Aid.Xlsx;
-using NUnit.Framework;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading;
+using Aid.Xlsx.ConditionalFormats;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
+using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
 {
@@ -29,21 +28,21 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
                 ConsolidateConditionalFormatRanges = consolidateConditionalFormatRanges
             };
 
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Sheet");
 
-            ws.Range("D2:D3").AddConditionalFormat().DataBar(XLColor.Red).LowestValue().HighestValue();
-            ws.Range("B2:B3").AddConditionalFormat().DataBar(XLColor.Red).LowestValue().HighestValue();
-            ws.Range("E2:E6").AddConditionalFormat().ColorScale().LowestValue(XLColor.Red).HighestValue(XLColor.Blue);
-            ws.Range("F2:F6").AddConditionalFormat().ColorScale().LowestValue(XLColor.Red).HighestValue(XLColor.Blue);
-            ws.Range("G2:G7").AddConditionalFormat().WhenIsUnique().Fill.SetBackgroundColor(XLColor.Blue);
-            ws.Range("H2:H7").AddConditionalFormat().WhenIsUnique().Fill.SetBackgroundColor(XLColor.Blue);
+            ws.Range("D2:D3").AddConditionalFormat().DataBar(XlsxColor.Red).LowestValue().HighestValue();
+            ws.Range("B2:B3").AddConditionalFormat().DataBar(XlsxColor.Red).LowestValue().HighestValue();
+            ws.Range("E2:E6").AddConditionalFormat().ColorScale().LowestValue(XlsxColor.Red).HighestValue(XlsxColor.Blue);
+            ws.Range("F2:F6").AddConditionalFormat().ColorScale().LowestValue(XlsxColor.Red).HighestValue(XlsxColor.Blue);
+            ws.Range("G2:G7").AddConditionalFormat().WhenIsUnique().Fill.SetBackgroundColor(XlsxColor.Blue);
+            ws.Range("H2:H7").AddConditionalFormat().WhenIsUnique().Fill.SetBackgroundColor(XlsxColor.Blue);
             ws.Range("I2:I6").AddConditionalFormat().WhenContains("test");
             ws.Range("J2:J6").AddConditionalFormat().WhenContains("test");
             using (var ms = new MemoryStream())
             {
                 wb.SaveAs(ms, options);
-                var wb_saved = new XLWorkbook(ms);
+                var wb_saved = new XlsxWorkbook(ms);
                 Assert.AreEqual(expectedCount, wb_saved.Worksheet("Sheet").ConditionalFormats.Count());
             }
         }
@@ -57,7 +56,7 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
                 ConsolidateDataValidationRanges = consolidateDataValidationRanges
             };
 
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Sheet");
             ws.Range("C2:C5").CreateDataValidation().Decimal.Between(1, 5);
             ws.Range("D2:D5").CreateDataValidation().Decimal.Between(1, 5);
@@ -65,7 +64,7 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
             using (var ms = new MemoryStream())
             {
                 wb.SaveAs(ms, options);
-                var wb_saved = new XLWorkbook(ms);
+                var wb_saved = new XlsxWorkbook(ms);
                 Assert.AreEqual(expectedCount, wb_saved.Worksheet("Sheet").DataValidations.Count());
             }
         }
@@ -79,23 +78,23 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
             {
                 var expectedValue = 1.5;
                 Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo(culture);
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var ws = wb.AddWorksheet();
                     var i = 1;
-                    ws.Cell(i++, 1).AddConditionalFormat().WhenEquals(expectedValue).Fill.SetBackgroundColor(XLColor.Red);
-                    ws.Cell(i++, 1).AddConditionalFormat().WhenNotEquals(expectedValue).Fill.SetBackgroundColor(XLColor.Red);
-                    ws.Cell(i++, 1).AddConditionalFormat().WhenGreaterThan(expectedValue).Fill.SetBackgroundColor(XLColor.Red);
-                    ws.Cell(i++, 1).AddConditionalFormat().WhenLessThan(expectedValue).Fill.SetBackgroundColor(XLColor.Red);
-                    ws.Cell(i++, 1).AddConditionalFormat().WhenEqualOrGreaterThan(expectedValue).Fill.SetBackgroundColor(XLColor.Red);
-                    ws.Cell(i++, 1).AddConditionalFormat().WhenEqualOrLessThan(expectedValue).Fill.SetBackgroundColor(XLColor.Red);
-                    ws.Cell(i++, 1).AddConditionalFormat().WhenBetween(expectedValue, expectedValue).Fill.SetBackgroundColor(XLColor.Red);
-                    ws.Cell(i++, 1).AddConditionalFormat().WhenNotBetween(expectedValue, expectedValue).Fill.SetBackgroundColor(XLColor.Red);
+                    ws.Cell(i++, 1).AddConditionalFormat().WhenEquals(expectedValue).Fill.SetBackgroundColor(XlsxColor.Red);
+                    ws.Cell(i++, 1).AddConditionalFormat().WhenNotEquals(expectedValue).Fill.SetBackgroundColor(XlsxColor.Red);
+                    ws.Cell(i++, 1).AddConditionalFormat().WhenGreaterThan(expectedValue).Fill.SetBackgroundColor(XlsxColor.Red);
+                    ws.Cell(i++, 1).AddConditionalFormat().WhenLessThan(expectedValue).Fill.SetBackgroundColor(XlsxColor.Red);
+                    ws.Cell(i++, 1).AddConditionalFormat().WhenEqualOrGreaterThan(expectedValue).Fill.SetBackgroundColor(XlsxColor.Red);
+                    ws.Cell(i++, 1).AddConditionalFormat().WhenEqualOrLessThan(expectedValue).Fill.SetBackgroundColor(XlsxColor.Red);
+                    ws.Cell(i++, 1).AddConditionalFormat().WhenBetween(expectedValue, expectedValue).Fill.SetBackgroundColor(XlsxColor.Red);
+                    ws.Cell(i++, 1).AddConditionalFormat().WhenNotBetween(expectedValue, expectedValue).Fill.SetBackgroundColor(XlsxColor.Red);
 
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var ws = wb.Worksheets.First();
 
@@ -119,16 +118,16 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
             // include extra formula tags and test checks that extra tags are ignored.
             TestHelper.LoadAndAssert((_, ws) =>
             {
-                AssertFormulaArgs(ws, XLCFOperator.Between, "$D$2", "$E$2");
-                AssertFormulaArgs(ws, XLCFOperator.NotBetween, "$D$3", "$E$3");
-                AssertFormulaArgs(ws, XLCFOperator.GreaterThan, "$D$4");
-                AssertFormulaArgs(ws, XLCFOperator.LessThan, "$D$5");
-                AssertFormulaArgs(ws, XLCFOperator.Equal, "$D$6");
+                AssertFormulaArgs(ws, XlsxCFOperator.Between, "$D$2", "$E$2");
+                AssertFormulaArgs(ws, XlsxCFOperator.NotBetween, "$D$3", "$E$3");
+                AssertFormulaArgs(ws, XlsxCFOperator.GreaterThan, "$D$4");
+                AssertFormulaArgs(ws, XlsxCFOperator.LessThan, "$D$5");
+                AssertFormulaArgs(ws, XlsxCFOperator.Equal, "$D$6");
             }, @"Other\ConditionalFormats\Extra_formulas_CellIs_type.xlsx");
 
-            static void AssertFormulaArgs(IXLWorksheet ws, XLCFOperator cfOperator, params string[] expectedFormulas)
+            static void AssertFormulaArgs(IXlsxWorksheet ws, XlsxCFOperator cfOperator, params string[] expectedFormulas)
             {
-                var cf = ws.ConditionalFormats.Single(cf => cf.ConditionalFormatType == XLConditionalFormatType.CellIs && cf.Operator == cfOperator);
+                var cf = ws.ConditionalFormats.Single(cf => cf.ConditionalFormatType == XlsxConditionalFormatType.CellIs && cf.Operator == cfOperator);
                 Assert.AreEqual(expectedFormulas.Length, cf.Values.Count);
                 CollectionAssert.AreEqual(expectedFormulas, cf.Values.Select(v => v.Value.Value));
             }
@@ -147,9 +146,9 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
                 AssertFormulaArgs(ws, "A2:A2", "$C$2=4");
             }, @"Other\ConditionalFormats\Extra_formulas_Expression_type.xlsx");
 
-            static void AssertFormulaArgs(IXLWorksheet ws, string range, string expectedFormula)
+            static void AssertFormulaArgs(IXlsxWorksheet ws, string range, string expectedFormula)
             {
-                var cf = ws.ConditionalFormats.Single(cf => cf.ConditionalFormatType == XLConditionalFormatType.Expression && cf.Range.RangeAddress.ToString() == range);
+                var cf = ws.ConditionalFormats.Single(cf => cf.ConditionalFormatType == XlsxConditionalFormatType.Expression && cf.Range.RangeAddress.ToString() == range);
                 Assert.AreEqual(1, cf.Values.Count);
                 CollectionAssert.AreEqual(expectedFormula, cf.Values[1].Value);
             }
@@ -158,7 +157,7 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void Range_setter_throws_on_range_from_different_worksheet()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws1 = wb.AddWorksheet();
             var cf = ws1.Range("A1").AddConditionalFormat();
             var ws2 = wb.AddWorksheet();
@@ -170,7 +169,7 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void Ranges_setter_throws_on_range_from_different_worksheet()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws1 = wb.AddWorksheet();
             var cf = ws1.Range("A1").AddConditionalFormat();
 
@@ -184,7 +183,7 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
         [Test]
         public void Ranges_setter_throws_on_empty_ranges()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws1 = wb.AddWorksheet();
             var cf = ws1.Range("A1").AddConditionalFormat();
 
@@ -201,27 +200,27 @@ namespace Aid.Xlsx.Tests.Excel.ConditionalFormats
                 (_, ws) =>
                 {
                     ws.AddConditionalFormat().WhenContains("Contains")
-                        .Fill.SetBackgroundColor(XLColor.Red);
+                        .Fill.SetBackgroundColor(XlsxColor.Red);
 
                     ws.AddConditionalFormat().WhenNotContains("Not Contains")
-                        .Fill.SetBackgroundColor(XLColor.Green);
+                        .Fill.SetBackgroundColor(XlsxColor.Green);
 
                     ws.AddConditionalFormat().WhenStartsWith("Starts With")
-                        .Fill.SetBackgroundColor(XLColor.Blue);
+                        .Fill.SetBackgroundColor(XlsxColor.Blue);
 
                     ws.AddConditionalFormat().WhenEndsWith("Ends With")
-                        .Fill.SetBackgroundColor(XLColor.Black);
+                        .Fill.SetBackgroundColor(XlsxColor.Black);
                 },
                 (_, ws) =>
                 {
-                    AssertTextCfValue(ws, XLConditionalFormatType.ContainsText, "Contains");
-                    AssertTextCfValue(ws, XLConditionalFormatType.NotContainsText, "Not Contains");
-                    AssertTextCfValue(ws, XLConditionalFormatType.StartsWith, "Starts With");
-                    AssertTextCfValue(ws, XLConditionalFormatType.EndsWith, "Ends With");
+                    AssertTextCfValue(ws, XlsxConditionalFormatType.ContainsText, "Contains");
+                    AssertTextCfValue(ws, XlsxConditionalFormatType.NotContainsText, "Not Contains");
+                    AssertTextCfValue(ws, XlsxConditionalFormatType.StartsWith, "Starts With");
+                    AssertTextCfValue(ws, XlsxConditionalFormatType.EndsWith, "Ends With");
                 });
             return;
 
-            static void AssertTextCfValue(IXLWorksheet ws, XLConditionalFormatType type, string text)
+            static void AssertTextCfValue(IXlsxWorksheet ws, XlsxConditionalFormatType type, string text)
             {
                 var cf = ws.ConditionalFormats.Single(x => x.ConditionalFormatType == type);
                 Assert.AreEqual(1, cf.Values.Count);

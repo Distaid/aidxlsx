@@ -1,11 +1,7 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Aid.Xlsx
+namespace Aid.Xlsx.Extensions
 {
     internal static class DictionaryExtensions
     {

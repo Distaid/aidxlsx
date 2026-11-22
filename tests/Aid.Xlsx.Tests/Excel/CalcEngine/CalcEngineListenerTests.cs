@@ -1,4 +1,6 @@
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine
@@ -12,16 +14,16 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Formulas_dependent_on_specific_sheet_are_dirty_after_sheet_addition()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sutWs = wb.AddWorksheet();
             sutWs.Cell("A1").FormulaA1 = "new!A1";
-            Assert.AreEqual(XLError.CellReference, sutWs.Cell("A1").Value);
+            Assert.AreEqual(XlsxError.CellReference, sutWs.Cell("A1").Value);
 
             var newWs = wb.AddWorksheet("new");
             newWs.Cell("A1").Value = 5;
 
             // Cell contains last calculated value
-            Assert.AreEqual(XLError.CellReference, sutWs.Cell("A1").CachedValue);
+            Assert.AreEqual(XlsxError.CellReference, sutWs.Cell("A1").CachedValue);
 
             // But once asked for real value, it calculates it.
             Assert.True(sutWs.Cell("A1").NeedsRecalculation);
@@ -31,7 +33,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Formulas_dependent_on_specific_sheet_are_dirty_after_sheet_deletion()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var keptWs = wb.AddWorksheet();
             var deletedWs = wb.AddWorksheet("deleted");
 
@@ -46,13 +48,13 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
 
             // But once asked for real value, it calculates it.
             Assert.True(keptWs.Cell("A1").NeedsRecalculation);
-            Assert.AreEqual(XLError.CellReference, keptWs.Cell("A1").Value);
+            Assert.AreEqual(XlsxError.CellReference, keptWs.Cell("A1").Value);
         }
 
         [Test]
         public void Formulas_are_shifted_when_area_is_added_and_cells_shifted_down()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").FormulaA1 = "B1*2";
             ws.Cell("B1").FormulaA1 = "C1*2";
@@ -76,7 +78,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Formulas_are_shifted_when_area_is_added_and_cells_shifted_right()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").FormulaA1 = "A2*2";
             ws.Cell("A2").FormulaA1 = "A3*2";
@@ -99,7 +101,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Formulas_are_shifted_when_area_is_deleted_and_cells_shifted_up()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A5").FormulaA1 = "1+2";
             ws.Cell("B5").FormulaA1 = "A5*2";
@@ -107,7 +109,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
 
             ws.RecalculateAllFormulas();
 
-            ws.Range("B2:C4").Delete(XLShiftDeletedCells.ShiftCellsUp);
+            ws.Range("B2:C4").Delete(XlsxShiftDeletedCells.ShiftCellsUp);
 
             Assert.AreEqual(12.0, ws.Cell("C2").Value);
             Assert.False(ws.Cell("B2").NeedsRecalculation);
@@ -123,7 +125,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Formulas_are_shifted_when_area_is_deleted_and_cells_shifted_left()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("D1").FormulaA1 = "1+2";
             ws.Cell("E2").FormulaA1 = "D1*2";
@@ -131,7 +133,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
 
             ws.RecalculateAllFormulas();
 
-            ws.Range("A1:C5").Delete(XLShiftDeletedCells.ShiftCellsLeft);
+            ws.Range("A1:C5").Delete(XlsxShiftDeletedCells.ShiftCellsLeft);
 
             Assert.AreEqual(12.0, ws.Cell("A3").Value);
             Assert.False(ws.Cell("B2").NeedsRecalculation);

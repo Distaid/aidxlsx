@@ -1,10 +1,10 @@
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Aid.Xlsx.CodeGen.Model;
+using System;
 using Aid.Xlsx.CodeGen.Model.Elements;
 using Aid.Xlsx.CodeGen.Model.TopLevel;
+using Aid.Xlsx.CodeGen.Model;
 using Aid.Xlsx.CodeGen.XsdParser;
 
 namespace Aid.Xlsx.CodeGen;
@@ -51,8 +51,6 @@ public static class Program
                 Console.WriteLine($"Unknown command '{command}'");
                 break;
         }
-
-        Console.ReadKey();
     }
 
     private static void GenerateStylesReader(Schema schema, string target)
@@ -102,39 +100,42 @@ public static class Program
                 RequiredTemplate = "_reader.GetUInt",
                 OptionalTemplate = "_reader.GetOptionalUInt"
             })
-            .AddSimpleTypeEnum("ST_PatternType", "XLFillPatternValues")
-            .AddSimpleTypeEnum("ST_GradientType", "XLGradientType", "linear", "XLGradientType.Linear")
-            .AddSimpleTypeEnum("ST_BorderStyle", "XLBorderStyleValues", "none", "XLBorderStyleValues.None")
-            .AddSimpleTypeEnum("ST_HorizontalAlignment", "XLAlignmentHorizontalValues")
-            .AddSimpleTypeEnum("ST_VerticalAlignment", "XLAlignmentVerticalValues", "bottom", "XLAlignmentVerticalValues.Bottom")
+            .AddSimpleTypeEnum("ST_PatternType", "XlsxFillPatternValues")
+            .AddSimpleTypeEnum("ST_GradientType", "XlsxGradientType", "linear", "XlsxGradientType.Linear")
+            .AddSimpleTypeEnum("ST_BorderStyle", "XlsxBorderStyleValues", "none", "XlsxBorderStyleValues.None")
+            .AddSimpleTypeEnum("ST_HorizontalAlignment", "XlsxAlignmentHorizontalValues")
+            .AddSimpleTypeEnum("ST_VerticalAlignment", "XlsxAlignmentVerticalValues", "bottom", "XlsxAlignmentVerticalValues.Bottom")
             .AddSimpleType(new SimpleTypeMapping
             {
                 Name = "ST_TableStyleType",
-                CsTypeName = "(XLTableStyleRegionValues?, XLPivotStyleRegionValues?)",
+                CsTypeName = "(XlsxTableStyleRegionValues?, XlsxPivotStyleRegionValues?)",
                 RequiredTemplate = "_reader.GetStringMappedValue(\"{0}\", TableStyleTypeMap)"
             })
-            .AddComplexTypeMapping("CT_Color", "XLColor")
-            .AddComplexTypeMapping("CT_GradientStop", "(FractionOfOne Value, XLColor Color)")
-            .AddComplexTypeMapping("CT_Font", "XLDifferentialFontValue")
-            .AddComplexTypeMapping("CT_Fill", "XLFillFormatValue")
-            .AddComplexTypeMapping("CT_Border", "XLDifferentialBorderValue")
-            .AddComplexTypeMapping("CT_BorderPr", "XLBorderLine")
-            .AddComplexTypeMapping("CT_PatternFill", "XLFillFormatValue")
-            .AddComplexTypeMapping("CT_GradientFill", "XLFillFormatValue")
-            .AddComplexTypeMapping("CT_NumFmt", "(int NumFmtId, XLNumberFormat Format)")
-            .AddComplexTypeMapping("CT_CellAlignment", "XLDifferentialAlignmentValue")
-            .AddComplexTypeMapping("CT_CellProtection", "XLDifferentialProtectionValue")
-            .AddComplexTypeMapping("CT_Xf", "(XLCellFormatValue Format, int? CellStyleXfId)")
-            .AddComplexTypeMapping("CT_CellXfs", "List<(XLCellFormatValue Format, int? CellStyleXfId)>")
-            .AddComplexTypeMapping("CT_CellStyle", "(int CellStyleXfId, XLCellStyleValue Style)")
-            .AddComplexTypeMapping("CT_CellStyles", "Dictionary<int, XLCellStyleValue>")
+            .AddComplexTypeMapping("CT_Color", "XlsxColor")
+            .AddComplexTypeMapping("CT_GradientStop", "(FractionOfOne Value, XlsxColor Color)")
+            .AddComplexTypeMapping("CT_Font", "XlsxDifferentialFontValue")
+            .AddComplexTypeMapping("CT_Fill", "XlsxFillFormatValue")
+            .AddComplexTypeMapping("CT_Border", "XlsxDifferentialBorderValue")
+            .AddComplexTypeMapping("CT_BorderPr", "XlsxBorderLine")
+            .AddComplexTypeMapping("CT_PatternFill", "XlsxFillFormatValue")
+            .AddComplexTypeMapping("CT_GradientFill", "XlsxFillFormatValue")
+            .AddComplexTypeMapping("CT_NumFmt", "(int NumFmtId, XlsxNumberFormat Format)")
+            .AddComplexTypeMapping("CT_CellAlignment", "XlsxDifferentialAlignmentValue")
+            .AddComplexTypeMapping("CT_CellProtection", "XlsxDifferentialProtectionValue")
+            .AddComplexTypeMapping("CT_Xf", "(XlsxCellFormatValue Format, int? CellStyleXfId)")
+            .AddComplexTypeMapping("CT_CellXfs", "List<(XlsxCellFormatValue Format, int? CellStyleXfId)>")
+            .AddComplexTypeMapping("CT_CellStyle", "(int CellStyleXfId, XlsxCellStyleValue Style)")
+            .AddComplexTypeMapping("CT_CellStyles", "Dictionary<int, XlsxCellStyleValue>")
             .AddComplexTypeMapping("CT_RgbColor", "uint")
             ;
 
         var stylesReaderGenerator = new ParserGenerator(schema, typeMap, "StylesReader")
             .AddUsing("System.Collections.Generic")
+            .AddUsing("Aid.Xlsx.Coordinates")
             .AddUsing("Aid.Xlsx.Opc")
-            .AddUsing("Aid.Xlsx.Formatting")
+            .AddUsing("Aid.Xlsx.Styles")
+            .AddUsing("Aid.Xlsx.Styles.Colors")
+            .AddUsing("Aid.Xlsx.Styles.Formatting")
             //.AddParseMethod("CT_Stylesheet")
             .AddParseMethod("CT_NumFmts")
             .AddParseMethod("CT_NumFmt")
@@ -210,27 +211,27 @@ public static class Program
         var typeMap = new SchemeTypeMap()
             .AddPrimitiveTypes()
             .AddStFontId()
-            .AddSimpleTypeEnum("ST_PhoneticType", "XLPhoneticType", "fullwidthKatakana", "XLPhoneticType.FullWidthKatakana")
-            .AddSimpleTypeEnum("ST_PhoneticAlignment", "XLPhoneticAlignment", "left", "XLPhoneticAlignment.Left")
-            .AddSimpleTypeEnum("s:ST_VerticalAlignRun", "XLFontVerticalTextAlignmentValues")
-            .AddSimpleTypeEnum("ST_FontScheme", "XLFontScheme")
-            .AddSimpleTypeEnum("ST_UnderlineValues", "XLFontUnderlineValues", "single", "XLFontUnderlineValues.Single")
+            .AddSimpleTypeEnum("ST_PhoneticType", "XlsxPhoneticType", "fullwidthKatakana", "XlsxPhoneticType.FullWidthKatakana")
+            .AddSimpleTypeEnum("ST_PhoneticAlignment", "XlsxPhoneticAlignment", "left", "XlsxPhoneticAlignment.Left")
+            .AddSimpleTypeEnum("s:ST_VerticalAlignRun", "XlsxFontVerticalTextAlignmentValues")
+            .AddSimpleTypeEnum("ST_FontScheme", "XlsxFontScheme")
+            .AddSimpleTypeEnum("ST_UnderlineValues", "XlsxFontUnderlineValues", "single", "XlsxFontUnderlineValues.Single")
 
-            .AddComplexTypeMapping("CT_Color", "XLColor")
+            .AddComplexTypeMapping("CT_Color", "XlsxColor")
             .AddComplexTypeMapping("CT_BooleanProperty", "bool")
             .AddComplexTypeMapping("CT_IntProperty", "int")
-            .AddComplexTypeMapping("CT_FontSize", "XLFontSize")
-            .AddComplexTypeMapping("CT_UnderlineProperty", "XLFontUnderlineValues")
-            .AddComplexTypeMapping("CT_VerticalAlignFontProperty", "XLFontVerticalTextAlignmentValues")
-            .AddComplexTypeMapping("CT_FontScheme", "XLFontScheme")
-            .AddComplexTypeMapping("CT_FontName", "XLFontName")
+            .AddComplexTypeMapping("CT_FontSize", "XlsxFontSize")
+            .AddComplexTypeMapping("CT_UnderlineProperty", "XlsxFontUnderlineValues")
+            .AddComplexTypeMapping("CT_VerticalAlignFontProperty", "XlsxFontVerticalTextAlignmentValues")
+            .AddComplexTypeMapping("CT_FontScheme", "XlsxFontScheme")
+            .AddComplexTypeMapping("CT_FontName", "XlsxFontName")
 
             .AddComplexTypeMapping("s:ST_Xstring", "string")
-            .AddComplexTypeMapping("CT_RPrElt", "XLDifferentialFontValue", "Unit")
-            .AddComplexTypeMapping("CT_RElt", "(string Text, XLDifferentialFontValue Font)")
+            .AddComplexTypeMapping("CT_RPrElt", "XlsxDifferentialFontValue", "Unit")
+            .AddComplexTypeMapping("CT_RElt", "(string Text, XlsxDifferentialFontValue Font)")
             .AddComplexTypeMapping("CT_PhoneticRun", "PhoneticRunDto")
             .AddComplexTypeMapping("CT_PhoneticPr", "PhoneticProperties")
-            .AddComplexTypeMapping("CT_Rst", "OneOf<string, XLImmutableRichText>")
+            .AddComplexTypeMapping("CT_Rst", "OneOf<string, XlsxImmutableRichText>")
 
             .AddParseCall("s:ST_Xstring", "_reader.ParseXString")
             ;
@@ -238,10 +239,12 @@ public static class Program
         var rstGenerator = new ParserGenerator(schema, typeMap, "RstReader")
             .WithNamespace("Aid.Xlsx.Internal.IO")
             .AddUsing("System.Collections.Generic")
-            .AddUsing("Aid.Xlsx.Formatting")
             .AddUsing("Aid.Xlsx.CalcEngine")
             .AddUsing("Aid.Xlsx.Opc")
-            .AddUsing("PhoneticProperties = Aid.Xlsx.XLImmutableRichText.PhoneticProperties")
+            .AddUsing("Aid.Xlsx.RichText")
+            .AddUsing("Aid.Xlsx.Styles")
+            .AddUsing("Aid.Xlsx.Styles.Formatting")
+            .AddUsing("PhoneticProperties = Aid.Xlsx.RichText.XlsxImmutableRichText.PhoneticProperties")
             .AddUsing("PhoneticRunDto = (string Text, int StartIndex, int EndIndex)")
 
             .AddParseMethod("CT_PhoneticRun") // 1816
@@ -322,8 +325,9 @@ public static class Program
         var sheetDataGenerator = new ParserGenerator(schema, typeMap, "SheetDataReader")
             .WithNamespace("Aid.Xlsx.Internal.IO")
             .AddUsing("System.Collections.Generic")
+            .AddUsing("Aid.Xlsx.Coordinates")
             .AddUsing("Aid.Xlsx.Opc")
-            .AddUsing("StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.XLImmutableRichText>")
+            .AddUsing("StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.RichText.XlsxImmutableRichText>")
 
             .AddParseMethod("CT_SheetData") // 2232
             .AddParseMethod("CT_Row") // 2274

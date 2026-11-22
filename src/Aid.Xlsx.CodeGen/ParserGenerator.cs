@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Text;
+using System;
 using Aid.Xlsx.CodeGen.Model;
 
 namespace Aid.Xlsx.CodeGen;
@@ -74,7 +74,7 @@ public class ParserGenerator
         }
 
         code.CloseBrace();
-        return code.ToString();
+        return code.ToString().ReplaceLineEndings("\n");
     }
 
     private void GenerateParseMethod(CodeBuilder code, ParsletName parsletName)

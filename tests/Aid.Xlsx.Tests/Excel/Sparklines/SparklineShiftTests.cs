@@ -1,6 +1,6 @@
-using System;
-using System.Linq;
-using Aid.Xlsx;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.Sparklines
@@ -41,12 +41,12 @@ namespace Aid.Xlsx.Tests.Excel.Sparklines
         [Test]
         public void SparklineRowShiftedOutOfSheetAreRemoved()
         {
-            AssertSparklinePosition($"A{XLHelper.MaxRowNumber}", ws => ws.Row(2).InsertRowsBelow(1), null);
+            AssertSparklinePosition($"A{XlsxHelper.MaxRowNumber}", ws => ws.Row(2).InsertRowsBelow(1), null);
         }
 
-        private static void AssertSparklinePosition(string sparklineAddress, Action<IXLWorksheet> insertAction, string expectedAddress)
+        private static void AssertSparklinePosition(string sparklineAddress, Action<IXlsxWorksheet> insertAction, string expectedAddress)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("B2").Value = 1;
             ws.Cell("C2").Value = 2;

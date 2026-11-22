@@ -1,5 +1,5 @@
-using System;
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine
@@ -13,8 +13,8 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void TimeSpan_MaximumResolutionIsOneMs()
         {
-            var firstValue = (double)XLWorkbook.EvaluateExpr("\"0:0:0.0015\" * 1");
-            var secondValue = (double)XLWorkbook.EvaluateExpr("\"0:0:0.0024\" * 1");
+            var firstValue = (double)XlsxWorkbook.EvaluateExpr("\"0:0:0.0015\" * 1");
+            var secondValue = (double)XlsxWorkbook.EvaluateExpr("\"0:0:0.0024\" * 1");
             Assert.AreEqual(firstValue, secondValue);
         }
 
@@ -311,10 +311,10 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
 
         private static void AssertCoercion(string text, double? expectedValue, double tolerance = 0)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var parsedValue = wb.Evaluate($"\"{text}\"*1");
             if (expectedValue is null)
-                Assert.AreEqual(XLError.IncompatibleValue, parsedValue);
+                Assert.AreEqual(XlsxError.IncompatibleValue, parsedValue);
             else
                 Assert.AreEqual(expectedValue.Value, (double)parsedValue, tolerance);
         }

@@ -4,7 +4,7 @@
 
 using System.Diagnostics;
 
-namespace Aid.Xlsx
+namespace Aid.Xlsx.Extensions
 {
     internal static class IntegerExtensions
     {

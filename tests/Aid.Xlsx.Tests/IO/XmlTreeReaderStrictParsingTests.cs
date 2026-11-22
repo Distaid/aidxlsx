@@ -1,17 +1,14 @@
-using System;
-using System.IO;
-using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using Aid.Xlsx;
 using Aid.Xlsx.Internal.IO;
 using Aid.Xlsx.Opc;
+using Aid.Xlsx.Styles;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.IO;
 
 /// <summary>
-/// Test that <see cref="XmlTreeReader"/> reads attributes per <see cref="Aid.Xlsx.LoadOptions.StrictAttributeParsing"/>
+/// Test that <see cref="XmlTreeReader"/> reads attributes per <see cref="Aid.Xlsx.Workbooks.LoadOptions.StrictAttributeParsing"/>
 /// option. The invalid attribute values are either interpreted as a missing or throw an exception.
 /// </summary>
 [TestFixture]
@@ -42,7 +39,7 @@ internal class XmlTreeReaderStrictParsingTests
     [Test]
     public void Reader_parses_enum_attributes_with_attribute_parsing_flag()
     {
-        AssertStrictParsingFlag("""<element enumAttr="triangle"/>""", reader => reader.GetOptionalEnum<XLBorderStyleValues>("enumAttr"));
+        AssertStrictParsingFlag("""<element enumAttr="triangle"/>""", reader => reader.GetOptionalEnum<XlsxBorderStyleValues>("enumAttr"));
     }
 
     [TestCase("zero")]

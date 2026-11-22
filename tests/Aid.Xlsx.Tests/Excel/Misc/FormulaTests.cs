@@ -1,7 +1,7 @@
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
-using System;
-using System.Linq;
 
 namespace Aid.Xlsx.Tests.Excel
 {
@@ -11,8 +11,8 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CopyFormula()
         {
-            var wb = new XLWorkbook();
-            IXLWorksheet ws = wb.Worksheets.Add("Sheet1");
+            var wb = new XlsxWorkbook();
+            IXlsxWorksheet ws = wb.Worksheets.Add("Sheet1");
             ws.Cell("A1").FormulaA1 = "B1";
             ws.Cell("A1").CopyTo("A2");
             Assert.AreEqual("B2", ws.Cell("A2").FormulaA1);
@@ -21,9 +21,9 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CopyFormula2()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.Worksheets.Add("Sheet1");
+                IXlsxWorksheet ws = wb.Worksheets.Add("Sheet1");
 
                 ws.Cell("A1").FormulaA1 = "A2-1";
                 ws.Cell("A1").CopyTo("B1");
@@ -42,9 +42,9 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CopyFormulaWithSheetNameThatResemblesFormula()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.Worksheets.Add("S10 Data");
+                IXlsxWorksheet ws = wb.Worksheets.Add("S10 Data");
                 ws.Cell("A1").Value = "Some value";
                 ws.Cell("A2").Value = 123;
 
@@ -66,7 +66,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void FormulaWithReferenceIncludingSheetName()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 object value;
                 var ws = wb.AddWorksheet("Sheet1");
@@ -90,24 +90,24 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void InvalidReferences()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 ws.Cell("A1").InsertData(Enumerable.Range(1, 50));
                 ws = wb.AddWorksheet("Sheet2");
 
                 ws.Cell("A1").FormulaA1 = "=SUM(Sheet1!A1:Sheet2!A50)";
-                Assert.AreEqual(XLError.IncompatibleValue, ws.Cell("A1").Value);
+                Assert.AreEqual(XlsxError.IncompatibleValue, ws.Cell("A1").Value);
 
                 ws.Cell("B1").FormulaA1 = "=SUM(UnknownSheet!A50)";
-                Assert.AreEqual(XLError.CellReference, ws.Cell("B1").Value);
+                Assert.AreEqual(XlsxError.CellReference, ws.Cell("B1").Value);
             }
         }
 
         [Test]
         public void DateAgainstStringComparison()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 ws.Cell("A1").Value = new DateTime(2016, 1, 1);
@@ -125,7 +125,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void FormulaThatReferencesEntireRow()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().Value = 1;
@@ -142,7 +142,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void FormulaThatReferencesEntireColumn()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().Value = 1;
@@ -160,16 +160,16 @@ namespace Aid.Xlsx.Tests.Excel
         public void FormulaThatStartsWithEqualsAndPlus()
         {
             object actual;
-            actual = XLWorkbook.EvaluateExpr("=MID(\"This is a test\", 6, 2)");
+            actual = XlsxWorkbook.EvaluateExpr("=MID(\"This is a test\", 6, 2)");
             Assert.AreEqual("is", actual);
 
-            actual = XLWorkbook.EvaluateExpr("=+MID(\"This is a test\", 6, 2)");
+            actual = XlsxWorkbook.EvaluateExpr("=+MID(\"This is a test\", 6, 2)");
             Assert.AreEqual("is", actual);
 
-            actual = XLWorkbook.EvaluateExpr("=+++++MID(\"This is a test\", 6, 2)");
+            actual = XlsxWorkbook.EvaluateExpr("=+++++MID(\"This is a test\", 6, 2)");
             Assert.AreEqual("is", actual);
 
-            actual = XLWorkbook.EvaluateExpr("+MID(\"This is a test\", 6, 2)");
+            actual = XlsxWorkbook.EvaluateExpr("+MID(\"This is a test\", 6, 2)");
             Assert.AreEqual("is", actual);
         }
 
@@ -177,32 +177,32 @@ namespace Aid.Xlsx.Tests.Excel
         public void UnimplementedStandardFunctionsAreEvaluatedToNameNotFoundError()
         {
             // RTD will never be implemented
-            var actual = XLWorkbook.EvaluateExpr("RTD(\"MyRTDServerProdID\",\"MyServer\",\"RaceNum\",\"RunnerID\",\"StatType\")");
-            Assert.AreEqual(XLError.NameNotRecognized, actual);
+            var actual = XlsxWorkbook.EvaluateExpr("RTD(\"MyRTDServerProdID\",\"MyServer\",\"RaceNum\",\"RunnerID\",\"StatType\")");
+            Assert.AreEqual(XlsxError.NameNotRecognized, actual);
         }
 
         [Test]
         public void FormulasWithErrors()
         {
-            Assert.AreEqual(XLError.CellReference, XLWorkbook.EvaluateExpr("YEAR(#REF!)"));
-            Assert.AreEqual(XLError.IncompatibleValue, XLWorkbook.EvaluateExpr("YEAR(#VALUE!)"));
-            Assert.AreEqual(XLError.DivisionByZero, XLWorkbook.EvaluateExpr("YEAR(#DIV/0!)"));
-            Assert.AreEqual(XLError.NameNotRecognized, XLWorkbook.EvaluateExpr("YEAR(#NAME?)"));
-            Assert.AreEqual(XLError.NoValueAvailable, XLWorkbook.EvaluateExpr("YEAR(#N/A)"));
-            Assert.AreEqual(XLError.NullValue, XLWorkbook.EvaluateExpr("YEAR(#NULL!)"));
-            Assert.AreEqual(XLError.NumberInvalid, XLWorkbook.EvaluateExpr("YEAR(#NUM!)"));
+            Assert.AreEqual(XlsxError.CellReference, XlsxWorkbook.EvaluateExpr("YEAR(#REF!)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, XlsxWorkbook.EvaluateExpr("YEAR(#VALUE!)"));
+            Assert.AreEqual(XlsxError.DivisionByZero, XlsxWorkbook.EvaluateExpr("YEAR(#DIV/0!)"));
+            Assert.AreEqual(XlsxError.NameNotRecognized, XlsxWorkbook.EvaluateExpr("YEAR(#NAME?)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, XlsxWorkbook.EvaluateExpr("YEAR(#N/A)"));
+            Assert.AreEqual(XlsxError.NullValue, XlsxWorkbook.EvaluateExpr("YEAR(#NULL!)"));
+            Assert.AreEqual(XlsxError.NumberInvalid, XlsxWorkbook.EvaluateExpr("YEAR(#NUM!)"));
         }
 
         [Test]
         public void LegacyFunctionPropagateErrorWithoutException()
         {
-            Assert.AreEqual(XLError.NameNotRecognized, XLWorkbook.EvaluateExpr("SIN(YEAR(#NAME?))+1"));
+            Assert.AreEqual(XlsxError.NameNotRecognized, XlsxWorkbook.EvaluateExpr("SIN(YEAR(#NAME?))+1"));
         }
 
         [Test]
         public void UnicodeLetterParsing()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws1 = wb.AddWorksheet("Sheet C CÄ");
                 var ws2 = wb.AddWorksheet("ÖC");
@@ -222,7 +222,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test, Ignore("Shifting formulas is done by regexp that breaks array formula.")]
         public void ShiftFormula()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet();
                 ws.Cell("B1").FormulaA1 = "ATAN2(C1,C2)";

@@ -1,9 +1,8 @@
-using System;
-using System.IO;
-using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using Aid.Xlsx.Opc;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.IO;
@@ -18,7 +17,7 @@ public sealed class WorkbookOpcRoundTripTests
     public void ReadsWorkbookAndStreamsWorksheetCells(string spreadsheetNamespace, string relationshipNamespace)
     {
         using var original = new MemoryStream();
-        using (var workbook = new XLWorkbook())
+        using (var workbook = new XlsxWorkbook())
         {
             workbook.AddWorksheet("Data");
             workbook.SaveAs(original, validate: false);
@@ -49,12 +48,12 @@ public sealed class WorkbookOpcRoundTripTests
             package.Save(updated);
         }
 
-        using var loaded = new XLWorkbook(updated);
+        using var loaded = new XlsxWorkbook(updated);
         Assert.That(loaded.Use1904DateSystem, Is.True);
         Assert.That(loaded.FileSharing.ReadOnlyRecommended, Is.True);
         Assert.That(loaded.FileSharing.UserName, Is.EqualTo("Reader"));
-        Assert.That(loaded.CalculateMode, Is.EqualTo(XLCalculateMode.Manual));
-        Assert.That(loaded.ReferenceStyle, Is.EqualTo(XLReferenceStyle.R1C1));
+        Assert.That(loaded.CalculateMode, Is.EqualTo(XlsxCalculateMode.Manual));
+        Assert.That(loaded.ReferenceStyle, Is.EqualTo(XlsxReferenceStyle.R1C1));
         var name = loaded.DefinedNames.Single();
         Assert.That(name.RefersTo, Is.EqualTo("Data!$A$1"));
         Assert.That(name.Comment, Is.EqualTo("Input cell"));
@@ -69,25 +68,25 @@ public sealed class WorkbookOpcRoundTripTests
     public void NewThemeRetainsCustomRgbAndSystemFallbackColors()
     {
         using var stream = new MemoryStream();
-        using (var workbook = new XLWorkbook())
+        using (var workbook = new XlsxWorkbook())
         {
             workbook.AddWorksheet("Colors");
-            workbook.Theme.Accent1 = XLColor.FromHexRgb("123456");
-            workbook.Theme.Text1 = XLColor.FromHexRgb("234567");
+            workbook.Theme.Accent1 = XlsxColor.FromHexRgb("123456");
+            workbook.Theme.Text1 = XlsxColor.FromHexRgb("234567");
             workbook.SaveAs(stream, validate: true);
         }
 
         stream.Position = 0;
-        using var loaded = new XLWorkbook(stream);
-        Assert.That(loaded.Theme.Accent1, Is.EqualTo(XLColor.FromHexRgb("123456")));
-        Assert.That(loaded.Theme.Text1, Is.EqualTo(XLColor.FromHexRgb("234567")));
+        using var loaded = new XlsxWorkbook(stream);
+        Assert.That(loaded.Theme.Accent1, Is.EqualTo(XlsxColor.FromHexRgb("123456")));
+        Assert.That(loaded.Theme.Text1, Is.EqualTo(XlsxColor.FromHexRgb("234567")));
     }
 
     [Test]
     public void EditingWorkbookKeepsUnknownPartsAndTheirRelationships()
     {
         using var original = new MemoryStream();
-        using (var workbook = new XLWorkbook())
+        using (var workbook = new XlsxWorkbook())
         {
             workbook.AddWorksheet("Sheet").Cell("A1").Value = 1;
             workbook.SaveAs(original, validate: false);
@@ -107,13 +106,13 @@ public sealed class WorkbookOpcRoundTripTests
             opc.Save(withExtras);
         }
 
-        using (var workbook = new XLWorkbook(withExtras))
+        using (var workbook = new XlsxWorkbook(withExtras))
         {
             workbook.Worksheet("Sheet").Cell("A1").Value = 2;
-            workbook.Save(new SaveOptions { ValidatePackage = false });
+            workbook.Save(new Workbooks.SaveOptions { ValidatePackage = false });
         }
 
-        using var edited = new XLWorkbook(withExtras);
+        using var edited = new XlsxWorkbook(withExtras);
         Assert.That(edited.Worksheet("Sheet").Cell("A1").GetDouble(), Is.EqualTo(2));
         using var saved = OpcPackage.Open(withExtras);
         var usedWorkbookPart = saved.GetPart(saved.Relationships.Single(rel => rel.Type == OfficeRelationships + "officeDocument").TargetPartName);
@@ -135,13 +134,13 @@ public sealed class WorkbookOpcRoundTripTests
         using var target = new MemoryStream();
         var before = ReadVbaProject(source);
 
-        using (var workbook = new XLWorkbook(source))
+        using (var workbook = new XlsxWorkbook(source))
         {
             workbook.Worksheet(1).Cell("Z1").Value = "Updated";
             workbook.SaveAs(target, validate: false);
         }
 
-        using var edited = new XLWorkbook(target);
+        using var edited = new XlsxWorkbook(target);
         Assert.That(edited.Worksheet(1).Cell("Z1").GetString(), Is.EqualTo("Updated"));
         Assert.That(ReadVbaProject(target), Is.EqualTo(before));
     }
@@ -155,7 +154,7 @@ public sealed class WorkbookOpcRoundTripTests
         {
             var source = Path.Combine(directory, "original.xlsx");
             var template = Path.Combine(directory, "template.xltx");
-            using var workbook = new XLWorkbook();
+            using var workbook = new XlsxWorkbook();
             workbook.AddWorksheet("Data").Cell("A1").Value = 42;
             workbook.SaveAs(source, validate: false);
 
@@ -165,7 +164,7 @@ public sealed class WorkbookOpcRoundTripTests
             using var opc = OpcPackage.Open(file);
             var workbookPart = opc.GetPart(opc.Relationships.Single(rel => rel.Type == OfficeRelationships + "officeDocument").TargetPartName);
             Assert.That(workbookPart.ContentType, Is.EqualTo("application/vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml"));
-            using var reloaded = new XLWorkbook(file);
+            using var reloaded = new XlsxWorkbook(file);
             Assert.That(reloaded.Worksheet("Data").Cell("A1").GetDouble(), Is.EqualTo(42));
         }
         finally
@@ -183,7 +182,7 @@ public sealed class WorkbookOpcRoundTripTests
         XNamespace extended = "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties";
         XNamespace variant = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
         using var original = new MemoryStream();
-        using (var workbook = new XLWorkbook())
+        using (var workbook = new XlsxWorkbook())
         {
             workbook.AddWorksheet("Data");
             workbook.Properties.Company = "Example Company";
@@ -222,7 +221,7 @@ public sealed class WorkbookOpcRoundTripTests
             package.Save(modified);
         }
 
-        using (var workbook = new XLWorkbook(modified))
+        using (var workbook = new XlsxWorkbook(modified))
         {
             Assert.That(workbook.Properties.Company, Is.EqualTo("Example Company"));
             Assert.That(workbook.Properties.Title, Is.EqualTo("Original title"));
@@ -232,7 +231,7 @@ public sealed class WorkbookOpcRoundTripTests
             workbook.CustomProperties.Delete("Remove");
             workbook.CustomProperties.CustomProperty("Edit").Value = 2.5;
             workbook.CustomProperties.Add("New", true);
-            workbook.Save(new SaveOptions { ValidatePackage = true });
+            workbook.Save(new Workbooks.SaveOptions { ValidatePackage = true });
         }
 
         using var result = OpcPackage.Open(modified);

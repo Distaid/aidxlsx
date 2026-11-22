@@ -1,0 +1,304 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Coordinates;
+
+namespace Aid.Xlsx.PivotTables
+{
+    /// <summary>
+    /// All values of a cache field for a pivot table.
+    /// </summary>
+    internal class XlsxPivotCacheValues
+    {
+        private readonly XlsxPivotCacheSharedItems _sharedItems;
+
+        private readonly List<XlsxPivotCacheValue> _values;
+
+        private readonly List<string> _stringStorage;
+
+        private bool _containsBlank;
+
+        private bool _containsNumber;
+
+        private double? _minValue;
+
+        private double? _maxValue;
+
+        /// <inheritdoc cref="XlsxPivotCacheValuesStats.ContainsInteger"/>
+        private bool _containsInteger;
+
+        /// <inheritdoc cref="XlsxPivotCacheValuesStats.ContainsString"/>
+        private bool _containsString;
+
+        /// <inheritdoc cref="XlsxPivotCacheValuesStats.LongText"/>
+        private bool _longText;
+
+        /// <inheritdoc cref="XlsxPivotCacheValuesStats.ContainsDate"/>
+        private bool _containsDate;
+
+        private long? _minDateTicks;
+
+        private long? _maxDateTicks;
+
+        internal XlsxPivotCacheValues(ValueSlice valueSlice, int column, Area area)
+        {
+            _sharedItems = new XlsxPivotCacheSharedItems();
+            _values = new List<XlsxPivotCacheValue>();
+            _stringStorage = new List<string>();
+
+            Initialize(valueSlice, column, area);
+        }
+
+        internal XlsxPivotCacheValues(XlsxPivotCacheSharedItems sharedItems, XlsxPivotCacheValuesStats stats)
+        {
+            _sharedItems = sharedItems;
+            _values = new List<XlsxPivotCacheValue>();
+            _stringStorage = new List<string>();
+
+            // Have a separate fields instead of one large struct. That way,
+            // the flags are more easily set when record values are being added.
+            _containsBlank = stats.ContainsBlank;
+            _containsNumber = stats.ContainsNumber;
+            _containsInteger = stats.ContainsInteger;
+            _minValue = stats.MinValue;
+            _maxValue = stats.MaxValue;
+            _containsString = stats.ContainsString;
+            _longText = stats.LongText;
+            _containsDate = stats.ContainsDate;
+            _minDateTicks = stats.MinDate?.Ticks;
+            _maxDateTicks = stats.MaxDate?.Ticks;
+        }
+
+        internal XlsxPivotCacheValuesStats Stats
+        {
+            get
+            {
+                DateTime? minDate = _containsDate && _minDateTicks is not null ? new DateTime(_minDateTicks.Value) : null;
+                DateTime? maxDate = _containsDate && _maxDateTicks is not null ? new DateTime(_maxDateTicks.Value) : null;
+
+                return new XlsxPivotCacheValuesStats(
+                    _containsBlank,
+                    _containsNumber,
+                    _containsInteger,
+                    _minValue,
+                    _maxValue,
+                    _containsString,
+                    _longText,
+                    _containsDate,
+                    minDate,
+                    maxDate);
+            }
+        }
+
+        internal int Count => _values.Count;
+
+        internal int SharedCount => _sharedItems.Count;
+
+        internal XlsxPivotCacheSharedItems SharedItems => _sharedItems;
+
+        internal void AddMissing()
+        {
+            _values.Add(XlsxPivotCacheValue.ForMissing());
+            _containsBlank = true;
+        }
+
+        internal void AddNumber(double number)
+        {
+            _values.Add(XlsxPivotCacheValue.ForNumber(number));
+            AdjustStats(number);
+        }
+
+        internal void AddBoolean(bool boolean)
+        {
+            _values.Add(XlsxPivotCacheValue.ForBoolean(boolean));
+
+            // [MS-OI29500]: In Office, boolean and error are considered strings in the context of the containsString attribute.
+            _containsString = true;
+        }
+
+        internal void AddError(XlsxError error)
+        {
+            _values.Add(XlsxPivotCacheValue.ForError(error));
+
+            // [MS-OI29500]: In Office, boolean and error are considered strings in the context of the containsString attribute.
+            _containsString = true;
+        }
+
+        internal void AddString(string text)
+        {
+            _values.Add(XlsxPivotCacheValue.ForText(text, _stringStorage));
+            AdjustStats(text);
+        }
+
+        internal void AddDateTime(DateTime dateTime)
+        {
+            _values.Add(XlsxPivotCacheValue.ForDateTime(dateTime));
+            AdjustStats(dateTime);
+        }
+
+        internal void AddIndex(uint index)
+        {
+            if (index >= _sharedItems.Count)
+                throw new ArgumentException("Index is referencing non-existent shared item.");
+
+            _values.Add(XlsxPivotCacheValue.ForIndex(index));
+
+            // Get value referenced by added index value, so stats can be updated.
+            var cacheValue = _sharedItems.GetValue(index);
+            switch (cacheValue.Type)
+            {
+                case XlsxPivotCacheValueType.Missing:
+                    _containsBlank = true;
+                    break;
+                case XlsxPivotCacheValueType.Number:
+                    AdjustStats(cacheValue.GetNumber());
+                    break;
+                case XlsxPivotCacheValueType.Boolean:
+                    _containsString = true;
+                    break;
+                case XlsxPivotCacheValueType.Error:
+                    _containsString = true;
+                    break;
+                case XlsxPivotCacheValueType.String:
+                    AdjustStats(_sharedItems.GetStringValue(index));
+                    break;
+                case XlsxPivotCacheValueType.DateTime:
+                    AdjustStats(cacheValue.GetDateTime());
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        internal XlsxPivotCacheValue GetValue(int recordIdx)
+        {
+            return _values[recordIdx];
+        }
+
+        internal string GetText(XlsxPivotCacheValue value)
+        {
+            Debug.Assert(value.Type == XlsxPivotCacheValueType.String);
+            return value.GetText(_stringStorage);
+        }
+
+        internal void AllocateCapacity(int recordCount)
+        {
+            _values.Capacity = recordCount;
+        }
+
+        internal IEnumerable<XlsxCellValue> GetCellValues()
+        {
+            foreach (var value in _values)
+            {
+                yield return value.GetCellValue(_stringStorage, _sharedItems);
+            }
+        }
+
+        /// <summary>
+        /// Get or add a value to the shared items. Throw, if value is not in items.
+        /// </summary>
+        /// <returns>Index in shared items.</returns>
+        internal int GetOrAddSharedItem(XlsxCellValue value)
+        {
+            var sharedItemsIndex = _sharedItems.IndexOf(value);
+            if (sharedItemsIndex >= 0)
+                return sharedItemsIndex;
+
+            // Not in shared items, make sure it actually is present.
+            if (!ContainsRecord(value))
+                throw new ArgumentException($"Value '{value}' not among cache field values.");
+
+            _sharedItems.Add(value);
+
+            return _sharedItems.Count - 1;
+        }
+
+        /// <summary>
+        /// Is among the <c>value</c> among values of the record.
+        /// </summary>
+        private bool ContainsRecord(XlsxCellValue value)
+        {
+            for (var index = 0; index < _values.Count; ++index)
+            {
+                var recordValue = GetValue(index);
+                var cacheValue = recordValue.GetCellValue(_stringStorage, _sharedItems);
+                if (XlsxCellValueComparer.OrdinalIgnoreCase.Equals(cacheValue, value))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private void Initialize(ValueSlice valueSlice, int column, Area area)
+        {
+            var uniqueItems = new HashSet<XlsxCellValue>(XlsxCellValueComparer.OrdinalIgnoreCase);
+            for (var row = area.TopRow + 1; row <= area.BottomRow; ++row)
+            {
+                var value = valueSlice.GetCellValue(new Point(row, column));
+
+                // Add to shared items first, because value can be an index to shared items.
+                if (uniqueItems.Add(value))
+                    _sharedItems.Add(value);
+
+                switch (value.Type)
+                {
+                    case XlsxDataType.Blank:
+                        AddMissing();
+                        break;
+                    case XlsxDataType.Boolean:
+                        AddBoolean(value.GetBoolean());
+                        break;
+                    case XlsxDataType.Number:
+                        AddNumber(value.GetNumber());
+                        break;
+                    case XlsxDataType.Text:
+                        AddString(value.GetText());
+                        break;
+                    case XlsxDataType.Error:
+                        AddError(value.GetError());
+                        break;
+                    case XlsxDataType.DateTime:
+                        AddDateTime(value.GetDateTime());
+                        break;
+                    case XlsxDataType.TimeSpan:
+                        // TimeSpan is represented as datetime in pivot cache, e.g. 14:30 into 1899-12-30T14:30:00
+                        var adjustedTimeSpan = DateTime.FromOADate(0).Add(value.GetTimeSpan());
+                        AddDateTime(adjustedTimeSpan);
+                        break;
+                    default:
+                        throw new UnreachableException();
+                }
+            }
+        }
+
+        [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "double.IsInteger() in NET7 uses same method.")]
+        private void AdjustStats(double number)
+        {
+            // containsInt is true only if all numbers are integers.
+            _containsInteger =
+                // First ever number is an integer.
+                (!_containsNumber && number == Math.Truncate(number))
+                ||
+                // Subsequent number is an integer.
+                (_containsInteger && number == Math.Truncate(number));
+            _containsNumber = true;
+            _minValue = _minValue is null ? number : Math.Min(_minValue.Value, number);
+            _maxValue = _maxValue is null ? number : Math.Max(_maxValue.Value, number);
+        }
+
+        private void AdjustStats(string text)
+        {
+            _containsString = true;
+            _longText = _longText || text.Length > 255;
+        }
+
+        private void AdjustStats(DateTime dateTime)
+        {
+            _containsDate = true;
+            var dateTicks = dateTime.Ticks;
+            _minDateTicks = _minDateTicks is null ? dateTicks : Math.Min(_minDateTicks.Value, dateTicks);
+            _maxDateTicks = _maxDateTicks is null ? dateTicks : Math.Max(_maxDateTicks.Value, dateTicks);
+        }
+    }
+}

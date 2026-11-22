@@ -1,19 +1,20 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Aid.Xlsx.CalcEngine;
-using Aid.Xlsx.Formatting;
 using Aid.Xlsx.Opc;
-using PhoneticProperties = Aid.Xlsx.XLImmutableRichText.PhoneticProperties;
-using PhoneticRun = Aid.Xlsx.XLImmutableRichText.PhoneticRun;
-using RichTextRun = Aid.Xlsx.XLImmutableRichText.RichTextRun;
+using Aid.Xlsx.RichText;
+using Aid.Xlsx.Styles.Colors;
+using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Styles;
+using PhoneticProperties = Aid.Xlsx.RichText.XlsxImmutableRichText.PhoneticProperties;
+using PhoneticRun = Aid.Xlsx.RichText.XlsxImmutableRichText.PhoneticRun;
 using PhoneticRunDto = (string Text, int StartIndex, int EndIndex);
+using RichTextRun = Aid.Xlsx.RichText.XlsxImmutableRichText.RichTextRun;
 
 namespace Aid.Xlsx.Internal.IO;
 
 /// <summary>
 /// A partial stateful reader for reading a string item (it's either text or rich text). The rich
-/// text format is not stored in the <see cref="XLWorkbookStyles"/> and the reader doesn't add it
+/// text format is not stored in the <see cref="XlsxWorkbookStyles"/> and the reader doesn't add it
 /// there.
 /// </summary>
 internal partial class RstReader
@@ -24,12 +25,12 @@ internal partial class RstReader
 
     private readonly XmlTreeReader _reader;
 
-    private readonly XLWorkbookStyles _styles;
+    private readonly XlsxWorkbookStyles _styles;
 
     // The values read from the CT_RPrElt element. The values are reset before each run.
-    private XLFontName? _runName;
-    private XLFontCharSet? _runCharset;
-    private XLFontFamilyNumberingValues? _runFamily;
+    private XlsxFontName? _runName;
+    private XlsxFontCharSet? _runCharset;
+    private XlsxFontFamilyNumberingValues? _runFamily;
     private bool? _runBold;
     private bool? _runItalic;
     private bool? _runStrikethrough;
@@ -37,13 +38,13 @@ internal partial class RstReader
     private bool? _runShadow;
     private bool? _runCondense;
     private bool? _runExtend;
-    private XLColor? _runColor;
-    private XLFontSize? _runSize;
-    private XLFontUnderlineValues? _runUnderline;
-    private XLFontVerticalTextAlignmentValues? _runVerticalAlignment;
-    private XLFontScheme? _runScheme;
+    private XlsxColor? _runColor;
+    private XlsxFontSize? _runSize;
+    private XlsxFontUnderlineValues? _runUnderline;
+    private XlsxFontVerticalTextAlignmentValues? _runVerticalAlignment;
+    private XlsxFontScheme? _runScheme;
 
-    internal RstReader(XmlTreeReader reader, XLWorkbookStyles styles, string ns = OpenXmlConst.Main2006SsNs)
+    internal RstReader(XmlTreeReader reader, XlsxWorkbookStyles styles, string ns = OpenXmlConst.Main2006SsNs)
     {
         _reader = reader;
         _styles = styles;
@@ -53,7 +54,7 @@ internal partial class RstReader
     /// <summary>
     /// Parse a <c>CT_Rst</c> element.
     /// </summary>
-    internal Xpr<OneOf<string, XLImmutableRichText>> ParseCtRst(string elementName, string ns)
+    internal Xpr<OneOf<string, XlsxImmutableRichText>> ParseCtRst(string elementName, string ns)
     {
         ResetFontState();
         return ParseRst(elementName, ns);
@@ -84,9 +85,9 @@ internal partial class RstReader
     /// <summary>
     /// Get the state of properties for current/next rich run.
     /// </summary>
-    private XLDifferentialFontValue GetFontState()
+    private XlsxDifferentialFontValue GetFontState()
     {
-        return new XLDifferentialFontValue
+        return new XlsxDifferentialFontValue
         {
             Name = _runName,
             Charset = _runCharset,
@@ -116,27 +117,27 @@ internal partial class RstReader
         return value;
     }
 
-    private XLFontSize OnFontSizeParsed(double sizePt)
+    private XlsxFontSize OnFontSizeParsed(double sizePt)
     {
-        return XLFontSize.FromPoints(sizePt);
+        return XlsxFontSize.FromPoints(sizePt);
     }
 
-    private XLFontName OnFontNameParsed(string fontName)
+    private XlsxFontName OnFontNameParsed(string fontName)
     {
         return fontName;
     }
 
-    private XLFontVerticalTextAlignmentValues OnVerticalAlignFontPropertyParsed(XLFontVerticalTextAlignmentValues verticalAlignment)
+    private XlsxFontVerticalTextAlignmentValues OnVerticalAlignFontPropertyParsed(XlsxFontVerticalTextAlignmentValues verticalAlignment)
     {
         return verticalAlignment;
     }
 
-    private XLFontScheme OnFontSchemeParsed(XLFontScheme scheme)
+    private XlsxFontScheme OnFontSchemeParsed(XlsxFontScheme scheme)
     {
         return scheme;
     }
 
-    private XLFontUnderlineValues OnUnderlinePropertyParsed(XLFontUnderlineValues underline)
+    private XlsxFontUnderlineValues OnUnderlinePropertyParsed(XlsxFontUnderlineValues underline)
     {
         return underline;
     }
@@ -144,7 +145,7 @@ internal partial class RstReader
 
     #region Callbacks for the OnRPrElt that store the rich run properties
 
-    private Unit OnRPrEltRFontParsed(XLFontName name)
+    private Unit OnRPrEltRFontParsed(XlsxFontName name)
     {
         _runName = name;
         return Unit.Value;
@@ -155,7 +156,7 @@ internal partial class RstReader
         if (charsetValue is < 0 or > 255)
             throw PartStructureException.InvalidAttributeValue(charsetValue.ToString());
 
-        _runCharset = (XLFontCharSet)charsetValue;
+        _runCharset = (XlsxFontCharSet)charsetValue;
         return Unit.Value;
     }
 
@@ -168,8 +169,8 @@ internal partial class RstReader
         // "Excel restricts the value of this attribute to be at least 0 and at most 5."
         _runFamily = familyValue switch
         {
-            >= 0 and <= 5 => (XLFontFamilyNumberingValues)familyValue,
-            > 5 and <= 14 => XLFontFamilyNumberingValues.NotApplicable,
+            >= 0 and <= 5 => (XlsxFontFamilyNumberingValues)familyValue,
+            > 5 and <= 14 => XlsxFontFamilyNumberingValues.NotApplicable,
             _ => throw PartStructureException.InvalidAttributeValue(familyValue.ToString()),
         };
         return Unit.Value;
@@ -217,41 +218,41 @@ internal partial class RstReader
         return Unit.Value;
     }
 
-    private Xpr<XLColor> ParseColor(string elementName, string ns)
+    private Xpr<XlsxColor> ParseColor(string elementName, string ns)
     {
         if (!_reader.TryOpen(elementName, ns))
         {
-            return Xpr.Fail<XLColor>();
+            return Xpr.Fail<XlsxColor>();
         }
 
         return Xpr.From(_reader.ParseColor(elementName, ns));
     }
 
-    private Unit OnRPrEltColorParsed(XLColor color)
+    private Unit OnRPrEltColorParsed(XlsxColor color)
     {
         _runColor = color;
         return Unit.Value;
     }
 
-    private Unit OnRPrEltSzParsed(XLFontSize size)
+    private Unit OnRPrEltSzParsed(XlsxFontSize size)
     {
         _runSize = size;
         return Unit.Value;
     }
 
-    private Unit OnRPrEltUParsed(XLFontUnderlineValues underline)
+    private Unit OnRPrEltUParsed(XlsxFontUnderlineValues underline)
     {
         _runUnderline = underline;
         return Unit.Value;
     }
 
-    private Unit OnRPrEltVertAlignParsed(XLFontVerticalTextAlignmentValues verticalAlignment)
+    private Unit OnRPrEltVertAlignParsed(XlsxFontVerticalTextAlignmentValues verticalAlignment)
     {
         _runVerticalAlignment = verticalAlignment;
         return Unit.Value;
     }
 
-    private Unit OnRPrEltSchemeParsed(XLFontScheme scheme)
+    private Unit OnRPrEltSchemeParsed(XlsxFontScheme scheme)
     {
         _runScheme = scheme;
         return Unit.Value;
@@ -260,16 +261,16 @@ internal partial class RstReader
     /// <summary>
     /// Create font format from the values of the current state of the run (the <c>_run*</c> fields).
     /// </summary>
-    private XLDifferentialFontValue OnRPrEltParsed(List<Unit> _)
+    private XlsxDifferentialFontValue OnRPrEltParsed(List<Unit> _)
     {
         return GetFontState();
     }
 
     #endregion
 
-    private (string Text, XLDifferentialFontValue Font) OnREltParsed(XLDifferentialFontValue? runProperties, string runText)
+    private (string Text, XlsxDifferentialFontValue Font) OnREltParsed(XlsxDifferentialFontValue? runProperties, string runText)
     {
-        var runFont = runProperties ?? XLDifferentialFontValue.Empty;
+        var runFont = runProperties ?? XlsxDifferentialFontValue.Empty;
         ResetFontState();
         return (runText, runFont);
     }
@@ -280,24 +281,24 @@ internal partial class RstReader
         return new PhoneticRunDto(text, checked((int)sb), checked((int)eb));
     }
 
-    private PhoneticProperties OnPhoneticPrParsed(uint fontId, XLPhoneticType type, XLPhoneticAlignment alignment)
+    private PhoneticProperties OnPhoneticPrParsed(uint fontId, XlsxPhoneticType type, XlsxPhoneticAlignment alignment)
     {
         var phoneticFont = _styles.Fonts[checked((int)fontId)];
         return new PhoneticProperties(phoneticFont, type, alignment);
     }
 
-    private OneOf<string, XLImmutableRichText> OnRstParsed(string? fullText, List<(string Text, XLDifferentialFontValue Font)> richRuns, List<PhoneticRunDto> phoneticRuns, PhoneticProperties? phoneticProps)
+    private OneOf<string, XlsxImmutableRichText> OnRstParsed(string? fullText, List<(string Text, XlsxDifferentialFontValue Font)> richRuns, List<PhoneticRunDto> phoneticRuns, PhoneticProperties? phoneticProps)
     {
         if (richRuns.Count == 0 && phoneticProps is null)
             return fullText ?? string.Empty;
 
         if (!string.IsNullOrEmpty(fullText))
-            richRuns.Insert(0, (fullText, XLDifferentialFontValue.Empty));
+            richRuns.Insert(0, (fullText, XlsxDifferentialFontValue.Empty));
 
         return GetRichText(richRuns, phoneticRuns, phoneticProps);
     }
 
-    private static XLImmutableRichText GetRichText(List<(string Text, XLDifferentialFontValue Font)> richRuns, List<PhoneticRunDto> phoneticRunDtos, PhoneticProperties? phoneticProps)
+    private static XlsxImmutableRichText GetRichText(List<(string Text, XlsxDifferentialFontValue Font)> richRuns, List<PhoneticRunDto> phoneticRunDtos, PhoneticProperties? phoneticProps)
     {
         var richTextLength = richRuns.Sum(x => x.Text.Length);
         var sb = new StringBuilder(richTextLength);
@@ -350,11 +351,11 @@ internal partial class RstReader
         for (var i = 0; i < richRuns.Count; ++i)
         {
             var runLength = richRuns[i].Text.Length;
-            runs[i] = new RichTextRun(XLFontFormatValue.Default, richRuns[i].Font, startIndex, runLength);
+            runs[i] = new RichTextRun(XlsxFontFormatValue.Default, richRuns[i].Font, startIndex, runLength);
             startIndex += runLength;
         }
 
         var phoneticRuns = phoneticRunDtos.Select(x => new PhoneticRun(x.Text, x.StartIndex, x.EndIndex)).ToArray();
-        return new XLImmutableRichText(richText, runs, phoneticRuns, phoneticProps);
+        return new XlsxImmutableRichText(richText, runs, phoneticRuns, phoneticProps);
     }
 }

@@ -1,12 +1,12 @@
 // Keep this file CodeMaid organised and cleaned
-using System.Collections.Generic;
-using System.Linq;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
 
 namespace Aid.Xlsx.InsertData
 {
     internal class NullDataReader : IInsertDataReader
     {
-        private readonly XLCellValue[] _row = { Blank.Value };
+        private readonly XlsxCellValue[] _row = { Blank.Value };
         private readonly int _count;
 
         public NullDataReader(IEnumerable<object> nulls)
@@ -14,7 +14,7 @@ namespace Aid.Xlsx.InsertData
             _count = nulls.Count();
         }
 
-        public IEnumerable<IEnumerable<XLCellValue>> GetRecords()
+        public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
         {
             return Enumerable.Repeat(_row, _count);
         }

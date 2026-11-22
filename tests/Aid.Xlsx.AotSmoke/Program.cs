@@ -1,8 +1,10 @@
-using Aid.Xlsx;
 using Aid.Xlsx.Attributes;
-
+using Aid.Xlsx.Conversion;
+using Aid.Xlsx.InsertData;
+using Aid.Xlsx.Workbooks;
 using var file = new MemoryStream();
-using (var workbook = new XLWorkbook())
+
+using (var workbook = new XlsxWorkbook())
 {
     var sheet = workbook.Worksheets.Add("Sales");
     var sales = new[] { new Sale("Apples", 20m, new DateOnly(2026, 1, 2)), new Sale("Pears", 22m, null) };
@@ -17,7 +19,7 @@ using (var workbook = new XLWorkbook())
 }
 
 file.Position = 0;
-using var reloaded = new XLWorkbook(file);
+using var reloaded = new XlsxWorkbook(file);
 var salesSheet = reloaded.Worksheet("Sales");
 Require(salesSheet.Table("SalesData").Field("Amount").Name == "Amount", "table heading");
 Require(salesSheet.Cell("A2").GetString() == "Apples", "shared string");
@@ -35,7 +37,7 @@ using var legacy = typeof(Sale).Assembly.GetManifestResourceStream("legacy.xls")
 using var converted = new MemoryStream();
 XlsConverter.Convert(legacy, converted);
 converted.Position = 0;
-using var convertedWorkbook = new XLWorkbook(converted);
+using var convertedWorkbook = new XlsxWorkbook(converted);
 Require(convertedWorkbook.Worksheet("Hidden").Cell("A1").GetDouble() == 42, "BIFF8 conversion");
 Console.WriteLine("Workbook round-trip passed.");
 
@@ -47,8 +49,8 @@ static void Require(bool valid, string scenario)
 
 [XlsxTable("SalesData")]
 internal sealed record Sale(
-    [property: XLColumn(Header = "Item", Order = 1)] string Product,
-    [property: XLColumn(Order = 2, Format = "0.000")] decimal Amount,
+    [property: XlsxColumn(Header = "Item", Order = 1)] string Product,
+    [property: XlsxColumn(Order = 2, Format = "0.000")] decimal Amount,
     DateOnly? SoldOn)
 {
     [XlsxIgnore]

@@ -1,5 +1,7 @@
+using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Formulas;
+using Aid.Xlsx.Utils;
 
 namespace Aid.Xlsx.CalcEngine.Visitors;
 
@@ -29,7 +31,7 @@ internal class ReferenceShiftOnInsertRefModVisitor : CopyVisitor
 
     private TransformedSymbol ShiftFormulaReferences(ModContext ctx, SymbolRange range, string? referenceSheetName, ReferenceArea referenceToShift)
     {
-        if (!XLHelper.SheetComparer.Equals(_insertedBookArea.Name, referenceSheetName ?? ctx.Sheet))
+        if (!XlsxHelper.SheetComparer.Equals(_insertedBookArea.Name, referenceSheetName ?? ctx.Sheet))
             return TransformedSymbol.CopyOriginal(ctx.Formula, range);
 
         var wouldSplitArea = _shiftDown
@@ -42,7 +44,7 @@ internal class ReferenceShiftOnInsertRefModVisitor : CopyVisitor
 
         // If reference was shifted out of sheet, return #REF!
         if (shiftedReference is null)
-            return TransformedSymbol.ToText(ctx.Formula, range, XLHelper.RefError);
+            return TransformedSymbol.ToText(ctx.Formula, range, XlsxHelper.RefError);
 
         // Do not allocate a new string unless necessary
         if (referenceToShift == shiftedReference.Value)

@@ -1,13 +1,12 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using Aid.Xlsx.Formatting;
+using Aid.Xlsx.RichText;
+using Aid.Xlsx.Styles.Formatting;
 
-namespace Aid.Xlsx
+namespace Aid.Xlsx.Cells
 {
     /// <summary>
     /// A class that holds all texts in a workbook. Each text can be either a simple
-    /// <c>string</c> or a <see cref="XLImmutableRichText"/>.
+    /// <c>string</c> or a <see cref="XlsxImmutableRichText"/>.
     /// </summary>
     internal class SharedStringTable
     {
@@ -43,7 +42,7 @@ namespace Aid.Xlsx
                 if (potentialText is string text)
                     return text;
 
-                if (potentialText is XLImmutableRichText richText)
+                if (potentialText is XlsxImmutableRichText richText)
                     return richText.Text;
 
                 throw new ArgumentException($"Id {id} has no text.");
@@ -54,13 +53,13 @@ namespace Aid.Xlsx
         /// The principle is that every entry is a text, but only some are rich text.
         /// This tries to get a rich text, if it is one. If it is just plain text, return null.
         /// </summary>
-        internal XLImmutableRichText? GetRichText(int id)
+        internal XlsxImmutableRichText? GetRichText(int id)
         {
             var text = _table[id].Text.Value;
             if (text is null)
                 throw new ArgumentException($"Id {id} has no text.");
 
-            return text as XLImmutableRichText;
+            return text as XlsxImmutableRichText;
         }
 
         /// <summary>
@@ -70,7 +69,7 @@ namespace Aid.Xlsx
         internal int IncreaseRef(string text, bool inline) => IncreaseTextRef(new Text(text, inline));
 
         /// <inheritdoc cref="IncreaseRef(string, bool)"/>
-        internal int IncreaseRef(XLImmutableRichText text, bool inline) => IncreaseTextRef(new Text(text, inline));
+        internal int IncreaseRef(XlsxImmutableRichText text, bool inline) => IncreaseTextRef(new Text(text, inline));
 
         /// <summary>
         /// Decrease reference count of a text and free if necessary.
@@ -112,12 +111,12 @@ namespace Aid.Xlsx
             return map;
         }
 
-        internal IEnumerable<XLFontFormatValue> GetUsedPhoneticFonts()
+        internal IEnumerable<XlsxFontFormatValue> GetUsedPhoneticFonts()
         {
             foreach (var entry in _table)
             {
                 if (entry.RefCount > 0 &&
-                    entry.Text.Value is XLImmutableRichText richText &&
+                    entry.Text.Value is XlsxImmutableRichText richText &&
                     richText.PhoneticsProperties is { } phoneticProps)
                 {
                     yield return phoneticProps.Font;
@@ -167,7 +166,7 @@ namespace Aid.Xlsx
             internal static readonly Text Empty = new(null, false);
 
             /// <summary>
-            /// Either a <c>string</c>, <c>XLImmutableRichText</c> or null if <c><see cref="Entry.RefCount"/> == 0</c>.
+            /// Either a <c>string</c>, <c>XlsxImmutableRichText</c> or null if <c><see cref="Entry.RefCount"/> == 0</c>.
             /// </summary>
             internal readonly object? Value;
 

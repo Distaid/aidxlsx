@@ -1,5 +1,5 @@
 // Keep this file CodeMaid organised and cleaned
-using System.Collections.Generic;
+using Aid.Xlsx.Cells;
 
 namespace Aid.Xlsx.InsertData
 {
@@ -11,7 +11,7 @@ namespace Aid.Xlsx.InsertData
         /// <summary>
         /// Get a collection of records, each as a collection of values, extracted from a source.
         /// </summary>
-        IEnumerable<IEnumerable<XLCellValue>> GetRecords();
+        IEnumerable<IEnumerable<XlsxCellValue>> GetRecords();
 
         /// <summary>
         /// Get the number of properties to use as a table with.

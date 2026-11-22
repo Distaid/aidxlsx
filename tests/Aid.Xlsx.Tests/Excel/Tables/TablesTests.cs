@@ -1,12 +1,16 @@
-using Aid.Xlsx.Attributes;
-using Aid.Xlsx;
-using Aid.Xlsx.Exceptions;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.IO;
-using System.Linq;
+using Aid.Xlsx.Attributes;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Columns;
+using Aid.Xlsx.Exceptions;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Tables;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
+using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel
 {
@@ -23,13 +27,13 @@ namespace Aid.Xlsx.Tests.Excel
         {
             public int UnOrderedColumn { get; set; }
 
-            [XLColumn(Header = "SecondColumn", Order = 1)]
+            [XlsxColumn(Header = "SecondColumn", Order = 1)]
             public String Column1 { get; set; }
 
-            [XLColumn(Header = "FirstColumn", Order = 0)]
+            [XlsxColumn(Header = "FirstColumn", Order = 0)]
             public String Column2 { get; set; }
 
-            [XLColumn(Header = "SomeFieldNotProperty", Order = 2)]
+            [XlsxColumn(Header = "SomeFieldNotProperty", Order = 2)]
             public int MyField;
         }
 
@@ -40,7 +44,7 @@ namespace Aid.Xlsx.Tests.Excel
             dt.Columns.Add("col1", typeof(string));
             dt.Columns.Add("col2", typeof(double));
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 wb.AddWorksheet(dt);
 
@@ -52,7 +56,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void PreventAddingOfEmptyDataTable()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
 
@@ -66,9 +70,9 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CanSaveTableCreatedFromSingleRow()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().SetValue("Title");
                 ws.Range("A1").CreateTable();
 
@@ -80,9 +84,9 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CreatingATableFromHeadersPushCellsBelow()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().SetValue("Title")
                     .CellBelow().SetValue("X");
                 ws.Range("A1").CreateTable();
@@ -95,15 +99,15 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void Inserting_Column_Sets_Header()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().SetValue("Categories")
                     .CellBelow().SetValue("A")
                     .CellBelow().SetValue("B")
                     .CellBelow().SetValue("C");
 
-                IXLTable table = ws.RangeUsed().CreateTable();
+                IXlsxTable table = ws.RangeUsed().CreateTable();
                 table.InsertColumnsAfter(1);
                 Assert.AreEqual("Column2", table.HeadersRow().LastCell().GetText());
             }
@@ -112,15 +116,15 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void DataRange_returns_null_if_empty()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().SetValue("Categories")
                     .CellBelow().SetValue("A")
                     .CellBelow().SetValue("B")
                     .CellBelow().SetValue("C");
 
-                IXLTable table = ws.RangeUsed().CreateTable();
+                IXlsxTable table = ws.RangeUsed().CreateTable();
 
                 ws.Rows("2:4").Delete();
 
@@ -131,9 +135,9 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void SavingLoadingTableWithNewLineInHeader()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 string columnName = "Line1" + Environment.NewLine + "Line2";
                 ws.FirstCell().SetValue(columnName)
                     .CellBelow().SetValue("A");
@@ -141,9 +145,9 @@ namespace Aid.Xlsx.Tests.Excel
                 using (var ms = new MemoryStream())
                 {
                     wb.SaveAs(ms, true);
-                    var wb2 = new XLWorkbook(ms);
-                    IXLWorksheet ws2 = wb2.Worksheet(1);
-                    IXLTable table2 = ws2.Table(0);
+                    var wb2 = new XlsxWorkbook(ms);
+                    IXlsxWorksheet ws2 = wb2.Worksheet(1);
+                    IXlsxTable table2 = ws2.Table(0);
                     string fieldName = table2.Field(0).Name;
                     Assert.AreEqual("Line1\nLine2", fieldName);
                 }
@@ -153,9 +157,9 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void SavingLoadingTableWithNewLineInHeader2()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.Worksheets.Add("Test");
+                IXlsxWorksheet ws = wb.Worksheets.Add("Test");
 
                 var dt = new DataTable();
                 string columnName = "Line1" + Environment.NewLine + "Line2";
@@ -166,16 +170,16 @@ namespace Aid.Xlsx.Tests.Excel
                 dt.Rows.Add(dr);
                 ws.Cell(1, 1).InsertTable(dt);
 
-                IXLTable table1 = ws.Table(0);
+                IXlsxTable table1 = ws.Table(0);
                 string fieldName1 = table1.Field(0).Name;
                 Assert.AreEqual(columnName, fieldName1);
 
                 using (var ms = new MemoryStream())
                 {
                     wb.SaveAs(ms, true);
-                    var wb2 = new XLWorkbook(ms);
-                    IXLWorksheet ws2 = wb2.Worksheet(1);
-                    IXLTable table2 = ws2.Table(0);
+                    var wb2 = new XlsxWorkbook(ms);
+                    IXlsxWorksheet ws2 = wb2.Worksheet(1);
+                    IXlsxTable table2 = ws2.Table(0);
                     string fieldName2 = table2.Field(0).Name;
                     Assert.AreEqual("Line1\nLine2", fieldName2);
                 }
@@ -189,9 +193,9 @@ namespace Aid.Xlsx.Tests.Excel
             dt.Columns.Add("col1", typeof(string));
             dt.Columns.Add("col2", typeof(double));
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().InsertTable(dt);
                 Assert.AreEqual(2, ws.Tables.First().ColumnCount());
             }
@@ -202,9 +206,9 @@ namespace Aid.Xlsx.Tests.Excel
         {
             var l = new List<Int32>();
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().InsertTable(l);
                 Assert.AreEqual(1, ws.Tables.First().ColumnCount());
             }
@@ -215,9 +219,9 @@ namespace Aid.Xlsx.Tests.Excel
         {
             var l = new List<TestObjectWithoutAttributes>();
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().InsertTable(l);
                 Assert.AreEqual(2, ws.Tables.First().ColumnCount());
             }
@@ -232,9 +236,9 @@ namespace Aid.Xlsx.Tests.Excel
                 new TestObjectWithAttributes() { Column1 = "c", Column2 = "d", MyField = 5, UnOrderedColumn = 777 }
             };
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().InsertTable(l);
                 Assert.AreEqual(4, ws.Tables.First().ColumnCount());
                 Assert.AreEqual("FirstColumn", ws.FirstCell().Value);
@@ -249,9 +253,9 @@ namespace Aid.Xlsx.Tests.Excel
         {
             var l = new List<TestObjectWithAttributes>();
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().InsertTable(l);
                 Assert.AreEqual(4, ws.Tables.First().ColumnCount());
                 Assert.AreEqual("FirstColumn", ws.FirstCell().Value);
@@ -264,16 +268,16 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void TableInsertAboveFromData()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().SetValue("Value");
 
-                IXLTable table = ws.Range("A1:A2").CreateTable();
+                IXlsxTable table = ws.Range("A1:A2").CreateTable();
                 table.SetShowTotalsRow()
-                    .Field(0).TotalsRowFunction = XLTotalsRowFunction.Sum;
+                    .Field(0).TotalsRowFunction = XlsxTotalsRowFunction.Sum;
 
-                IXLTableRow row = table.DataRange.FirstRow();
+                IXlsxTableRow row = table.DataRange.FirstRow();
                 row.Field("Value").Value = 3;
                 row = table.DataRange.InsertRowsAbove(1).First();
                 row.Field("Value").Value = 2;
@@ -289,16 +293,16 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void TableInsertAboveFromRows()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().SetValue("Value");
 
-                IXLTable table = ws.Range("A1:A2").CreateTable();
+                IXlsxTable table = ws.Range("A1:A2").CreateTable();
                 table.SetShowTotalsRow()
-                    .Field(0).TotalsRowFunction = XLTotalsRowFunction.Sum;
+                    .Field(0).TotalsRowFunction = XlsxTotalsRowFunction.Sum;
 
-                IXLTableRow row = table.DataRange.FirstRow();
+                IXlsxTableRow row = table.DataRange.FirstRow();
                 row.Field("Value").Value = 3;
                 row = row.InsertRowsAbove(1).First();
                 row.Field("Value").Value = 2;
@@ -314,16 +318,16 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void TableInsertBelowFromData()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().SetValue("Value");
 
-                IXLTable table = ws.Range("A1:A2").CreateTable();
+                IXlsxTable table = ws.Range("A1:A2").CreateTable();
                 table.SetShowTotalsRow()
-                    .Field(0).TotalsRowFunction = XLTotalsRowFunction.Sum;
+                    .Field(0).TotalsRowFunction = XlsxTotalsRowFunction.Sum;
 
-                IXLTableRow row = table.DataRange.FirstRow();
+                IXlsxTableRow row = table.DataRange.FirstRow();
                 row.Field("Value").Value = 1;
                 row = table.DataRange.InsertRowsBelow(1).First();
                 row.Field("Value").Value = 2;
@@ -339,16 +343,16 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void TableInsertBelowFromRows()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().SetValue("Value");
 
-                IXLTable table = ws.Range("A1:A2").CreateTable();
+                IXlsxTable table = ws.Range("A1:A2").CreateTable();
                 table.SetShowTotalsRow()
-                    .Field(0).TotalsRowFunction = XLTotalsRowFunction.Sum;
+                    .Field(0).TotalsRowFunction = XlsxTotalsRowFunction.Sum;
 
-                IXLTableRow row = table.DataRange.FirstRow();
+                IXlsxTableRow row = table.DataRange.FirstRow();
                 row.Field("Value").Value = 1;
                 row = row.InsertRowsBelow(1).First();
                 row.Field("Value").Value = 2;
@@ -364,15 +368,15 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void TableShowHeader()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().SetValue("Categories")
                     .CellBelow().SetValue("A")
                     .CellBelow().SetValue("B")
                     .CellBelow().SetValue("C");
 
-                IXLTable table = ws.RangeUsed().CreateTable();
+                IXlsxTable table = ws.RangeUsed().CreateTable();
 
                 Assert.AreEqual("Categories", table.Fields.First().Name);
 
@@ -380,7 +384,7 @@ namespace Aid.Xlsx.Tests.Excel
 
                 Assert.AreEqual("Categories", table.Fields.First().Name);
 
-                Assert.IsTrue(ws.Cell(1, 1).IsEmpty(XLCellsUsedOptions.All));
+                Assert.IsTrue(ws.Cell(1, 1).IsEmpty(XlsxCellsUsedOptions.All));
                 Assert.AreEqual(null, table.HeadersRow());
                 Assert.AreEqual("A", table.DataRange.FirstRow().Field("Categories").GetText());
                 Assert.AreEqual("C", table.DataRange.LastRow().Field("Categories").GetText());
@@ -388,7 +392,7 @@ namespace Aid.Xlsx.Tests.Excel
                 Assert.AreEqual("C", table.DataRange.LastCell().GetText());
 
                 table.SetShowHeaderRow();
-                IXLRangeRow headerRow = table.HeadersRow();
+                IXlsxRangeRow headerRow = table.HeadersRow();
                 Assert.AreNotEqual(null, headerRow);
                 Assert.AreEqual("Categories", headerRow.Cell(1).GetText());
 
@@ -413,7 +417,7 @@ namespace Aid.Xlsx.Tests.Excel
         [TestCase("amount")]
         public void FieldNames_of_XLTable_are_case_insensitive(string fieldName)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var table = ws.Cell("A1").InsertTable(new[] { new { Amount = 1 } });
 
@@ -424,7 +428,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void ChangeFieldName()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet");
                 ws.Cell("A1").SetValue("FName")
@@ -470,7 +474,7 @@ namespace Aid.Xlsx.Tests.Excel
                 new TestObjectWithAttributes() { Column1 = "c", Column2 = "d", MyField = 5, UnOrderedColumn = 777 }
             };
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 var table = ws.FirstCell().InsertTable(l);
@@ -496,7 +500,7 @@ namespace Aid.Xlsx.Tests.Excel
                 new TestObjectWithAttributes() { Column1 = "c", Column2 = "d", MyField = 5, UnOrderedColumn = 777 }
             };
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 var table = ws.Cell("B2").InsertTable(l);
@@ -539,7 +543,7 @@ namespace Aid.Xlsx.Tests.Excel
 
             using (var ms = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var ws = wb.AddWorksheet("Sheet1");
                     ws.FirstCell().InsertTable(l);
@@ -548,7 +552,7 @@ namespace Aid.Xlsx.Tests.Excel
 
                 ms.Seek(0, SeekOrigin.Begin);
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var ws = wb.Worksheets.First();
                     var table = ws.Tables.First();
@@ -567,9 +571,9 @@ namespace Aid.Xlsx.Tests.Excel
             dt.Columns.Add("Patient", typeof(string));
             dt.Rows.Add("David");
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 Assert.Throws<InvalidOperationException>(() => ws.Cell(1, 1).InsertTable(dt, "May2019"));
                 Assert.Throws<InvalidOperationException>(() => ws.Cell(1, 1).InsertTable(dt, "A1"));
                 Assert.Throws<InvalidOperationException>(() => ws.Cell(1, 1).InsertTable(dt, "R1C2"));
@@ -586,13 +590,13 @@ namespace Aid.Xlsx.Tests.Excel
             dt.Columns.Add("Patient", typeof(string));
             dt.Rows.Add("David");
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 // Generated table name is used and should not be an issue
                 Assert.DoesNotThrow(() => wb.AddWorksheet(dt, "t1"));
             }
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 // Should pass because t1 is a valid sheet name, and is not used for the tableName
                 Assert.DoesNotThrow(() => wb.AddWorksheet(dt, "t1", "table1"));
@@ -612,7 +616,7 @@ namespace Aid.Xlsx.Tests.Excel
                 new TestObjectWithAttributes() { Column1 = "c", Column2 = "d", MyField = 5, UnOrderedColumn = 777 }
             };
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 var table = ws.Cell("B2").InsertTable(l);
@@ -644,7 +648,7 @@ namespace Aid.Xlsx.Tests.Excel
                 new TestObjectWithAttributes() { Column1 = "g", Column2 = "h", MyField = 7, UnOrderedColumn = 333 }
             };
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 var table = ws.Cell("B2").InsertTable(l);
@@ -669,9 +673,9 @@ namespace Aid.Xlsx.Tests.Excel
             dt.Columns.Add("col1", typeof(string));
             dt.Columns.Add("col2", typeof(double));
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().InsertTable(dt, true);
                 Assert.Throws<InvalidOperationException>(() => ws.FirstCell().CellRight().InsertTable(dt, true));
             }
@@ -680,7 +684,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void OverwritingTableHeaders()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var table = ws.Cell("A1").InsertTable(new object[]
             {
@@ -691,7 +695,7 @@ namespace Aid.Xlsx.Tests.Excel
             // Overwrite the headers of the table with non-string values
             ws.Cell("A1").InsertData(new object[]
             {
-                (XLError.IncompatibleValue, 7)
+                (XlsxError.IncompatibleValue, 7)
             });
 
             // The non-string data inserted to headers were converted to strings and used as a field names.
@@ -704,7 +708,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void OverwritingTableTotalsRow()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
 
@@ -720,7 +724,7 @@ namespace Aid.Xlsx.Tests.Excel
                 var table = ws.FirstCell().InsertTable(data1, true)
                     .SetShowHeaderRow()
                     .SetShowTotalsRow();
-                table.Fields.First().TotalsRowFunction = XLTotalsRowFunction.Sum;
+                table.Fields.First().TotalsRowFunction = XlsxTotalsRowFunction.Sum;
 
                 var data2 = Enumerable.Range(1, 20)
                     .Select(i =>
@@ -734,7 +738,7 @@ namespace Aid.Xlsx.Tests.Excel
 
                 ws.FirstCell().CellBelow().InsertData(data2);
 
-                table.Fields.ForEach(f => Assert.AreEqual(XLTotalsRowFunction.None, f.TotalsRowFunction));
+                table.Fields.ForEach(f => Assert.AreEqual(XlsxTotalsRowFunction.None, f.TotalsRowFunction));
 
                 Assert.AreEqual("11", table.Field(0).TotalsRowLabel);
                 Assert.AreEqual("K", table.Field(1).TotalsRowLabel);
@@ -751,9 +755,9 @@ namespace Aid.Xlsx.Tests.Excel
                 new TestObjectWithAttributes() { Column1 = "c", Column2 = "d", MyField = 5, UnOrderedColumn = 777 }
             };
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 var table1 = ws.FirstCell().InsertTable(l);
                 var table2 = ws.Cell("A10").InsertTable(l);
 
@@ -786,7 +790,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CanResizeTable()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
 
@@ -802,7 +806,7 @@ namespace Aid.Xlsx.Tests.Excel
                 var table = ws.FirstCell().InsertTable(data1, true)
                     .SetShowHeaderRow()
                     .SetShowTotalsRow();
-                table.Fields.First().TotalsRowFunction = XLTotalsRowFunction.Sum;
+                table.Fields.First().TotalsRowFunction = XlsxTotalsRowFunction.Sum;
 
                 var data2 = Enumerable.Range(1, 10)
                     .Select(i =>
@@ -835,9 +839,9 @@ namespace Aid.Xlsx.Tests.Excel
                 new TestObjectWithAttributes() { Column1 = "c", Column2 = "d", MyField = 5, UnOrderedColumn = 777 }
             };
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 var table = ws.FirstCell().InsertTable(l);
 
                 foreach (var d in table.AsDynamicEnumerable())
@@ -863,9 +867,9 @@ namespace Aid.Xlsx.Tests.Excel
                 new TestObjectWithAttributes() { Column1 = "c", Column2 = "d", MyField = 5, UnOrderedColumn = 777 }
             };
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 var table = ws.FirstCell().InsertTable(l).AsNativeDataTable();
 
                 Assert.AreEqual(4, table.Columns.Count);
@@ -896,7 +900,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void TestTableCellTypes()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
 
@@ -912,12 +916,12 @@ namespace Aid.Xlsx.Tests.Excel
                 var table = ws.FirstCell().InsertTable(data1, true)
                     .SetShowHeaderRow()
                     .SetShowTotalsRow();
-                table.Fields.First().TotalsRowFunction = XLTotalsRowFunction.Sum;
+                table.Fields.First().TotalsRowFunction = XlsxTotalsRowFunction.Sum;
 
-                Assert.AreEqual(XLTableCellType.Header, table.HeadersRow().Cell(1).TableCellType());
-                Assert.AreEqual(XLTableCellType.Data, table.HeadersRow().Cell(1).CellBelow().TableCellType());
-                Assert.AreEqual(XLTableCellType.Total, table.TotalsRow().Cell(1).TableCellType());
-                Assert.AreEqual(XLTableCellType.None, ws.Cell("Z100").TableCellType());
+                Assert.AreEqual(XlsxTableCellType.Header, table.HeadersRow().Cell(1).TableCellType());
+                Assert.AreEqual(XlsxTableCellType.Data, table.HeadersRow().Cell(1).CellBelow().TableCellType());
+                Assert.AreEqual(XlsxTableCellType.Total, table.TotalsRow().Cell(1).TableCellType());
+                Assert.AreEqual(XlsxTableCellType.None, ws.Cell("Z100").TableCellType());
             }
         }
 
@@ -930,7 +934,7 @@ namespace Aid.Xlsx.Tests.Excel
                 new TestObjectWithAttributes() { Column1 = "c", Column2 = "d", MyField = 5, UnOrderedColumn = 777 }
             };
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().InsertTable(l, false);
@@ -945,10 +949,10 @@ namespace Aid.Xlsx.Tests.Excel
                 Assert.IsNotNull(table);
 
                 table.ShowTotalsRow = true;
-                table.Field(0).TotalsRowFunction = XLTotalsRowFunction.Count;
-                table.Field(1).TotalsRowFunction = XLTotalsRowFunction.Count;
-                table.Field(2).TotalsRowFunction = XLTotalsRowFunction.Sum;
-                table.Field(3).TotalsRowFunction = XLTotalsRowFunction.Sum;
+                table.Field(0).TotalsRowFunction = XlsxTotalsRowFunction.Count;
+                table.Field(1).TotalsRowFunction = XlsxTotalsRowFunction.Count;
+                table.Field(2).TotalsRowFunction = XlsxTotalsRowFunction.Sum;
+                table.Field(3).TotalsRowFunction = XlsxTotalsRowFunction.Sum;
 
                 Assert.AreEqual("SUBTOTAL(103,Table1[[ABCD    ]])", table.Field(0).TotalsRowFormulaA1);
                 Assert.AreEqual("SUBTOTAL(103,Table1[[   '#BCD]])", table.Field(1).TotalsRowFormulaA1);
@@ -966,9 +970,9 @@ namespace Aid.Xlsx.Tests.Excel
                 new TestObjectWithAttributes() { Column1 = "c", Column2 = "d", MyField = 5, UnOrderedColumn = 777 }
             };
 
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
-                IXLWorksheet ws = wb.AddWorksheet("Sheet1");
+                IXlsxWorksheet ws = wb.AddWorksheet("Sheet1");
                 ws.FirstCell().InsertTable(l);
                 Assert.Throws<InvalidOperationException>(() => ws.RangeUsed().CreateTable());
             }
@@ -977,7 +981,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CannotCreateTableOverExistingAutoFilter()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
 
             var data = Enumerable.Range(1, 10).Select(i => new
             {
@@ -995,7 +999,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CopyTableSameWorksheet()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.Worksheets.Add("Sheet1");
 
             var table = ws1.Range("A1:C2").AsTable();
@@ -1010,7 +1014,7 @@ namespace Aid.Xlsx.Tests.Excel
         {
             var now = DateTimeOffset.Now;
 
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws1 = wb.AddWorksheet();
             ws1.FirstCell().InsertTable(new[] { new { TimeStamp = now } });
 
@@ -1025,7 +1029,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CopyDetachedTableDifferentWorksheets()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.Worksheets.Add("Sheet1");
             ws1.Cell("A1").Value = "Custom column 1";
             ws1.Cell("B1").Value = "Custom column 2";
@@ -1043,19 +1047,19 @@ namespace Aid.Xlsx.Tests.Excel
 
             AssertTablesAreEqual(original, copy);
 
-            Assert.AreEqual("Sheet2!A1:C2", copy.RangeAddress.ToString(XLReferenceStyle.A1, true));
+            Assert.AreEqual("Sheet2!A1:C2", copy.RangeAddress.ToString(XlsxReferenceStyle.A1, true));
             Assert.AreEqual("Custom column 1", ws2.Cell("A1").Value);
             Assert.AreEqual("Custom column 2", ws2.Cell("B1").Value);
             Assert.AreEqual("Custom column 3", ws2.Cell("C1").Value);
             Assert.AreEqual("Value 1", ws2.Cell("A2").Value);
-            Assert.AreEqual(123.45, (double)ws2.Cell("B2").Value, XLHelper.Epsilon);
+            Assert.AreEqual(123.45, (double)ws2.Cell("B2").Value, XlsxHelper.Epsilon);
             Assert.AreEqual(new DateTime(2018, 5, 10), ws2.Cell("C2").Value);
         }
 
         [Test]
         public void CopyTableDifferentWorksheets()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.Worksheets.Add("Sheet1");
             ws1.Cell("A1").Value = "Custom column 1";
             ws1.Cell("B1").Value = "Custom column 2";
@@ -1076,12 +1080,12 @@ namespace Aid.Xlsx.Tests.Excel
 
             AssertTablesAreEqual(original, copy);
 
-            Assert.AreEqual("Sheet2!A1:C2", copy.RangeAddress.ToString(XLReferenceStyle.A1, true));
+            Assert.AreEqual("Sheet2!A1:C2", copy.RangeAddress.ToString(XlsxReferenceStyle.A1, true));
             Assert.AreEqual("Custom column 1", ws2.Cell("A1").Value);
             Assert.AreEqual("Custom column 2", ws2.Cell("B1").Value);
             Assert.AreEqual("Custom column 3", ws2.Cell("C1").Value);
             Assert.AreEqual("Value 1", ws2.Cell("A2").Value);
-            Assert.AreEqual(123.45, (double)ws2.Cell("B2").Value, XLHelper.Epsilon);
+            Assert.AreEqual(123.45, (double)ws2.Cell("B2").Value, XlsxHelper.Epsilon);
             Assert.AreEqual(new DateTime(2018, 5, 10), ws2.Cell("C2").Value);
         }
 
@@ -1090,7 +1094,7 @@ namespace Aid.Xlsx.Tests.Excel
         {
             using (var ms = new MemoryStream())
             {
-                using (var wb = new XLWorkbook())
+                using (var wb = new XlsxWorkbook())
                 {
                     var ws = wb.Worksheets.Add("Sheet1");
                     ws.Cell("A1").Value = "Custom column 1";
@@ -1102,31 +1106,31 @@ namespace Aid.Xlsx.Tests.Excel
                     var original = ws.Range("A1:C2").CreateTable("Attached table");
 
                     Assert.AreEqual(1, ws.Tables.Count());
-                    Assert.IsNull((original as XLTable).RelId);
+                    Assert.IsNull((original as XlsxTable).RelId);
 
                     wb.SaveAs(ms);
                 }
 
-                using (var wb = new XLWorkbook(ms))
+                using (var wb = new XlsxWorkbook(ms))
                 {
                     var ws = wb.Worksheets.Add("Sheet2");
                     var original = wb.Worksheets.First().Tables.First();
 
-                    Assert.IsNotNull((original as XLTable).RelId);
+                    Assert.IsNotNull((original as XlsxTable).RelId);
 
                     var copy = original.CopyTo(ws);
 
                     Assert.AreEqual(1, ws.Tables.Count());
-                    Assert.IsNull((copy as XLTable).RelId);
+                    Assert.IsNull((copy as XlsxTable).RelId);
 
                     AssertTablesAreEqual(original, copy);
 
-                    Assert.AreEqual("Sheet2!A1:C2", copy.RangeAddress.ToString(XLReferenceStyle.A1, true));
+                    Assert.AreEqual("Sheet2!A1:C2", copy.RangeAddress.ToString(XlsxReferenceStyle.A1, true));
                     Assert.AreEqual("Custom column 1", ws.Cell("A1").Value);
                     Assert.AreEqual("Custom column 2", ws.Cell("B1").Value);
                     Assert.AreEqual("Custom column 3", ws.Cell("C1").Value);
                     Assert.AreEqual("Value 1", ws.Cell("A2").Value);
-                    Assert.AreEqual(123.45, (double)ws.Cell("B2").Value, XLHelper.Epsilon);
+                    Assert.AreEqual(123.45, (double)ws.Cell("B2").Value, XlsxHelper.Epsilon);
                     Assert.AreEqual(new DateTime(2018, 5, 10), ws.Cell("C2").Value);
                 }
             }
@@ -1135,7 +1139,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CopyTableWithoutData()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws1 = wb.Worksheets.Add("Sheet1");
             ws1.Cell("A1").Value = "Custom column 1";
             ws1.Cell("B1").Value = "Custom column 2";
@@ -1145,13 +1149,13 @@ namespace Aid.Xlsx.Tests.Excel
             ws1.Cell("C2").Value = new DateTime(2018, 5, 10);
             var original = ws1.Range("A1:C2").AsTable("Attached table");
             ws1.Tables.Add(original);
-            var ws2 = wb.Worksheets.Add("Sheet2") as XLWorksheet;
+            var ws2 = wb.Worksheets.Add("Sheet2") as XlsxWorksheet;
 
-            var copy = (original as XLTable).CopyTo(ws2, false);
+            var copy = (original as XlsxTable).CopyTo(ws2, false);
 
             AssertTablesAreEqual(original, copy);
 
-            Assert.AreEqual("Sheet2!A1:C2", copy.RangeAddress.ToString(XLReferenceStyle.A1, true));
+            Assert.AreEqual("Sheet2!A1:C2", copy.RangeAddress.ToString(XlsxReferenceStyle.A1, true));
             Assert.AreEqual("Custom column 1", ws2.Cell("A1").Value);
             Assert.AreEqual("Custom column 2", ws2.Cell("B1").Value);
             Assert.AreEqual("Custom column 3", ws2.Cell("C1").Value);
@@ -1164,7 +1168,7 @@ namespace Aid.Xlsx.Tests.Excel
         public void SavingTableWithNullDataRangeThrowsException()
         {
             using (var ms = new MemoryStream())
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
 
@@ -1179,7 +1183,7 @@ namespace Aid.Xlsx.Tests.Excel
                     .InsertTable(data)
                     .SetShowTotalsRow();
 
-                table.Fields.Last().TotalsRowFunction = XLTotalsRowFunction.Count;
+                table.Fields.Last().TotalsRowFunction = XlsxTotalsRowFunction.Count;
 
                 table.DataRange.Rows()
                     .OrderByDescending(r => r.RowNumber())
@@ -1215,7 +1219,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void CanCreateTableWithWhiteSpaceColumnHeaders()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
 
@@ -1237,7 +1241,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void TableNotFound()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws = wb.AddWorksheet("Sheet1");
                 Assert.Throws<ArgumentOutOfRangeException>(() => ws.Table("dummy"));
@@ -1248,7 +1252,7 @@ namespace Aid.Xlsx.Tests.Excel
         [Test]
         public void SecondTableOnNewSheetHasUniqueName()
         {
-            using (var wb = new XLWorkbook())
+            using (var wb = new XlsxWorkbook())
             {
                 var ws1 = wb.AddWorksheet();
                 var t1 = ws1.FirstCell().InsertTable(Enumerable.Range(1, 10).Select(i => new { Number = i }));
@@ -1260,9 +1264,9 @@ namespace Aid.Xlsx.Tests.Excel
             }
         }
 
-        private static void AssertTablesAreEqual(IXLTable table1, IXLTable table2)
+        private static void AssertTablesAreEqual(IXlsxTable table1, IXlsxTable table2)
         {
-            Assert.AreEqual(table1.RangeAddress.ToString(XLReferenceStyle.A1, false), table2.RangeAddress.ToString(XLReferenceStyle.A1, false));
+            Assert.AreEqual(table1.RangeAddress.ToString(XlsxReferenceStyle.A1, false), table2.RangeAddress.ToString(XlsxReferenceStyle.A1, false));
             Assert.AreEqual(table1.Fields.Count(), table2.Fields.Count());
             for (int j = 0; j < table1.Fields.Count(); j++)
             {

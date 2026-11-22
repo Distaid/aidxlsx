@@ -1,13 +1,13 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-using System;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
+using System.Text;
+using Aid.Xlsx.CalcEngine.Functions;
 using Aid.Xlsx.Formulas;
+using Aid.Xlsx.Utils;
 
-namespace Aid.Xlsx
+namespace Aid.Xlsx.Extensions
 {
     internal static class StringExtensions
     {
@@ -36,8 +36,8 @@ namespace Aid.Xlsx
             if (String.IsNullOrEmpty(sheetName)) return sheetName;
 
             var needEscape = (!Char.IsLetter(sheetName[0]) && sheetName[0] != '_') ||
-                             XLHelper.IsValidA1Address(sheetName) ||
-                             XLHelper.IsValidRCAddress(sheetName) ||
+                             XlsxHelper.IsValidA1Address(sheetName) ||
+                             XlsxHelper.IsValidRCAddress(sheetName) ||
                              sheetName.Any(c => (Char.IsPunctuation(c) && c != '.' && c != '_') ||
                                                 Char.IsSeparator(c) ||
                                                 Char.IsControl(c) ||

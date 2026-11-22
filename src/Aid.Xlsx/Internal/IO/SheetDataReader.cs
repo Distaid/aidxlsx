@@ -1,12 +1,15 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using Aid.Xlsx.Formatting;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Extensions;
-using Aid.Xlsx.Opc;
 using Aid.Xlsx.Formulas;
-using StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.XLImmutableRichText>;
+using Aid.Xlsx.Opc;
+using Aid.Xlsx.Styles.Formatting;
+using Aid.Xlsx.Styles;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Worksheets;
+using StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.RichText.XlsxImmutableRichText>;
 
 namespace Aid.Xlsx.Internal.IO;
 
@@ -42,8 +45,8 @@ internal partial class SheetDataReader
 
     private readonly string _ns;
     private readonly XmlTreeReader _reader;
-    private readonly XLWorksheet _ws;
-    private readonly XLWorkbookStyles _styles;
+    private readonly XlsxWorksheet _ws;
+    private readonly XlsxWorkbookStyles _styles;
     private readonly RstReader _rstReader;
     private readonly List<StringItem> _sst;
     private readonly Dictionary<uint, string> _sharedFormulasR1C1 = new();
@@ -63,7 +66,7 @@ internal partial class SheetDataReader
     private bool _formulaCa;
     private uint? _formulaSi;
 
-    internal SheetDataReader(XmlTreeReader reader, XLWorksheet ws, XLWorkbookStyles styles, List<StringItem> sst, string ns = OpenXmlConst.Main2006SsNs)
+    internal SheetDataReader(XmlTreeReader reader, XlsxWorksheet ws, XlsxWorkbookStyles styles, List<StringItem> sst, string ns = OpenXmlConst.Main2006SsNs)
     {
         _reader = reader;
         _ws = ws;
@@ -201,7 +204,7 @@ internal partial class SheetDataReader
             xlCell.ValueMetaIndex = valueMetaIndex.Value;
 
         var cellHasFormula = HasFormula;
-        XLCellFormula? formula = null;
+        XlsxCellFormula? formula = null;
         if (cellHasFormula)
             formula = SetCellFormula(cellAddress);
 
@@ -240,7 +243,7 @@ internal partial class SheetDataReader
             }
         }
 
-        if (_ws.Workbook.Use1904DateSystem && xlCell.DataType == XLDataType.DateTime)
+        if (_ws.Workbook.Use1904DateSystem && xlCell.DataType == XlsxDataType.DateTime)
         {
             // Internally Aid.Xlsx stores cells as standard 1900-based style
             // so if a workbook is in 1904-format, we do that adjustment here and when saving.
@@ -251,7 +254,7 @@ internal partial class SheetDataReader
         ResetFormula();
     }
 
-    private XLCellFormula? SetCellFormula(Point cellAddress)
+    private XlsxCellFormula? SetCellFormula(Point cellAddress)
     {
         if (!HasFormula)
             return null;
@@ -270,10 +273,10 @@ internal partial class SheetDataReader
 
         // Always set shareString flag to `false`, because the text result of
         // formula is stored directly in the sheet, not shared string table.
-        XLCellFormula? formula = null;
+        XlsxCellFormula? formula = null;
         if (formulaType == FormulaType.Normal)
         {
-            formula = XLCellFormula.NormalA1(_formulaText);
+            formula = XlsxCellFormula.NormalA1(_formulaText);
             formulaSlice.Set(cellAddress, formula);
             valueSlice.SetShareString(cellAddress, false);
         }
@@ -283,7 +286,7 @@ internal partial class SheetDataReader
 
             // Because cells are read from top-to-bottom, from left-to-right, none of child cells have
             // a formula yet. Also, Excel doesn't allow change of array data, only through parent formula.
-            formula = XLCellFormula.Array(_formulaText, arrayArea, aca);
+            formula = XlsxCellFormula.Array(_formulaText, arrayArea, aca);
             formulaSlice.SetArray(arrayArea, formula);
 
             for (var col = arrayArea.FirstPoint.Column; col <= arrayArea.LastPoint.Column; ++col)
@@ -304,7 +307,7 @@ internal partial class SheetDataReader
             {
                 // Spec: The first formula in a group of shared formulas is saved
                 // in the f element. This is considered the 'master' formula cell.
-                formula = XLCellFormula.NormalA1(_formulaText);
+                formula = XlsxCellFormula.NormalA1(_formulaText);
                 formulaSlice.Set(cellAddress, formula);
 
                 // The key reason why Excel hates shared formulas is likely relative addressing and the messy situation it creates
@@ -316,7 +319,7 @@ internal partial class SheetDataReader
                 // Spec: The formula expression for a cell that is specified to be part of a shared formula
                 // (and is not the master) shall be ignored, and the master formula shall override.
                 var sharedFormulaA1 = FormulaConverter.ToA1(sharedR1C1Formula, cellAddress.Row, cellAddress.Column);
-                formula = XLCellFormula.NormalA1(sharedFormulaA1);
+                formula = XlsxCellFormula.NormalA1(sharedFormulaA1);
                 formulaSlice.Set(cellAddress, formula);
             }
 
@@ -332,13 +335,13 @@ internal partial class SheetDataReader
                 // Input 2 is only used for 2D tables
                 var input2Deleted = _formulaDel2;
                 var input2 = _formulaR2 ?? throw PartStructureException.MissingAttribute("r2");
-                formula = XLCellFormula.DataTable2D(dataTableArea, input1, input1Deleted, input2, input2Deleted);
+                formula = XlsxCellFormula.DataTable2D(dataTableArea, input1, input1Deleted, input2, input2Deleted);
                 formulaSlice.Set(cellAddress, formula);
             }
             else
             {
                 var isRowDataTable = _formulaDtr;
-                formula = XLCellFormula.DataTable1D(dataTableArea, input1, input1Deleted, isRowDataTable);
+                formula = XlsxCellFormula.DataTable1D(dataTableArea, input1, input1Deleted, isRowDataTable);
                 formulaSlice.Set(cellAddress, formula);
             }
 
@@ -348,18 +351,18 @@ internal partial class SheetDataReader
         return formula;
     }
 
-    private void SetCellValue(CellType dataType, string cellValue, XLCell xlCell, XLCellFormatValue format)
+    private void SetCellValue(CellType dataType, string cellValue, XlsxCell xlCell, XlsxCellFormatValue format)
     {
         if (dataType == CellType.Number)
         {
-            // XLCell is by default blank, so no need to set it.
-            if (double.TryParse(cellValue, XLHelper.NumberStyle, XLHelper.ParseCulture, out var number))
+            // XlsxCell is by default blank, so no need to set it.
+            if (double.TryParse(cellValue, XlsxHelper.NumberStyle, XlsxHelper.ParseCulture, out var number))
             {
                 var numberDataType = format.NumberFormat.GetNumberDataType();
                 var cellNumber = numberDataType switch
                 {
-                    XLDataType.DateTime => XLCellValue.FromSerialDateTime(number),
-                    XLDataType.TimeSpan => XLCellValue.FromSerialTimeSpan(number),
+                    XlsxDataType.DateTime => XlsxCellValue.FromSerialDateTime(number),
+                    XlsxDataType.TimeSpan => XlsxCellValue.FromSerialTimeSpan(number),
                     _ => number // Normal number
                 };
                 xlCell.SetOnlyValue(cellNumber);
@@ -367,7 +370,7 @@ internal partial class SheetDataReader
         }
         else if (dataType == CellType.SharedString)
         {
-            if (int.TryParse(cellValue, XLHelper.NumberStyle, XLHelper.ParseCulture, out var sharedStringId)
+            if (int.TryParse(cellValue, XlsxHelper.NumberStyle, XlsxHelper.ParseCulture, out var sharedStringId)
                 && sharedStringId >= 0 && sharedStringId < _sst.Count)
             {
                 var sharedString = _sst[sharedStringId];
@@ -388,7 +391,7 @@ internal partial class SheetDataReader
         }
         else if (dataType == CellType.Error)
         {
-            if (XLErrorParser.TryParseError(cellValue, out var error))
+            if (XlsxErrorParser.TryParseError(cellValue, out var error))
                 xlCell.SetOnlyValue(error);
         }
         else if (dataType == CellType.Date)
@@ -396,13 +399,13 @@ internal partial class SheetDataReader
             // Technically, cell can contain date as ISO8601 string, but not rarely used due
             // to inconsistencies between ISO and serial date time representation.
             var date = DateTime.ParseExact(cellValue, DateCellFormats,
-                XLHelper.ParseCulture,
+                XlsxHelper.ParseCulture,
                 DateTimeStyles.AllowLeadingWhite | DateTimeStyles.AllowTrailingWhite);
             xlCell.SetOnlyValue(date);
         }
     }
 
-    private void SetCellText(XLCell xlCell, StringItem sharedString)
+    private void SetCellText(XlsxCell xlCell, StringItem sharedString)
     {
         var valueSlice = _ws.Internals.CellsCollection.ValueSlice;
         if (sharedString.TryPickT0(out var plainText, out var richText))

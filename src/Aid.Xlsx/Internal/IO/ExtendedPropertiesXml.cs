@@ -1,4 +1,8 @@
 using System.Xml.Linq;
+using Aid.Xlsx.DefinedNames;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 
 namespace Aid.Xlsx.Internal.IO;
 
@@ -7,7 +11,7 @@ internal static class ExtendedPropertiesXml
     private static readonly XNamespace Extended = "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties";
     private static readonly XNamespace Variant = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
 
-    internal static void Read(Stream stream, XLWorkbook workbook)
+    internal static void Read(Stream stream, XlsxWorkbook workbook)
     {
         var root = XDocumentExtensions.Load(stream)?.Root;
         if (root is null)
@@ -17,7 +21,7 @@ internal static class ExtendedPropertiesXml
         workbook.Properties.Manager = (string?)root.Element(Extended + "Manager");
     }
 
-    internal static XDocument Update(Stream? existing, XLWorkbook workbook)
+    internal static XDocument Update(Stream? existing, XlsxWorkbook workbook)
     {
         var root = existing is null ? null : XDocumentExtensions.Load(existing)?.Root;
         if (root?.Name != Extended + "Properties")
@@ -31,7 +35,7 @@ internal static class ExtendedPropertiesXml
         AddDefault(root, "DocSecurity", "0");
         AddDefault(root, "ScaleCrop", "false");
 
-        var worksheetNames = workbook.WorksheetsInternal.Cast<XLWorksheet>()
+        var worksheetNames = workbook.WorksheetsInternal.Cast<XlsxWorksheet>()
             .OrderBy(sheet => sheet.Position).Select(sheet => sheet.Name).ToList();
         var namedRanges = GetRangeNames(workbook);
         SetVector(root, "TitlesOfParts", "lpstr", worksheetNames.Concat(namedRanges)
@@ -71,17 +75,17 @@ internal static class ExtendedPropertiesXml
             root.SetElementValue(Extended + name, string.IsNullOrWhiteSpace(value) ? null : value);
     }
 
-    private static List<string> GetRangeNames(XLWorkbook workbook)
+    private static List<string> GetRangeNames(XlsxWorkbook workbook)
     {
         var names = new List<string>();
         foreach (var sheet in workbook.WorksheetsInternal)
         {
-            names.AddRange(sheet.DefinedNames.Select<XLDefinedName, string>(namedRange => $"{sheet.Name}!{namedRange.Name}"));
+            names.AddRange(sheet.DefinedNames.Select<XlsxDefinedName, string>(namedRange => $"{sheet.Name}!{namedRange.Name}"));
             names.Add($"{sheet.Name}!Print_Area");
             names.Add($"{sheet.Name}!Print_Titles");
         }
 
-        names.AddRange(workbook.DefinedNamesInternal.Select<XLDefinedName, string>(namedRange => namedRange.Name));
+        names.AddRange(workbook.DefinedNamesInternal.Select<XlsxDefinedName, string>(namedRange => namedRange.Name));
         return names;
     }
 }

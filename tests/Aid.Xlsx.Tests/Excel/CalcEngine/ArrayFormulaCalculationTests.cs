@@ -1,4 +1,5 @@
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine
@@ -9,7 +10,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void ScalarResultOfArrayFormulaIsCopiedAcrossCellGroup()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var range = ws.Range("C2:D4");
 
@@ -24,7 +25,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void SameShapeResultCausesEachCellOfCellGroupToUseCorrespondingValue()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var range = ws.Range("A1:A2");
 
@@ -37,7 +38,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void OnlyLeftmostValuesAreUsedWhenCellGroupHasFewerColumnsThanValue()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var range = ws.Range("A1:C1");
 
@@ -52,7 +53,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void OnlyTopmostValuesAreUsedWhenCellGroupHasFewerRowsThanValue()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var range = ws.Range("A1:A3");
 
@@ -67,7 +68,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void SingleColumnValueIsClonedAcrossCellGroup()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var range = ws.Range("A1:C3");
 
@@ -77,14 +78,14 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
             {
                 Assert.AreEqual(1, ws.Cell(1, column).Value);
                 Assert.AreEqual(2, ws.Cell(2, column).Value);
-                Assert.AreEqual(XLError.NoValueAvailable, ws.Cell(3, column).Value);
+                Assert.AreEqual(XlsxError.NoValueAvailable, ws.Cell(3, column).Value);
             }
         }
 
         [Test]
         public void SingleRowValueIsClonedAcrossCellGroup()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var range = ws.Range("A1:C3");
 
@@ -94,14 +95,14 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
             {
                 Assert.AreEqual(1, ws.Cell(row, 1).Value);
                 Assert.AreEqual(2, ws.Cell(row, 2).Value);
-                Assert.AreEqual(XLError.NoValueAvailable, ws.Cell(row, 3).Value);
+                Assert.AreEqual(XlsxError.NoValueAvailable, ws.Cell(row, 3).Value);
             }
         }
 
         [Test]
         public void ExcessColumnsAndRowsOfCellGroupTakeOnNoValueAvailable()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var range = ws.Range("A1:C3");
 
@@ -109,19 +110,19 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
 
             Assert.AreEqual(1, ws.Cell("A1").Value);
             Assert.AreEqual(2, ws.Cell("B1").Value);
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Cell("C1").Value);
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Cell("C1").Value);
             Assert.AreEqual(3, ws.Cell("A2").Value);
             Assert.AreEqual(4, ws.Cell("B2").Value);
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Cell("C2").Value);
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Cell("A3").Value);
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Cell("B3").Value);
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Cell("C3").Value);
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Cell("C2").Value);
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Cell("A3").Value);
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Cell("B3").Value);
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Cell("C3").Value);
         }
 
         [Test]
         public void Array_argument_for_scalar_function_in_array_formula_uses_only_first_value_of_array()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Range("B1:B3").FormulaArrayA1 = "SIGN({-1,2,0})";
 

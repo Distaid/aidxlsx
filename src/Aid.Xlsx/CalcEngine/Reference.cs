@@ -1,6 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Worksheets;
 
 namespace Aid.Xlsx.CalcEngine
 {
@@ -10,18 +11,18 @@ namespace Aid.Xlsx.CalcEngine
     /// </summary>
     internal class Reference
     {
-        public Reference(XLRangeAddress area)
+        public Reference(XlsxRangeAddress area)
         {
             if (!area.IsNormalized)
                 throw new ArgumentException();
 
-            Areas = new List<XLRangeAddress>(1) { area };
+            Areas = new List<XlsxRangeAddress>(1) { area };
         }
 
         /// <summary>
         /// Ctor that reuses parameter to keep allocations low - don't modify the collection after it is passed to ctor.
         /// </summary>
-        public Reference(List<XLRangeAddress> areas)
+        public Reference(List<XlsxRangeAddress> areas)
         {
             if (areas.Count < 1)
                 throw new ArgumentException();
@@ -29,14 +30,14 @@ namespace Aid.Xlsx.CalcEngine
             Areas = areas;
         }
 
-        public Reference(IXLRanges ranges)
+        public Reference(IXlsxRanges ranges)
         {
             if (ranges.Count < 1)
                 throw new ArgumentException();
 
-            var areas = new List<XLRangeAddress>(ranges.Count);
+            var areas = new List<XlsxRangeAddress>(ranges.Count);
             foreach (var range in ranges)
-                areas.Add((XLRangeAddress)range.RangeAddress);
+                areas.Add((XlsxRangeAddress)range.RangeAddress);
 
             Areas = areas;
         }
@@ -44,7 +45,7 @@ namespace Aid.Xlsx.CalcEngine
         /// <summary>
         /// List of areas of the range (at least one). All areas are valid and normalized. Some areas have worksheet and some don't.
         /// </summary>
-        internal IReadOnlyList<XLRangeAddress> Areas { get; }
+        internal IReadOnlyList<XlsxRangeAddress> Areas { get; }
 
         /// <summary>
         /// Get total number of cells coverted by all areas (double counts overlapping areas).
@@ -83,13 +84,13 @@ namespace Aid.Xlsx.CalcEngine
             }
         }
 
-        public static OneOf<Reference, XLError> RangeOp(Reference lhs, Reference rhs, XLWorksheet contextWorksheet)
+        public static OneOf<Reference, XlsxError> RangeOp(Reference lhs, Reference rhs, XlsxWorksheet contextWorksheet)
         {
             var lhsWorksheets = lhs.Areas.Count == 1
                 ? lhs.Areas.Select(a => a.Worksheet).Where(ws => ws is not null).ToList()!
                 : lhs.Areas.Select(a => a.Worksheet ?? contextWorksheet).Where(ws => ws is not null).Distinct().ToList();
             if (lhsWorksheets.Count() > 1)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var lhsWorksheet = lhsWorksheets.SingleOrDefault();
 
@@ -97,19 +98,19 @@ namespace Aid.Xlsx.CalcEngine
                 ? rhs.Areas.Select(a => a.Worksheet).Where(ws => ws is not null).ToList()!
                 : rhs.Areas.Select(a => a.Worksheet ?? contextWorksheet).Where(ws => ws is not null).Distinct().ToList();
             if (rhsWorksheets.Count() > 1)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var rhsWorksheet = rhsWorksheets.SingleOrDefault();
 
             if (rhsWorksheet is not null)
             {
                 if ((lhsWorksheet ?? contextWorksheet) != rhsWorksheet)
-                    return XLError.IncompatibleValue;
+                    return XlsxError.IncompatibleValue;
             }
 
-            var minCol = XLHelper.MaxColumnNumber;
+            var minCol = XlsxHelper.MaxColumnNumber;
             var maxCol = 1;
-            var minRow = XLHelper.MaxRowNumber;
+            var minRow = XlsxHelper.MaxRowNumber;
             var maxRow = 1;
             foreach (var area in lhs.Areas.Concat(rhs.Areas))
             {
@@ -121,9 +122,9 @@ namespace Aid.Xlsx.CalcEngine
             }
 
             var sheet = lhsWorksheet ?? rhsWorksheet;
-            return new Reference(new XLRangeAddress(
-                new XLAddress(sheet, minRow, minCol, false, false),
-                new XLAddress(sheet, maxRow, maxCol, false, false)));
+            return new Reference(new XlsxRangeAddress(
+                new XlsxAddress(sheet, minRow, minCol, false, false),
+                new XlsxAddress(sheet, maxRow, maxCol, false, false)));
         }
 
         public static Reference UnionOp(Reference lhs, Reference rhs)
@@ -131,16 +132,16 @@ namespace Aid.Xlsx.CalcEngine
             return new Reference(lhs.Areas.Concat(rhs.Areas).ToList());
         }
 
-        public static OneOf<Reference, XLError> Intersect(Reference lhs, Reference rhs, CalcContext ctx)
+        public static OneOf<Reference, XlsxError> Intersect(Reference lhs, Reference rhs, CalcContext ctx)
         {
             var sheets = lhs.Areas.Select(a => a.Worksheet ?? ctx.Worksheet)
                 .Concat(rhs.Areas.Select(a => a.Worksheet ?? ctx.Worksheet))
                 .Distinct().ToList();
             if (sheets.Count != 1)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var sheet = sheets.Single();
-            var intersections = new List<XLRangeAddress>();
+            var intersections = new List<XlsxRangeAddress>();
             foreach (var leftArea in lhs.Areas)
             {
                 var intersectedArea = leftArea.WithWorksheet(sheet);
@@ -155,7 +156,7 @@ namespace Aid.Xlsx.CalcEngine
                     intersections.Add(intersectedArea);
             }
 
-            return intersections.Any() ? new Reference(intersections) : XLError.NullValue;
+            return intersections.Any() ? new Reference(intersections) : XlsxError.NullValue;
         }
 
         /// <summary>
@@ -163,10 +164,10 @@ namespace Aid.Xlsx.CalcEngine
         /// </summary>
         /// <param name="formulaAddress"></param>
         /// <returns>An address of the intersection or error if intersection failed.</returns>
-        public OneOf<Reference, XLError> ImplicitIntersection(IXLAddress formulaAddress)
+        public OneOf<Reference, XlsxError> ImplicitIntersection(IXlsxAddress formulaAddress)
         {
             if (Areas.Count != 1)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var area = Areas.Single();
             if (area.RowSpan == 1 && area.ColumnSpan == 1)
@@ -177,17 +178,17 @@ namespace Aid.Xlsx.CalcEngine
 
             if (area.ColumnSpan == 1 && area.FirstAddress.RowNumber <= row && row <= area.LastAddress.RowNumber)
             {
-                var intersection = new XLAddress(area.Worksheet, row, area.FirstAddress.ColumnNumber, false, false);
-                return new Reference(new XLRangeAddress(intersection, intersection));
+                var intersection = new XlsxAddress(area.Worksheet, row, area.FirstAddress.ColumnNumber, false, false);
+                return new Reference(new XlsxRangeAddress(intersection, intersection));
             }
 
             if (area.RowSpan == 1 && area.FirstAddress.ColumnNumber <= column && column <= area.LastAddress.ColumnNumber)
             {
-                var intersection = new XLAddress(area.Worksheet, area.FirstAddress.RowNumber, column, false, false);
-                return new Reference(new XLRangeAddress(intersection, intersection));
+                var intersection = new XlsxAddress(area.Worksheet, area.FirstAddress.RowNumber, column, false, false);
+                return new Reference(new XlsxRangeAddress(intersection, intersection));
             }
 
-            return XLError.IncompatibleValue;
+            return XlsxError.IncompatibleValue;
         }
 
         internal bool IsSingleCell()
@@ -208,20 +209,20 @@ namespace Aid.Xlsx.CalcEngine
             return true;
         }
 
-        internal OneOf<Array, XLError> ToArray(CalcContext context)
+        internal OneOf<Array, XlsxError> ToArray(CalcContext context)
         {
             if (Areas.Count != 1)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var area = Areas.Single();
 
             return new ReferenceArray(area, context);
         }
 
-        public OneOf<Array, XLError> Apply(Func<ScalarValue, ScalarValue> op, CalcContext context)
+        public OneOf<Array, XlsxError> Apply(Func<ScalarValue, ScalarValue> op, CalcContext context)
         {
             if (Areas.Count != 1)
-                return XLError.IncompatibleValue;
+                return XlsxError.IncompatibleValue;
 
             var area = Areas.Single();
             var width = area.ColumnSpan;

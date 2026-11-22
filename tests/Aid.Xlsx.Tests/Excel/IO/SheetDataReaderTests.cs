@@ -1,11 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Internal.IO;
 using Aid.Xlsx.Opc;
+using Aid.Xlsx.Styles;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
-using StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.XLImmutableRichText>;
+using StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.RichText.XlsxImmutableRichText>;
 
 namespace Aid.Xlsx.Tests.Excel.IO;
 
@@ -93,7 +96,7 @@ internal class SheetDataReaderTests
             """,
             (ws, _) =>
             {
-                Assert.AreEqual(XLDataType.Number, ws.Cell("A1").DataType);
+                Assert.AreEqual(XlsxDataType.Number, ws.Cell("A1").DataType);
                 Assert.AreEqual(1.5, ws.Cell("A1").GetDouble());
             });
     }
@@ -155,7 +158,7 @@ internal class SheetDataReaderTests
               </row>
             </sheetData>
             """,
-            (ws, _) => Assert.AreEqual(XLError.DivisionByZero, ws.Cell("A1").GetError()));
+            (ws, _) => Assert.AreEqual(XlsxError.DivisionByZero, ws.Cell("A1").GetError()));
     }
 
     [Test]
@@ -544,8 +547,8 @@ internal class SheetDataReaderTests
     [Test]
     public void Number_with_date_format_is_datetime()
     {
-        using var wb = new XLWorkbook();
-        var dateTimeFormat = wb.Styles.NumberFormats[(int)XLPredefinedFormat.DateTime.DayMonthYear4WithSlashes];
+        using var wb = new XlsxWorkbook();
+        var dateTimeFormat = wb.Styles.NumberFormats[(int)XlsxPredefinedFormat.DateTime.DayMonthYear4WithSlashes];
         var ws = wb.AddWorksheet();
         var dateFormat = wb.Styles.GetRegisteredCellFormat(
             wb.Styles.DefaultCellFormat,
@@ -563,15 +566,15 @@ internal class SheetDataReaderTests
              </sheetData>
              """);
 
-        Assert.AreEqual(XLDataType.DateTime, ws.Cell("A1").DataType);
+        Assert.AreEqual(XlsxDataType.DateTime, ws.Cell("A1").DataType);
         Assert.AreEqual(DateTime.FromOADate(44927), ws.Cell("A1").GetDateTime());
     }
 
     [Test]
     public void Number_with_time_format_is_timespan()
     {
-        using var wb = new XLWorkbook();
-        var timeSpanFormat = wb.Styles.NumberFormats[(int)XLPredefinedFormat.DateTime.Hour24MinutesSeconds];
+        using var wb = new XlsxWorkbook();
+        var timeSpanFormat = wb.Styles.NumberFormats[(int)XlsxPredefinedFormat.DateTime.Hour24MinutesSeconds];
         var ws = wb.AddWorksheet();
         var timeFormat = wb.Styles.GetRegisteredCellFormat(
             wb.Styles.DefaultCellFormat,
@@ -589,14 +592,14 @@ internal class SheetDataReaderTests
              </sheetData>
              """);
 
-        Assert.AreEqual(XLDataType.TimeSpan, ws.Cell("A1").DataType);
+        Assert.AreEqual(XlsxDataType.TimeSpan, ws.Cell("A1").DataType);
         Assert.AreEqual(TimeSpan.FromDays(0.5), ws.Cell("A1").GetTimeSpan());
     }
 
     [Test]
     public void Date1904_shifts_datetime()
     {
-        using var wb = new XLWorkbook();
+        using var wb = new XlsxWorkbook();
         wb.Use1904DateSystem = true;
         var ws = wb.AddWorksheet();
         LoadSheetData(
@@ -615,23 +618,23 @@ internal class SheetDataReaderTests
 
     private static void AssertSheetData(
         string sheetDataXml,
-        Action<IXLWorksheet, XLWorksheet> assert,
+        Action<IXlsxWorksheet, XlsxWorksheet> assert,
         IReadOnlyList<StringItem> sst = null)
     {
-        using var wb = new XLWorkbook();
-        var ws = (XLWorksheet)wb.AddWorksheet();
+        using var wb = new XlsxWorkbook();
+        var ws = (XlsxWorksheet)wb.AddWorksheet();
         LoadSheetData(wb, ws, sheetDataXml, sst);
         assert(ws, ws);
     }
 
     private static void LoadSheetData(
-        XLWorkbook wb,
-        IXLWorksheet ws,
+        XlsxWorkbook wb,
+        IXlsxWorksheet ws,
         string sheetDataXml,
         IReadOnlyList<StringItem> sst = null)
     {
         using var xmlReader = OpenWorksheet(sheetDataXml);
-        var parsed = new SheetDataReader(xmlReader, (XLWorksheet)ws, wb.Styles, [.. sst ?? []])
+        var parsed = new SheetDataReader(xmlReader, (XlsxWorksheet)ws, wb.Styles, [.. sst ?? []])
             .ParseCtSheetData("sheetData", Ns);
         Assert.True(parsed.IsSuccess);
     }
@@ -643,7 +646,7 @@ internal class SheetDataReaderTests
                      {innerXml}
                    </worksheet>
                    """;
-        var stream = new MemoryStream(XLHelper.NoBomUTF8.GetBytes(xml));
+        var stream = new MemoryStream(XlsxHelper.NoBomUTF8.GetBytes(xml));
         var xmlReader = new XmlTreeReader(stream, XmlToEnumMapper.Instance, true);
         xmlReader.Open("worksheet", Ns);
         return xmlReader;

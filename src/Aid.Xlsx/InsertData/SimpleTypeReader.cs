@@ -1,11 +1,10 @@
 #nullable disable
 
 // Keep this file CodeMaid organised and cleaned
-using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Extensions;
 
 namespace Aid.Xlsx.InsertData
 {
@@ -30,9 +29,9 @@ namespace Aid.Xlsx.InsertData
             _itemType = itemType;
         }
 
-        public IEnumerable<IEnumerable<XLCellValue>> GetRecords()
+        public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
         {
-            return _data.Select(item => new[] { item }.Select(XLCellValue.FromInsertedObject));
+            return _data.Select(item => new[] { item }.Select(XlsxCellValue.FromInsertedObject));
         }
 
         public int GetPropertiesCount()

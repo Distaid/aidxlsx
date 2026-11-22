@@ -1,14 +1,16 @@
-using Aid.Xlsx.CalcEngine.Exceptions;
-using Aid.Xlsx.Exceptions;
 using System.Globalization;
-using System.Collections.Generic;
-using System.Linq;
-using Aid.Xlsx.CalcEngine.Visitors;
-using Aid.Xlsx.Formulas;
-using System;
 using System.Runtime.CompilerServices;
-using System.Threading;
+using Aid.Xlsx.CalcEngine.Exceptions;
 using Aid.Xlsx.CalcEngine.Functions;
+using Aid.Xlsx.CalcEngine.Visitors;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Exceptions;
+using Aid.Xlsx.Formulas;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 
 namespace Aid.Xlsx.CalcEngine;
 
@@ -17,12 +19,12 @@ internal sealed class CalcContext
     private readonly bool _recursive;
     private long _allocatedBytes;
 
-    public CalcContext(XLCalcEngine calcEngine, CultureInfo culture, XLCell cell)
+    public CalcContext(XlsxCalcEngine calcEngine, CultureInfo culture, XlsxCell cell)
         : this(calcEngine, culture, cell.Worksheet.Workbook, cell.Worksheet, cell.Address)
     {
     }
 
-    public CalcContext(XLCalcEngine calcEngine, CultureInfo culture, XLWorkbook? workbook, XLWorksheet? worksheet, IXLAddress? formulaAddress, bool recursive = false)
+    public CalcContext(XlsxCalcEngine calcEngine, CultureInfo culture, XlsxWorkbook? workbook, XlsxWorksheet? worksheet, IXlsxAddress? formulaAddress, bool recursive = false)
     {
         CalcEngine = calcEngine;
         Workbook = workbook;
@@ -31,28 +33,28 @@ internal sealed class CalcContext
         _recursive = recursive;
         Culture = culture;
 
-        // If workbook is null, the context is from XLWorkbook.EvaluateExpr. Ignore limits in such case.
+        // If workbook is null, the context is from XlsxWorkbook.EvaluateExpr. Ignore limits in such case.
         CancellationToken = workbook?.CancellationToken ?? CancellationToken.None;
         MaxCalculationMemoryBytes = workbook?.MaxCalculationMemoryBytes ?? 0;
     }
 
     // LEGACY: Remove once legacy functions are migrated
-    internal XLCalcEngine CalcEngine => field ?? throw new MissingContextException();
+    internal XlsxCalcEngine CalcEngine => field ?? throw new MissingContextException();
 
     /// <summary>
     /// Worksheet of the cell the formula is calculating.
     /// </summary>
-    public XLWorkbook Workbook => field ?? throw new MissingContextException();
+    public XlsxWorkbook Workbook => field ?? throw new MissingContextException();
 
     /// <summary>
     /// Worksheet of the cell the formula is calculating.
     /// </summary>
-    public XLWorksheet Worksheet => field ?? throw new MissingContextException();
+    public XlsxWorksheet Worksheet => field ?? throw new MissingContextException();
 
     /// <summary>
     /// Address of the calculated formula.
     /// </summary>
-    public IXLAddress FormulaAddress => field ?? throw new MissingContextException();
+    public IXlsxAddress FormulaAddress => field ?? throw new MissingContextException();
 
     /// <summary>
     /// A culture used for comparisons and conversions (e.g. text to number).
@@ -86,7 +88,7 @@ internal sealed class CalcContext
     /// <summary>
     /// An upper limit (exclusive) of used calendar system.
     /// </summary>
-    internal double DateSystemUpperLimit => Use1904DateSystem ? XLHelper.Calendar1904UpperLimit : XLHelper.Calendar1900UpperLimit;
+    internal double DateSystemUpperLimit => Use1904DateSystem ? XlsxHelper.Calendar1904UpperLimit : XlsxHelper.Calendar1900UpperLimit;
 
     internal CancellationToken CancellationToken { get; }
 
@@ -171,7 +173,7 @@ internal sealed class CalcContext
         return true;
     }
 
-    internal ScalarValue GetCellValue(XLWorksheet? sheet, int rowNumber, int columnNumber)
+    internal ScalarValue GetCellValue(XlsxWorksheet? sheet, int rowNumber, int columnNumber)
     {
         sheet ??= Worksheet;
         var valueSlice = sheet.Internals.CellsCollection.ValueSlice;
@@ -185,7 +187,7 @@ internal sealed class CalcContext
             return valueSlice.GetCellValue(point);
 
         // Used when only one sheet should be recalculated, leaving other sheets with their data.
-        if (RecalculateSheetName is not null && !XLHelper.SheetComparer.Equals(sheet.Name, RecalculateSheetName))
+        if (RecalculateSheetName is not null && !XlsxHelper.SheetComparer.Equals(sheet.Name, RecalculateSheetName))
             return valueSlice.GetCellValue(point);
 
         // A special branch for functions out of cells (e.g. worksheet.Evaluate("A1+2")).
@@ -227,7 +229,7 @@ internal sealed class CalcContext
     /// <summary>
     /// Return all points in the <paramref name="areaReference" /> that satisfy the <paramref name="criteria" />.
     /// </summary>
-    internal IEnumerable<Point> GetCriteriaPoints(XLRangeAddress areaReference, Criteria criteria)
+    internal IEnumerable<Point> GetCriteriaPoints(XlsxRangeAddress areaReference, Criteria criteria)
     {
         var sheet = areaReference.Worksheet ?? Worksheet;
         var area = Area.FromRangeAddress(areaReference);
@@ -302,7 +304,7 @@ internal sealed class CalcContext
 
         yield break;
 
-        static bool CallsFunction(XLCellFormula? formula, FunctionVisitor visitor)
+        static bool CallsFunction(XlsxCellFormula? formula, FunctionVisitor visitor)
         {
             if (formula is null)
                 return false;

@@ -1,7 +1,10 @@
-using System;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Formulas;
+using Aid.Xlsx.Ranges;
+using Aid.Xlsx.Tables;
+using Aid.Xlsx.Utils;
 
 namespace Aid.Xlsx.CalcEngine
 {
@@ -13,7 +16,7 @@ namespace Aid.Xlsx.CalcEngine
         public CalculationVisitor(FunctionRegistry functions)
         {
             _functions = functions;
-            _argsPool = ArrayPool<AnyValue>.Create(XLConstants.MaxFunctionArguments, 100);
+            _argsPool = ArrayPool<AnyValue>.Create(XlsxConstants.MaxFunctionArguments, 100);
         }
 
         public AnyValue Visit(CalcContext context, ScalarNode node)
@@ -70,7 +73,7 @@ namespace Aid.Xlsx.CalcEngine
         public AnyValue Visit(CalcContext context, FunctionNode functionNode)
         {
             if (!_functions.TryGetFunc(functionNode.Name, out var fn))
-                return XLError.NameNotRecognized;
+                return XlsxError.NameNotRecognized;
 
             var parameters = functionNode.Parameters;
             var pool = _argsPool.Rent(parameters.Count);
@@ -107,17 +110,17 @@ namespace Aid.Xlsx.CalcEngine
         {
             // We don't support external links
             if (node.Prefix is not null)
-                return XLError.CellReference;
+                return XlsxError.CellReference;
 
             if (!TryGetTable(context, node.Table, out var table))
-                return XLError.CellReference;
+                return XlsxError.CellReference;
 
             var area = table.Area;
             if (!TryGetColumn(table, node.FirstColumn, area.LeftColumn, out var colStart))
-                return XLError.CellReference;
+                return XlsxError.CellReference;
 
             if (!TryGetColumn(table, node.LastColumn, area.RightColumn, out var colEnd))
-                return XLError.CellReference;
+                return XlsxError.CellReference;
 
             if (colStart > colEnd)
                 (colEnd, colStart) = (colStart, colEnd);
@@ -128,9 +131,9 @@ namespace Aid.Xlsx.CalcEngine
                 return error;
 
             var range = new Area(rowStart, colStart, rowEnd, colEnd);
-            return new Reference(XLRangeAddress.FromSheetRange(table.Worksheet, range));
+            return new Reference(XlsxRangeAddress.FromSheetRange(table.Worksheet, range));
 
-            static bool TryGetTable(CalcContext context, string? tableName, [NotNullWhen(true)] out XLTable? table)
+            static bool TryGetTable(CalcContext context, string? tableName, [NotNullWhen(true)] out XlsxTable? table)
             {
                 // table-less references are allowed only in a table area. Excel doesn't allow
                 // to set it in GUI, but interprets such situation as #REF!.
@@ -154,7 +157,7 @@ namespace Aid.Xlsx.CalcEngine
                 return false;
             }
 
-            static bool TryGetColumn(XLTable table, string? column, int defaultColumn, out int columnNo)
+            static bool TryGetColumn(XlsxTable table, string? column, int defaultColumn, out int columnNo)
             {
                 if (column is null)
                 {
@@ -172,8 +175,8 @@ namespace Aid.Xlsx.CalcEngine
                 return true;
             }
 
-            static bool TryGetRows(CalcContext context, XLTable table, StructuredReferenceArea tableArea,
-                out int rowStartNo, out int rowEndNo, out XLError error)
+            static bool TryGetRows(CalcContext context, XlsxTable table, StructuredReferenceArea tableArea,
+                out int rowStartNo, out int rowEndNo, out XlsxError error)
             {
                 var area = table.Area;
                 var dataEndRowNo = table.ShowTotalsRow ? area.BottomRow - 1 : area.BottomRow;
@@ -197,7 +200,7 @@ namespace Aid.Xlsx.CalcEngine
                         if (!hasTotals)
                         {
                             rowStartNo = rowEndNo = default;
-                            error = XLError.CellReference;
+                            error = XlsxError.CellReference;
                             return false;
                         }
 
@@ -217,7 +220,7 @@ namespace Aid.Xlsx.CalcEngine
                         if (area.TopRow >= thisRow || dataEndRowNo < thisRow)
                         {
                             rowStartNo = rowEndNo = default;
-                            error = XLError.IncompatibleValue;
+                            error = XlsxError.IncompatibleValue;
                             return false;
                         }
 

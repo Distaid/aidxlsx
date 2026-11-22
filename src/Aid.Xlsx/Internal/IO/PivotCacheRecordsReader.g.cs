@@ -14,6 +14,8 @@ internal partial class PivotCacheRecordsReader
             return Xpr.Fail();
         }
 
+        OnRecordParsing();
+
         // Choice with cardinality 1-n
         var choiceCount = 0;
         while (true)
@@ -62,6 +64,8 @@ internal partial class PivotCacheRecordsReader
         return Xpr.Success();
     }
 
+    partial void OnRecordParsing();
+
     partial void OnRecordParsed();
 
     private Xpr ParseMissing(string elementName, string ns)
@@ -83,6 +87,8 @@ internal partial class PivotCacheRecordsReader
         var st = _reader.GetOptionalBool("st") ?? false;
         var b = _reader.GetOptionalBool("b") ?? false;
 
+        OnMissingParsing(u, f, c, cp, @in, bc, fc, i, un, st, b);
+
         while (ParseTuples("tpls", _ns) is { IsSuccess: true })
         {
             // Parsed another element 'tpls' with cardinality 0-2147483647
@@ -96,6 +102,8 @@ internal partial class PivotCacheRecordsReader
         OnMissingParsed(u, f, c, cp, @in, bc, fc, i, un, st, b);
         return Xpr.Success();
     }
+
+    partial void OnMissingParsing(bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b);
 
     partial void OnMissingParsed(bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b);
 
@@ -119,6 +127,8 @@ internal partial class PivotCacheRecordsReader
         var st = _reader.GetOptionalBool("st") ?? false;
         var b = _reader.GetOptionalBool("b") ?? false;
 
+        OnNumberParsing(v, u, f, c, cp, @in, bc, fc, i, un, st, b);
+
         while (ParseTuples("tpls", _ns) is { IsSuccess: true })
         {
             // Parsed another element 'tpls' with cardinality 0-2147483647
@@ -132,6 +142,8 @@ internal partial class PivotCacheRecordsReader
         OnNumberParsed(v, u, f, c, cp, @in, bc, fc, i, un, st, b);
         return Xpr.Success();
     }
+
+    partial void OnNumberParsing(double v, bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b);
 
     partial void OnNumberParsed(double v, bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b);
 
@@ -148,6 +160,8 @@ internal partial class PivotCacheRecordsReader
         var c = _reader.GetOptionalXString("c");
         var cp = _reader.GetOptionalUInt("cp");
 
+        OnBooleanParsing(v, u, f, c, cp);
+
         while (ParseX("x", _ns) is { IsSuccess: true })
         {
             // Parsed another element 'x' with cardinality 0-2147483647
@@ -157,6 +171,8 @@ internal partial class PivotCacheRecordsReader
         OnBooleanParsed(v, u, f, c, cp);
         return Xpr.Success();
     }
+
+    partial void OnBooleanParsing(bool v, bool? u, bool? f, string? c, uint? cp);
 
     partial void OnBooleanParsed(bool v, bool? u, bool? f, string? c, uint? cp);
 
@@ -180,6 +196,8 @@ internal partial class PivotCacheRecordsReader
         var st = _reader.GetOptionalBool("st") ?? false;
         var b = _reader.GetOptionalBool("b") ?? false;
 
+        OnErrorParsing(v, u, f, c, cp, @in, bc, fc, i, un, st, b);
+
         if (ParseTuples("tpls", _ns) is { IsSuccess: true })
         {
             // Optional element 'tpls' was present
@@ -193,6 +211,8 @@ internal partial class PivotCacheRecordsReader
         OnErrorParsed(v, u, f, c, cp, @in, bc, fc, i, un, st, b);
         return Xpr.Success();
     }
+
+    partial void OnErrorParsing(string v, bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b);
 
     partial void OnErrorParsed(string v, bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b);
 
@@ -216,6 +236,8 @@ internal partial class PivotCacheRecordsReader
         var st = _reader.GetOptionalBool("st") ?? false;
         var b = _reader.GetOptionalBool("b") ?? false;
 
+        OnStringParsing(v, u, f, c, cp, @in, bc, fc, i, un, st, b);
+
         while (ParseTuples("tpls", _ns) is { IsSuccess: true })
         {
             // Parsed another element 'tpls' with cardinality 0-2147483647
@@ -229,6 +251,8 @@ internal partial class PivotCacheRecordsReader
         OnStringParsed(v, u, f, c, cp, @in, bc, fc, i, un, st, b);
         return Xpr.Success();
     }
+
+    partial void OnStringParsing(string v, bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b);
 
     partial void OnStringParsed(string v, bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b);
 
@@ -245,6 +269,8 @@ internal partial class PivotCacheRecordsReader
         var c = _reader.GetOptionalXString("c");
         var cp = _reader.GetOptionalUInt("cp");
 
+        OnDateTimeParsing(v, u, f, c, cp);
+
         while (ParseX("x", _ns) is { IsSuccess: true })
         {
             // Parsed another element 'x' with cardinality 0-2147483647
@@ -254,6 +280,8 @@ internal partial class PivotCacheRecordsReader
         OnDateTimeParsed(v, u, f, c, cp);
         return Xpr.Success();
     }
+
+    partial void OnDateTimeParsing(System.DateTime v, bool? u, bool? f, string? c, uint? cp);
 
     partial void OnDateTimeParsed(System.DateTime v, bool? u, bool? f, string? c, uint? cp);
 
@@ -266,11 +294,15 @@ internal partial class PivotCacheRecordsReader
 
         var v = _reader.GetUInt("v");
 
+        OnIndexParsing(v);
+
         _reader.Close(elementName, ns);
 
         OnIndexParsed(v);
         return Xpr.Success();
     }
+
+    partial void OnIndexParsing(uint v);
 
     partial void OnIndexParsed(uint v);
 
@@ -283,11 +315,15 @@ internal partial class PivotCacheRecordsReader
 
         var v = _reader.GetOptionalInt("v") ?? 0;
 
+        OnXParsing(v);
+
         _reader.Close(elementName, ns);
 
         OnXParsed(v);
         return Xpr.Success();
     }
+
+    partial void OnXParsing(int v);
 
     partial void OnXParsed(int v);
 
@@ -299,6 +335,8 @@ internal partial class PivotCacheRecordsReader
         }
 
         var c = _reader.GetOptionalUInt("c");
+
+        OnTuplesParsing(c);
 
         var tplCount = 0;
         while (ParseTuple("tpl", _ns) is { IsSuccess: true })
@@ -317,6 +355,8 @@ internal partial class PivotCacheRecordsReader
         return Xpr.Success();
     }
 
+    partial void OnTuplesParsing(uint? c);
+
     partial void OnTuplesParsed(uint? c);
 
     private Xpr ParseTuple(string elementName, string ns)
@@ -330,11 +370,15 @@ internal partial class PivotCacheRecordsReader
         var hier = _reader.GetOptionalUInt("hier");
         var item = _reader.GetUInt("item");
 
+        OnTupleParsing(fld, hier, item);
+
         _reader.Close(elementName, ns);
 
         OnTupleParsed(fld, hier, item);
         return Xpr.Success();
     }
+
+    partial void OnTupleParsing(uint? fld, uint? hier, uint item);
 
     partial void OnTupleParsed(uint? fld, uint? hier, uint item);
 }

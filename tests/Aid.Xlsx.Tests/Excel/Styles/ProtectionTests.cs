@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
-using Aid.Xlsx;
+using Aid.Xlsx.Styles;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
 namespace Aid.Xlsx.Tests.Excel.Styles;
@@ -9,9 +8,9 @@ public class ProtectionTests
 {
     [Test]
     [TestCaseSource(nameof(ProtectionApiSetters))]
-    public void Protection_property_can_be_individually_set(FormatTestCase<IXLProtection> testCase)
+    public void Protection_property_can_be_individually_set(FormatTestCase<IXlsxProtection> testCase)
     {
-        using var wb = new XLWorkbook();
+        using var wb = new XlsxWorkbook();
         var ws = wb.AddWorksheet();
 
         var cellFormat = ws.Cell("B2").Style;
@@ -26,7 +25,7 @@ public class ProtectionTests
     [Test]
     public void Protection_can_be_copied()
     {
-        using var wb = new XLWorkbook();
+        using var wb = new XlsxWorkbook();
         var ws = wb.AddWorksheet();
         var targetProtection = ws.Cell("A2").Style.Protection;
         Assert.IsTrue(targetProtection.Locked);
@@ -44,13 +43,13 @@ public class ProtectionTests
     [Test]
     public void Protection_has_equality_comparison()
     {
-        Action<IXLProtection>[] changePropertyToNonDefault =
+        Action<IXlsxProtection>[] changePropertyToNonDefault =
         {
             x => x.SetLocked(false),
             x => x.SetHidden(true)
         };
 
-        using var wb = new XLWorkbook();
+        using var wb = new XlsxWorkbook();
         foreach (var changeProperty in changePropertyToNonDefault)
         {
             var ws = wb.AddWorksheet();
@@ -66,12 +65,12 @@ public class ProtectionTests
     private static IEnumerable<object> ProtectionApiSetters()
     {
         var boolValues = new[] { false, true };
-        yield return FormatTestCase<IXLProtection>.ForProtection(protection => protection.Hidden, (protection, value) => protection.Hidden = value, boolValues);
-        yield return FormatTestCase<IXLProtection>.ForProtection(protection => protection.Hidden, (protection, value) => protection.SetHidden(value), boolValues);
-        yield return FormatTestCase<IXLProtection>.ForProtection(protection => protection.Hidden, (protection, _) => protection.SetHidden(), true);
+        yield return FormatTestCase<IXlsxProtection>.ForProtection(protection => protection.Hidden, (protection, value) => protection.Hidden = value, boolValues);
+        yield return FormatTestCase<IXlsxProtection>.ForProtection(protection => protection.Hidden, (protection, value) => protection.SetHidden(value), boolValues);
+        yield return FormatTestCase<IXlsxProtection>.ForProtection(protection => protection.Hidden, (protection, _) => protection.SetHidden(), true);
 
-        yield return FormatTestCase<IXLProtection>.ForProtection(protection => protection.Locked, (protection, value) => protection.Locked = value, boolValues);
-        yield return FormatTestCase<IXLProtection>.ForProtection(protection => protection.Locked, (protection, value) => protection.SetLocked(value), boolValues);
-        yield return FormatTestCase<IXLProtection>.ForProtection(protection => protection.Locked, (protection, _) => protection.SetLocked(), true);
+        yield return FormatTestCase<IXlsxProtection>.ForProtection(protection => protection.Locked, (protection, value) => protection.Locked = value, boolValues);
+        yield return FormatTestCase<IXlsxProtection>.ForProtection(protection => protection.Locked, (protection, value) => protection.SetLocked(value), boolValues);
+        yield return FormatTestCase<IXlsxProtection>.ForProtection(protection => protection.Locked, (protection, _) => protection.SetLocked(), true);
     }
 }

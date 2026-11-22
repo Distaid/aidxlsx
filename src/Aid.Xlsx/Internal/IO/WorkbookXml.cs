@@ -1,8 +1,9 @@
-using System;
-using System.IO;
-using System.Xml;
 using System.Xml.Linq;
+using System.Xml;
+using Aid.Xlsx.Protection;
 using Aid.Xlsx.Utils;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 
 namespace Aid.Xlsx.Internal.IO;
 
@@ -18,7 +19,7 @@ internal static class WorkbookXml
         return root;
     }
 
-    internal static void LoadSettings(XElement root, XLWorkbook workbook)
+    internal static void LoadSettings(XElement root, XlsxWorkbook workbook)
     {
         var ns = root.Name.Namespace;
         workbook.Use1904DateSystem = (bool?)root.Element(ns + "workbookPr")?.Attribute("date1904") ?? false;
@@ -37,15 +38,15 @@ internal static class WorkbookXml
 
         workbook.CalculateMode = (string?)calculation.Attribute("calcMode") switch
         {
-            "auto" => XLCalculateMode.Auto,
-            "autoNoTable" => XLCalculateMode.AutoNoTable,
-            "manual" => XLCalculateMode.Manual,
+            "auto" => XlsxCalculateMode.Auto,
+            "autoNoTable" => XlsxCalculateMode.AutoNoTable,
+            "manual" => XlsxCalculateMode.Manual,
             _ => workbook.CalculateMode
         };
         workbook.ReferenceStyle = (string?)calculation.Attribute("refMode") switch
         {
-            "A1" => XLReferenceStyle.A1,
-            "R1C1" => XLReferenceStyle.R1C1,
+            "A1" => XlsxReferenceStyle.A1,
+            "R1C1" => XlsxReferenceStyle.R1C1,
             _ => workbook.ReferenceStyle
         };
         workbook.CalculationOnSave = (bool?)calculation.Attribute("calcOnSave") ?? workbook.CalculationOnSave;
@@ -60,16 +61,16 @@ internal static class WorkbookXml
             ?? (string?)sheet.Attribute(XName.Get("id", OpenXmlConst.StrictRelationshipsNs));
         var visibility = (string?)sheet.Attribute("state") switch
         {
-            "hidden" => XLWorksheetVisibility.Hidden,
-            "veryHidden" => XLWorksheetVisibility.VeryHidden,
-            _ => XLWorksheetVisibility.Visible
+            "hidden" => XlsxWorksheetVisibility.Hidden,
+            "veryHidden" => XlsxWorksheetVisibility.VeryHidden,
+            _ => XlsxWorksheetVisibility.Visible
         };
         return new Sheet((string?)sheet.Attribute("name") ?? throw new InvalidDataException("A workbook sheet has no name."),
             (uint?)sheet.Attribute("sheetId") ?? throw new InvalidDataException("A workbook sheet has no sheet ID."),
             relation, visibility);
     }
 
-    private static void LoadProtection(XElement element, XLWorkbook workbook)
+    private static void LoadProtection(XElement element, XlsxWorkbook workbook)
     {
         var protection = workbook.Protection;
         protection.IsProtected = true;
@@ -79,17 +80,17 @@ internal static class WorkbookXml
             protection.PasswordHash = (string?)element.Attribute("workbookPassword") ?? string.Empty;
             protection.Base64EncodedSalt = string.Empty;
         }
-        else if (DescribedEnumParser<XLProtectionAlgorithm.Algorithm>.IsValidDescription(algorithm))
+        else if (DescribedEnumParser<XlsxProtectionAlgorithm.Algorithm>.IsValidDescription(algorithm))
         {
-            protection.Algorithm = DescribedEnumParser<XLProtectionAlgorithm.Algorithm>.FromDescription(algorithm);
+            protection.Algorithm = DescribedEnumParser<XlsxProtectionAlgorithm.Algorithm>.FromDescription(algorithm);
             protection.PasswordHash = (string?)element.Attribute("workbookHashValue") ?? string.Empty;
             protection.SpinCount = (uint?)element.Attribute("workbookSpinCount") ?? 0;
             protection.Base64EncodedSalt = (string?)element.Attribute("workbookSaltValue") ?? string.Empty;
         }
 
-        protection.AllowElement(XLWorkbookProtectionElements.Structure, !((bool?)element.Attribute("lockStructure") ?? false));
-        protection.AllowElement(XLWorkbookProtectionElements.Windows, !((bool?)element.Attribute("lockWindows") ?? false));
+        protection.AllowElement(XlsxWorkbookProtectionElements.Structure, !((bool?)element.Attribute("lockStructure") ?? false));
+        protection.AllowElement(XlsxWorkbookProtectionElements.Windows, !((bool?)element.Attribute("lockWindows") ?? false));
     }
 
-    internal readonly record struct Sheet(string Name, uint SheetId, string? Id, XLWorksheetVisibility Visibility);
+    internal readonly record struct Sheet(string Name, uint SheetId, string? Id, XlsxWorksheetVisibility Visibility);
 }

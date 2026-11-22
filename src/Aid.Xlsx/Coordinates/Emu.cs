@@ -1,8 +1,7 @@
-using System;
 using System.Diagnostics;
 using System.Globalization;
 
-namespace Aid.Xlsx;
+namespace Aid.Xlsx.Coordinates;
 
 /// <summary>
 /// English metric unit.

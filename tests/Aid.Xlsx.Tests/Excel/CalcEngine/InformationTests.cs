@@ -1,6 +1,7 @@
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Extensions;
+using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
-using System;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine
 {
@@ -14,9 +15,9 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("\"text\"")]
         public void ErrorType_NonErrorsAreNA(string argumentFormula)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Evaluate($"ERROR.TYPE({argumentFormula})"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Evaluate($"ERROR.TYPE({argumentFormula})"));
         }
 
         [TestCase("#NULL!", 1)]
@@ -29,7 +30,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         //[TestCase("#GETTING_DATA", 8)] OLAP Cube not supported
         public void ErrorType_ReturnsNumberForError(string error, int expectedNumber)
         {
-            Assert.AreEqual(expectedNumber, XLWorkbook.EvaluateExpr($"ERROR.TYPE({error})"));
+            Assert.AreEqual(expectedNumber, XlsxWorkbook.EvaluateExpr($"ERROR.TYPE({error})"));
         }
 
         #region IsBlank Tests
@@ -37,7 +38,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void IsBlank_EmptyCell_True()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var actual = ws.Evaluate("IsBlank(A1)");
             Assert.AreEqual(true, actual);
@@ -46,7 +47,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void IsBlank_NonEmptyCell_False()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = "1";
             var actual = ws.Evaluate("IsBlank(A1)");
@@ -61,14 +62,14 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("#DIV/0!")]
         public void IsBlank_NonEmptyValue_False(string value)
         {
-            var actual = XLWorkbook.EvaluateExpr($"IsBlank({value})");
+            var actual = XlsxWorkbook.EvaluateExpr($"IsBlank({value})");
             Assert.AreEqual(false, actual);
         }
 
         [Test]
         public void IsBlank_InlineBlank_True()
         {
-            var actual = XLWorkbook.EvaluateExpr("IsBlank(IF(TRUE,,))");
+            var actual = XlsxWorkbook.EvaluateExpr("IsBlank(IF(TRUE,,))");
             Assert.AreEqual(true, actual);
         }
 
@@ -81,7 +82,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("\"text\"")]
         public void IsErr_NonErrorValues_False(string valueFormula)
         {
-            var actual = XLWorkbook.EvaluateExpr($"IsErr({valueFormula})");
+            var actual = XlsxWorkbook.EvaluateExpr($"IsErr({valueFormula})");
             Assert.AreEqual(false, actual);
         }
 
@@ -93,14 +94,14 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("#VALUE!")]
         public void IsErr_ErrorsExceptNA_True(string valueFormula)
         {
-            var actual = XLWorkbook.EvaluateExpr($"IsErr({valueFormula})");
+            var actual = XlsxWorkbook.EvaluateExpr($"IsErr({valueFormula})");
             Assert.AreEqual(true, actual);
         }
 
         [Test]
         public void IsErr_NA_False()
         {
-            var actual = XLWorkbook.EvaluateExpr("IsErr(#N/A)");
+            var actual = XlsxWorkbook.EvaluateExpr("IsErr(#N/A)");
             Assert.AreEqual(false, actual);
         }
 
@@ -113,7 +114,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("#VALUE!")]
         public void IsError_Errors_True(string error)
         {
-            var actual = XLWorkbook.EvaluateExpr($"IsError({error})");
+            var actual = XlsxWorkbook.EvaluateExpr($"IsError({error})");
             Assert.AreEqual(true, actual);
         }
 
@@ -124,7 +125,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("\"text\"")]
         public void IsError_NonErrors_False(string valueFormula)
         {
-            var actual = XLWorkbook.EvaluateExpr($"IsError({valueFormula})");
+            var actual = XlsxWorkbook.EvaluateExpr($"IsError({valueFormula})");
             Assert.AreEqual(false, actual);
         }
 
@@ -137,14 +138,14 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("\"1900-01-02\"")]
         public void IsEven_NumberLikeValue_ConvertedThroughValueSemantic(string valueFormula)
         {
-            var actual = XLWorkbook.EvaluateExpr($"IsEven({valueFormula})");
+            var actual = XlsxWorkbook.EvaluateExpr($"IsEven({valueFormula})");
             Assert.AreEqual(true, actual);
         }
 
         [Test]
         public void IsEven_NonIntegerValues_TruncatedForEvaluation()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Sheet");
 
             ws.Cell("A1").Value = 4;
@@ -168,27 +169,27 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Ignore("Arrays not yet implemented.")]
         public void IsEven_Array_ReturnsArray()
         {
-            Assert.AreEqual(2.0, XLWorkbook.EvaluateExpr("SUM(N(IsEven({\"2.9\";2;1})))"));
+            Assert.AreEqual(2.0, XlsxWorkbook.EvaluateExpr("SUM(N(IsEven({\"2.9\";2;1})))"));
         }
 
         [Test]
         public void IsEven_ReferenceToMoreThanOneCell_Error()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell(1, 2).FormulaA1 = "IsEven(A1:A2)";
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Cell(1, 2).Value);
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Cell(1, 2).Value);
         }
 
-        [TestCase("TRUE", XLError.IncompatibleValue)]
-        [TestCase("FALSE", XLError.IncompatibleValue)]
-        [TestCase("\"\"", XLError.IncompatibleValue)]
-        [TestCase("\"test\"", XLError.IncompatibleValue)]
-        [TestCase("#DIV/0!", XLError.DivisionByZero)]
-        [TestCase("IF(TRUE,,)", XLError.NoValueAvailable)] // Behaves differently from a reference to a blank cell
-        public void IsEven_NonNumberValues_Error(string valueFormula, XLError expectedError)
+        [TestCase("TRUE", XlsxError.IncompatibleValue)]
+        [TestCase("FALSE", XlsxError.IncompatibleValue)]
+        [TestCase("\"\"", XlsxError.IncompatibleValue)]
+        [TestCase("\"test\"", XlsxError.IncompatibleValue)]
+        [TestCase("#DIV/0!", XlsxError.DivisionByZero)]
+        [TestCase("IF(TRUE,,)", XlsxError.NoValueAvailable)] // Behaves differently from a reference to a blank cell
+        public void IsEven_NonNumberValues_Error(string valueFormula, XlsxError expectedError)
         {
-            Assert.AreEqual(expectedError, XLWorkbook.EvaluateExpr($"IsEven({valueFormula})"));
+            Assert.AreEqual(expectedError, XlsxWorkbook.EvaluateExpr($"IsEven({valueFormula})"));
         }
 
         #endregion IsEven Tests
@@ -199,7 +200,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("FALSE")]
         public void IsLogical_OnlyLogical_True(string valueFormula)
         {
-            var actual = XLWorkbook.EvaluateExpr($"IsLogical({valueFormula})");
+            var actual = XlsxWorkbook.EvaluateExpr($"IsLogical({valueFormula})");
             Assert.AreEqual(true, actual);
         }
 
@@ -214,14 +215,14 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("#REF!")]
         public void IsLogical_NonLogicalValue_False(string valueFormula)
         {
-            var actual = XLWorkbook.EvaluateExpr($"IsLogical({valueFormula})");
+            var actual = XlsxWorkbook.EvaluateExpr($"IsLogical({valueFormula})");
             Assert.AreEqual(false, actual);
         }
 
         [Test]
         public void IsLogical_ReferenceToLogicalValue_True()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
 
             ws.Cell("A1").Value = true;
@@ -235,7 +236,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void IsNA_NA_True()
         {
-            var actual = XLWorkbook.EvaluateExpr("ISNA(#N/A)");
+            var actual = XlsxWorkbook.EvaluateExpr("ISNA(#N/A)");
             Assert.AreEqual(true, actual);
         }
 
@@ -247,7 +248,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("\"#N/A\"")]
         public void IsNA_NonNotAvailableValue_False(string valueFormula)
         {
-            var actual = XLWorkbook.EvaluateExpr($"ISNA({valueFormula})");
+            var actual = XlsxWorkbook.EvaluateExpr($"ISNA({valueFormula})");
             Assert.AreEqual(false, actual);
         }
 
@@ -256,7 +257,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void IsNotText_ReferenceToBlankCell_True()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var actual = ws.Evaluate("IsNonText(A1)");
             Assert.AreEqual(true, actual);
@@ -267,7 +268,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("text")]
         public void IsNotText_ReferenceToStringCell_False(string text)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = text;
             var actual = ws.Evaluate("IsNonText(A1)");
@@ -277,12 +278,12 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void IsNotText_NonTextValues_True()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Sheet");
             ws.Cell("A1").Value = 123; //Double Value
             ws.Cell("A2").Value = DateTime.Now; //Date Value
             ws.Cell("A3").Value = true; //Bool Value
-            ws.Cell("A4").Value = XLError.IncompatibleValue; //Error value
+            ws.Cell("A4").Value = XlsxError.IncompatibleValue; //Error value
 
             var actual = ws.Evaluate("IsNonText(A1)");
             Assert.AreEqual(true, actual);
@@ -301,7 +302,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void IsNumber_Simple_false()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Sheet");
             ws.Cell("A1").Value = "asd"; //String Value
             ws.Cell("A2").Value = true; //Bool Value
@@ -315,7 +316,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void IsNumber_Simple_true()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Sheet");
             ws.Cell("A1").Value = 123; //Double Value
             ws.Cell("A2").Value = DateTime.Now; //Date Value
@@ -338,7 +339,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("#N/A")]
         public void IsNumber_NonNumber_False(string nonNumberValue)
         {
-            var actual = XLWorkbook.EvaluateExpr($"IsNumber({nonNumberValue})");
+            var actual = XlsxWorkbook.EvaluateExpr($"IsNumber({nonNumberValue})");
             Assert.AreEqual(false, actual);
         }
 
@@ -354,14 +355,14 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("\"1900-01-03\"")]
         public void IsOdd_SingleValue_ConvertedThroughValueSemantic(string valueFormula)
         {
-            var actual = XLWorkbook.EvaluateExpr($"IsOdd({valueFormula})");
+            var actual = XlsxWorkbook.EvaluateExpr($"IsOdd({valueFormula})");
             Assert.AreEqual(true, actual);
         }
 
         [Test]
         public void IsOdd_NonIntegerValues_TruncatedForEvaluation()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Sheet");
 
             ws.Cell("A1").Value = 3;
@@ -386,27 +387,27 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Ignore("Arrays not yet implemented.")]
         public void IsOdd_Array_ReturnsArray()
         {
-            Assert.AreEqual(2.0, XLWorkbook.EvaluateExpr("SUM(N(IsOdd({\"3.2\",7,2})))"));
+            Assert.AreEqual(2.0, XlsxWorkbook.EvaluateExpr("SUM(N(IsOdd({\"3.2\",7,2})))"));
         }
 
         [Test]
         public void IsOdd_ReferenceToMoreThanOneCell_Error()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell(1, 2).FormulaA1 = "IsOdd(A1:A2)";
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Cell(1, 2).Value);
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Cell(1, 2).Value);
         }
 
-        [TestCase("TRUE", XLError.IncompatibleValue)]
-        [TestCase("FALSE", XLError.IncompatibleValue)]
-        [TestCase("\"\"", XLError.IncompatibleValue)]
-        [TestCase("\"test\"", XLError.IncompatibleValue)]
-        [TestCase("#DIV/0!", XLError.DivisionByZero)]
-        [TestCase("IF(TRUE,,)", XLError.NoValueAvailable)] // Behaves differently from a reference to a blank cell
-        public void IsOdd_NonNumberValues_Error(string valueFormula, XLError expectedError)
+        [TestCase("TRUE", XlsxError.IncompatibleValue)]
+        [TestCase("FALSE", XlsxError.IncompatibleValue)]
+        [TestCase("\"\"", XlsxError.IncompatibleValue)]
+        [TestCase("\"test\"", XlsxError.IncompatibleValue)]
+        [TestCase("#DIV/0!", XlsxError.DivisionByZero)]
+        [TestCase("IF(TRUE,,)", XlsxError.NoValueAvailable)] // Behaves differently from a reference to a blank cell
+        public void IsOdd_NonNumberValues_Error(string valueFormula, XlsxError expectedError)
         {
-            Assert.AreEqual(expectedError, XLWorkbook.EvaluateExpr($"IsOdd({valueFormula})"));
+            Assert.AreEqual(expectedError, XlsxWorkbook.EvaluateExpr($"IsOdd({valueFormula})"));
         }
 
         #endregion IsOdd Test
@@ -415,7 +416,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("(A1,A5)")]
         public void IsRef_Reference_True(string reference)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Sheet");
             ws.Cell("A1").Value = "123";
 
@@ -433,7 +434,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("#VALUE!")]
         public void IsRef_NonReference_False(string nonReference)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Sheet");
 
             ws.Cell("B1").FormulaA1 = $"ISREF({nonReference})";
@@ -446,7 +447,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void IsText_BlankCell_False()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("B1").FormulaA1 = "ISTEXT(A1)";
 
@@ -460,7 +461,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("IF(TRUE,,)")]
         public void IsText_NonText_False(string nonText)
         {
-            var actual = XLWorkbook.EvaluateExpr($"ISTEXT({nonText})");
+            var actual = XlsxWorkbook.EvaluateExpr($"ISTEXT({nonText})");
             Assert.AreEqual(false, actual);
         }
 
@@ -468,7 +469,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("abc")]
         public void IsText_CellWithText_True(string textValue)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
 
             ws.Cell("A1").Value = textValue;
@@ -484,7 +485,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void N_Blank_Zero()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var actual = ws.Evaluate("N(A1)");
             Assert.AreEqual(0.0, actual);
@@ -493,7 +494,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void N_Date_SerialNumber()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var testedDate = DateTime.Now;
             ws.Cell("A1").Value = testedDate;
@@ -504,7 +505,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void N_False_Zero()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = false;
             var actual = ws.Evaluate("N(A1)");
@@ -514,7 +515,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void N_True_One()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = true;
             var actual = ws.Evaluate("N(A1)");
@@ -523,7 +524,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void N_Number_Number()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             var testedValue = 123;
             ws.Cell("A1").Value = testedValue;
@@ -535,7 +536,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("abc")]
         public void N_String_Zero(string text)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = text;
             var actual = ws.Evaluate("N(A1)");
@@ -546,7 +547,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Ignore("Array not implemented")]
         public void N_Array_ConvertsIndividualItems()
         {
-            var actual = XLWorkbook.EvaluateExpr("SUM(N({2,TRUE}))");
+            var actual = XlsxWorkbook.EvaluateExpr("SUM(N({2,TRUE}))");
             Assert.AreEqual(3, actual);
         }
 
@@ -555,7 +556,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("(A1, B1)")]
         public void N_Reference_TakesFirstCellFromFirstArea(string reference)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = 5;
             ws.Cell("B1").Value = 10;
@@ -582,7 +583,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("#VALUE!", 16)]
         public void Type_NonReferenceScalarValues(string literalValues, double expectedNumber)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").FormulaA1 = $"TYPE({literalValues})";
             Assert.AreEqual(expectedNumber, ws.Cell("A1").Value);
@@ -594,7 +595,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("{\"abc\";5}")]
         public void Type_Array_HasValue64(string arrayLiteral)
         {
-            var actual = XLWorkbook.EvaluateExpr($"TYPE({arrayLiteral})");
+            var actual = XlsxWorkbook.EvaluateExpr($"TYPE({arrayLiteral})");
             Assert.AreEqual(64.0, actual);
         }
 
@@ -602,7 +603,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         // [TestCase("(A1:A3 A2:B3)")] Not implemented // Intersection results in a 1x2 block
         public void Type_ReferenceToNonSingleCell_BehavesLikeArray(string reference)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("C1").FormulaA1 = $"TYPE({reference})";
             Assert.AreEqual(64.0, ws.Cell("C1").Value);
@@ -611,7 +612,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Type_ReferenceToSingleCell_ReturnsTypeOfCell()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = "text";
 
@@ -622,7 +623,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Type_MultiAreaReference_ReturnsError()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet();
             ws.Cell("A1").Value = "text";
 

@@ -1,8 +1,9 @@
 // Keep this file CodeMaid organised and cleaned
-using Aid.Xlsx;
+using Aid.Xlsx.CalcEngine;
+using Aid.Xlsx.Cells;
+using Aid.Xlsx.Workbooks;
+using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
-using System;
-using System.Linq;
 
 namespace Aid.Xlsx.Tests.Excel.CalcEngine
 {
@@ -10,7 +11,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
     [SetCulture("en-US")]
     public class LookupTests
     {
-        private IXLWorksheet ws;
+        private IXlsxWorksheet ws;
 
         #region Setup and teardown
 
@@ -26,9 +27,9 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
             ws = SetupWorkbook();
         }
 
-        private IXLWorksheet SetupWorkbook()
+        private IXlsxWorksheet SetupWorkbook()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Data");
             var data = new object[]
             {
@@ -89,7 +90,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Column()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Data");
             wb.AddWorksheet("Other");
 
@@ -107,26 +108,26 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
             Assert.AreEqual(5 + 6 + 7, ws.Cell("A3").SetFormulaA1("SUM(COLUMN(E1:G10))").Value);
 
             // Not contiguous range (multiple areas) returns #REF!
-            Assert.AreEqual(XLError.CellReference, ws.Cell("A4").SetFormulaA1("COLUMN((D5:G10,I8:K12))").Value);
+            Assert.AreEqual(XlsxError.CellReference, ws.Cell("A4").SetFormulaA1("COLUMN((D5:G10,I8:K12))").Value);
 
             // Invalid references return #REF!
-            Assert.AreEqual(XLError.CellReference, ws.Cell("A5").SetFormulaA1("COLUMN(NonExistent!F10)").Value);
+            Assert.AreEqual(XlsxError.CellReference, ws.Cell("A5").SetFormulaA1("COLUMN(NonExistent!F10)").Value);
 
             // Return column number even for different worksheet
             Assert.AreEqual(5, ws.Cell("A6").SetFormulaA1("COLUMN(Other!E7)").Value);
 
             // Unexpected types return error
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Cell("A8").SetFormulaA1("COLUMN(TRUE)").Value);
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Cell("A7").SetFormulaA1("COLUMN(5)").Value);
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Cell("A8").SetFormulaA1("COLUMN(\"C5\")").Value);
-            Assert.AreEqual(XLError.DivisionByZero, ws.Cell("A9").SetFormulaA1("COLUMN(#DIV/0!)").Value);
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Cell("A10").SetFormulaA1("COLUMN(\"C5\")").Value);
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Cell("A8").SetFormulaA1("COLUMN(TRUE)").Value);
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Cell("A7").SetFormulaA1("COLUMN(5)").Value);
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Cell("A8").SetFormulaA1("COLUMN(\"C5\")").Value);
+            Assert.AreEqual(XlsxError.DivisionByZero, ws.Cell("A9").SetFormulaA1("COLUMN(#DIV/0!)").Value);
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Cell("A10").SetFormulaA1("COLUMN(\"C5\")").Value);
         }
 
         [Test]
         public void Columns_Blank_ReturnsValueError()
         {
-            Assert.AreEqual(XLError.IncompatibleValue, XLWorkbook.EvaluateExpr("COLUMNS(IF(TRUE,,))"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, XlsxWorkbook.EvaluateExpr("COLUMNS(IF(TRUE,,))"));
         }
 
         [TestCase("0")]
@@ -140,13 +141,13 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("\"Hello World\"")]
         public void Columns_ScalarValues_ReturnsOne(string value)
         {
-            Assert.AreEqual(1, XLWorkbook.EvaluateExpr($"COLUMNS({value})"));
+            Assert.AreEqual(1, XlsxWorkbook.EvaluateExpr($"COLUMNS({value})"));
         }
 
         [Test]
         public void Columns_Error_ReturnsError()
         {
-            Assert.AreEqual(XLError.DivisionByZero, XLWorkbook.EvaluateExpr("COLUMNS(#DIV/0!)"));
+            Assert.AreEqual(XlsxError.DivisionByZero, XlsxWorkbook.EvaluateExpr("COLUMNS(#DIV/0!)"));
         }
 
         [TestCase("{1}", 1)]
@@ -155,7 +156,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("{TRUE,\"Z\";#DIV/0!,4}", 2)]
         public void Columns_Arrays_ReturnsNumberOfColumns(string array, int expectedColumnCount)
         {
-            Assert.AreEqual(expectedColumnCount, XLWorkbook.EvaluateExpr($"COLUMNS({array})"));
+            Assert.AreEqual(expectedColumnCount, XlsxWorkbook.EvaluateExpr($"COLUMNS({array})"));
         }
 
         [TestCase("A1", 1)]
@@ -164,7 +165,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("E7:AA14", 23)]
         public void Columns_References_ReturnsNumberOfColumns(string range, int expectedColumnCount)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sheet = wb.AddWorksheet();
             Assert.AreEqual(expectedColumnCount, sheet.Evaluate($"COLUMNS({range})"));
         }
@@ -173,14 +174,14 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         public void Columns_NonContiguousReferences_ReturnsReferenceError()
         {
             // Spec says #NULL!, but Excel says #REF!
-            Assert.AreEqual(XLError.CellReference, XLWorkbook.EvaluateExpr("COLUMNS((A1,C3))"));
+            Assert.AreEqual(XlsxError.CellReference, XlsxWorkbook.EvaluateExpr("COLUMNS((A1,C3))"));
         }
 
         [Test]
         public void Hlookup()
         {
             // Since HLOOKUP requires values to be sorted, we can't use created data.
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sheet = wb.AddWorksheet();
             sheet.Cell("B2").InsertData(new[]
             {
@@ -198,34 +199,34 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
 
             // Value not present in the range for exact search
             // Empty string is not same as blank.
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Evaluate(@"HLOOKUP("""",A2:E2,1,FALSE)"));
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Evaluate(@"HLOOKUP(50,B2:E3,1,FALSE)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Evaluate(@"HLOOKUP("""",A2:E2,1,FALSE)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Evaluate(@"HLOOKUP(50,B2:E3,1,FALSE)"));
 
             // Value in approximate search that is lower than first element
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Evaluate(@"HLOOKUP(-10,B2:E3,2,TRUE)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Evaluate(@"HLOOKUP(-10,B2:E3,2,TRUE)"));
         }
 
         [Test]
         public void Hlookup_UnexpectedArguments()
         {
             // Lookup value can't be an error
-            Assert.AreEqual(XLError.DivisionByZero, XLWorkbook.EvaluateExpr(@"HLOOKUP(#DIV/0!,{1,2},1)"));
+            Assert.AreEqual(XlsxError.DivisionByZero, XlsxWorkbook.EvaluateExpr(@"HLOOKUP(#DIV/0!,{1,2},1)"));
 
             // Text value can't be over 255 chars
-            Assert.AreEqual(XLError.IncompatibleValue, XLWorkbook.EvaluateExpr($"HLOOKUP(\"{new string('A', 256)}\",{{\"A\"}},1)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, XlsxWorkbook.EvaluateExpr($"HLOOKUP(\"{new string('A', 256)}\",{{\"A\"}},1)"));
 
             // Range can only be array or a reference. If other type, it returns the error #N/A
-            Assert.AreEqual(XLError.NoValueAvailable, XLWorkbook.EvaluateExpr(@"HLOOKUP(""value"",1,1)"));
-            Assert.AreEqual(XLError.NoValueAvailable, XLWorkbook.EvaluateExpr(@"HLOOKUP(""value"",TRUE,1)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, XlsxWorkbook.EvaluateExpr(@"HLOOKUP(""value"",1,1)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, XlsxWorkbook.EvaluateExpr(@"HLOOKUP(""value"",TRUE,1)"));
 
             // If range is a non-contiguous range, #N/A
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Evaluate(@"HLOOKUP(""Units"",(B2:I5,B6:I10),1)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Evaluate(@"HLOOKUP(""Units"",(B2:I5,B6:I10),1)"));
 
             // The row index number must be at most the same as height of the range. It is 5 here, but range is 4 cell high.
-            Assert.AreEqual(XLError.CellReference, ws.Evaluate(@"HLOOKUP(""value"",B2:I5,5,FALSE)"));
+            Assert.AreEqual(XlsxError.CellReference, ws.Evaluate(@"HLOOKUP(""value"",B2:I5,5,FALSE)"));
 
             // The row index number must be at least 1. It is 0 here.
-            Assert.AreEqual(XLError.IncompatibleValue, XLWorkbook.EvaluateExpr(@"HLOOKUP(1,{1,2},0,FALSE)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, XlsxWorkbook.EvaluateExpr(@"HLOOKUP(1,{1,2},0,FALSE)"));
         }
 
         [Test]
@@ -238,7 +239,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Hlookup_converts_blank_lookup_value_to_number_zero()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var worksheet = wb.AddWorksheet();
             worksheet.Cell("A1").InsertData(new[]
             {
@@ -254,7 +255,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Hlookup_approximate_search_omits_values_with_different_type()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var worksheet = wb.AddWorksheet();
             worksheet.Cell("A1").Value = "0";
             worksheet.Cell("B1").Value = "1";
@@ -272,16 +273,16 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Hlookup_with_range_containing_only_cells_with_different_type_returns_NA_error()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sheet = wb.AddWorksheet();
             sheet.Cell("A1").Value = "text";
-            Assert.AreEqual(XLError.NoValueAvailable, sheet.Evaluate("HLOOKUP(1,A1,1,TRUE)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, sheet.Evaluate("HLOOKUP(1,A1,1,TRUE)"));
         }
 
         [Test]
         public void Hlookup_approximate_search_returns_last_column_for_multiple_equal_values()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var sheet = wb.AddWorksheet();
             sheet.Cell("A1").InsertData(new object[]
             {
@@ -301,7 +302,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Hyperlink()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sheet = wb.AddWorksheet();
 
             var cell = sheet.Cell("B3");
@@ -323,7 +324,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Index_reference()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sheet = wb.AddWorksheet();
             sheet.Cell("B2").Value = "B2";
             sheet.Cell("B4").Value = "B4";
@@ -355,7 +356,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
             AssertIndex("INDEX((H4:J10, B2:J12, A1), 1, 1, 2)", 1, 1, "B2");
             return;
 
-            void AssertIndex(string formula, int rows, int cols, XLCellValue value)
+            void AssertIndex(string formula, int rows, int cols, XlsxCellValue value)
             {
                 Assert.AreEqual(value, sheet.Evaluate($"INDEX({formula},1,1)"));
                 Assert.AreEqual(rows, sheet.Evaluate($"ROWS({formula})"));
@@ -367,20 +368,20 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Index_reference_errors()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sheet = wb.AddWorksheet();
 
             // Row bounds
-            Assert.AreEqual(XLError.IncompatibleValue, sheet.Evaluate("INDEX(A1, -1, 1)"));
-            Assert.AreEqual(XLError.CellReference, sheet.Evaluate("INDEX(B3:C5, 4, 1)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, sheet.Evaluate("INDEX(A1, -1, 1)"));
+            Assert.AreEqual(XlsxError.CellReference, sheet.Evaluate("INDEX(B3:C5, 4, 1)"));
 
             // Column bounds
-            Assert.AreEqual(XLError.IncompatibleValue, sheet.Evaluate("INDEX(A1, 1, -1)"));
-            Assert.AreEqual(XLError.CellReference, sheet.Evaluate("INDEX(B3:C5, 1, 3)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, sheet.Evaluate("INDEX(A1, 1, -1)"));
+            Assert.AreEqual(XlsxError.CellReference, sheet.Evaluate("INDEX(B3:C5, 1, 3)"));
 
             // Area bounds
-            Assert.AreEqual(XLError.IncompatibleValue, sheet.Evaluate("INDEX((A1, B1, C1), 1, 1, 0)"));
-            Assert.AreEqual(XLError.CellReference, sheet.Evaluate("INDEX((A1, B1, C1),1, 1, 4)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, sheet.Evaluate("INDEX((A1, B1, C1), 1, 1, 0)"));
+            Assert.AreEqual(XlsxError.CellReference, sheet.Evaluate("INDEX((A1, B1, C1),1, 1, 4)"));
         }
 
         [Test]
@@ -408,12 +409,12 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
 
             return;
 
-            void AssertIndex(string formula, int rows, int cols, XLCellValue value)
+            void AssertIndex(string formula, int rows, int cols, XlsxCellValue value)
             {
-                Assert.AreEqual(value, XLWorkbook.EvaluateExpr(formula));
-                Assert.AreEqual(rows, XLWorkbook.EvaluateExpr($"ROWS({formula})"));
-                Assert.AreEqual(cols, XLWorkbook.EvaluateExpr($"COLUMNS({formula})"));
-                Assert.AreEqual(false, XLWorkbook.EvaluateExpr($"ISREF({formula})"));
+                Assert.AreEqual(value, XlsxWorkbook.EvaluateExpr(formula));
+                Assert.AreEqual(rows, XlsxWorkbook.EvaluateExpr($"ROWS({formula})"));
+                Assert.AreEqual(cols, XlsxWorkbook.EvaluateExpr($"COLUMNS({formula})"));
+                Assert.AreEqual(false, XlsxWorkbook.EvaluateExpr($"ISREF({formula})"));
             }
         }
 
@@ -421,32 +422,32 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         public void Index_array_errors()
         {
             // Row bounds
-            Assert.AreEqual(XLError.IncompatibleValue, XLWorkbook.EvaluateExpr("INDEX({1}, -1, 1)"));
-            Assert.AreEqual(XLError.CellReference, XLWorkbook.EvaluateExpr("INDEX({1,2;3,4;5,6}, 4, 1)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, XlsxWorkbook.EvaluateExpr("INDEX({1}, -1, 1)"));
+            Assert.AreEqual(XlsxError.CellReference, XlsxWorkbook.EvaluateExpr("INDEX({1,2;3,4;5,6}, 4, 1)"));
 
             // Column bounds
-            Assert.AreEqual(XLError.IncompatibleValue, XLWorkbook.EvaluateExpr("INDEX({1}, 1, -1)"));
-            Assert.AreEqual(XLError.CellReference, XLWorkbook.EvaluateExpr("INDEX({1,2;3,4;5,6}, 1, 3)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, XlsxWorkbook.EvaluateExpr("INDEX({1}, 1, -1)"));
+            Assert.AreEqual(XlsxError.CellReference, XlsxWorkbook.EvaluateExpr("INDEX({1,2;3,4;5,6}, 1, 3)"));
 
             // Area bounds
-            Assert.AreEqual(XLError.IncompatibleValue, XLWorkbook.EvaluateExpr("INDEX({1}, 1, 1, 0)"));
-            Assert.AreEqual(XLError.CellReference, XLWorkbook.EvaluateExpr("INDEX({1}, 1, 1, 2)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, XlsxWorkbook.EvaluateExpr("INDEX({1}, 1, 1, 0)"));
+            Assert.AreEqual(XlsxError.CellReference, XlsxWorkbook.EvaluateExpr("INDEX({1}, 1, 1, 2)"));
         }
 
         [Test]
         public void Index_scalar()
         {
-            Assert.AreEqual("Text", XLWorkbook.EvaluateExpr("INDEX(\"Text\", 1, 1)"));
-            Assert.AreEqual("Text", XLWorkbook.EvaluateExpr("INDEX(\"Text\", 0, 0)"));
-            Assert.AreEqual(2, XLWorkbook.EvaluateExpr("TYPE(INDEX(\"Text\", 1, 1))"));
-            Assert.AreEqual(XLError.IncompatibleValue, XLWorkbook.EvaluateExpr("INDEX(IF(TRUE,), 1, 1)"));
+            Assert.AreEqual("Text", XlsxWorkbook.EvaluateExpr("INDEX(\"Text\", 1, 1)"));
+            Assert.AreEqual("Text", XlsxWorkbook.EvaluateExpr("INDEX(\"Text\", 0, 0)"));
+            Assert.AreEqual(2, XlsxWorkbook.EvaluateExpr("TYPE(INDEX(\"Text\", 1, 1))"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, XlsxWorkbook.EvaluateExpr("INDEX(IF(TRUE,), 1, 1)"));
 
-            Assert.AreEqual(XLError.IncompatibleValue, XLWorkbook.EvaluateExpr("INDEX(\"Text\", -1, 1)"));
-            Assert.AreEqual(XLError.CellReference, XLWorkbook.EvaluateExpr("INDEX(\"Text\", 2, 1)"));
-            Assert.AreEqual(XLError.IncompatibleValue, XLWorkbook.EvaluateExpr("INDEX(\"Text\", 1, -1)"));
-            Assert.AreEqual(XLError.CellReference, XLWorkbook.EvaluateExpr("INDEX(\"Text\", 1, 2)"));
-            Assert.AreEqual(XLError.IncompatibleValue, XLWorkbook.EvaluateExpr("INDEX(\"Text\", 1, 1, 0)"));
-            Assert.AreEqual(XLError.CellReference, XLWorkbook.EvaluateExpr("INDEX(\"Text\", 1, 1, 2)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, XlsxWorkbook.EvaluateExpr("INDEX(\"Text\", -1, 1)"));
+            Assert.AreEqual(XlsxError.CellReference, XlsxWorkbook.EvaluateExpr("INDEX(\"Text\", 2, 1)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, XlsxWorkbook.EvaluateExpr("INDEX(\"Text\", 1, -1)"));
+            Assert.AreEqual(XlsxError.CellReference, XlsxWorkbook.EvaluateExpr("INDEX(\"Text\", 1, 2)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, XlsxWorkbook.EvaluateExpr("INDEX(\"Text\", 1, 1, 0)"));
+            Assert.AreEqual(XlsxError.CellReference, XlsxWorkbook.EvaluateExpr("INDEX(\"Text\", 1, 1, 2)"));
         }
 
         [TestCase(@"MATCH(""Rep"", B2:I2, 0)", 4)]
@@ -464,9 +465,9 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase(@"MATCH(""Rep"", B2:I2, 1)", 4)]
         [TestCase(@"MATCH(E2, B2:I2, 0)", 4)]
         [TestCase(@"MATCH(40, G3:G6, -1)", 2)]
-        [TestCase(@"MATCH(""Rep"", B2:I5)", XLError.NoValueAvailable)]
-        [TestCase(@"MATCH(""Dummy"", B2:I2, 0)", XLError.NoValueAvailable)]
-        [TestCase(@"MATCH(4.5,B3:B45,-1)", XLError.NoValueAvailable)]
+        [TestCase(@"MATCH(""Rep"", B2:I5)", XlsxError.NoValueAvailable)]
+        [TestCase(@"MATCH(""Dummy"", B2:I2, 0)", XlsxError.NoValueAvailable)]
+        [TestCase(@"MATCH(4.5,B3:B45,-1)", XlsxError.NoValueAvailable)]
         public void Match_demo_sheet(string formula, object result)
         {
             var actual = ws.Evaluate(formula);
@@ -477,11 +478,11 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         public void Match_examples()
         {
             // Examples from specification
-            Assert.AreEqual(2, XLWorkbook.EvaluateExpr("MATCH(39,{25,38,40,41},1)"));
-            Assert.AreEqual(4, XLWorkbook.EvaluateExpr("MATCH(41,{25,38,40,41},0)"));
+            Assert.AreEqual(2, XlsxWorkbook.EvaluateExpr("MATCH(39,{25,38,40,41},1)"));
+            Assert.AreEqual(4, XlsxWorkbook.EvaluateExpr("MATCH(41,{25,38,40,41},0)"));
 
             // Example from office website
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sheet = wb.AddWorksheet();
             sheet.Cell("A1").InsertData(new object[]
             {
@@ -494,80 +495,80 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
 
             Assert.AreEqual(2, sheet.Evaluate("MATCH(39,B2:B5,1)"));
             Assert.AreEqual(4, sheet.Evaluate("MATCH(41,B2:B5,0)"));
-            Assert.AreEqual(XLError.NoValueAvailable, sheet.Evaluate("MATCH(40,B2:B5,-1)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, sheet.Evaluate("MATCH(40,B2:B5,-1)"));
         }
 
         [TestCase("MATCH(5, {10,5,4,5,5,5,5,5}, -1)", 2)] // Doesn't use bisection, otherwise it would pick later position
         [TestCase("MATCH(5, {10,4,5}, -1)", 1)] // Because 4 is less than the target, search stops. Values should be descending.
         [TestCase("MATCH(5, {\"5\",10,\"4\",FALSE,TRUE,#DIV/0!,5,3}, -1)", 7)] // Non-target values are ignored
         [TestCase("MATCH(6, {\"4\",10,\"4\",FALSE,TRUE,#DIV/0!,5,3}, -1)", 2)] // Returned position is of the correct type, not just before less than target.
-        [TestCase("MATCH(5, {\"5\"}, -1)", XLError.NoValueAvailable)] // String values are not converted to numbers
-        [TestCase("MATCH(5, {4}, -1)", XLError.NoValueAvailable)]
+        [TestCase("MATCH(5, {\"5\"}, -1)", XlsxError.NoValueAvailable)] // String values are not converted to numbers
+        [TestCase("MATCH(5, {4}, -1)", XlsxError.NoValueAvailable)]
         [TestCase("MATCH(5, {10}, -1)", 1)]
-        [TestCase("MATCH(5, {TRUE}, -1)", XLError.NoValueAvailable)]
+        [TestCase("MATCH(5, {TRUE}, -1)", XlsxError.NoValueAvailable)]
         [TestCase("MATCH(\"c\", {\"E\",4,\"D\",\"B\"}, -1)", 3)]
         [TestCase("MATCH(FALSE, {TRUE,TRUE,\"FALSE\",0,FALSE,FALSE}, -1)", 5)]
         public void Match_from_descending(string formula, object result)
         {
-            var actual = XLWorkbook.EvaluateExpr(formula);
+            var actual = XlsxWorkbook.EvaluateExpr(formula);
             Assert.AreEqual(result, actual);
         }
 
         [TestCase("MATCH(35,{25,38,24,35,70},0)", 4)] // Finds value even in unsorted
         [TestCase("MATCH(35,{\"35\",38,24,35,70},0)", 4)] // String values are not converted, must match type
-        [TestCase("MATCH(1,{5},0)", XLError.NoValueAvailable)] // Nothing found
+        [TestCase("MATCH(1,{5},0)", XlsxError.NoValueAvailable)] // Nothing found
         [TestCase("MATCH(\"35\",{35,38,24,\"35\",70},0)", 4)] // String target is not converted, must match type
         [TestCase("MATCH(\"c*\",{\"a\",\"cd\"},0)", 2)] // Consider string targets wildcards
         [TestCase("MATCH(TRUE, {0,\"TRUE\",FALSE,TRUE,1},0)", 4)]
         public void Match_from_unsorted(string formula, object result)
         {
-            var actual = XLWorkbook.EvaluateExpr(formula);
+            var actual = XlsxWorkbook.EvaluateExpr(formula);
             Assert.AreEqual(result, actual);
         }
 
         [TestCase("MATCH(39,{25,38,38,38,40,41},1)", 4)] // When there is a sequence of target values, return last one
-        [TestCase("MATCH(20,{25,38,40},1)", XLError.NoValueAvailable)] // Nothing found, even smallest value is greater than target
+        [TestCase("MATCH(20,{25,38,40},1)", XlsxError.NoValueAvailable)] // Nothing found, even smallest value is greater than target
         [TestCase("MATCH(25,{20,TRUE,FALSE,38,40},1)", 1)] // If found value is <= target, return position of value, not subsequent types that are ignored
-        [TestCase("MATCH(8, {FALSE;FALSE}, 1)", XLError.NoValueAvailable)] // Not even one value of target type
+        [TestCase("MATCH(8, {FALSE;FALSE}, 1)", XlsxError.NoValueAvailable)] // Not even one value of target type
         [TestCase("MATCH(5, {1,2,3}, 1)", 3)] // If target value is greater than the last element of same type, return the position of the last element
         public void Match_from_ascending(string formula, object result)
         {
-            var actual = XLWorkbook.EvaluateExpr(formula);
+            var actual = XlsxWorkbook.EvaluateExpr(formula);
             Assert.AreEqual(result, actual);
         }
 
         [TestCase("MATCH(17, {14;5;3;5;11;12;11;13;13;4})", 10)]
         [TestCase("MATCH(12, {5;15;18;18;11;1;15;17})", 1)]
-        [TestCase("MATCH(4, {10,3,FALSE, FALSE,FALSE})", XLError.NoValueAvailable)]
-        [TestCase("MATCH(8, {14;0;17;FALSE;8})", XLError.NoValueAvailable)]
+        [TestCase("MATCH(4, {10,3,FALSE, FALSE,FALSE})", XlsxError.NoValueAvailable)]
+        [TestCase("MATCH(8, {14;0;17;FALSE;8})", XlsxError.NoValueAvailable)]
         public void Match_from_ascending_matches_excel(string formula, object result)
         {
             // The bisection algorithm should match Excel. That is checked by supplying
             // non-ascending data and checking the result against Excel result. Use random
             // generator to generate formulas + compare with Excel when modifying the algorithm.
-            var actual = XLWorkbook.EvaluateExpr(formula);
+            var actual = XlsxWorkbook.EvaluateExpr(formula);
             Assert.AreEqual(result, actual);
         }
 
-        [TestCase("MATCH(#DIV/0!,{1,2,3},1)", XLError.DivisionByZero)] // Scalar argument is error -> propagate
-        [TestCase("MATCH(IF(TRUE,),{1,2,3},1)", XLError.NoValueAvailable)] // Return not found for blank value
-        [TestCase("MATCH(1,{1,2;3,4},1)", XLError.NoValueAvailable)] // Must be either row or column, the array is 2x2
+        [TestCase("MATCH(#DIV/0!,{1,2,3},1)", XlsxError.DivisionByZero)] // Scalar argument is error -> propagate
+        [TestCase("MATCH(IF(TRUE,),{1,2,3},1)", XlsxError.NoValueAvailable)] // Return not found for blank value
+        [TestCase("MATCH(1,{1,2;3,4},1)", XlsxError.NoValueAvailable)] // Must be either row or column, the array is 2x2
         [TestCase("MATCH(1,{3,2,1},-2)", 3)] // Match type can be negative for match type -1
         [TestCase("MATCH(1,{1,2,3}, 2)", 1)] // Match type can be positive for match type 1
         [TestCase("MATCH(2,{1;2;3}, 2)", 2)] // Match returns position from start both in row or column
         [TestCase("MATCH(2,{1,2,3}, 2)", 2)] // Match returns position from start both in row or column
         [TestCase("MATCH(3,{1,2,3,4,5})", 3)] // Default match type is 1 (ascending bisection)
-        [TestCase("MATCH(3,3)", XLError.NoValueAvailable)] // Scalar values are not converted to 1x1 array
+        [TestCase("MATCH(3,3)", XlsxError.NoValueAvailable)] // Scalar values are not converted to 1x1 array
         public void Match_edge_conditions(string formula, object result)
         {
-            var actual = XLWorkbook.EvaluateExpr(formula);
+            var actual = XlsxWorkbook.EvaluateExpr(formula);
             Assert.AreEqual(result, actual);
         }
 
         [Test]
         public void Match_accepts_single_cell_as_values()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sheet = wb.AddWorksheet();
             sheet.Cell("A1").Value = 5;
             Assert.AreEqual(1, sheet.Evaluate("MATCH(5, A1)"));
@@ -576,7 +577,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Row()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var ws = wb.AddWorksheet("Data");
             wb.AddWorksheet("Other");
 
@@ -594,19 +595,19 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
             Assert.AreEqual(2 + 3 + 4, ws.Cell("A4").SetFormulaA1("SUM(ROW(C2:Z4))").Value);
 
             // Not contiguous range (multiple areas) returns #REF!
-            Assert.AreEqual(XLError.CellReference, ws.Cell("A5").SetFormulaA1("ROW((D5:G10,I8:K12))").Value);
+            Assert.AreEqual(XlsxError.CellReference, ws.Cell("A5").SetFormulaA1("ROW((D5:G10,I8:K12))").Value);
 
             // Invalid references return #REF!
-            Assert.AreEqual(XLError.CellReference, ws.Cell("A6").SetFormulaA1("ROW(NonExistent!F10)").Value);
+            Assert.AreEqual(XlsxError.CellReference, ws.Cell("A6").SetFormulaA1("ROW(NonExistent!F10)").Value);
 
             // Return row number even for different worksheet
             Assert.AreEqual(14, ws.Cell("A7").SetFormulaA1("ROW(Other!E14)").Value);
 
             // Unexpected types return error
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Cell("A8").SetFormulaA1("ROW(IF(TRUE,TRUE))").Value);
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Cell("A9").SetFormulaA1("ROW(IF(TRUE,5))").Value);
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Cell("A10").SetFormulaA1("ROW(IF(TRUE,\"G15\"))").Value);
-            Assert.AreEqual(XLError.DivisionByZero, ws.Cell("A11").SetFormulaA1("ROW(#DIV/0!)").Value);
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Cell("A8").SetFormulaA1("ROW(IF(TRUE,TRUE))").Value);
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Cell("A9").SetFormulaA1("ROW(IF(TRUE,5))").Value);
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Cell("A10").SetFormulaA1("ROW(IF(TRUE,\"G15\"))").Value);
+            Assert.AreEqual(XlsxError.DivisionByZero, ws.Cell("A11").SetFormulaA1("ROW(#DIV/0!)").Value);
 
             // Properly works even in array formulas, where border between references and arrays blurs.
             ws.Range("A12:A13").FormulaArrayA1 = "ROW(2:3)";
@@ -617,7 +618,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Rows_Blank_ReturnsValueError()
         {
-            Assert.AreEqual(XLError.IncompatibleValue, XLWorkbook.EvaluateExpr("ROWS(IF(TRUE,,))"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, XlsxWorkbook.EvaluateExpr("ROWS(IF(TRUE,,))"));
         }
 
         [TestCase("0")]
@@ -631,13 +632,13 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("\"Hello World\"")]
         public void Rows_ScalarValues_ReturnsOne(string value)
         {
-            Assert.AreEqual(1, XLWorkbook.EvaluateExpr($"ROWS({value})"));
+            Assert.AreEqual(1, XlsxWorkbook.EvaluateExpr($"ROWS({value})"));
         }
 
         [Test]
         public void Rows_Error_ReturnsError()
         {
-            Assert.AreEqual(XLError.DivisionByZero, XLWorkbook.EvaluateExpr("ROWS(#DIV/0!)"));
+            Assert.AreEqual(XlsxError.DivisionByZero, XlsxWorkbook.EvaluateExpr("ROWS(#DIV/0!)"));
         }
 
         [TestCase("{1}", 1)]
@@ -646,7 +647,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("{TRUE;#DIV/0!}", 2)]
         public void Rows_Arrays_ReturnsNumberOfRows(string array, int expectedColumnCount)
         {
-            Assert.AreEqual(expectedColumnCount, XLWorkbook.EvaluateExpr($"ROWS({array})"));
+            Assert.AreEqual(expectedColumnCount, XlsxWorkbook.EvaluateExpr($"ROWS({array})"));
         }
 
         [TestCase("C3", 1)]
@@ -654,7 +655,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [TestCase("AA21:AC400", 380)]
         public void Rows_References_ReturnsNumberOfColumns(string range, int expectedColumnCount)
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var sheet = wb.AddWorksheet();
             Assert.AreEqual(expectedColumnCount, sheet.Evaluate($"ROWS({range})"));
         }
@@ -663,7 +664,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         public void Rows_NonContiguousReferences_ReturnsReferenceError()
         {
             // Spec says #NULL!, but Excel says #REF!
-            Assert.AreEqual(XLError.CellReference, XLWorkbook.EvaluateExpr("ROWS((A1,C3))"));
+            Assert.AreEqual(XlsxError.CellReference, XlsxWorkbook.EvaluateExpr("ROWS((A1,C3))"));
         }
 
         [Test]
@@ -704,33 +705,33 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         public void Vlookup_ElementNotFound_ReturnsNotAvailableError()
         {
             // Value not present in the range for exact search
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Evaluate(@"=VLOOKUP("""",Data!$B$2:$I$71,3,FALSE)"));
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Evaluate(@"=VLOOKUP(50,Data!$B$2:$I$71,3,FALSE)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Evaluate(@"=VLOOKUP("""",Data!$B$2:$I$71,3,FALSE)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Evaluate(@"=VLOOKUP(50,Data!$B$2:$I$71,3,FALSE)"));
 
             // Value in approximate search that is lower than first element
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Evaluate(@"=VLOOKUP(-1,Data!$B$2:$I$71,2,TRUE)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Evaluate(@"=VLOOKUP(-1,Data!$B$2:$I$71,2,TRUE)"));
         }
 
         [Test]
         public void Vlookup_UnexpectedArguments()
         {
             // Lookup value can't be an error
-            Assert.AreEqual(XLError.DivisionByZero, ws.Evaluate("=VLOOKUP(#DIV/0!,B2:I71,1)"));
+            Assert.AreEqual(XlsxError.DivisionByZero, ws.Evaluate("=VLOOKUP(#DIV/0!,B2:I71,1)"));
 
             // Text value can't be over 255 chars
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Evaluate($"=VLOOKUP(\"{new string('A', 256)}\",B2:I71,1)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Evaluate($"=VLOOKUP(\"{new string('A', 256)}\",B2:I71,1)"));
 
             // Range can only be array or a reference. If other type, it returns the error #N/A
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Evaluate("=VLOOKUP(1,1,1)"));
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Evaluate("=VLOOKUP(1,TRUE,1)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Evaluate("=VLOOKUP(1,1,1)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Evaluate("=VLOOKUP(1,TRUE,1)"));
 
             // If range is a non-contiguous range, #N/A
-            Assert.AreEqual(XLError.NoValueAvailable, ws.Evaluate("=VLOOKUP(1,(B2:I5,B6:I10),1)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, ws.Evaluate("=VLOOKUP(1,(B2:I5,B6:I10),1)"));
 
             // The column index must be at most the same as width of the range. It is 9 here, but range is 8 cell wide.
-            Assert.AreEqual(XLError.CellReference, ws.Evaluate("=VLOOKUP(20,B2:I71,9,FALSE)"));
+            Assert.AreEqual(XlsxError.CellReference, ws.Evaluate("=VLOOKUP(20,B2:I71,9,FALSE)"));
             // The column index must be at least 1. It is 0 here.
-            Assert.AreEqual(XLError.IncompatibleValue, ws.Evaluate("=VLOOKUP(20,B2:I71,0,FALSE)"));
+            Assert.AreEqual(XlsxError.IncompatibleValue, ws.Evaluate("=VLOOKUP(20,B2:I71,0,FALSE)"));
         }
 
         [Test]
@@ -754,7 +755,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Vlookup_BlankLookupValue_BehavesAsZero()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var worksheet = wb.AddWorksheet();
             worksheet.Cell("A1").InsertData(Enumerable.Range(-5, 10).Select(x => new object[] { x, $"Row with value {x}" }));
 
@@ -766,7 +767,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Vlookup_ApproximateSearch_OmitsValuesWithDifferentType()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var worksheet = wb.AddWorksheet();
             worksheet.Cell("A1").Value = "0";
             worksheet.Cell("A2").Value = "1";
@@ -784,15 +785,15 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Vlookup_OnlyCellsWithDifferentType_ReturnsNotAvailable()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var worksheet = wb.AddWorksheet();
-            Assert.AreEqual(XLError.NoValueAvailable, worksheet.Evaluate("VLOOKUP(1,A1,1,TRUE)"));
+            Assert.AreEqual(XlsxError.NoValueAvailable, worksheet.Evaluate("VLOOKUP(1,A1,1,TRUE)"));
         }
 
         [Test]
         public void Vlookup_OnlyOneValueSurroundedByIgnoredTypes()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var worksheet = wb.AddWorksheet();
             worksheet.Cell("A3").Value = 5;
 
@@ -802,7 +803,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Vlookup_ResultAtTheHighestCellWithTrailingDifferentTypeAtTheEnd()
         {
-            using var wb = new XLWorkbook();
+            using var wb = new XlsxWorkbook();
             var worksheet = wb.AddWorksheet();
             worksheet.Cell("A1").Value = 1;
             worksheet.Cell("A2").Value = 2;
@@ -815,7 +816,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Vlookup_ApproximateSearch_ReturnsLastRowForMultipleEqualValues()
         {
-            var wb = new XLWorkbook();
+            var wb = new XlsxWorkbook();
             var sheet = wb.AddWorksheet();
             sheet.Cell("A1").Value = 1;
             sheet.Cell("A2").Value = 3;
@@ -839,7 +840,7 @@ namespace Aid.Xlsx.Tests.Excel.CalcEngine
         [Test]
         public void Vlookup_CanSearchArrays()
         {
-            Assert.AreEqual(2, XLWorkbook.EvaluateExpr("VLOOKUP(4, {1,2; 3,2; 5,3; 7,4}, 2)"));
+            Assert.AreEqual(2, XlsxWorkbook.EvaluateExpr("VLOOKUP(4, {1,2; 3,2; 5,3; 7,4}, 2)"));
         }
     }
 }

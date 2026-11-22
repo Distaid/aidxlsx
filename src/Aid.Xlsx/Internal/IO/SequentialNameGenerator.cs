@@ -1,5 +1,5 @@
-using System;
 using System.Globalization;
+using Aid.Xlsx.Utils;
 
 namespace Aid.Xlsx.Internal.IO;
 
@@ -19,7 +19,7 @@ internal class SequentialNameGenerator
         if (!name.StartsWith(_prefix))
             return;
 
-        if (!int.TryParse(name[_prefix.Length..], NumberStyles.None, XLHelper.ParseCulture, out var styleNumber))
+        if (!int.TryParse(name[_prefix.Length..], NumberStyles.None, XlsxHelper.ParseCulture, out var styleNumber))
             return;
 
         _nextNumber = Math.Max(styleNumber + 1, _nextNumber);

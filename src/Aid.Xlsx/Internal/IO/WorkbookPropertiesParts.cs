@@ -1,5 +1,6 @@
 using System.Xml.Linq;
 using Aid.Xlsx.Opc;
+using Aid.Xlsx.Workbooks;
 
 namespace Aid.Xlsx.Internal.IO;
 
@@ -10,7 +11,7 @@ internal static class WorkbookPropertiesParts
     private const string CustomRelationship = OfficeRelationships + "custom-properties";
     private const string ExtendedRelationship = OfficeRelationships + "extended-properties";
 
-    internal static void Read(OpcPackage package, XLWorkbook workbook)
+    internal static void Read(OpcPackage package, XlsxWorkbook workbook)
     {
         using (var core = GetPart(package, CoreRelationship)?.OpenRead())
             if (core is not null)
@@ -27,7 +28,7 @@ internal static class WorkbookPropertiesParts
 
     internal static bool HasExtendedProperties(OpcPackage package) => GetPart(package, ExtendedRelationship) is not null;
 
-    internal static void Write(OpcPackage package, XLWorkbook workbook, string? newExtendedRelationshipId)
+    internal static void Write(OpcPackage package, XlsxWorkbook workbook, string? newExtendedRelationshipId)
     {
         var corePart = GetPart(package, CoreRelationship);
         XDocument core;

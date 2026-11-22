@@ -1,6 +1,7 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
+using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.Opc;
+using Aid.Xlsx.Styles.Colors;
 using Aid.Xlsx.Utils;
 
 namespace Aid.Xlsx.Internal.IO;
@@ -15,7 +16,7 @@ internal static class XmlTreeReaderExtensions
     /// Try to open an optional <c>CT_Color</c> and read the color.
     /// </summary>
     /// <returns><c>true</c> when there was a color element, false if there wasn't.</returns>
-    public static bool TryReadColor(this XmlTreeReader reader, string colorElementName, string ns, [NotNullWhen(true)] out XLColor? color)
+    public static bool TryReadColor(this XmlTreeReader reader, string colorElementName, string ns, [NotNullWhen(true)] out XlsxColor? color)
     {
         if (reader.TryOpen(colorElementName, ns))
         {
@@ -30,7 +31,7 @@ internal static class XmlTreeReaderExtensions
     /// <summary>
     /// Read <c>CT_Color</c>.
     /// </summary>
-    public static XLColor ParseColor(this XmlTreeReader reader, string colorElementName, string ns)
+    public static XlsxColor ParseColor(this XmlTreeReader reader, string colorElementName, string ns)
     {
         // OI-29500: Office prioritizes the attributes as auto < indexed < rgb < theme, and only
         // round trips the type with the highest priority if two or more are specified.
@@ -38,7 +39,7 @@ internal static class XmlTreeReaderExtensions
         if (theme is not null)
         {
             var tint = reader.GetOptionalDouble("tint") ?? 0;
-            var themeColor = XLColor.FromTheme((XLThemeColor)theme.Value, tint);
+            var themeColor = XlsxColor.FromTheme((XlsxThemeColor)theme.Value, tint);
             reader.Close(colorElementName, ns);
             return themeColor;
         }
@@ -46,7 +47,7 @@ internal static class XmlTreeReaderExtensions
         var rgb = reader.GetOptionalString("rgb");
         if (rgb is not null)
         {
-            var rgbColor = XLColor.FromColor(ColorStringParser.ParseFromArgb(rgb.AsSpan()));
+            var rgbColor = XlsxColor.FromColor(ColorStringParser.ParseFromArgb(rgb.AsSpan()));
             reader.Close(colorElementName, ns);
             return rgbColor;
         }
@@ -54,7 +55,7 @@ internal static class XmlTreeReaderExtensions
         var indexed = reader.GetOptionalUintAsInt("indexed");
         if (indexed is not null)
         {
-            var indexedColor = indexed <= XLColor.IndexedColors.Count ? XLColor.FromIndex(indexed.Value) : XLColor.Automatic;
+            var indexedColor = indexed <= XlsxColor.IndexedColors.Count ? XlsxColor.FromIndex(indexed.Value) : XlsxColor.Automatic;
             reader.Close(colorElementName, ns);
             return indexedColor;
         }
@@ -62,7 +63,7 @@ internal static class XmlTreeReaderExtensions
         // All attributes of CT_Color are optional. An empty color uses the automatic color.
         _ = reader.GetOptionalBool("auto");
         reader.Close(colorElementName, ns);
-        return XLColor.Automatic;
+        return XlsxColor.Automatic;
     }
 
     /// <summary>

@@ -1,7 +1,6 @@
-using Aid.Xlsx;
+using Aid.Xlsx.Coordinates;
+using Aid.Xlsx.Utils;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 
 namespace Aid.Xlsx.Tests.Excel.Coordinates;
 
@@ -19,9 +18,9 @@ public class PointTests
     }
 
     [TestCase(1, 1)]
-    [TestCase(XLHelper.MaxRowNumber, 1)]
-    [TestCase(1, XLHelper.MaxColumnNumber)]
-    [TestCase(XLHelper.MaxRowNumber, XLHelper.MaxColumnNumber)]
+    [TestCase(XlsxHelper.MaxRowNumber, 1)]
+    [TestCase(1, XlsxHelper.MaxColumnNumber)]
+    [TestCase(XlsxHelper.MaxRowNumber, XlsxHelper.MaxColumnNumber)]
     public void Ctor_accepts_valid_sheet_coordinates(int row, int column)
     {
         var point = new Point(row, column);
@@ -33,7 +32,7 @@ public class PointTests
     [TestCase(0)]
     [TestCase(-1)]
     [TestCase(int.MinValue)]
-    [TestCase(XLHelper.MaxRowNumber + 1)]
+    [TestCase(XlsxHelper.MaxRowNumber + 1)]
     [TestCase(int.MaxValue)]
     public void Ctor_row_must_be_valid(int invalidRow)
     {
@@ -43,7 +42,7 @@ public class PointTests
     [TestCase(0)]
     [TestCase(-1)]
     [TestCase(int.MinValue)]
-    [TestCase(XLHelper.MaxColumnNumber + 1)]
+    [TestCase(XlsxHelper.MaxColumnNumber + 1)]
     [TestCase(int.MaxValue)]
     public void Ctor_column_must_be_valid(int invalidColumn)
     {

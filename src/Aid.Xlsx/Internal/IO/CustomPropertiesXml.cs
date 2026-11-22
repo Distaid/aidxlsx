@@ -1,6 +1,8 @@
 using System.Globalization;
-using System.Xml;
 using System.Xml.Linq;
+using System.Xml;
+using Aid.Xlsx.CustomProperties;
+using Aid.Xlsx.Extensions;
 
 namespace Aid.Xlsx.Internal.IO;
 
@@ -10,7 +12,7 @@ internal static class CustomPropertiesXml
     private static readonly XNamespace Variant = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
     private const string FormatId = "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}";
 
-    internal static void Read(Stream stream, IXLCustomProperties properties)
+    internal static void Read(Stream stream, IXlsxCustomProperties properties)
     {
         var root = XDocumentExtensions.Load(stream)?.Root;
         if (root is null)
@@ -36,7 +38,7 @@ internal static class CustomPropertiesXml
 
     /// <summary>Builds the updated XML, retaining variants the object model does not represent.</summary>
     /// <returns>The XML, or <see langword="null"/> if the entire part can be removed.</returns>
-    internal static XDocument? Update(Stream? existing, IXLCustomProperties properties)
+    internal static XDocument? Update(Stream? existing, IXlsxCustomProperties properties)
     {
         var root = existing is null ? null : XDocumentExtensions.Load(existing)?.Root;
         if (root?.Name != Custom + "Properties")
@@ -82,11 +84,11 @@ internal static class CustomPropertiesXml
         return root.HasElements ? root.Document ?? new XDocument(root) : null;
     }
 
-    private static XElement SerializeValue(IXLCustomProperty property) => property.Type switch
+    private static XElement SerializeValue(IXlsxCustomProperty property) => property.Type switch
     {
-        XLCustomPropertyType.Text => new XElement(Variant + "lpwstr", property.GetValue<string>()),
-        XLCustomPropertyType.Date => new XElement(Variant + "filetime", XmlConvert.ToString(property.GetValue<DateTime>().ToUniversalTime(), "yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'")),
-        XLCustomPropertyType.Number => new XElement(Variant + "r8", XmlConvert.ToString(property.GetValue<double>())),
+        XlsxCustomPropertyType.Text => new XElement(Variant + "lpwstr", property.GetValue<string>()),
+        XlsxCustomPropertyType.Date => new XElement(Variant + "filetime", XmlConvert.ToString(property.GetValue<DateTime>().ToUniversalTime(), "yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'")),
+        XlsxCustomPropertyType.Number => new XElement(Variant + "r8", XmlConvert.ToString(property.GetValue<double>())),
         _ => new XElement(Variant + "bool", XmlConvert.ToString(property.GetValue<bool>()))
     };
 }

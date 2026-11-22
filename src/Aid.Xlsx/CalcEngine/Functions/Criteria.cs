@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 
@@ -167,7 +165,7 @@ internal class Criteria
         };
     }
 
-    private bool CompareError(ScalarValue value, XLError actual)
+    private bool CompareError(ScalarValue value, XlsxError actual)
     {
         if (!value.IsError)
             return _comparison == Comparison.NotEqual;

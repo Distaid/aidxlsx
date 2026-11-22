@@ -1,8 +1,5 @@
-using NUnit.Framework.Constraints;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Xml.Linq;
+using NUnit.Framework.Constraints;
 
 namespace Aid.Xlsx.Tests;
 
