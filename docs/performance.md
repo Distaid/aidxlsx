@@ -48,6 +48,27 @@ JIT was faster on both 20,000-row operations. NativeAOT was faster when saving 2
 The 2,000-row load result varied between runs. These measurements cover workbook I/O
 after warmup and exclude process startup.
 
+### NativeAOT optimized for speed
+
+A follow-up run on the same Windows machine used the same inputs and ran the default
+NativeAOT build, NativeAOT with `OptimizationPreference=Speed`, and JIT in that order.
+Each value is the median for one run of that build.
+
+| Operation | Rows | JIT time | NativeAOT time | NativeAOT `Speed` time |
+| --- | ---: | ---: | ---: | ---: |
+| Load | 2,000 | 20.45 ms | 18.02 ms | 16.43 ms |
+| Load | 20,000 | 132.22 ms | 205.91 ms | 191.35 ms |
+| Save | 2,000 | 43.51 ms | 21.47 ms | 20.30 ms |
+| Save | 20,000 | 184.78 ms | 236.59 ms | 222.98 ms |
+
+`Speed` reduced the NativeAOT median in all four cases. JIT still had lower medians on
+both 20,000-row operations. [NativeAOT optimization settings](https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/optimizing)
+
+NativeAOT avoids JIT compilation at process startup. In these warmed-up measurements,
+the JIT can use runtime profiles to optimize frequently executed code paths. That may
+help explain the results. A comparison on Linux would show whether the same pattern holds
+there. [Tiered compilation and dynamic PGO](https://learn.microsoft.com/en-us/dotnet/core/runtime-config/compilation)
+
 Run these commands from a Windows x64 Visual Studio Developer PowerShell with the C++
 build tools installed.
 
@@ -55,6 +76,8 @@ build tools installed.
 dotnet run --project tests/Aid.Xlsx.Benchmarks -c Release -- --export-input artifacts/native-benchmarks/input
 dotnet publish tests/Aid.Xlsx.NativeBenchmarks -c Release -o artifacts/native-benchmarks/jit
 dotnet publish tests/Aid.Xlsx.NativeBenchmarks -c Release -r win-x64 -p:PublishAot=true -p:NuGetLockFilePath=obj/packages.aot.lock.json -o artifacts/native-benchmarks/aot
-.\artifacts\native-benchmarks\jit\Aid.Xlsx.NativeBenchmarks.exe artifacts/native-benchmarks/input
+dotnet publish tests/Aid.Xlsx.NativeBenchmarks -c Release -r win-x64 -p:PublishAot=true -p:OptimizationPreference=Speed -p:NuGetLockFilePath=obj/packages.aot.lock.json -o artifacts/native-benchmarks/aot-speed
 .\artifacts\native-benchmarks\aot\Aid.Xlsx.NativeBenchmarks.exe artifacts/native-benchmarks/input
+.\artifacts\native-benchmarks\aot-speed\Aid.Xlsx.NativeBenchmarks.exe artifacts/native-benchmarks/input
+.\artifacts\native-benchmarks\jit\Aid.Xlsx.NativeBenchmarks.exe artifacts/native-benchmarks/input
 ```
