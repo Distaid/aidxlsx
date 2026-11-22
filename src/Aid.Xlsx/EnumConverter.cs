@@ -5,7 +5,6 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System;
 using System.Collections.Generic;
-using Vml = DocumentFormat.OpenXml.Vml;
 using X14 = DocumentFormat.OpenXml.Office2010.Excel;
 using Xdr = DocumentFormat.OpenXml.Drawing.Spreadsheet;
 
@@ -589,21 +588,6 @@ namespace Aid.Xlsx
                 case XLSheetViewOptions.Normal: return SheetViewValues.Normal;
                 case XLSheetViewOptions.PageBreakPreview: return SheetViewValues.PageBreakPreview;
                 case XLSheetViewOptions.PageLayout: return SheetViewValues.PageLayout;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(value), "Not implemented value!");
-            }
-        }
-
-        public static Vml.StrokeLineStyleValues ToOpenXml(this XLLineStyle value)
-        {
-            switch (value)
-            {
-                case XLLineStyle.Single: return Vml.StrokeLineStyleValues.Single;
-                case XLLineStyle.ThickBetweenThin: return Vml.StrokeLineStyleValues.ThickBetweenThin;
-                case XLLineStyle.ThickThin: return Vml.StrokeLineStyleValues.ThickThin;
-                case XLLineStyle.ThinThick: return Vml.StrokeLineStyleValues.ThinThick;
-                case XLLineStyle.ThinThin: return Vml.StrokeLineStyleValues.ThinThin;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(value), "Not implemented value!");
@@ -1217,21 +1201,6 @@ namespace Aid.Xlsx
         public static XLSheetViewOptions ToXlsx(this SheetViewValues value)
         {
             return SheetViewMap[value];
-        }
-
-        private static readonly IReadOnlyDictionary<Vml.StrokeLineStyleValues, XLLineStyle> StrokeLineStyleMap =
-            new Dictionary<Vml.StrokeLineStyleValues, XLLineStyle>
-            {
-                { Vml.StrokeLineStyleValues.Single, XLLineStyle.Single },
-                { Vml.StrokeLineStyleValues.ThickBetweenThin, XLLineStyle.ThickBetweenThin },
-                { Vml.StrokeLineStyleValues.ThickThin, XLLineStyle.ThickThin },
-                { Vml.StrokeLineStyleValues.ThinThick, XLLineStyle.ThinThick },
-                { Vml.StrokeLineStyleValues.ThinThin, XLLineStyle.ThinThin },
-            };
-
-        public static XLLineStyle ToXlsx(this Vml.StrokeLineStyleValues value)
-        {
-            return StrokeLineStyleMap[value];
         }
 
         private static readonly IReadOnlyDictionary<ConditionalFormatValues, XLConditionalFormatType> ConditionalFormatMap =

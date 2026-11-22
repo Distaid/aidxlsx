@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stream worksheet cells directly from XML without reflecting into the Open XML SDK reader.
 - Read and write table definitions and auto-filters directly through XML.
 - Read comment text with the same XML parser as rich text in cells.
+- Write legacy comment shapes directly through XML while preserving the drawing's other shapes.
 - Open and save workbook ZIP containers with the built-in OPC layer, preserving untouched parts and their relationships.
 - Build the formula parser from repository sources and ship it inside `Aid.Xlsx`.
 - Restructured the solution for the port: the projects and namespaces are

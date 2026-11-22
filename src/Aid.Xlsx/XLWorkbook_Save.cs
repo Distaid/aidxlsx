@@ -10,9 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Xml;
 using System.Xml.Linq;
 using Path = System.IO.Path;
 using Aid.Xlsx.Internal.IO;
@@ -255,7 +253,9 @@ namespace Aid.Xlsx
                 // Excel won't display any shape without VML. The drawing part is always present, but is likely
                 // only different rendering of VML (more precisely the shapes behind VML).
                 var vmlDrawingPart = worksheetPart.VmlDrawingParts.FirstOrDefault();
-                var hasAnyVmlElements = DeleteExistingCommentsShapes(vmlDrawingPart);
+                XDocument vmlContent;
+                using (var original = vmlDrawingPart?.GetStream(FileMode.Open, FileAccess.Read))
+                    vmlContent = VmlDrawingPartWriter.GenerateContent(original, worksheet, worksheetHasComments);
 
                 if (worksheetHasComments)
                 {
@@ -278,7 +278,6 @@ namespace Aid.Xlsx
 
                     using (var target = commentsPart.GetStream(FileMode.Create, FileAccess.Write))
                         CommentPartWriter.GenerateWorksheetCommentsPartContent(target, worksheet);
-                    hasAnyVmlElements = VmlDrawingPartWriter.GenerateContent(vmlDrawingPart, worksheet);
                 }
                 else
                 {
@@ -288,7 +287,12 @@ namespace Aid.Xlsx
                         worksheetPart.DeletePart(commentsPart);
                 }
 
-                if (!hasAnyVmlElements && vmlDrawingPart is not null)
+                if (vmlContent is not null && vmlDrawingPart is not null)
+                {
+                    using var target = vmlDrawingPart.GetStream(FileMode.Create, FileAccess.Write);
+                    VmlDrawingPartWriter.Write(target, vmlContent);
+                }
+                else if (vmlDrawingPart is not null)
                 {
                     worksheet.LegacyDrawingId = null;
                     worksheetPart.DeletePart(vmlDrawingPart);
@@ -348,42 +352,6 @@ namespace Aid.Xlsx
             // Clear list of deleted worksheets to prevent errors on multiple saves
             worksheets.Deleted.Clear();
             return newExtendedRelationshipId;
-        }
-
-        private bool DeleteExistingCommentsShapes(VmlDrawingPart vmlDrawingPart)
-        {
-            if (vmlDrawingPart == null)
-                return false;
-
-            // Nuke the VmlDrawingPart elements for comments.
-            using (var vmlStream = vmlDrawingPart.GetStream(FileMode.Open))
-            {
-                var xdoc = XDocumentExtensions.Load(vmlStream);
-                if (xdoc == null)
-                    return false;
-
-                // Remove existing shapes for comments
-                xdoc.Root
-                    .Elements()
-                    .Where(e => e.Name.LocalName == "shapetype" && e.Attribute("id").Value == XLConstants.Comment.ShapeTypeId)
-                    .Remove();
-
-                xdoc.Root
-                    .Elements()
-                    .Where(e => e.Name.LocalName == "shape" && e.Attribute("type").Value == "#" + XLConstants.Comment.ShapeTypeId)
-                    .Remove();
-
-                vmlStream.Position = 0;
-
-                using (var writer = new XmlTextWriter(vmlStream, Encoding.UTF8))
-                {
-                    var contents = xdoc.ToString();
-                    writer.WriteRaw(contents);
-                    vmlStream.SetLength(contents.Length);
-                }
-
-                return xdoc.Root.HasElements;
-            }
         }
 
         private static void SynchronizePivotTableParts(WorkbookPart workbookPart, IReadOnlyList<IXLPivotTable> allPivotTables, SaveContext context)

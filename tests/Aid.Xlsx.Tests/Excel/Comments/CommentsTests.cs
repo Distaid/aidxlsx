@@ -5,6 +5,7 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace Aid.Xlsx.Tests.Excel.Comments
 {
@@ -201,6 +202,45 @@ namespace Aid.Xlsx.Tests.Excel.Comments
 
                 Assert.DoesNotThrow(() => new XLWorkbook(ms));
             }
+        }
+
+        [Test]
+        public void DeletingCommentsPreservesVmlButtonAndItsText()
+        {
+            using var source = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"TryToLoad\CommentAndButton.xlsx"));
+            using var editable = new MemoryStream();
+            source.CopyTo(editable);
+            editable.Position = 0;
+            XNamespace excel = "urn:schemas-microsoft-com:office:excel";
+            XNamespace vml = "urn:schemas-microsoft-com:vml";
+            XElement button;
+            using (var package = SpreadsheetDocument.Open(editable, true))
+            {
+                var part = package.WorkbookPart.WorksheetParts.SelectMany(sheet => sheet.VmlDrawingParts).Single();
+                XDocument document;
+                using (var input = part.GetStream(FileMode.Open, FileAccess.Read))
+                    document = XDocument.Load(input);
+                button = document.Descendants(vml + "shape").Single(shape => (string)shape.Element(excel + "ClientData")?.Attribute("ObjectType") == "Button");
+                button.SetAttributeValue("alt", "Café 日本語");
+                using var output = part.GetStream(FileMode.Create, FileAccess.Write);
+                document.Save(output);
+            }
+
+            editable.Position = 0;
+            using var saved = new MemoryStream();
+            using (var workbook = new XLWorkbook(editable))
+            {
+                workbook.Worksheets.First().FirstCell().GetComment().Delete();
+                workbook.SaveAs(saved);
+            }
+
+            saved.Position = 0;
+            using var reloaded = SpreadsheetDocument.Open(saved, false);
+            var worksheet = reloaded.WorkbookPart.WorksheetParts.Single(sheet => sheet.VmlDrawingParts.Any());
+            Assert.IsNull(worksheet.WorksheetCommentsPart);
+            using var retainedStream = worksheet.VmlDrawingParts.Single().GetStream();
+            var retainedButton = XDocument.Load(retainedStream).Descendants(vml + "shape").Single();
+            Assert.IsTrue(XNode.DeepEquals(button, retainedButton));
         }
 
         [Test]

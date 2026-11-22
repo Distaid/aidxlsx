@@ -469,12 +469,8 @@ namespace Aid.Xlsx
                         continue;
 
                     var shapes = root
-                        .Elements(XName.Get("shape", "urn:schemas-microsoft-com:vml"))
-                        .Where(e => new[]
-                        {
-                            "#" + XLConstants.Comment.ShapeTypeId ,
-                            "#" + XLConstants.Comment.AlternateShapeTypeId
-                        }.Contains(e.Attribute("type")?.Value))
+                        .Elements()
+                        .Where(VmlDrawingPartWriter.IsCommentShape)
                         .ToList();
 
                     if (shapes != null)
