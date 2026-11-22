@@ -154,7 +154,7 @@ $scannedPaths = $WorkflowPaths + @(
     'global.json',
     'Directory.Build.props',
     'Directory.Packages.props',
-    'eng/scripts/import-upstream.ps1'
+    'eng/scripts/validate-workflows.ps1'
 )
 $tabHits = @()
 foreach ($relativePath in $scannedPaths) {
@@ -449,7 +449,7 @@ Add-Check '.editorconfig: root, single line endings' ($editorConfigIssues.Count 
 # --- 16. No replace calls in workflows and eng scripts ------------------
 $replacePattern = '(?i)re' + 'place\('
 $replaceHits = @()
-foreach ($relativePath in ($WorkflowPaths + @('eng/scripts/import-upstream.ps1'))) {
+foreach ($relativePath in $WorkflowPaths) {
     $text = Read-RepoFile $relativePath
     if ($null -eq $text) { continue }
     $lineNumber = 0
@@ -460,7 +460,7 @@ foreach ($relativePath in ($WorkflowPaths + @('eng/scripts/import-upstream.ps1')
         }
     }
 }
-Add-Check 'no replace calls in workflows/scripts' ($replaceHits.Count -eq 0) ($replaceHits -join ', ')
+Add-Check 'no replace calls in workflows' ($replaceHits.Count -eq 0) ($replaceHits -join ', ')
 
 # --- 17. Trusted Publishing: the main path needs no secrets -------------
 # OIDC publishing needs neither an API key nor tokens: only the TP policy on nuget.org
@@ -517,7 +517,6 @@ $bomIssues = @()
 $bomTargets = @(
     'Directory.Build.props',
     'Directory.Packages.props',
-    'eng/scripts/import-upstream.ps1',
     'eng/scripts/validate-workflows.ps1'
 )
 foreach ($relativePath in $bomTargets) {
@@ -589,7 +588,6 @@ if ($committableFiles.Count -eq 0) {
         'README.md',
         'CHANGELOG.md'
     ) + $WorkflowPaths + @(
-        'eng/scripts/import-upstream.ps1',
         'eng/scripts/validate-workflows.ps1'
     )
 }

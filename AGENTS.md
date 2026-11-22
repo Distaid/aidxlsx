@@ -43,7 +43,7 @@ metadata and the repository conventions described below.
 | `src/Aid.Xlsx.Opc` | OPC container, relationships, content types, XML/MCE primitives. Knows nothing about the Excel model |
 | `src/Aid.Xlsx.CodeGen` | Build-time generator: reads OOXML schemas, emits the `*.g.cs` readers |
 | `tests/Aid.Xlsx.Tests` | NUnit test suite |
-| `eng/scripts` | Import and validation scripts |
+| `eng/scripts` | Repository validation scripts |
 | `.github/workflows` | CI gates |
 
 The library uses a flat domain layout: domain folders sit directly under `src/Aid.Xlsx/`,

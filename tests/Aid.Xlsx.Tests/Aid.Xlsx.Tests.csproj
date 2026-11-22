@@ -27,16 +27,6 @@
     <EmbeddedResource Include="Resource\Other\**\*.txt" />
   </ItemGroup>
 
-  <!--
-    The project with library examples has not been imported into this repository, so the tests
-    that execute examples (the Examples directory) are not compiled for now: their helper
-    TestHelper.RunTestExample lives there as well. Drawing tests take sample images
-    from their own resources (Resource\Images).
-  -->
-  <ItemGroup>
-    <Compile Remove="Examples\**\*.cs" />
-  </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="DocumentFormat.OpenXml" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
