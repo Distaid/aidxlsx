@@ -96,8 +96,9 @@ internal static class WorkbookCorpus
         bool bold, bool italic, string alignment, string? author, string? comment, string? hyperlink)
     {
         // The format ID defines a built-in format and its display varies with locale.
+        // Comment loading uses platform line endings. Snapshots use LF on every platform.
         return Entry("cell", address, type, value, formula, formatId, formatId < 0 ? format : null, bold, italic,
-            alignment, author, comment, hyperlink);
+            alignment, author, comment?.Replace("\r\n", "\n", StringComparison.Ordinal), hyperlink);
     }
 
     private static string Entry(params object?[] values) => JsonSerializer.Serialize(values);
