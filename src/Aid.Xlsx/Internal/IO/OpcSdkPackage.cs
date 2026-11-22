@@ -28,7 +28,7 @@ internal sealed class OpcSdkPackage : Package
         GetParts();
     }
 
-    internal void WriteTo(Stream destination)
+    internal void SynchronizeParts()
     {
         Flush();
         UpdateRelationships(_opc.Relationships, GetRelationships());
@@ -40,8 +40,6 @@ internal sealed class OpcSdkPackage : Package
             part.StoreChanges();
             UpdateRelationships(backingPart.Relationships, part.GetRelationships());
         }
-
-        _opc.Save(destination);
     }
 
     protected override PackagePart CreatePartCore(Uri partUri, string contentType, CompressionOption compressionOption)

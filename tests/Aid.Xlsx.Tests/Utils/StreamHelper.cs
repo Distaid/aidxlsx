@@ -116,9 +116,11 @@ namespace Aid.Xlsx.Tests
 
             var leftXml = XDocument.Parse(leftString);
             RemoveIgnoredParts(leftXml, partUri, stripColumnWidths);
+            NormalizeCoreProperties(leftXml, left.ContentType);
             Normalize(leftXml);
             var rightXml = XDocument.Parse(rightString);
             RemoveIgnoredParts(rightXml, partUri, stripColumnWidths);
+            NormalizeCoreProperties(rightXml, right.ContentType);
             Normalize(rightXml);
 
             return XNode.DeepEquals(leftXml, rightXml);
@@ -134,6 +136,16 @@ namespace Aid.Xlsx.Tests
 
             if (stripColumnWidths)
                 document.Descendants(colTagName).Attributes(widthAttrName).Remove();
+        }
+
+        private static void NormalizeCoreProperties(XDocument document, string contentType)
+        {
+            if (contentType != "application/vnd.openxmlformats-package.core-properties+xml")
+                return;
+
+            // Excel and the package writer use different namespace prefixes for core metadata.
+            // The two date properties with QName attributes have already been removed.
+            document.Descendants().Attributes().Where(attribute => attribute.IsNamespaceDeclaration).Remove();
         }
 
         private static void Normalize(XDocument document)

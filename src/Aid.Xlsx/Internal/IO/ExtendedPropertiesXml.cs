@@ -17,9 +17,9 @@ internal static class ExtendedPropertiesXml
         workbook.Properties.Manager = (string?)root.Element(Extended + "Manager");
     }
 
-    internal static XDocument Update(Stream existing, XLWorkbook workbook)
+    internal static XDocument Update(Stream? existing, XLWorkbook workbook)
     {
-        var root = XDocumentExtensions.Load(existing)?.Root;
+        var root = existing is null ? null : XDocumentExtensions.Load(existing)?.Root;
         if (root?.Name != Extended + "Properties")
             root = new XElement(Extended + "Properties");
 

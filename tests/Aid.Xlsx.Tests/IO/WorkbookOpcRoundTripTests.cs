@@ -106,6 +106,8 @@ public sealed class WorkbookOpcRoundTripTests
     [Test]
     public void EditingDocumentPropertiesPreservesUnmodeledMetadata()
     {
+        const string coreRelationship = "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties";
+        XNamespace core = "http://schemas.openxmlformats.org/package/2006/metadata/core-properties";
         XNamespace custom = "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties";
         XNamespace extended = "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties";
         XNamespace variant = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
@@ -115,6 +117,7 @@ public sealed class WorkbookOpcRoundTripTests
             workbook.AddWorksheet("Data");
             workbook.Properties.Company = "Example Company";
             workbook.Properties.Manager = "Old Manager";
+            workbook.Properties.Title = "Original title";
             workbook.CustomProperties.Add("Remove", false);
             workbook.CustomProperties.Add("Edit", 1.25);
             workbook.SaveAs(original, validate: true);
@@ -123,6 +126,15 @@ public sealed class WorkbookOpcRoundTripTests
         using var modified = new MemoryStream();
         using (var package = OpcPackage.Open(original))
         {
+            var coreLink = package.Relationships.Single(rel => rel.Type == coreRelationship);
+            var originalCore = package.GetPart(coreLink.TargetPartName);
+            var coreXml = ReadXml(originalCore);
+            coreXml.Root.SetElementValue(core + "revision", "7");
+            var movedCore = package.AddPart("/metadata/workbook.xml", originalCore.ContentType);
+            ReplaceXml(movedCore, coreXml);
+            package.RemovePart(originalCore.PartName);
+            package.Relationships.Add(coreLink.Id, coreLink.Type, "metadata/workbook.xml");
+
             var customPart = package.GetPart("/docProps/custom.xml");
             var customXml = ReadXml(customPart);
             var data = new XElement(custom + "property",
@@ -142,6 +154,8 @@ public sealed class WorkbookOpcRoundTripTests
         using (var workbook = new XLWorkbook(modified))
         {
             Assert.That(workbook.Properties.Company, Is.EqualTo("Example Company"));
+            Assert.That(workbook.Properties.Title, Is.EqualTo("Original title"));
+            workbook.Properties.Title = null;
             Assert.That(workbook.CustomProperties.CustomProperty("Edit").GetValue<double>(), Is.EqualTo(1.25));
             workbook.Properties.Manager = "New Manager";
             workbook.CustomProperties.Delete("Remove");
@@ -151,6 +165,11 @@ public sealed class WorkbookOpcRoundTripTests
         }
 
         using var result = OpcPackage.Open(modified);
+        var savedCore = result.Relationships.Single(rel => rel.Type == coreRelationship);
+        Assert.That(savedCore.TargetPartName, Is.EqualTo("/metadata/workbook.xml"));
+        var coreProperties = ReadXml(result.GetPart(savedCore.TargetPartName)).Root;
+        Assert.That((string)coreProperties.Element(core + "revision"), Is.EqualTo("7"));
+        Assert.That(coreProperties.Elements().Any(e => e.Name.LocalName == "title"), Is.False);
         var customProperties = ReadXml(result.GetPart("/docProps/custom.xml")).Root.Elements().ToArray();
         var integer = customProperties.Single(e => (string)e.Attribute("name") == "Integer");
         Assert.That((int)integer.Element(variant + "i4"), Is.EqualTo(42));

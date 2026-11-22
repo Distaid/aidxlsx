@@ -80,6 +80,7 @@ namespace Aid.Xlsx
         {
             using var opc = newStream ? OpcPackage.Create() : OpcPackage.Open(stream);
             using var package = new OpcSdkPackage(opc, FileAccess.ReadWrite);
+            string newExtendedRelationshipId;
             using (var document = newStream
                 ? SpreadsheetDocument.Create(package, spreadsheetDocumentType)
                 : SpreadsheetDocument.Open(package))
@@ -87,18 +88,21 @@ namespace Aid.Xlsx
                 if (requestedType is { } type && document.DocumentType != type)
                     document.ChangeDocumentType(type);
 
-                CreateParts(document, options);
+                newExtendedRelationshipId = CreateParts(document, options, WorkbookPropertiesParts.HasExtendedProperties(opc));
                 if (options.ValidatePackage) Validate(document);
             }
 
+            package.SynchronizeParts();
+            WorkbookPropertiesParts.Write(opc, this, newExtendedRelationshipId);
+
             if (newStream)
             {
-                package.WriteTo(stream);
+                opc.Save(stream);
                 return;
             }
 
             using var output = new MemoryStream();
-            package.WriteTo(output);
+            opc.Save(output);
             stream.Position = 0;
             stream.SetLength(0);
             output.Position = 0;
@@ -159,7 +163,7 @@ namespace Aid.Xlsx
         }
 
         // Adds child parts and generates content of the specified part.
-        private void CreateParts(SpreadsheetDocument document, SaveOptions options)
+        private string CreateParts(SpreadsheetDocument document, SaveOptions options, bool hasExtendedProperties)
         {
             var context = new SaveContext();
 
@@ -183,15 +187,8 @@ namespace Aid.Xlsx
             // Ensure all RelId's have been added to the context
             context.RelIdGenerator.AddExistingValues(workbookPart, this);
 
-            var extendedFilePropertiesPart = document.ExtendedFilePropertiesPart ??
-                                             document.AddNewPart<ExtendedFilePropertiesPart>(
-                                                 context.RelIdGenerator.GetNext(RelType.Workbook));
-
-            XDocument extendedProperties;
-            using (var existing = extendedFilePropertiesPart.GetStream(FileMode.Open, FileAccess.Read))
-                extendedProperties = ExtendedPropertiesXml.Update(existing, this);
-            using (var target = extendedFilePropertiesPart.GetStream(FileMode.Create, FileAccess.Write))
-                extendedProperties.Save(target, System.Xml.Linq.SaveOptions.DisableFormatting);
+            // Keep existing relationship numbering while the workbook and root parts share an ID generator.
+            var newExtendedRelationshipId = hasExtendedProperties ? null : context.RelIdGenerator.GetNext(RelType.Workbook);
 
             WorkbookPartWriter.GenerateContent(workbookPart, this, options, context);
 
@@ -347,26 +344,9 @@ namespace Aid.Xlsx
                 ThemePartWriter.GenerateContent(themePart, (XLTheme)Theme);
             }
 
-            // Custom properties
-            var customPropertiesPart = document.CustomFilePropertiesPart;
-            XDocument customProperties;
-            using (var existing = customPropertiesPart?.GetStream(FileMode.Open, FileAccess.Read))
-                customProperties = CustomPropertiesXml.Update(existing, CustomProperties);
-
-            if (customProperties is not null)
-            {
-                customPropertiesPart ??= document.AddNewPart<CustomFilePropertiesPart>(context.RelIdGenerator.GetNext(RelType.Workbook));
-                using var target = customPropertiesPart.GetStream(FileMode.Create, FileAccess.Write);
-                customProperties.Save(target, System.Xml.Linq.SaveOptions.DisableFormatting);
-            }
-            else if (customPropertiesPart is not null)
-            {
-                document.DeletePart(customPropertiesPart);
-            }
-            SetPackageProperties(document);
-
             // Clear list of deleted worksheets to prevent errors on multiple saves
             worksheets.Deleted.Clear();
+            return newExtendedRelationshipId;
         }
 
         private bool DeleteExistingCommentsShapes(VmlDrawingPart vmlDrawingPart)
@@ -403,37 +383,6 @@ namespace Aid.Xlsx
 
                 return xdoc.Root.HasElements;
             }
-        }
-
-        private void SetPackageProperties(OpenXmlPackage document)
-        {
-            var created = Properties.Created == DateTime.MinValue ? DateTime.Now : Properties.Created;
-            var modified = Properties.Modified == DateTime.MinValue ? DateTime.Now : Properties.Modified;
-            document.PackageProperties.Created = created;
-            document.PackageProperties.Modified = modified;
-
-#if true // Workaround: https://github.com/OfficeDev/Open-XML-SDK/issues/235
-
-            if (Properties.LastModifiedBy == null) document.PackageProperties.LastModifiedBy = "";
-            if (Properties.Author == null) document.PackageProperties.Creator = "";
-            if (Properties.Title == null) document.PackageProperties.Title = "";
-            if (Properties.Subject == null) document.PackageProperties.Subject = "";
-            if (Properties.Category == null) document.PackageProperties.Category = "";
-            if (Properties.Keywords == null) document.PackageProperties.Keywords = "";
-            if (Properties.Comments == null) document.PackageProperties.Description = "";
-            if (Properties.Status == null) document.PackageProperties.ContentStatus = "";
-
-#endif
-
-            document.PackageProperties.LastModifiedBy = Properties.LastModifiedBy;
-
-            document.PackageProperties.Creator = Properties.Author;
-            document.PackageProperties.Title = Properties.Title;
-            document.PackageProperties.Subject = Properties.Subject;
-            document.PackageProperties.Category = Properties.Category;
-            document.PackageProperties.Keywords = Properties.Keywords;
-            document.PackageProperties.Description = Properties.Comments;
-            document.PackageProperties.ContentStatus = Properties.Status;
         }
 
         private static void SynchronizePivotTableParts(WorkbookPart workbookPart, IReadOnlyList<IXLPivotTable> allPivotTables, SaveContext context)

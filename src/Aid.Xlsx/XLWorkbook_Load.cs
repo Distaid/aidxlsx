@@ -50,6 +50,7 @@ namespace Aid.Xlsx
             }
 
             using var opc = OpcPackage.Open(stream);
+            WorkbookPropertiesParts.Read(opc, this);
             using var package = new OpcSdkPackage(opc, FileAccess.Read);
             using (var dSpreadsheet = SpreadsheetDocument.Open(package))
                 LoadSpreadsheetDocument(dSpreadsheet);
@@ -96,17 +97,10 @@ namespace Aid.Xlsx
         {
             var context = new LoadContext();
             ShapeIdManager = new XLIdManager();
-            SetProperties(dSpreadsheet);
 
             var workbookPart = dSpreadsheet.WorkbookPart;
 
             LoadWorkbookTheme(workbookPart?.ThemePart, this);
-
-            if (dSpreadsheet.CustomFilePropertiesPart is { } customPropertiesPart)
-            {
-                using var stream = customPropertiesPart.GetStream(FileMode.Open, FileAccess.Read);
-                CustomPropertiesXml.Read(stream, CustomProperties);
-            }
 
             var wbProps = workbookPart.Workbook.WorkbookProperties;
             if (wbProps != null)
@@ -147,12 +141,6 @@ namespace Aid.Xlsx
                 var referenceMode = calculationProperties.ReferenceMode;
                 if (referenceMode != null)
                     ReferenceStyle = referenceMode.Value.ToXlsx();
-            }
-
-            if (dSpreadsheet.ExtendedFilePropertiesPart is { } extendedPropertiesPart)
-            {
-                using var stream = extendedPropertiesPart.GetStream(FileMode.Open, FileAccess.Read);
-                ExtendedPropertiesXml.Read(stream, this);
             }
 
             // Styles part is optional and each workbook must have a default style
@@ -1142,23 +1130,6 @@ namespace Aid.Xlsx
 
             wb.Protection.AllowElement(XLWorkbookProtectionElements.Structure, !OpenXmlHelper.GetBooleanValueAsBool(wp.LockStructure, false));
             wb.Protection.AllowElement(XLWorkbookProtectionElements.Windows, !OpenXmlHelper.GetBooleanValueAsBool(wp.LockWindows, false));
-        }
-
-        private void SetProperties(SpreadsheetDocument dSpreadsheet)
-        {
-            var p = dSpreadsheet.PackageProperties;
-            Properties.Author = p.Creator;
-            Properties.Category = p.Category;
-            Properties.Comments = p.Description;
-            if (p.Created != null)
-                Properties.Created = p.Created.Value;
-            if (p.Modified != null)
-                Properties.Modified = p.Modified.Value;
-            Properties.Keywords = p.Keywords;
-            Properties.LastModifiedBy = p.LastModifiedBy;
-            Properties.Status = p.ContentStatus;
-            Properties.Subject = p.Subject;
-            Properties.Title = p.Title;
         }
 
         private XmlTreeReader CreateTreeReader(OpenXmlPart openXmlPart)
