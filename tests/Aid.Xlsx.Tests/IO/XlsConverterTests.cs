@@ -1,3 +1,4 @@
+using Aid.Xlsx.CalcEngine;
 using Aid.Xlsx.Conversion;
 using Aid.Xlsx.Styles;
 using Aid.Xlsx.Styles.Colors;
@@ -42,6 +43,42 @@ public class XlsConverterTests
             Assert.That(workbook.Worksheet("Hidden").Visibility, Is.EqualTo(XlsxWorksheetVisibility.Hidden));
             Assert.That(workbook.Worksheet("Hidden").Cell("A1").GetDouble(), Is.EqualTo(42));
         });
+    }
+
+    [Test]
+    public void PreservesSupportedFormulasAndTheirCachesFromExcel()
+    {
+        using var source = typeof(XlsConverterTests).Assembly.GetManifestResourceStream("Aid.Xlsx.Tests.IO.biff8-formulas.xls");
+        using var destination = new MemoryStream();
+        XlsConverter.Convert(source, destination);
+
+        destination.Position = 0;
+        using var workbook = new XlsxWorkbook(destination);
+        var sheet = workbook.Worksheet("Data");
+        Assert.Multiple(() =>
+        {
+            Assert.That(sheet.Cell("B1").FormulaA1, Is.EqualTo("SUM(A1:$A$2)*2+1"));
+            Assert.That(sheet.Cell("B1").CachedValue.GetNumber(), Is.EqualTo(21));
+            Assert.That(sheet.Cell("B2").FormulaA1, Is.EqualTo("IF(B1>20,\"yes\",\"no\")"));
+            Assert.That(sheet.Cell("B2").CachedValue.GetText(), Is.EqualTo("yes"));
+            Assert.That(sheet.Cell("B3").FormulaA1, Is.EqualTo("ROUND(SQRT(A1)+0.235,2)"));
+            Assert.That(sheet.Cell("B3").CachedValue.GetNumber(), Is.EqualTo(2.24));
+            Assert.That(sheet.Cell("B4").FormulaA1, Is.EqualTo("A1>A2"));
+            Assert.That(sheet.Cell("B4").CachedValue.GetBoolean(), Is.False);
+            Assert.That(sheet.Cell("B5").FormulaA1, Is.EqualTo("1/0"));
+            Assert.That(sheet.Cell("B5").CachedValue.GetError(), Is.EqualTo(XlsxError.DivisionByZero));
+            Assert.That(sheet.Cell("B6").FormulaA1, Is.EqualTo("ABS(-A1)+LEN(\"a\"\"b\")"));
+            Assert.That(sheet.Cell("B6").CachedValue.GetNumber(), Is.EqualTo(7));
+            Assert.That(sheet.Cell("B7").FormulaA1, Is.EqualTo("1-(2-3)^2"));
+            Assert.That(sheet.Cell("B7").CachedValue.GetNumber(), Is.Zero);
+            Assert.That(sheet.Cell("B8").HasFormula, Is.False);
+            Assert.That(sheet.Cell("B8").GetDouble(), Is.EqualTo(5));
+        });
+
+        sheet.Cell("A1").Value = 2;
+        workbook.RecalculateAllFormulas();
+        Assert.That(sheet.Cell("B1").GetDouble(), Is.EqualTo(17));
+        Assert.That(sheet.Cell("B2").GetString(), Is.EqualTo("no"));
     }
 
     [Test]

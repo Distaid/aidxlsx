@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Convert Excel 97–2003 BIFF8 worksheet data to `.xlsx` from paths or streams without Office automation.
+- Convert supported BIFF8 formulas to XLSX while retaining their cached results.
 - Preserve BIFF8 cell fonts, alignment, borders, fills, protection flags, and palette colors during conversion.
 - Generate reflection-free row mappers for `InsertMappedTable` and `InsertMappedData` from `[XlsxTable]` models.
 - Round-trip a workbook in fully trimmed and NativeAOT smoke applications.

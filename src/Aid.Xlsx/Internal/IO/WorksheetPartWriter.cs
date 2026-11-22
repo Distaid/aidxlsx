@@ -68,13 +68,14 @@ namespace Aid.Xlsx.Internal.IO
 
         private static void WriteCellValue(XmlWriter w, XlsxCell xlCell, SaveContext context)
         {
-            var dataType = xlCell.DataType;
+            var value = xlCell.CachedValue;
+            var dataType = value.Type;
             if (dataType == XlsxDataType.Blank)
                 return;
 
             if (dataType == XlsxDataType.Text)
             {
-                var text = xlCell.GetText();
+                var text = value.GetText();
                 if (xlCell.HasFormula)
                 {
                     WriteStringValue(w, text);
@@ -112,16 +113,16 @@ namespace Aid.Xlsx.Internal.IO
             }
             else if (dataType == XlsxDataType.TimeSpan)
             {
-                WriteNumberValue(w, xlCell.Value.GetUnifiedNumber());
+                WriteNumberValue(w, value.GetUnifiedNumber());
             }
             else if (dataType == XlsxDataType.Number)
             {
-                WriteNumberValue(w, xlCell.Value.GetNumber());
+                WriteNumberValue(w, value.GetNumber());
             }
             else if (dataType == XlsxDataType.DateTime)
             {
                 // OpenXML SDK validator requires a specific format, in addition to the spec, but can reads many more
-                var date = xlCell.GetDateTime();
+                var date = value.GetDateTime();
                 if (xlCell.Worksheet.Workbook.Use1904DateSystem)
                     date = date.AddDays(-1462);
 
@@ -129,11 +130,11 @@ namespace Aid.Xlsx.Internal.IO
             }
             else if (dataType == XlsxDataType.Boolean)
             {
-                WriteStringValue(w, xlCell.GetBoolean() ? TrueValue : FalseValue);
+                WriteStringValue(w, value.GetBoolean() ? TrueValue : FalseValue);
             }
             else if (dataType == XlsxDataType.Error)
             {
-                WriteStringValue(w, xlCell.Value.GetError().ToDisplayString());
+                WriteStringValue(w, value.GetError().ToDisplayString());
             }
             else
             {
@@ -453,7 +454,11 @@ namespace Aid.Xlsx.Internal.IO
                 if (xlCell.HasFormula)
                 {
                     String dataType = null;
-                    if (options.EvaluateFormulasBeforeSaving)
+                    if (options.PreserveFormulaCache)
+                    {
+                        dataType = FormulaDataType[(int)xlCell.CachedValue.Type];
+                    }
+                    else if (options.EvaluateFormulasBeforeSaving)
                     {
                         try
                         {
@@ -523,7 +528,7 @@ namespace Aid.Xlsx.Internal.IO
                         xml.WriteEndElement(); // f
                     }
 
-                    if (options.EvaluateFormulasBeforeSaving && xlCell.CachedValue.Type != XlsxDataType.Blank && !xlCell.NeedsRecalculation)
+                    if (options.PreserveFormulaCache || (options.EvaluateFormulasBeforeSaving && !xlCell.NeedsRecalculation))
                     {
                         WriteCellValue(xml, xlCell, context);
                     }

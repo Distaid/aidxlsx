@@ -31,6 +31,9 @@ namespace Aid.Xlsx.Workbooks
         /// </summary>
         public Boolean EvaluateFormulasBeforeSaving { get; set; } = false;
 
+        // Used when converting formulas that already have a cache in the source workbook.
+        internal bool PreserveFormulaCache { get; init; }
+
         /// <summary>
         /// Gets or sets the filter privacy flag. Set to null to leave the current property in saved workbook unchanged
         /// </summary>

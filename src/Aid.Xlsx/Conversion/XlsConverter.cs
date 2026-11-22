@@ -4,7 +4,7 @@ using Aid.Xlsx.Workbooks;
 namespace Aid.Xlsx.Conversion;
 
 /// <summary>Converts Excel 97–2003 binary workbooks to XLSX.</summary>
-/// <remarks>Imports cell values, cached formula results, cell formatting, dimensions, visibility, and merged cells.</remarks>
+/// <remarks>Imports cell values, supported formulas and cached results, cell formatting, dimensions, visibility, and merged cells.</remarks>
 public static class XlsConverter
 {
     /// <summary>Converts an existing BIFF8 file to an XLSX file at a different path.</summary>
@@ -55,7 +55,7 @@ public static class XlsConverter
         var converted = new MemoryStream();
         try
         {
-            workbook.SaveAs(converted);
+            workbook.SaveAs(converted, new SaveOptions { PreserveFormulaCache = true });
             converted.Position = 0;
             return converted;
         }

@@ -145,7 +145,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
                     SetCell(sheet, record, record[7] == 0 ? (XlsxCellValue)(record[6] != 0) : ReadError(record[6]));
                     break;
                 case 0x0006: // FORMULA
-                    SetCell(sheet, record, ReadFormulaResult(record[6..], ref offset));
+                    ReadFormulaCell(sheet, record, ref offset);
                     break;
                 case 0x0208: // ROW
                     ReadRowInfo(sheet, record);
@@ -181,6 +181,18 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
         var value = segments.ReadString();
         offset = segments.Offset;
         return value;
+    }
+
+    private void ReadFormulaCell(XlsxWorksheet sheet, ReadOnlySpan<byte> record, ref int offset)
+    {
+        if (record.Length < 22 || U16(record[20..]) > record.Length - 22)
+            throw new InvalidDataException("Invalid BIFF formula length.");
+
+        var value = ReadFormulaResult(record[6..], ref offset);
+        var cell = SetCell(sheet, record, value);
+        var formula = Biff8Formula.Decode(record.Slice(22, U16(record[20..])));
+        if (formula is not null)
+            cell.Formula = XlsxCellFormula.NormalA1(formula);
     }
 
     private XlsxCellValue ReadFormulaResult(ReadOnlySpan<byte> record, ref int offset)
@@ -227,10 +239,10 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
         }
     }
 
-    private void SetCell(XlsxWorksheet sheet, ReadOnlySpan<byte> record, XlsxCellValue value)
+    private XlsxCell SetCell(XlsxWorksheet sheet, ReadOnlySpan<byte> record, XlsxCellValue value)
         => SetCell(sheet, U16(record), U16(record[2..]), U16(record[4..]), value);
 
-    private void SetCell(XlsxWorksheet sheet, int row, int column, int xf, XlsxCellValue value)
+    private XlsxCell SetCell(XlsxWorksheet sheet, int row, int column, int xf, XlsxCellValue value)
     {
         if (column > 255 || xf >= _cellFormats.Length || ++_materializedCells > MaxMaterializedCells)
             throw new InvalidDataException("Invalid BIFF cell index or workbook cell limit exceeded.");
@@ -238,6 +250,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
         var cell = sheet.Cell(row + 1, column + 1);
         cell.Value = value;
         cell.FormatValue = _cellFormats[xf] ??= BuildCellFormat(sheet.Workbook.Styles, _rawCellFormats[xf]);
+        return cell;
     }
 
     private static void ReadRowInfo(IXlsxWorksheet sheet, ReadOnlySpan<byte> record)

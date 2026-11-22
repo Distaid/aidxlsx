@@ -18,11 +18,14 @@ checks internal links and supported XML roots. The test suite uses Open XML SDK 
 validation for generated fixtures. The runtime package checks the OPC structure using
 its own implementation.
 
-`XlsConverter` accepts Excel 97–2003 BIFF8 workbooks. It copies values, cached formula
-results, dimensions, visibility, and merged ranges. Cell formatting includes number formats,
+`XlsConverter` accepts Excel 97–2003 BIFF8 workbooks. It copies values, dimensions,
+visibility, and merged ranges. Cell formatting includes number formats,
 fonts, indexed or custom palette colors, alignment, borders, fills, and cell protection flags.
-The converted values from formulas are static. Named styles, rich text runs, conditional
-formatting, images, charts, macros, and encrypted files are outside the converter's supported scope.
+It translates formulas with supported operators, same-sheet references, and common worksheet
+functions such as `SUM`, `IF`, `ROUND`, and `VLOOKUP`, preserving the cached result. Shared or
+array formulas, cross-sheet references, and other unsupported formulas become static values.
+Named styles, rich text runs, conditional formatting, images, charts, macros, and encrypted
+files are outside the converter's supported scope.
 
 ## Spreadsheet application checks
 

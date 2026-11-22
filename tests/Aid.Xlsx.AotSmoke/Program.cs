@@ -64,6 +64,14 @@ XlsConverter.Convert(legacy, converted);
 converted.Position = 0;
 using var convertedWorkbook = new XlsxWorkbook(converted);
 Require(convertedWorkbook.Worksheet("Hidden").Cell("A1").GetDouble() == 42, "BIFF8 conversion");
+using var formulaSource = typeof(Sale).Assembly.GetManifestResourceStream("formulas.xls")
+    ?? throw new InvalidOperationException("The BIFF8 formula fixture is missing.");
+using var formulaOutput = new MemoryStream();
+XlsConverter.Convert(formulaSource, formulaOutput);
+formulaOutput.Position = 0;
+using var formulaWorkbook = new XlsxWorkbook(formulaOutput);
+var formulaCell = formulaWorkbook.Worksheet("Data").Cell("B1");
+Require(formulaCell.FormulaA1 == "SUM(A1:$A$2)*2+1" && formulaCell.CachedValue.GetNumber() == 21, "BIFF8 formula conversion");
 if (args.Length == 1)
 {
     using var artifact = File.Create(args[0]);
