@@ -20,11 +20,13 @@ public class WorkbookIoBenchmarks
     public int Rows { get; set; }
 
     [GlobalSetup]
-    public void Setup()
+    public void Setup() => _input = CreateInput(Rows);
+
+    internal static byte[] CreateInput(int rows)
     {
         using var seed = new XLWorkbook();
         var sheet = seed.AddWorksheet("Transactions");
-        for (var row = 1; row <= Rows; row++)
+        for (var row = 1; row <= rows; row++)
         {
             sheet.Cell(row, 1).Value = row;
             sheet.Cell(row, 2).Value = $"Item {row % 97}";
@@ -37,7 +39,7 @@ public class WorkbookIoBenchmarks
         sheet.Column(4).Style.DateFormat.Format = "yyyy-mm-dd";
         using var input = new MemoryStream();
         seed.SaveAs(input, BaselineSaveOptions);
-        _input = input.ToArray();
+        return input.ToArray();
     }
 
     [IterationSetup(Target = nameof(ClosedXmlSave))]

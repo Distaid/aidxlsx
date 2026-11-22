@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Document workbook I/O benchmarks for Aid.Xlsx on JIT and NativeAOT.
 - Include a CycloneDX dependency SBOM and SHA-256 checksums in the release artifacts.
 - Convert Excel 97–2003 BIFF8 worksheet data to `.xlsx` from paths or streams without Office automation.
 - Convert an `.xls` file to `.xlsx` in the same directory by passing only the source path.

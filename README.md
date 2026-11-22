@@ -72,6 +72,11 @@ values. See the compatibility guide for conversion limits.
 `tests/` contains the unit suite, compatibility checks, NativeAOT smoke test, fuzz targets, and
 standalone benchmarks. Repository validation lives under `eng/`.
 
+## Performance
+
+Load and save timings, allocations, and commands to reproduce the measurements are in the
+[workbook I/O benchmarks](docs/performance.md).
+
 ## Building
 
 Use the .NET SDK pinned in `global.json` (`10.0.403`) from the repository root.
