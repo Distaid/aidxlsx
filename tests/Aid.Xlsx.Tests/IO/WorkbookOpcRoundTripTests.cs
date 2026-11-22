@@ -64,8 +64,10 @@ public sealed class WorkbookOpcRoundTripTests
         Assert.That(table.RowLabels.Single().SourceName, Is.EqualTo("Name"));
     }
 
-    [Test]
-    public void RewritingPivotCacheKeepsItsRecordsRelationshipAndExtension()
+    [TestCase(null)]
+    [TestCase("0")]
+    [TestCase("1")]
+    public void RewritingPivotCacheKeepsItsRecordsRelationshipExtensionAndRefreshSetting(string refreshOnLoad)
     {
         XNamespace spreadsheet = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
         XNamespace relationships = OfficeRelationships.TrimEnd('/');
@@ -94,6 +96,7 @@ public sealed class WorkbookOpcRoundTripTests
             using var cacheStream = cache.OpenRead();
             var definition = XElement.Load(cacheStream);
             definition.SetAttributeValue(relationships + "id", "customRecords");
+            definition.SetAttributeValue("refreshOnLoad", refreshOnLoad);
             definition.Add(new XElement(spreadsheet + "extLst",
                 new XElement(spreadsheet + "ext", new XAttribute("uri", extension.NamespaceName), new XElement(extension + "text", "preserved"))));
             cache.ReplaceContent(Encoding.UTF8.GetBytes(definition.ToString()));
@@ -109,6 +112,7 @@ public sealed class WorkbookOpcRoundTripTests
         using var savedDefinition = savedCache.OpenRead();
         var root = XElement.Load(savedDefinition);
         Assert.That((string)root.Attribute(relationships + "id"), Is.EqualTo("customRecords"));
+        Assert.That((string)root.Attribute("refreshOnLoad"), Is.EqualTo(refreshOnLoad));
         Assert.That(root.Descendants(extension + "text").Single().Value, Is.EqualTo("preserved"));
         using var savedRecords = result.GetPart(savedCache.Relationships["customRecords"].TargetPartName).OpenRead();
         Assert.That(XElement.Load(savedRecords).Elements(spreadsheet + "r").Count(), Is.EqualTo(1));

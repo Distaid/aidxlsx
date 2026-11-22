@@ -187,7 +187,8 @@ internal static class PivotCacheDefinitionXml
         XNamespace ns = definition?.Name.Namespace ?? OpenXmlConst.Main2006SsNs;
         var rel = RelationshipId(ns);
         definition ??= new XElement(ns + "pivotCacheDefinition",
-            new XAttribute(XNamespace.Xmlns + "r", rel.NamespaceName), new XAttribute(XNamespace.Xmlns + "x", ns.NamespaceName));
+            new XAttribute(XNamespace.Xmlns + "r", rel.NamespaceName), new XAttribute(XNamespace.Xmlns + "x", ns.NamespaceName),
+            new XAttribute("refreshOnLoad", "1"));
 
         if (cache.SaveSourceData || definition.Attribute(rel) is not null)
             definition.SetAttributeValue(rel, recordsRelId);
@@ -195,7 +196,6 @@ internal static class PivotCacheDefinitionXml
         SetVersion("refreshedVersion", XlsxConstants.PivotTable.RefreshedVersion);
         SetVersion("minRefreshableVersion", 3);
         definition.SetAttributeValue("saveData", cache.SaveSourceData ? "1" : "0");
-        definition.SetAttributeValue("refreshOnLoad", "1");
         definition.SetAttributeValue("missingItemsLimit", cache.ItemsToRetainPerField switch
         {
             XlsxItemsToRetain.None => 0,

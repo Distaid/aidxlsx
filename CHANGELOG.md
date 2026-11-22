@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Preserve an existing pivot cache's refresh-on-open setting when saving a workbook.
+
 ### Changed
 
 - Generate built-in table theme and protection algorithm lookups at compile time.
