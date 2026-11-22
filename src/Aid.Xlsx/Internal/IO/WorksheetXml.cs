@@ -396,7 +396,7 @@ internal sealed partial class WorksheetXml(XElement root)
         Flag(element, "sheet", true);
         var simpleHash = protection.Algorithm == XlsxProtectionAlgorithm.Algorithm.SimpleHash;
         element.SetAttributeValue("password", simpleHash && !string.IsNullOrWhiteSpace(protection.PasswordHash) ? protection.PasswordHash : null);
-        element.SetAttributeValue("algorithmName", simpleHash ? null : DescribedEnumParser<XlsxProtectionAlgorithm.Algorithm>.ToDescription(protection.Algorithm));
+        element.SetAttributeValue("algorithmName", simpleHash ? null : XlsxProtectionAlgorithm.ToDescription(protection.Algorithm));
         element.SetAttributeValue("hashValue", simpleHash ? null : protection.PasswordHash);
         element.SetAttributeValue("spinCount", simpleHash ? null : (uint?)protection.SpinCount);
         element.SetAttributeValue("saltValue", simpleHash ? null : protection.Base64EncodedSalt);

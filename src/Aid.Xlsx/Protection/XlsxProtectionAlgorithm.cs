@@ -5,7 +5,7 @@ using System.ComponentModel;
 
 namespace Aid.Xlsx.Protection
 {
-    public static class XlsxProtectionAlgorithm
+    public static partial class XlsxProtectionAlgorithm
     {
         public const Algorithm DefaultProtectionAlgorithm = Algorithm.SimpleHash;
 

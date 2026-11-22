@@ -1,9 +1,8 @@
-using System.Reflection;
 using Aid.Xlsx.Styles.Formatting;
 
 namespace Aid.Xlsx.Tables
 {
-    public sealed class XlsxTableTheme
+    public sealed partial class XlsxTableTheme
     {
         public static readonly XlsxTableTheme None = new("None");
         public static readonly XlsxTableTheme TableStyleMedium28 = new("TableStyleMedium28");
@@ -79,20 +78,11 @@ namespace Aid.Xlsx.Tables
             this.Name = name;
         }
 
-        private static IEnumerable<XlsxTableTheme>? allThemes;
-
-        public static IEnumerable<XlsxTableTheme> GetAllThemes()
-        {
-            return (allThemes ?? (allThemes = typeof(XlsxTableTheme).GetFields(BindingFlags.Static | BindingFlags.Public)
-                .Where(fi => fi.FieldType.Equals(typeof(XlsxTableTheme)))
-                .Select(fi => fi.GetValue(null))
-                .OfType<XlsxTableTheme>()
-                .ToArray()));
-        }
+        public static IEnumerable<XlsxTableTheme> GetAllThemes() => BuiltInThemes.All;
 
         public static XlsxTableTheme? FromName(string name)
         {
-            return GetAllThemes().FirstOrDefault(s => s.Name == name);
+            return name is not null && BuiltInThemes.ByName.TryGetValue(name, out var theme) ? theme : null;
         }
 
         internal IReadOnlyDictionary<XlsxTableStyleRegionValues, XlsxDxfValue> RegionFormats => _regionFormats;

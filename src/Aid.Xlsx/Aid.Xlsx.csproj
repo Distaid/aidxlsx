@@ -75,6 +75,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Aid.Xlsx.Opc\Aid.Xlsx.Opc.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Aid.Xlsx.Formula\Aid.Xlsx.Formula.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\Aid.Xlsx.Generators\Aid.Xlsx.Generators.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
+    <ProjectReference Include="..\Aid.Xlsx.Generators\Aid.Xlsx.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
   </ItemGroup>
 </Project>

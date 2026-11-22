@@ -80,9 +80,9 @@ internal static class WorkbookXml
             protection.PasswordHash = (string?)element.Attribute("workbookPassword") ?? string.Empty;
             protection.Base64EncodedSalt = string.Empty;
         }
-        else if (DescribedEnumParser<XlsxProtectionAlgorithm.Algorithm>.IsValidDescription(algorithm))
+        else if (XlsxProtectionAlgorithm.TryParseDescription(algorithm, out var parsedAlgorithm))
         {
-            protection.Algorithm = DescribedEnumParser<XlsxProtectionAlgorithm.Algorithm>.FromDescription(algorithm);
+            protection.Algorithm = parsedAlgorithm;
             protection.PasswordHash = (string?)element.Attribute("workbookHashValue") ?? string.Empty;
             protection.SpinCount = (uint?)element.Attribute("workbookSpinCount") ?? 0;
             protection.Base64EncodedSalt = (string?)element.Attribute("workbookSaltValue") ?? string.Empty;

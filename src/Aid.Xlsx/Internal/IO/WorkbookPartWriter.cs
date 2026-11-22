@@ -116,7 +116,7 @@ internal static class WorkbookPartWriter
         element.SetAttributeValue("workbookPassword", simpleHash && !string.IsNullOrWhiteSpace(protection.PasswordHash) ? protection.PasswordHash : null);
         element.SetAttributeValue("lockStructure", protection.AllowedElements.HasFlag(XlsxWorkbookProtectionElements.Structure) ? null : "1");
         element.SetAttributeValue("lockWindows", protection.AllowedElements.HasFlag(XlsxWorkbookProtectionElements.Windows) ? null : "1");
-        element.SetAttributeValue("workbookAlgorithmName", simpleHash ? null : DescribedEnumParser<XlsxProtectionAlgorithm.Algorithm>.ToDescription(protection.Algorithm));
+        element.SetAttributeValue("workbookAlgorithmName", simpleHash ? null : XlsxProtectionAlgorithm.ToDescription(protection.Algorithm));
         element.SetAttributeValue("workbookHashValue", simpleHash ? null : protection.PasswordHash);
         element.SetAttributeValue("workbookSaltValue", simpleHash ? null : protection.Base64EncodedSalt);
         element.SetAttributeValue("workbookSpinCount", simpleHash ? null : protection.SpinCount);

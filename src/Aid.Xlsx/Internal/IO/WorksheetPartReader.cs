@@ -259,9 +259,9 @@ internal static class WorksheetPartReader
             ws.Protection.PasswordHash = (string)sp.Attribute("password") ?? string.Empty;
             ws.Protection.Base64EncodedSalt = string.Empty;
         }
-        else if (DescribedEnumParser<XlsxProtectionAlgorithm.Algorithm>.IsValidDescription(algorithmName))
+        else if (XlsxProtectionAlgorithm.TryParseDescription(algorithmName, out var algorithm))
         {
-            ws.Protection.Algorithm = DescribedEnumParser<XlsxProtectionAlgorithm.Algorithm>.FromDescription(algorithmName);
+            ws.Protection.Algorithm = algorithm;
             ws.Protection.PasswordHash = (string)sp.Attribute("hashValue") ?? string.Empty;
             ws.Protection.SpinCount = (uint?)sp.Attribute("spinCount") ?? 0;
             ws.Protection.Base64EncodedSalt = (string)sp.Attribute("saltValue") ?? string.Empty;
