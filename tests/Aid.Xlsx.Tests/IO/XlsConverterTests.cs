@@ -82,6 +82,35 @@ public class XlsConverterTests
     }
 
     [Test]
+    public void PreservesReferencesToAnotherSheetInTheSameWorkbook()
+    {
+        // Excel supplied the link table and the cached values for both internal and external formulas.
+        using var source = typeof(XlsConverterTests).Assembly.GetManifestResourceStream("Aid.Xlsx.Tests.IO.biff8-cross-sheet.xls");
+        using var destination = new MemoryStream();
+        XlsConverter.Convert(source, destination);
+
+        destination.Position = 0;
+        using var workbook = new XlsxWorkbook(destination);
+        var summary = workbook.Worksheet("Summary");
+        Assert.Multiple(() =>
+        {
+            Assert.That(summary.Cell("A1").FormulaA1, Is.EqualTo("'Q1''s Data'!$A1+1"));
+            Assert.That(summary.Cell("A1").CachedValue.GetNumber(), Is.EqualTo(13));
+            Assert.That(summary.Cell("A2").FormulaA1, Is.EqualTo("SUM('Q1''s Data'!A1:B$1)"));
+            Assert.That(summary.Cell("A2").CachedValue.GetNumber(), Is.EqualTo(32));
+            Assert.That(summary.Cell("A3").HasFormula, Is.False);
+            Assert.That(summary.Cell("A3").GetDouble(), Is.EqualTo(107));
+            Assert.That(summary.Cell("A4").HasFormula, Is.False);
+            Assert.That(summary.Cell("A4").GetDouble(), Is.EqualTo(15));
+        });
+
+        workbook.Worksheet("Q1's Data").Cell("A1").Value = 8;
+        workbook.RecalculateAllFormulas();
+        Assert.That(summary.Cell("A1").GetDouble(), Is.EqualTo(9));
+        Assert.That(summary.Cell("A2").GetDouble(), Is.EqualTo(28));
+    }
+
+    [Test]
     public void PreservesCellFormattingFromAnIndependentBiff8Writer()
     {
         // Generated with xlwt 1.3.0.

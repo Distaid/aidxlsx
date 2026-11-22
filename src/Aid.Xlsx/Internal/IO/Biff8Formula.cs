@@ -9,7 +9,7 @@ namespace Aid.Xlsx.Internal.IO;
 /// <summary>Converts supported BIFF8 expression tokens to an A1 formula.</summary>
 internal static class Biff8Formula
 {
-    internal static string? Decode(ReadOnlySpan<byte> tokens)
+    internal static string? Decode(ReadOnlySpan<byte> tokens, ReadOnlySpan<string?> sheetPrefixes)
     {
         // MS-XLS Rgce limits the actual token size, including its in-memory expansion, to 1800 bytes.
         if (tokens.IsEmpty || tokens.Length > 1800)
@@ -164,6 +164,29 @@ internal static class Biff8Formula
                     var last = Reference(ReadU16(tokens[2..]), ReadU16(tokens[6..]));
                     text = first is not null && last is not null ? first + ":" + last : null;
                     tokens = tokens[8..];
+                    break;
+                case 0x3a: // Cell reference with a sheet qualifier
+                case 0x3b: // Area reference with a sheet qualifier
+                    var size = token == 0x3a ? 6 : 10;
+                    if (tokens.Length < size)
+                        return null;
+                    var sheetIndex = ReadU16(tokens);
+                    if (sheetIndex >= sheetPrefixes.Length || sheetPrefixes[sheetIndex] is not { } prefix)
+                        return null;
+
+                    if (token == 0x3a)
+                    {
+                        var address = Reference(ReadU16(tokens[2..]), ReadU16(tokens[4..]));
+                        text = address is not null ? prefix + address : null;
+                    }
+                    else
+                    {
+                        var start = Reference(ReadU16(tokens[2..]), ReadU16(tokens[6..]));
+                        var end = Reference(ReadU16(tokens[4..]), ReadU16(tokens[8..]));
+                        text = start is not null && end is not null ? prefix + start + ":" + end : null;
+                    }
+
+                    tokens = tokens[size..];
                     break;
                 default:
                     return null;

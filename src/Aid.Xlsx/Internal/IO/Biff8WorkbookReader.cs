@@ -1,6 +1,7 @@
 using System.Buffers.Binary;
 using Aid.Xlsx.CalcEngine;
 using Aid.Xlsx.Cells;
+using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Styles.Formatting;
 using Aid.Xlsx.Workbooks;
 using Aid.Xlsx.Worksheets;
@@ -18,6 +19,9 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
     private const int MaxSharedStrings = 1_000_000;
     private const int MaxMaterializedCells = 5_000_000;
     private readonly List<SheetInfo> _sheets = [];
+    private readonly List<bool> _internalBooks = [];
+    private readonly List<SheetLink> _sheetLinks = [];
+    private string?[] _formulaSheetPrefixes = [];
     private string[] _strings = [];
     private int _materializedCells;
 
@@ -56,12 +60,21 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
                 case 0x00FC: // SST
                     ReadSharedStrings(record, ref offset);
                     break;
+                case 0x01AE: // SUPBOOK
+                    if (record.Length < 4 || _internalBooks.Count > ushort.MaxValue)
+                        throw new InvalidDataException("Invalid BIFF supporting workbook record.");
+                    _internalBooks.Add(record.Length == 4 && U16(record[2..]) == 0x0401);
+                    break;
+                case 0x0017: // EXTERNSHEET
+                    ReadSheetLinks(record, ref offset);
+                    break;
             }
         }
 
         if (_sheets.Count == 0)
             throw new InvalidDataException("The .xls workbook contains no worksheets.");
 
+        _formulaSheetPrefixes = ResolveFormulaSheetPrefixes();
         _cellFormats = new XlsxCellFormatValue?[_rawCellFormats.Count];
         var boundaries = _sheets.Select(sheet => sheet.Offset).Order().ToArray();
         for (var i = 0; i < boundaries.Length; i++)
@@ -78,6 +91,67 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
             worksheet.Visibility = sheet.Visibility;
             ReadWorksheet(worksheet, sheet.Offset, end);
         }
+    }
+
+    private void ReadSheetLinks(scoped ReadOnlySpan<byte> data, ref int offset)
+    {
+        var count = U16(data);
+        if (_sheetLinks.Count + count > ushort.MaxValue + 1)
+            throw new InvalidDataException("Too many BIFF sheet links.");
+
+        data = data[2..];
+        if (data.Length == count * 6)
+        {
+            AddLinks(data);
+            return;
+        }
+
+        // A CONTINUE record can split a six-byte XTI entry across two records.
+        var joined = new byte[count * 6];
+        var written = 0;
+        while (true)
+        {
+            if (data.Length > joined.Length - written)
+                throw new InvalidDataException("Invalid BIFF sheet link record size.");
+            data.CopyTo(joined.AsSpan(written));
+            written += data.Length;
+            if (written == joined.Length)
+                break;
+
+            data = ReadRecord(ref offset, out var type);
+            if (type != Continue)
+                throw new InvalidDataException("Missing BIFF sheet link continuation.");
+        }
+
+        AddLinks(joined);
+
+        void AddLinks(ReadOnlySpan<byte> links)
+        {
+            for (var index = 0; index < links.Length; index += 6)
+            {
+                var link = links[index..];
+                _sheetLinks.Add(new SheetLink(U16(link), U16(link[2..]), U16(link[4..])));
+            }
+        }
+    }
+
+    private string?[] ResolveFormulaSheetPrefixes()
+    {
+        if (_sheetLinks.Count == 0)
+            return [];
+
+        var sheetPrefixes = _sheets.Select(sheet => sheet.Name.AlwaysEscapeSheetName() + '!').ToArray();
+        var links = new string?[_sheetLinks.Count];
+        for (var index = 0; index < links.Length; index++)
+        {
+            var link = _sheetLinks[index];
+            // External workbooks, deleted sheets and sheet intervals use cached values.
+            if (link.Book < _internalBooks.Count && _internalBooks[link.Book] &&
+                link.FirstSheet == link.LastSheet && link.FirstSheet < sheetPrefixes.Length)
+                links[index] = sheetPrefixes[link.FirstSheet];
+        }
+
+        return links;
     }
 
     private void ReadSheetInfo(ReadOnlySpan<byte> record)
@@ -190,7 +264,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
 
         var value = ReadFormulaResult(record[6..], ref offset);
         var cell = SetCell(sheet, record, value);
-        var formula = Biff8Formula.Decode(record.Slice(22, U16(record[20..])));
+        var formula = Biff8Formula.Decode(record.Slice(22, U16(record[20..])), _formulaSheetPrefixes);
         if (formula is not null)
             cell.Formula = XlsxCellFormula.NormalA1(formula);
     }
@@ -365,6 +439,8 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
     private static uint U32(ReadOnlySpan<byte> bytes) => BinaryPrimitives.ReadUInt32LittleEndian(bytes);
 
     private sealed record SheetInfo(int Offset, string Name, XlsxWorksheetVisibility Visibility);
+
+    private readonly record struct SheetLink(ushort Book, ushort FirstSheet, ushort LastSheet);
 
     private ref struct StringSegments(byte[] buffer, ReadOnlySpan<byte> initial, int offset)
     {

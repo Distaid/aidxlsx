@@ -55,7 +55,7 @@ XlsConverter.Convert("legacy.xls", "converted.xlsx");
 
 The converter reads BIFF8 directly and also accepts streams. It carries over worksheet
 values, cell formatting, row and column dimensions, visibility, and merged cells. It preserves
-formulas that use supported operators, same-sheet references, and common worksheet functions,
+formulas that use supported operators, references within the workbook, and common worksheet functions,
 along with their cached results. Other formulas become static values. See the compatibility
 guide for conversion limits.
 

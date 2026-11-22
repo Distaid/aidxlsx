@@ -21,9 +21,10 @@ its own implementation.
 `XlsConverter` accepts Excel 97–2003 BIFF8 workbooks. It copies values, dimensions,
 visibility, and merged ranges. Cell formatting includes number formats,
 fonts, indexed or custom palette colors, alignment, borders, fills, and cell protection flags.
-It translates formulas with supported operators, same-sheet references, and common worksheet
-functions such as `SUM`, `IF`, `ROUND`, and `VLOOKUP`, preserving the cached result. Shared or
-array formulas, cross-sheet references, and other unsupported formulas become static values.
+It translates formulas with supported operators, cell and range references on individual sheets in the
+same workbook, and common worksheet functions such as `SUM`, `IF`, `ROUND`, and `VLOOKUP`, preserving
+the cached result. Shared formulas, array formulas, references spanning multiple sheets or pointing to
+another workbook, and other unsupported formulas become static values.
 Named styles, rich text runs, conditional formatting, images, charts, macros, and encrypted
 files are outside the converter's supported scope.
 
