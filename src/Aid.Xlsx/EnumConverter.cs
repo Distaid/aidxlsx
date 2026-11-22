@@ -397,45 +397,6 @@ namespace Aid.Xlsx
             }
         }
 
-        public static TotalsRowFunctionValues ToOpenXml(this XLTotalsRowFunction value)
-        {
-            switch (value)
-            {
-                case XLTotalsRowFunction.None:
-                    return TotalsRowFunctionValues.None;
-
-                case XLTotalsRowFunction.Sum:
-                    return TotalsRowFunctionValues.Sum;
-
-                case XLTotalsRowFunction.Minimum:
-                    return TotalsRowFunctionValues.Minimum;
-
-                case XLTotalsRowFunction.Maximum:
-                    return TotalsRowFunctionValues.Maximum;
-
-                case XLTotalsRowFunction.Average:
-                    return TotalsRowFunctionValues.Average;
-
-                case XLTotalsRowFunction.Count:
-                    return TotalsRowFunctionValues.Count;
-
-                case XLTotalsRowFunction.CountNumbers:
-                    return TotalsRowFunctionValues.CountNumbers;
-
-                case XLTotalsRowFunction.StandardDeviation:
-                    return TotalsRowFunctionValues.StandardDeviation;
-
-                case XLTotalsRowFunction.Variance:
-                    return TotalsRowFunctionValues.Variance;
-
-                case XLTotalsRowFunction.Custom:
-                    return TotalsRowFunctionValues.Custom;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(value), "Not implemented value!");
-            }
-        }
-
         public static DataValidationValues ToOpenXml(this XLAllowedValues value)
         {
             switch (value)
@@ -615,50 +576,6 @@ namespace Aid.Xlsx
                 case XLPivotCalculation.PercentageOfColumn: return ShowDataAsValues.PercentOfColumn;
                 case XLPivotCalculation.PercentageOfTotal: return ShowDataAsValues.PercentOfTotal;
                 case XLPivotCalculation.Index: return ShowDataAsValues.Index;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(value), "Not implemented value!");
-            }
-        }
-
-        public static FilterOperatorValues ToOpenXml(this XLFilterOperator value)
-        {
-            switch (value)
-            {
-                case XLFilterOperator.Equal: return FilterOperatorValues.Equal;
-                case XLFilterOperator.NotEqual: return FilterOperatorValues.NotEqual;
-                case XLFilterOperator.GreaterThan: return FilterOperatorValues.GreaterThan;
-                case XLFilterOperator.EqualOrGreaterThan: return FilterOperatorValues.GreaterThanOrEqual;
-                case XLFilterOperator.LessThan: return FilterOperatorValues.LessThan;
-                case XLFilterOperator.EqualOrLessThan: return FilterOperatorValues.LessThanOrEqual;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(value), "Not implemented value!");
-            }
-        }
-
-        public static DynamicFilterValues ToOpenXml(this XLFilterDynamicType value)
-        {
-            switch (value)
-            {
-                case XLFilterDynamicType.AboveAverage: return DynamicFilterValues.AboveAverage;
-                case XLFilterDynamicType.BelowAverage: return DynamicFilterValues.BelowAverage;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(value), "Not implemented value!");
-            }
-        }
-
-        public static DateTimeGroupingValues ToOpenXml(this XLDateTimeGrouping value)
-        {
-            switch (value)
-            {
-                case XLDateTimeGrouping.Year: return DateTimeGroupingValues.Year;
-                case XLDateTimeGrouping.Month: return DateTimeGroupingValues.Month;
-                case XLDateTimeGrouping.Day: return DateTimeGroupingValues.Day;
-                case XLDateTimeGrouping.Hour: return DateTimeGroupingValues.Hour;
-                case XLDateTimeGrouping.Minute: return DateTimeGroupingValues.Minute;
-                case XLDateTimeGrouping.Second: return DateTimeGroupingValues.Second;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(value), "Not implemented value!");
@@ -1157,27 +1074,6 @@ namespace Aid.Xlsx
             }
         }
 
-        private static readonly IReadOnlyDictionary<TotalsRowFunctionValues, XLTotalsRowFunction> TotalsRowFunctionMap =
-            new Dictionary<TotalsRowFunctionValues, XLTotalsRowFunction>
-            {
-                { TotalsRowFunctionValues.None, XLTotalsRowFunction.None },
-                { TotalsRowFunctionValues.Sum, XLTotalsRowFunction.Sum },
-                { TotalsRowFunctionValues.Minimum, XLTotalsRowFunction.Minimum },
-                { TotalsRowFunctionValues.Maximum, XLTotalsRowFunction.Maximum },
-                { TotalsRowFunctionValues.Average, XLTotalsRowFunction.Average },
-                { TotalsRowFunctionValues.Count, XLTotalsRowFunction.Count },
-                { TotalsRowFunctionValues.CountNumbers, XLTotalsRowFunction.CountNumbers },
-                { TotalsRowFunctionValues.StandardDeviation, XLTotalsRowFunction.StandardDeviation },
-                { TotalsRowFunctionValues.Variance, XLTotalsRowFunction.Variance },
-                { TotalsRowFunctionValues.Custom, XLTotalsRowFunction.Custom },
-            };
-
-
-        public static XLTotalsRowFunction ToXlsx(this TotalsRowFunctionValues value)
-        {
-            return TotalsRowFunctionMap[value];
-        }
-
         private static readonly IReadOnlyDictionary<DataValidationValues, XLAllowedValues> DataValidationMap =
             new Dictionary<DataValidationValues, XLAllowedValues>
             {
@@ -1308,50 +1204,6 @@ namespace Aid.Xlsx
         public static XLPivotCalculation ToXlsx(this ShowDataAsValues value)
         {
             return ShowDataAsMap[value];
-        }
-
-        private static readonly IReadOnlyDictionary<FilterOperatorValues, XLFilterOperator> FilterOperatorMap =
-            new Dictionary<FilterOperatorValues, XLFilterOperator>
-            {
-                { FilterOperatorValues.Equal, XLFilterOperator.Equal },
-                { FilterOperatorValues.NotEqual, XLFilterOperator.NotEqual },
-                { FilterOperatorValues.GreaterThan, XLFilterOperator.GreaterThan },
-                { FilterOperatorValues.LessThan, XLFilterOperator.LessThan },
-                { FilterOperatorValues.GreaterThanOrEqual, XLFilterOperator.EqualOrGreaterThan },
-                { FilterOperatorValues.LessThanOrEqual, XLFilterOperator.EqualOrLessThan },
-            };
-
-        public static XLFilterOperator ToXlsx(this FilterOperatorValues value)
-        {
-            return FilterOperatorMap[value];
-        }
-
-        private static readonly IReadOnlyDictionary<DynamicFilterValues, XLFilterDynamicType> DynamicFilterMap =
-            new Dictionary<DynamicFilterValues, XLFilterDynamicType>
-            {
-                { DynamicFilterValues.AboveAverage, XLFilterDynamicType.AboveAverage },
-                { DynamicFilterValues.BelowAverage, XLFilterDynamicType.BelowAverage },
-            };
-
-        public static XLFilterDynamicType ToXlsx(this DynamicFilterValues value)
-        {
-            return DynamicFilterMap[value];
-        }
-
-        private static readonly IReadOnlyDictionary<DateTimeGroupingValues, XLDateTimeGrouping> DateTimeGroupingMap =
-            new Dictionary<DateTimeGroupingValues, XLDateTimeGrouping>
-            {
-                { DateTimeGroupingValues.Year, XLDateTimeGrouping.Year },
-                { DateTimeGroupingValues.Month, XLDateTimeGrouping.Month },
-                { DateTimeGroupingValues.Day, XLDateTimeGrouping.Day },
-                { DateTimeGroupingValues.Hour, XLDateTimeGrouping.Hour },
-                { DateTimeGroupingValues.Minute, XLDateTimeGrouping.Minute },
-                { DateTimeGroupingValues.Second, XLDateTimeGrouping.Second },
-            };
-
-        public static XLDateTimeGrouping ToXlsx(this DateTimeGroupingValues value)
-        {
-            return DateTimeGroupingMap[value];
         }
 
         private static readonly IReadOnlyDictionary<SheetViewValues, XLSheetViewOptions> SheetViewMap =

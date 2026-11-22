@@ -78,7 +78,7 @@ internal class WorksheetPartReader
                     reader.Read();
                     break;
                 case "autoFilter":
-                    AutoFilterReader.LoadAutoFilter(new AutoFilter(reader.ReadOuterXml()), ws);
+                    AutoFilterXml.LoadWorksheetFilter((XElement)XNode.ReadFrom(reader), ws);
                     break;
                 case "sheetProtection":
                     LoadSheetProtection((XElement)XNode.ReadFrom(reader), ws);

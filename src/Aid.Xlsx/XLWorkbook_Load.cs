@@ -249,98 +249,8 @@ namespace Aid.Xlsx
 
                 foreach (var tableDefinitionPart in worksheetPart.TableDefinitionParts)
                 {
-                    var relId = worksheetPart.GetIdOfPart(tableDefinitionPart);
-                    var dTable = tableDefinitionPart.Table;
-
-                    String reference = dTable.Reference.Value;
-                    String tableName = dTable.Name ?? dTable.DisplayName ?? string.Empty;
-                    if (String.IsNullOrWhiteSpace(tableName))
-                        throw new InvalidDataException("The table name is missing.");
-
-                    var xlTable = ws.Range(reference).CreateTable(tableName, false) as XLTable;
-                    xlTable.RelId = relId;
-
-                    // Add columns to the table
-                    foreach (TableColumn tableColumn in dTable.TableColumns)
-                    {
-                        var fieldName = GetTableColumnName(tableColumn.Name.Value);
-                        var xlField = xlTable.AddField(fieldName);
-
-                        if (tableColumn.HeaderRowDifferentialFormattingId is { } headerDxfId)
-                            xlField.HeaderFormatValue = Styles.DifferentialFormats[checked((int)headerDxfId.Value)];
-
-                        if (tableColumn.DataFormatId is { } dataDxfId)
-                            xlField.DataFormatValue = Styles.DifferentialFormats[checked((int)dataDxfId.Value)];
-
-                        if (tableColumn.TotalsRowDifferentialFormattingId is { } totalsDxfId)
-                            xlField.TotalFormatValue = Styles.DifferentialFormats[checked((int)totalsDxfId.Value)];
-                    }
-
-                    if (dTable.HeaderRowCount != null && dTable.HeaderRowCount == 0)
-                    {
-                        xlTable._showHeaderRow = false;
-                    }
-                    else
-                    {
-                        xlTable.InitializeAutoFilter();
-                    }
-
-                    if (dTable.TotalsRowCount != null && dTable.TotalsRowCount.Value > 0)
-                        xlTable._showTotalsRow = true;
-
-                    if (dTable.TableStyleInfo != null)
-                    {
-                        if (dTable.TableStyleInfo.ShowFirstColumn != null)
-                            xlTable.EmphasizeFirstColumn = dTable.TableStyleInfo.ShowFirstColumn.Value;
-                        if (dTable.TableStyleInfo.ShowLastColumn != null)
-                            xlTable.EmphasizeLastColumn = dTable.TableStyleInfo.ShowLastColumn.Value;
-                        if (dTable.TableStyleInfo.ShowRowStripes != null)
-                            xlTable.ShowRowStripes = dTable.TableStyleInfo.ShowRowStripes.Value;
-                        if (dTable.TableStyleInfo.ShowColumnStripes != null)
-                            xlTable.ShowColumnStripes = dTable.TableStyleInfo.ShowColumnStripes.Value;
-                        if (dTable.TableStyleInfo.Name != null)
-                        {
-                            var theme = XLTableTheme.FromName(dTable.TableStyleInfo.Name.Value);
-                            if (theme != null)
-                                xlTable.Theme = theme;
-                            else
-                                xlTable.Theme = new XLTableTheme(dTable.TableStyleInfo.Name.Value);
-                        }
-                        else
-                            xlTable.Theme = XLTableTheme.None;
-                    }
-
-                    if (dTable.AutoFilter != null)
-                    {
-                        xlTable.ShowAutoFilter = true;
-                        AutoFilterReader.LoadAutoFilterColumns(dTable.AutoFilter, xlTable.AutoFilter);
-                    }
-                    else
-                        xlTable.ShowAutoFilter = false;
-
-                    if (xlTable.ShowTotalsRow)
-                    {
-                        foreach (var tableColumn in dTable.TableColumns.Cast<TableColumn>())
-                        {
-                            var tableColumnName = GetTableColumnName(tableColumn.Name.Value);
-                            if (tableColumn.TotalsRowFunction != null)
-                                xlTable.Field(tableColumnName).TotalsRowFunction =
-                                    tableColumn.TotalsRowFunction.Value.ToXlsx();
-
-                            if (tableColumn.TotalsRowFormula != null)
-                                xlTable.Field(tableColumnName).TotalsRowFormulaA1 =
-                                    tableColumn.TotalsRowFormula.Text;
-
-                            if (tableColumn.TotalsRowLabel != null)
-                                xlTable.Field(tableColumnName).TotalsRowLabel = tableColumn.TotalsRowLabel.Value;
-                        }
-                        if (xlTable.AutoFilter != null)
-                            xlTable.AutoFilter.Range = xlTable.Worksheet.Range(
-                                                    xlTable.RangeAddress.FirstAddress.RowNumber, xlTable.RangeAddress.FirstAddress.ColumnNumber,
-                                                    xlTable.RangeAddress.LastAddress.RowNumber - 1, xlTable.RangeAddress.LastAddress.ColumnNumber);
-                    }
-                    else if (xlTable.AutoFilter != null)
-                        xlTable.AutoFilter.Range = xlTable.Worksheet.Range(xlTable.RangeAddress);
+                    using var tableStream = tableDefinitionPart.GetStream(FileMode.Open, FileAccess.Read);
+                    TableDefinitionXml.Load(tableStream, ws, worksheetPart.GetIdOfPart(tableDefinitionPart));
                 }
 
                 #endregion LoadTables
@@ -602,11 +512,6 @@ namespace Aid.Xlsx
         }
 
         #endregion Comment Helpers
-
-        private String GetTableColumnName(string name)
-        {
-            return name.Replace("_x000a_", Environment.NewLine).Replace("_x005f_x000a_", "_x000a_");
-        }
 
         private void LoadColorsAndLines<T>(IXLDrawing<T> drawing, XElement shape)
         {
