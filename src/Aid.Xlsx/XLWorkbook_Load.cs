@@ -106,46 +106,10 @@ namespace Aid.Xlsx
                 ThemeXml.Read(themeStream, Theme);
             }
 
-            var wbProps = workbookPart.Workbook.WorkbookProperties;
-            if (wbProps != null)
-                Use1904DateSystem = OpenXmlHelper.GetBooleanValueAsBool(wbProps.Date1904, false);
-
-            var wbFilesharing = workbookPart.Workbook.FileSharing;
-            if (wbFilesharing != null)
-            {
-                FileSharing.ReadOnlyRecommended = OpenXmlHelper.GetBooleanValueAsBool(wbFilesharing.ReadOnlyRecommended, false);
-                FileSharing.UserName = wbFilesharing.UserName?.Value;
-            }
-
-            LoadWorkbookProtection(workbookPart.Workbook.WorkbookProtection, this);
-
-            var calculationProperties = workbookPart.Workbook.CalculationProperties;
-            if (calculationProperties != null)
-            {
-                var calculateMode = calculationProperties.CalculationMode;
-                if (calculateMode != null)
-                    CalculateMode = calculateMode.Value.ToXlsx();
-
-                var calculationOnSave = calculationProperties.CalculationOnSave;
-                if (calculationOnSave != null)
-                    CalculationOnSave = calculationOnSave.Value;
-
-                var forceFullCalculation = calculationProperties.ForceFullCalculation;
-                if (forceFullCalculation != null)
-                    ForceFullCalculation = forceFullCalculation.Value;
-
-                var fullCalculationOnLoad = calculationProperties.FullCalculationOnLoad;
-                if (fullCalculationOnLoad != null)
-                    FullCalculationOnLoad = fullCalculationOnLoad.Value;
-
-                var fullPrecision = calculationProperties.FullPrecision;
-                if (fullPrecision != null)
-                    FullPrecision = fullPrecision.Value;
-
-                var referenceMode = calculationProperties.ReferenceMode;
-                if (referenceMode != null)
-                    ReferenceStyle = referenceMode.Value.ToXlsx();
-            }
+            XElement workbook;
+            using (var workbookStream = workbookPart.GetStream(FileMode.Open, FileAccess.Read))
+                workbook = WorkbookXml.ReadRoot(workbookStream);
+            WorkbookXml.LoadSettings(workbook, this);
 
             // Styles part is optional and each workbook must have a default style
             var stylesPart = workbookPart.WorkbookStylesPart;
@@ -177,20 +141,20 @@ namespace Aid.Xlsx
             // We do this mainly because it skips a very costly calculation invalidation step, but it also make things more consistent,
             // e.g. when reading calculations that reference other sheets, we know that those sheets always already exist.
             // That consistency point isn't required yet but could be taken advantage of in the future.
-            var sheets = workbookPart.Workbook.Sheets;
+            var ns = workbook.Name.Namespace;
+            var sheets = workbook.Element(ns + "sheets")?.Elements(ns + "sheet").Select(WorkbookXml.ReadSheet).ToArray() ?? [];
             Int32 position = 0;
-            foreach (var dSheet in sheets.OfType<Sheet>())
+            foreach (var dSheet in sheets)
             {
                 position++;
                 var sheetName = dSheet.Name;
-                var sheetId = dSheet.SheetId.Value;
+                var sheetId = dSheet.SheetId;
 
                 if (string.IsNullOrEmpty(dSheet.Id))
                 {
                     // Some non-Excel producers create sheets with empty relId.
                     var emptySheet = WorksheetsInternal.Add(sheetName, position, sheetId);
-                    if (dSheet.State != null)
-                        emptySheet.Visibility = dSheet.State.Value.ToXlsx();
+                    emptySheet.Visibility = dSheet.Visibility;
 
                     continue;
                 }
@@ -208,16 +172,14 @@ namespace Aid.Xlsx
                 var ws = WorksheetsInternal.Add(sheetName, position, sheetId);
                 ws.RelId = dSheet.Id;
 
-                if (dSheet.State != null)
-                    ws.Visibility = dSheet.State.Value.ToXlsx();
+                ws.Visibility = dSheet.Visibility;
             }
 
             position = 0;
-            foreach (var dSheet in sheets.OfType<Sheet>())
+            foreach (var dSheet in sheets)
             {
                 position++;
                 var sheetName = dSheet.Name;
-                var sheetId = dSheet.SheetId.Value;
 
                 if (string.IsNullOrEmpty(dSheet.Id))
                 {
@@ -275,24 +237,21 @@ namespace Aid.Xlsx
                 #endregion LoadComments
             }
 
-            var workbook = workbookPart.Workbook;
-
-            var bookViews = workbook.BookViews;
-            if (bookViews != null && bookViews.FirstOrDefault() is WorkbookView workbookView)
+            if (workbook.Element(ns + "bookViews")?.Element(ns + "workbookView") is { } workbookView)
             {
-                if (workbookView.ActiveTab == null || !workbookView.ActiveTab.HasValue)
+                if (!uint.TryParse((string)workbookView.Attribute("activeTab"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var activeTab))
                 {
                     Worksheets.First().SetTabActive().Unhide();
                 }
                 else
                 {
                     UnsupportedSheet unsupportedSheet =
-                        UnsupportedSheets.FirstOrDefault(us => us.Position == (Int32)(workbookView.ActiveTab.Value + 1));
+                        UnsupportedSheets.FirstOrDefault(us => us.Position == (Int32)(activeTab + 1));
                     if (unsupportedSheet != null)
                         unsupportedSheet.IsActive = true;
                     else
                     {
-                        Worksheet((Int32)(workbookView.ActiveTab.Value + 1)).SetTabActive();
+                        Worksheet((Int32)(activeTab + 1)).SetTabActive();
                     }
                 }
             }
@@ -311,7 +270,7 @@ namespace Aid.Xlsx
             }
 
             // Delay loading of pivot tables until all sheets have been loaded
-            foreach (var dSheet in sheets.OfType<Sheet>())
+            foreach (var dSheet in sheets)
             {
                 if (string.IsNullOrEmpty(dSheet.Id))
                 {
@@ -786,22 +745,24 @@ namespace Aid.Xlsx
             return false;
         }
 
-        private void LoadDefinedNames(Workbook workbook)
+        private void LoadDefinedNames(XElement workbook)
         {
-            if (workbook.DefinedNames == null) return;
+            var ns = workbook.Name.Namespace;
+            var definedNames = workbook.Element(ns + "definedNames");
+            if (definedNames is null)
+                return;
 
-            foreach (var definedName in workbook.DefinedNames.OfType<DefinedName>())
+            foreach (var definedName in definedNames.Elements(ns + "definedName"))
             {
-                var name = definedName.Name;
-                var visible = true;
-                if (definedName.Hidden != null) visible = !BooleanValue.ToBoolean(definedName.Hidden);
-
-                var localSheetId = -1;
-                if (definedName.LocalSheetId?.HasValue ?? false) localSheetId = Convert.ToInt32(definedName.LocalSheetId.Value);
+                var name = (string)definedName.Attribute("name");
+                var visible = !((bool?)definedName.Attribute("hidden") ?? false);
+                var localSheet = (uint?)definedName.Attribute("localSheetId");
+                var localSheetId = localSheet.HasValue ? Convert.ToInt32(localSheet.Value) : -1;
+                var text = definedName.Value;
 
                 if (name == "_xlnm.Print_Area")
                 {
-                    var fixedNames = validateDefinedNames(definedName.Text.Split(','));
+                    var fixedNames = validateDefinedNames(text.Split(','));
                     foreach (string area in fixedNames)
                     {
                         if (area.Contains("["))
@@ -822,13 +783,11 @@ namespace Aid.Xlsx
                 }
                 else if (name == "_xlnm.Print_Titles")
                 {
-                    LoadPrintTitles(definedName);
+                    LoadPrintTitles(text);
                 }
                 else
                 {
-                    string text = definedName.Text;
-
-                    var comment = definedName.Comment;
+                    var comment = (string)definedName.Attribute("comment");
                     if (localSheetId == -1)
                     {
                         if (DefinedNamesInternal.All<XLDefinedName>(nr => nr.Name != name))
@@ -867,9 +826,9 @@ namespace Aid.Xlsx
                 yield return sb.ToString();
         }
 
-        private void LoadPrintTitles(DefinedName definedName)
+        private void LoadPrintTitles(string definition)
         {
-            var areas = validateDefinedNames(definedName.Text.Split(','));
+            var areas = validateDefinedNames(definition.Split(','));
             foreach (var item in areas)
             {
                 if (this.Range(item) != null)
@@ -915,30 +874,6 @@ namespace Aid.Xlsx
             }
         }
 
-
-        private static void LoadWorkbookProtection(WorkbookProtection wp, XLWorkbook wb)
-        {
-            if (wp == null) return;
-
-            wb.Protection.IsProtected = true;
-
-            var algorithmName = wp.WorkbookAlgorithmName?.Value ?? string.Empty;
-            if (String.IsNullOrEmpty(algorithmName))
-            {
-                wb.Protection.PasswordHash = wp.WorkbookPassword?.Value ?? string.Empty;
-                wb.Protection.Base64EncodedSalt = string.Empty;
-            }
-            else if (DescribedEnumParser<XLProtectionAlgorithm.Algorithm>.IsValidDescription(algorithmName))
-            {
-                wb.Protection.Algorithm = DescribedEnumParser<XLProtectionAlgorithm.Algorithm>.FromDescription(algorithmName);
-                wb.Protection.PasswordHash = wp.WorkbookHashValue?.Value ?? string.Empty;
-                wb.Protection.SpinCount = wp.WorkbookSpinCount?.Value ?? 0;
-                wb.Protection.Base64EncodedSalt = wp.WorkbookSaltValue?.Value ?? string.Empty;
-            }
-
-            wb.Protection.AllowElement(XLWorkbookProtectionElements.Structure, !OpenXmlHelper.GetBooleanValueAsBool(wp.LockStructure, false));
-            wb.Protection.AllowElement(XLWorkbookProtectionElements.Windows, !OpenXmlHelper.GetBooleanValueAsBool(wp.LockWindows, false));
-        }
 
         private XmlTreeReader CreateTreeReader(OpenXmlPart openXmlPart)
         {

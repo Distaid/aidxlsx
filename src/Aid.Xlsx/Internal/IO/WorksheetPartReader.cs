@@ -118,7 +118,7 @@ internal class WorksheetPartReader
                     break;
                 case "legacyDrawing":
                     ws.LegacyDrawingId = reader.GetAttribute("id", OpenXmlConst.RelationshipsNs)
-                        ?? reader.GetAttribute("id", "http://purl.oclc.org/ooxml/officeDocument/relationships");
+                        ?? reader.GetAttribute("id", OpenXmlConst.StrictRelationshipsNs);
                     reader.Skip();
                     break;
                 default:

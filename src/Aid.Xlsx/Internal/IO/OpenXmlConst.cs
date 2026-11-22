@@ -23,6 +23,8 @@ namespace Aid.Xlsx.Internal.IO
 
         public const string RelationshipsNs = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 
+        public const string StrictRelationshipsNs = "http://purl.oclc.org/ooxml/officeDocument/relationships";
+
         public const string RevisionNs = "http://schemas.microsoft.com/office/spreadsheetml/2014/revision";
 
         public const string X15Main2010SsNs = "http://schemas.microsoft.com/office/spreadsheetml/2010/11/main";

@@ -13,9 +13,9 @@ public sealed class WorkbookOpcRoundTripTests
 {
     private const string OfficeRelationships = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/";
 
-    [TestCase("http://schemas.openxmlformats.org/spreadsheetml/2006/main")]
-    [TestCase("http://purl.oclc.org/ooxml/spreadsheetml/main")]
-    public void WorksheetStreamsCellsAndContinuesReadingTheNextSibling(string spreadsheetNamespace)
+    [TestCase("http://schemas.openxmlformats.org/spreadsheetml/2006/main", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")]
+    [TestCase("http://purl.oclc.org/ooxml/spreadsheetml/main", "http://purl.oclc.org/ooxml/officeDocument/relationships")]
+    public void ReadsWorkbookAndStreamsWorksheetCells(string spreadsheetNamespace, string relationshipNamespace)
     {
         using var original = new MemoryStream();
         using (var workbook = new XLWorkbook())
@@ -28,7 +28,17 @@ public sealed class WorkbookOpcRoundTripTests
         using (var package = OpcPackage.Open(original))
         {
             var workbookPart = package.GetPart(package.Relationships.Single(rel => rel.Type == OfficeRelationships + "officeDocument").TargetPartName);
-            var worksheet = package.GetPart(workbookPart.Relationships.Single(rel => rel.Type == OfficeRelationships + "worksheet").TargetPartName);
+            var sheetRelationship = workbookPart.Relationships.Single(rel => rel.Type == OfficeRelationships + "worksheet");
+            var worksheet = package.GetPart(sheetRelationship.TargetPartName);
+            workbookPart.ReplaceContent(Encoding.UTF8.GetBytes($"""
+                <workbook xmlns="{spreadsheetNamespace}" xmlns:r="{relationshipNamespace}">
+                  <fileSharing readOnlyRecommended="1" userName="Reader"/>
+                  <workbookPr date1904="true"/>
+                  <sheets><sheet name="Data" sheetId="1" r:id="{sheetRelationship.Id}"/></sheets>
+                  <definedNames><definedName name="Source" hidden="1" comment="Input cell">Data!$A$1</definedName></definedNames>
+                  <calcPr calcMode="manual" refMode="R1C1"/>
+                </workbook>
+                """));
             worksheet.ReplaceContent(Encoding.UTF8.GetBytes($"""
                 <worksheet xmlns="{spreadsheetNamespace}">
                   <sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>abc</t></is></c></row></sheetData>
@@ -40,6 +50,15 @@ public sealed class WorkbookOpcRoundTripTests
         }
 
         using var loaded = new XLWorkbook(updated);
+        Assert.That(loaded.Use1904DateSystem, Is.True);
+        Assert.That(loaded.FileSharing.ReadOnlyRecommended, Is.True);
+        Assert.That(loaded.FileSharing.UserName, Is.EqualTo("Reader"));
+        Assert.That(loaded.CalculateMode, Is.EqualTo(XLCalculateMode.Manual));
+        Assert.That(loaded.ReferenceStyle, Is.EqualTo(XLReferenceStyle.R1C1));
+        var name = loaded.DefinedNames.Single();
+        Assert.That(name.RefersTo, Is.EqualTo("Data!$A$1"));
+        Assert.That(name.Comment, Is.EqualTo("Input cell"));
+        Assert.That(name.Visible, Is.False);
         var sheet = loaded.Worksheet("Data");
         Assert.That(sheet.Cell("A1").GetString(), Is.EqualTo("abc"));
         Assert.That(sheet.MergedRanges.Select(range => range.RangeAddress.ToString()), Is.EqualTo(new[] { "A1:B1" }));
