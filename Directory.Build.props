@@ -89,7 +89,7 @@
     explicit marker of the project. A new library project must be added to this list.
   -->
   <PropertyGroup>
-    <IsLibrary Condition="'$(IsLibrary)' == '' and ('$(MSBuildProjectName)' == 'Aid.Xlsx' or '$(MSBuildProjectName)' == 'Aid.Xlsx.Opc')">true</IsLibrary>
+    <IsLibrary Condition="'$(IsLibrary)' == '' and ('$(MSBuildProjectName)' == 'Aid.Xlsx' or '$(MSBuildProjectName)' == 'Aid.Xlsx.Opc' or '$(MSBuildProjectName)' == 'Aid.Xlsx.Formula')">true</IsLibrary>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsLibrary)' == 'true'">

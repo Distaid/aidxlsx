@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using ClosedXML.Parser;
+using Aid.Xlsx.Formulas;
 
 namespace Aid.Xlsx
 {

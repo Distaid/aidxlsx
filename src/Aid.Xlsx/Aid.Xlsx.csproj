@@ -11,6 +11,7 @@
     <RootNamespace>Aid.Xlsx</RootNamespace>
     <AssemblyName>Aid.Xlsx</AssemblyName>
     <PackageId>Aid.Xlsx</PackageId>
+    <Description>A .NET library for reading, creating, and editing Excel workbooks.</Description>
     <IsLibrary>true</IsLibrary>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -18,16 +19,16 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!--
-      Single package distribution: the OPC layer ships inside Aid.Xlsx instead of being a
-      separate package. The target below adds the output of project references to lib/<tfm>/.
+      The OPC and formula libraries ship inside Aid.Xlsx. The target below bundles their
+      assemblies and PrivateAssets keeps them out of the package dependency list.
     -->
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeProjectReferenceOutputs</TargetsForTfmSpecificBuildOutput>
     <NoWarn>$(NoWarn);NU1605;CS1591</NoWarn>
   </PropertyGroup>
 
-  <Target Name="IncludeProjectReferenceOutputs" DependsOnTargets="ResolveReferences">
+  <Target Name="IncludeProjectReferenceOutputs">
     <ItemGroup>
-      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget','ProjectReference'))" />
+      <BuildOutputInPackage Include="$(TargetDir)Aid.Xlsx.Opc.dll;$(TargetDir)Aid.Xlsx.Formula.dll" />
     </ItemGroup>
   </Target>
 
@@ -45,6 +46,7 @@
     <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
     <None Include="..\..\NOTICE" Pack="true" PackagePath="\" />
     <None Include="..\..\third-party\LICENSE-Apache-2.0.txt" Pack="true" PackagePath="third-party\" />
+    <None Include="..\..\third-party\LICENSE-Formula.txt" Pack="true" PackagePath="third-party\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -57,10 +59,10 @@
     </PackageReference>
     <PackageReference Include="RBush.Signed" />
     <PackageReference Include="SixLabors.Fonts" />
-    <PackageReference Include="ClosedXML.Parser" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Aid.Xlsx.Opc\Aid.Xlsx.Opc.csproj" />
+    <ProjectReference Include="..\Aid.Xlsx.Opc\Aid.Xlsx.Opc.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Aid.Xlsx.Formula\Aid.Xlsx.Formula.csproj" PrivateAssets="all" />
   </ItemGroup>
 </Project>

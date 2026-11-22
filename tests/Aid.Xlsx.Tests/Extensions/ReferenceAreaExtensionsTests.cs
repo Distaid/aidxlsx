@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using Aid.Xlsx;
 using Aid.Xlsx.Extensions;
-using ClosedXML.Parser;
+using Aid.Xlsx.Formulas;
 using NUnit.Framework;
-using static ClosedXML.Parser.ReferenceAxisType;
-using static ClosedXML.Parser.ReferenceStyle;
+using static Aid.Xlsx.Formulas.ReferenceAxisType;
+using static Aid.Xlsx.Formulas.ReferenceStyle;
 
 namespace Aid.Xlsx.Tests.Extensions
 {

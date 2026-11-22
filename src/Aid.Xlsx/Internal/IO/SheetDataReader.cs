@@ -5,7 +5,7 @@ using System.Globalization;
 using Aid.Xlsx.Formatting;
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Opc;
-using ClosedXML.Parser;
+using Aid.Xlsx.Formulas;
 using DocumentFormat.OpenXml.Spreadsheet;
 using StringItem = Aid.Xlsx.CalcEngine.OneOf<string, Aid.Xlsx.XLImmutableRichText>;
 

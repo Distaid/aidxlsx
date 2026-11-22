@@ -154,22 +154,17 @@
       "aid.xlsx": {
         "type": "Project",
         "dependencies": {
-          "Aid.Xlsx.Opc": "[0.1.0-preview1, )",
-          "ClosedXML.Parser": "[2.0.0-preview1, )",
           "DocumentFormat.OpenXml": "[3.1.1, 4.0.0)",
           "ExcelNumberFormat": "[1.1.0, )",
           "RBush.Signed": "[4.0.0, )",
           "SixLabors.Fonts": "[1.0.0, )"
         }
       },
-      "aid.xlsx.opc": {
+      "aid.xlsx.formula": {
         "type": "Project"
       },
-      "ClosedXML.Parser": {
-        "type": "CentralTransitive",
-        "requested": "[2.0.0-preview1, )",
-        "resolved": "2.0.0-preview1",
-        "contentHash": "ZsLGza+Ek89ygM/tixMb9YVRrT/fAz3mvevhHvESnZrmGiUODGc+aYxAt+854SdgkFHK/nfSlCui+df38wLjUQ=="
+      "aid.xlsx.opc": {
+        "type": "Project"
       },
       "DocumentFormat.OpenXml": {
         "type": "CentralTransitive",

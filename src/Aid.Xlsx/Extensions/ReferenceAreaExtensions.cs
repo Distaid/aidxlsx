@@ -1,6 +1,6 @@
 using System;
 using Aid.Xlsx;
-using ClosedXML.Parser;
+using Aid.Xlsx.Formulas;
 
 namespace Aid.Xlsx.Extensions
 {

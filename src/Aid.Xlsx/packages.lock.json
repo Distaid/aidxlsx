@@ -2,12 +2,6 @@
   "version": 2,
   "dependencies": {
     "net10.0": {
-      "ClosedXML.Parser": {
-        "type": "Direct",
-        "requested": "[2.0.0-preview1, )",
-        "resolved": "2.0.0-preview1",
-        "contentHash": "ZsLGza+Ek89ygM/tixMb9YVRrT/fAz3mvevhHvESnZrmGiUODGc+aYxAt+854SdgkFHK/nfSlCui+df38wLjUQ=="
-      },
       "DocumentFormat.OpenXml": {
         "type": "Direct",
         "requested": "[3.1.1, 4.0.0)",
@@ -79,6 +73,9 @@
         "type": "Transitive",
         "resolved": "8.0.1",
         "contentHash": "KYkIOAvPexQOLDxPO2g0BVoWInnQhPpkFzRqvNrNrMhVT6kqhVr0zEb6KCHlptLFukxnZrjuMVAnxK7pOGUYrw=="
+      },
+      "aid.xlsx.formula": {
+        "type": "Project"
       },
       "aid.xlsx.opc": {
         "type": "Project"

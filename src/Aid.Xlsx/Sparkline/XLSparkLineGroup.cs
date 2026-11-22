@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Aid.Xlsx.CalcEngine.Visitors;
 using Aid.Xlsx.Extensions;
-using ClosedXML.Parser;
+using Aid.Xlsx.Formulas;
 
 namespace Aid.Xlsx
 {

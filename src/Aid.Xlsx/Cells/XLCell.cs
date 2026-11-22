@@ -15,7 +15,7 @@ using Aid.Xlsx.Formatting;
 using Aid.Xlsx.InsertData;
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Graphics;
-using ClosedXML.Parser;
+using Aid.Xlsx.Formulas;
 
 namespace Aid.Xlsx
 {

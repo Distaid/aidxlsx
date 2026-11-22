@@ -49,6 +49,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Aid.Xlsx\Aid.Xlsx.csproj" />
+    <ProjectReference Include="..\..\src\Aid.Xlsx.Formula\Aid.Xlsx.Formula.csproj" />
+    <ProjectReference Include="..\..\src\Aid.Xlsx.Opc\Aid.Xlsx.Opc.csproj" />
   </ItemGroup>
 
   <ItemGroup>

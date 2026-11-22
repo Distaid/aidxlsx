@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Build the formula parser from repository sources and ship it inside `Aid.Xlsx`.
 - Restructured the solution for the port: the projects and namespaces are
   `Aid.Xlsx.Opc` (OPC/XML layer) and `Aid.Xlsx.CodeGen` (XSD code generator); the core
   library now uses a flat layout — domain folders sit directly under `src/Aid.Xlsx/`,
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Install `Aid.Xlsx` without resolving a separate `Aid.Xlsx.Opc` package.
 - `InsertData`/`InsertTable` pass the row type to the readers explicitly instead of
   inferring it from the materialized row collection, which returned `object` and
   produced empty ranges. Rows of different runtime types are no longer mixed in one

@@ -18,6 +18,7 @@ Formula parser
 The formula parser is derived from ClosedXML.Parser
 (https://github.com/ClosedXML/ClosedXML.Parser), commit
 3dcf1fde5741a4cbfbfda8e6142e886f6755463f, licensed under the MIT License.
+The parser's license is in third-party/LICENSE-Formula.txt and ships in the package.
 
 Third-party components
 ----------------------
@@ -25,8 +26,7 @@ Third-party components
   provided in third-party/LICENSE-Apache-2.0.txt.
 - ExcelNumberFormat - MIT License.
 - RBush.Signed - MIT License.
-- DocumentFormat.OpenXml - MIT License. Used by test projects only; it is not
-  referenced by the shipped library.
+- DocumentFormat.OpenXml - MIT License. Used by the library during the OPC/XML migration.
 
 Trademarks
 ----------

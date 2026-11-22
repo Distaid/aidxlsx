@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <!-- Runtime dependencies of the Aid.Xlsx library -->
-    <PackageVersion Include="ClosedXML.Parser" Version="2.0.0-preview1" />
     <PackageVersion Include="DocumentFormat.OpenXml" Version="[3.1.1,4.0.0)" />
     <PackageVersion Include="ExcelNumberFormat" Version="1.1.0" />
     <PackageVersion Include="Polyfill" Version="1.29.0" />

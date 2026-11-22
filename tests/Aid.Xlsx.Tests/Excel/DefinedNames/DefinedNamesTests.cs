@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using ClosedXML.Parser;
+using Aid.Xlsx.Formulas;
 
 namespace Aid.Xlsx.Tests.Excel
 {
