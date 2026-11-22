@@ -102,7 +102,7 @@ public sealed class WorkbookOpcRoundTripTests
             package.GetPart(sheetPath).ReplaceContent(Encoding.UTF8.GetBytes($"""
                 <worksheet xmlns="{spreadsheet}" xmlns:mc="{compatibility}" xmlns:custom="{extensionNamespace}" mc:Ignorable="custom">
                   <sheetData><row r="1"><c r="A1"><v>1</v></c></row></sheetData>
-                  <extLst><ext uri="urn:example:extension"><custom:message>preserved text</custom:message></ext></extLst>
+                  <extLst><ext uri="urn:example:extension"><custom:message>preserved text</custom:message><custom:padding xml:space="preserve">   </custom:padding></ext></extLst>
                 </worksheet>
                 """));
             package.Save(edited);
@@ -117,10 +117,11 @@ public sealed class WorkbookOpcRoundTripTests
 
         using var result = OpcPackage.Open(saved);
         using var worksheet = result.GetPart(sheetPath).OpenRead();
-        var root = XElement.Load(worksheet);
+        var root = XElement.Load(worksheet, System.Xml.Linq.LoadOptions.PreserveWhitespace);
         Assert.That(root.GetNamespaceOfPrefix("custom"), Is.EqualTo(extensionNamespace));
         Assert.That((string)root.Attribute(compatibility + "Ignorable"), Is.EqualTo("custom x14ac"));
         Assert.That(root.Descendants(extensionNamespace + "message").Single().Value, Is.EqualTo("preserved text"));
+        Assert.That(root.Descendants(extensionNamespace + "padding").Single().Value, Is.EqualTo("   "));
         Assert.That(root.Descendants(spreadsheet + "v").Single().Value, Is.EqualTo("42"));
     }
 
