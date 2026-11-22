@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using Aid.Xlsx.Opc;
 using NUnit.Framework;
 
@@ -100,6 +101,77 @@ public sealed class WorkbookOpcRoundTripTests
         {
             Directory.Delete(directory, recursive: true);
         }
+    }
+
+    [Test]
+    public void EditingDocumentPropertiesPreservesUnmodeledMetadata()
+    {
+        XNamespace custom = "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties";
+        XNamespace extended = "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties";
+        XNamespace variant = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
+        using var original = new MemoryStream();
+        using (var workbook = new XLWorkbook())
+        {
+            workbook.AddWorksheet("Data");
+            workbook.Properties.Company = "Example Company";
+            workbook.Properties.Manager = "Old Manager";
+            workbook.CustomProperties.Add("Remove", false);
+            workbook.CustomProperties.Add("Edit", 1.25);
+            workbook.SaveAs(original, validate: true);
+        }
+
+        using var modified = new MemoryStream();
+        using (var package = OpcPackage.Open(original))
+        {
+            var customPart = package.GetPart("/docProps/custom.xml");
+            var customXml = ReadXml(customPart);
+            var data = new XElement(custom + "property",
+                new XAttribute("fmtid", "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}"),
+                new XAttribute("name", "Integer"), new XAttribute("pid", 4),
+                new XElement(variant + "i4", 42));
+            customXml.Root.Add(data);
+            ReplaceXml(customPart, customXml);
+
+            var extendedPart = package.GetPart("/docProps/app.xml");
+            var extendedXml = ReadXml(extendedPart);
+            extendedXml.Root.SetElementValue(extended + "Application", "Another editor");
+            ReplaceXml(extendedPart, extendedXml);
+            package.Save(modified);
+        }
+
+        using (var workbook = new XLWorkbook(modified))
+        {
+            Assert.That(workbook.Properties.Company, Is.EqualTo("Example Company"));
+            Assert.That(workbook.CustomProperties.CustomProperty("Edit").GetValue<double>(), Is.EqualTo(1.25));
+            workbook.Properties.Manager = "New Manager";
+            workbook.CustomProperties.Delete("Remove");
+            workbook.CustomProperties.CustomProperty("Edit").Value = 2.5;
+            workbook.CustomProperties.Add("New", true);
+            workbook.Save(new SaveOptions { ValidatePackage = true });
+        }
+
+        using var result = OpcPackage.Open(modified);
+        var customProperties = ReadXml(result.GetPart("/docProps/custom.xml")).Root.Elements().ToArray();
+        var integer = customProperties.Single(e => (string)e.Attribute("name") == "Integer");
+        Assert.That((int)integer.Element(variant + "i4"), Is.EqualTo(42));
+        Assert.That(customProperties.Select(e => (int)e.Attribute("pid")), Is.Unique);
+        Assert.That(customProperties.Select(e => (string)e.Attribute("name")), Is.EquivalentTo(new[] { "Integer", "Edit", "New" }));
+        var extendedProperties = ReadXml(result.GetPart("/docProps/app.xml")).Root;
+        Assert.That((string)extendedProperties.Element(extended + "Application"), Is.EqualTo("Another editor"));
+        Assert.That((string)extendedProperties.Element(extended + "Manager"), Is.EqualTo("New Manager"));
+    }
+
+    private static XDocument ReadXml(OpcPart part)
+    {
+        using var stream = part.OpenRead();
+        return XDocument.Load(stream);
+    }
+
+    private static void ReplaceXml(OpcPart part, XDocument xml)
+    {
+        using var stream = new MemoryStream();
+        xml.Save(stream);
+        part.ReplaceContent(stream.ToArray());
     }
 
     private static byte[] ReadVbaProject(Stream stream)

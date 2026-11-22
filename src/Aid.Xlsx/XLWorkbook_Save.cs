@@ -206,7 +206,11 @@ namespace Aid.Xlsx
                                              document.AddNewPart<ExtendedFilePropertiesPart>(
                                                  context.RelIdGenerator.GetNext(RelType.Workbook));
 
-            ExtendedFilePropertiesPartWriter.GenerateContent(extendedFilePropertiesPart, this);
+            XDocument extendedProperties;
+            using (var existing = extendedFilePropertiesPart.GetStream(FileMode.Open, FileAccess.Read))
+                extendedProperties = ExtendedPropertiesXml.Update(existing, this);
+            using (var target = extendedFilePropertiesPart.GetStream(FileMode.Create, FileAccess.Write))
+                extendedProperties.Save(target, System.Xml.Linq.SaveOptions.DisableFormatting);
 
             WorkbookPartWriter.GenerateContent(workbookPart, this, options, context);
 
@@ -351,17 +355,20 @@ namespace Aid.Xlsx
             }
 
             // Custom properties
-            if (CustomProperties.Any())
-            {
-                var customFilePropertiesPart =
-                    document.CustomFilePropertiesPart ?? document.AddNewPart<CustomFilePropertiesPart>(context.RelIdGenerator.GetNext(RelType.Workbook));
+            var customPropertiesPart = document.CustomFilePropertiesPart;
+            XDocument customProperties;
+            using (var existing = customPropertiesPart?.GetStream(FileMode.Open, FileAccess.Read))
+                customProperties = CustomPropertiesXml.Update(existing, CustomProperties);
 
-                CustomFilePropertiesPartWriter.GenerateContent(customFilePropertiesPart, this);
-            }
-            else
+            if (customProperties is not null)
             {
-                if (document.CustomFilePropertiesPart != null)
-                    document.DeletePart(document.CustomFilePropertiesPart);
+                customPropertiesPart ??= document.AddNewPart<CustomFilePropertiesPart>(context.RelIdGenerator.GetNext(RelType.Workbook));
+                using var target = customPropertiesPart.GetStream(FileMode.Create, FileAccess.Write);
+                customProperties.Save(target, System.Xml.Linq.SaveOptions.DisableFormatting);
+            }
+            else if (customPropertiesPart is not null)
+            {
+                document.DeletePart(customPropertiesPart);
             }
             SetPackageProperties(document);
 

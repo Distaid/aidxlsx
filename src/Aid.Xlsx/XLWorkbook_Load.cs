@@ -14,16 +14,12 @@ using Aid.Xlsx.Utils;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using Ap = DocumentFormat.OpenXml.ExtendedProperties;
-using Op = DocumentFormat.OpenXml.CustomProperties;
 using Xdr = DocumentFormat.OpenXml.Drawing.Spreadsheet;
 
 namespace Aid.Xlsx
 {
-    using Ap;
     using Aid.Xlsx.Opc;
     using Drawings;
-    using Op;
 
     public partial class XLWorkbook
     {
@@ -106,28 +102,10 @@ namespace Aid.Xlsx
 
             LoadWorkbookTheme(workbookPart?.ThemePart, this);
 
-            if (dSpreadsheet.CustomFilePropertiesPart != null)
+            if (dSpreadsheet.CustomFilePropertiesPart is { } customPropertiesPart)
             {
-                foreach (var m in dSpreadsheet.CustomFilePropertiesPart.Properties.Elements<CustomDocumentProperty>())
-                {
-                    String name = m.Name?.Value;
-
-                    if (string.IsNullOrWhiteSpace(name))
-                        continue;
-
-                    if (m.VTLPWSTR != null)
-                        CustomProperties.Add(name, m.VTLPWSTR.Text);
-                    else if (m.VTFileTime != null)
-                    {
-                        CustomProperties.Add(name,
-                                             DateTime.ParseExact(m.VTFileTime.Text, "yyyy'-'MM'-'dd'T'HH':'mm':'ssK",
-                                                                 CultureInfo.InvariantCulture));
-                    }
-                    else if (m.VTDouble != null)
-                        CustomProperties.Add(name, Double.Parse(m.VTDouble.Text, CultureInfo.InvariantCulture));
-                    else if (m.VTBool != null)
-                        CustomProperties.Add(name, m.VTBool.Text == "true");
-                }
+                using var stream = customPropertiesPart.GetStream(FileMode.Open, FileAccess.Read);
+                CustomPropertiesXml.Read(stream, CustomProperties);
             }
 
             var wbProps = workbookPart.Workbook.WorkbookProperties;
@@ -171,14 +149,10 @@ namespace Aid.Xlsx
                     ReferenceStyle = referenceMode.Value.ToXlsx();
             }
 
-            var efp = dSpreadsheet.ExtendedFilePropertiesPart;
-            if (efp != null && efp.Properties != null)
+            if (dSpreadsheet.ExtendedFilePropertiesPart is { } extendedPropertiesPart)
             {
-                if (efp.Properties.Elements<Company>().Any())
-                    Properties.Company = efp.Properties.GetFirstChild<Company>().Text;
-
-                if (efp.Properties.Elements<Manager>().Any())
-                    Properties.Manager = efp.Properties.GetFirstChild<Manager>().Text;
+                using var stream = extendedPropertiesPart.GetStream(FileMode.Open, FileAccess.Read);
+                ExtendedPropertiesXml.Read(stream, this);
             }
 
             // Styles part is optional and each workbook must have a default style

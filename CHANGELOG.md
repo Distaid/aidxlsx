@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Read and write custom and extended workbook properties directly, retaining metadata outside the workbook model.
 - Open and save workbook ZIP containers with the built-in OPC layer, preserving untouched parts and their relationships.
 - Build the formula parser from repository sources and ship it inside `Aid.Xlsx`.
 - Restructured the solution for the port: the projects and namespaces are
