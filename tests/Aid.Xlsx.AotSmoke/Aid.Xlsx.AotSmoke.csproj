@@ -7,11 +7,18 @@
     <TrimMode>full</TrimMode>
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
   </PropertyGroup>
-  <ItemGroup>
+  <PropertyGroup Condition="'$(SmokePackageVersion)' != ''">
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <NuGetLockFilePath>obj/packages.smoke.lock.json</NuGetLockFilePath>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(SmokePackageVersion)' == ''">
     <ProjectReference Include="..\..\src\Aid.Xlsx\Aid.Xlsx.csproj" />
     <ProjectReference Include="..\..\src\Aid.Xlsx.Opc\Aid.Xlsx.Opc.csproj" />
     <ProjectReference Include="..\..\src\Aid.Xlsx.Formula\Aid.Xlsx.Formula.csproj" />
     <ProjectReference Include="..\..\src\Aid.Xlsx.Generators\Aid.Xlsx.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(SmokePackageVersion)' != ''">
+    <PackageReference Include="Aid.Xlsx" Version="[$(SmokePackageVersion)]" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\Aid.Xlsx.Tests\IO\biff8-generated.xls" LogicalName="legacy.xls" />

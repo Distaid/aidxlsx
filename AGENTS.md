@@ -162,10 +162,7 @@ prefer a scope when one fits.
 | `build-test` | build with warnings as errors; test run on Linux |
 | `codegen-drift` | regenerating the readers produces no diff |
 | `pack` | package builds, contains the expected files and stays inside the size budget |
-| `aot-smoke` | NativeAOT publish and run of the smoke application (currently non-blocking) |
-
-`aot-smoke` becomes blocking once the smoke project exists and the gate is verified; see
-the workflow file for the current state.
+| `aot-smoke` | Trimmed and NativeAOT publishes of the smoke application, both executed on Linux |
 
 ## Tests on different platforms
 

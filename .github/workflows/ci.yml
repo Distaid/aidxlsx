@@ -232,6 +232,30 @@ jobs:
             echo "::error::the package exceeds the 5 MB budget"
             exit 1
           fi
+      - name: run workbook smoke from NuGet
+        shell: bash
+        run: |
+          set -euo pipefail
+          pkg=$(basename artifacts/packages/Aid.Xlsx.*.nupkg)
+          version=${pkg#Aid.Xlsx.}
+          version=${version%.nupkg}
+          smoke=tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj
+          cat > artifacts/smoke.nuget.config <<'EOF'
+          <configuration>
+            <packageSources>
+              <clear />
+              <add key="local" value="packages" />
+              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+            </packageSources>
+            <packageSourceMapping>
+              <packageSource key="local"><package pattern="Aid.Xlsx" /></packageSource>
+              <packageSource key="nuget.org"><package pattern="*" /></packageSource>
+            </packageSourceMapping>
+          </configuration>
+          EOF
+          dotnet restore "$smoke" -p:SmokePackageVersion="$version" --configfile artifacts/smoke.nuget.config \
+            --packages "$PWD/artifacts/smoke-packages"
+          dotnet run --project "$smoke" -c "$CONFIGURATION" --no-restore -p:SmokePackageVersion="$version"
       - name: upload packages
         uses: actions/upload-artifact@v7.0.2
         with:
@@ -244,9 +268,6 @@ jobs:
     name: aot-smoke
     needs: [detect, build-test]
     if: needs.detect.outputs.has_aot_smoke == 'true'
-    # Baseline before the first green run: the job does not block a merge and does not turn the workflow red.
-    # Remove this line in the same PR that adds aot-smoke to the required checks of the protected branch.
-    continue-on-error: true
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:

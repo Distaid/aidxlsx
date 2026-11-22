@@ -1,6 +1,5 @@
 # .github/workflows/aot-matrix.yml
 # Nightly NativeAOT check on three operating systems: linux-x64, win-x64, osx-arm64.
-# While tests/Aid.Xlsx.AotSmoke does not exist, the job is skipped with a notice instead of failing every night.
 name: aot-matrix
 
 on:
@@ -16,34 +15,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  detect:
-    name: detect-aot-smoke
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    outputs:
-      has_aot_smoke: ${{ steps.scan.outputs.has_aot_smoke }}
-    steps:
-      - name: checkout
-        uses: actions/checkout@v7.0.1
-        with:
-          persist-credentials: false
-      - name: scan
-        id: scan
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -d tests/Aid.Xlsx.AotSmoke ]; then
-            has_aot_smoke=true
-          else
-            has_aot_smoke=false
-            echo "::notice::tests/Aid.Xlsx.AotSmoke is missing, the AOT matrix is skipped until the smoke project exists"
-          fi
-          echo "has_aot_smoke=$has_aot_smoke" >> "$GITHUB_OUTPUT"
-
   aot:
     name: aot-${{ matrix.rid }}
-    needs: [detect]
-    if: needs.detect.outputs.has_aot_smoke == 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     strategy:
@@ -78,9 +51,9 @@ jobs:
       - name: verify command line tools (macos)
         if: runner.os == 'macOS'
         run: |
-          xcode-select -p || sudo xcode-select --install
+          xcode-select -p
       - name: publish native aot
-        run: dotnet publish tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj -c Release -r ${{ matrix.rid }} -p:PublishAot=true -o artifacts/aot/${{ matrix.rid }}
+        run: dotnet publish tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj -c Release -r ${{ matrix.rid }} -p:PublishAot=true -p:NuGetLockFilePath=obj/packages.aot.lock.json -o artifacts/aot/${{ matrix.rid }}
       - name: run smoke
         shell: bash
         run: ./artifacts/aot/${{ matrix.rid }}/${{ matrix.binary }}
