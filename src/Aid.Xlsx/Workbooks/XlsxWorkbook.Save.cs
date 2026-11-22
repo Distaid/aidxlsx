@@ -108,13 +108,21 @@ namespace Aid.Xlsx.Workbooks
             if (sheetName is not null)
             {
                 var cachesFromDeletedSheet = workbookPart.PivotTableCacheDefinitionParts
-                    .Where(part => part.PivotCacheDefinition.CacheSource?.WorksheetSource?.Sheet == sheetName)
+                    .Where(part => ReferencesSheet(part, sheetName))
                     .ToList();
                 foreach (var cache in cachesFromDeletedSheet)
                     workbookPart.DeletePart(cache);
             }
 
             workbookPart.DeletePart(worksheetPart);
+
+            static bool ReferencesSheet(PivotTableCacheDefinitionPart part, string name)
+            {
+                using var stream = part.GetStream(FileMode.Open, FileAccess.Read);
+                var definition = PivotCacheDefinitionXml.Read(stream);
+                var ns = definition.Name.Namespace;
+                return (string)definition.Element(ns + "cacheSource")?.Element(ns + "worksheetSource")?.Attribute("sheet") == name;
+            }
         }
 
         // Adds child parts and generates content of the specified part.
@@ -159,17 +167,6 @@ namespace Aid.Xlsx.Workbooks
             using (var target = sharedStringTablePart.GetStream(FileMode.Create, FileAccess.Write))
                 SharedStringTableWriter.GenerateSharedStringTablePartContent(this, target, context);
 
-            var cacheRelIds = PivotCachesInternal
-                  .Select<XlsxPivotCache, String>(ps => ps.WorkbookCacheRelId)
-                  .Where(relId => !string.IsNullOrWhiteSpace(relId))
-                  .Distinct();
-
-            foreach (var relId in cacheRelIds)
-            {
-                if (workbookPart.TryGetPartById(relId, out var part) && part is PivotTableCacheDefinitionPart pivotTableCacheDefinitionPart)
-                    pivotTableCacheDefinitionPart.PivotCacheDefinition.CacheFields.RemoveAllChildren();
-            }
-
             var allPivotTables = WorksheetsInternal.SelectMany<XlsxWorksheet, IXlsxPivotTable>(ws => ws.PivotTables).ToList();
 
             // Phase 1 - Synchronize all pivot cache parts in the document, so each
@@ -184,7 +181,7 @@ namespace Aid.Xlsx.Workbooks
             // Phase 2 - All parts and relationships are set, fill in the parts.
             if (allPivotTables.Any())
             {
-                GeneratePivotCaches(workbookPart, context);
+                GeneratePivotCaches(workbookPart);
             }
 
             foreach (var worksheet in WorksheetsInternal.Cast<XlsxWorksheet>().OrderBy(w => w.Position))
@@ -359,7 +356,7 @@ namespace Aid.Xlsx.Workbooks
             }
         }
 
-        private void GeneratePivotCaches(WorkbookPart workbookPart, SaveContext context)
+        private void GeneratePivotCaches(WorkbookPart workbookPart)
         {
             var pivotTables = WorksheetsInternal.SelectMany<XlsxWorksheet, XlsxPivotTable>(ws => ws.PivotTables);
 
@@ -370,14 +367,33 @@ namespace Aid.Xlsx.Workbooks
 
                 var pivotTableCacheDefinitionPart = (PivotTableCacheDefinitionPart)workbookPart.GetPartById(xlPivotCache.WorkbookCacheRelId);
 
-                PivotTableCacheDefinitionPartWriter.GenerateContent(pivotTableCacheDefinitionPart, xlPivotCache, context);
+                XElement definition;
+                using (var existing = pivotTableCacheDefinitionPart.GetStream(FileMode.OpenOrCreate, FileAccess.Read))
+                    definition = existing.Length == 0 ? null : PivotCacheDefinitionXml.Read(existing);
 
-                var pivotTableCacheRecordsPart = pivotTableCacheDefinitionPart.GetPartsOfType<PivotTableCacheRecordsPart>().Any()
-                    ? pivotTableCacheDefinitionPart.GetPartsOfType<PivotTableCacheRecordsPart>().Single()
-                    : pivotTableCacheDefinitionPart.AddNewPart<PivotTableCacheRecordsPart>("rId1");
+                var pivotTableCacheRecordsPart = pivotTableCacheDefinitionPart.PivotTableCacheRecordsPart ??
+                    pivotTableCacheDefinitionPart.AddNewPart<PivotTableCacheRecordsPart>(GetRecordsRelationshipId(pivotTableCacheDefinitionPart));
+                using (var definitionTarget = pivotTableCacheDefinitionPart.GetStream(FileMode.Create, FileAccess.Write))
+                    PivotCacheDefinitionXml.Write(definitionTarget, definition, xlPivotCache,
+                        pivotTableCacheDefinitionPart.GetIdOfPart(pivotTableCacheRecordsPart));
 
                 using var target = pivotTableCacheRecordsPart.GetStream(FileMode.Create, FileAccess.Write);
                 PivotCacheRecordsWriter.WriteContent(target, xlPivotCache);
+            }
+
+            static string GetRecordsRelationshipId(PivotTableCacheDefinitionPart part)
+            {
+                var usedIds = part.Parts.Select(pair => pair.RelationshipId)
+                    .Concat(part.ExternalRelationships.Select(rel => rel.Id))
+                    .Concat(part.HyperlinkRelationships.Select(rel => rel.Id))
+                    .ToHashSet(StringComparer.Ordinal);
+
+                for (var index = 1; ; ++index)
+                {
+                    var id = $"rId{index}";
+                    if (!usedIds.Contains(id))
+                        return id;
+                }
             }
         }
 

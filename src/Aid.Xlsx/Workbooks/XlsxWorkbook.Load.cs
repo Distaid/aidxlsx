@@ -267,7 +267,9 @@ namespace Aid.Xlsx.Workbooks
             // Read cache definition before table definition
             foreach (var pivotTableCacheDefinitionPart in workbookPart.GetPartsOfType<PivotTableCacheDefinitionPart>())
             {
-                var pivotCache = PivotTableCacheDefinitionPartReader.Load(workbookPart, pivotTableCacheDefinitionPart, this);
+                using var definitionStream = pivotTableCacheDefinitionPart.GetStream(FileMode.Open, FileAccess.Read);
+                var definition = PivotCacheDefinitionXml.Read(definitionStream);
+                var pivotCache = PivotCacheDefinitionXml.Load(definition, workbookPart.GetIdOfPart(pivotTableCacheDefinitionPart), this);
                 if (pivotTableCacheDefinitionPart.PivotTableCacheRecordsPart is { } recordsPart)
                 {
                     using var reader = CreateTreeReader(recordsPart);

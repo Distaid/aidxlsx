@@ -14,6 +14,56 @@ public sealed class WorkbookOpcRoundTripTests
 {
     private const string OfficeRelationships = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/";
 
+    [Test]
+    public void RewritingPivotCacheKeepsItsRecordsRelationshipAndExtension()
+    {
+        XNamespace spreadsheet = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+        XNamespace relationships = OfficeRelationships.TrimEnd('/');
+        XNamespace extension = "urn:example:cache-extension";
+        using var original = new MemoryStream();
+        using (var workbook = new XlsxWorkbook())
+        {
+            var source = workbook.AddWorksheet("Data");
+            source.Cell("A1").Value = "Name";
+            source.Cell("A2").Value = "Record";
+            var report = workbook.AddWorksheet("Report");
+            report.PivotTables.Add("ReportPivot", report.Cell("A1"), source.Range("A1:A2")).RowLabels.Add("Name");
+            workbook.SaveAs(original, validate: true);
+        }
+
+        using var edited = new MemoryStream();
+        string cachePath;
+        using (var package = OpcPackage.Open(original))
+        {
+            var workbook = package.GetPart(package.Relationships.Single(rel => rel.Type == OfficeRelationships + "officeDocument").TargetPartName);
+            cachePath = workbook.Relationships.Single(rel => rel.Type == OfficeRelationships + "pivotCacheDefinition").TargetPartName;
+            var cache = package.GetPart(cachePath);
+            var records = cache.Relationships.Single(rel => rel.Type == OfficeRelationships + "pivotCacheRecords");
+            cache.Relationships.Remove(records.Id);
+            cache.Relationships.Add("customRecords", records.Type, records.Target);
+            using var cacheStream = cache.OpenRead();
+            var definition = XElement.Load(cacheStream);
+            definition.SetAttributeValue(relationships + "id", "customRecords");
+            definition.Add(new XElement(spreadsheet + "extLst",
+                new XElement(spreadsheet + "ext", new XAttribute("uri", extension.NamespaceName), new XElement(extension + "text", "preserved"))));
+            cache.ReplaceContent(Encoding.UTF8.GetBytes(definition.ToString()));
+            package.Save(edited);
+        }
+
+        using var saved = new MemoryStream();
+        using (var workbook = new XlsxWorkbook(edited))
+            workbook.SaveAs(saved, validate: true);
+
+        using var result = OpcPackage.Open(saved);
+        var savedCache = result.GetPart(cachePath);
+        using var savedDefinition = savedCache.OpenRead();
+        var root = XElement.Load(savedDefinition);
+        Assert.That((string)root.Attribute(relationships + "id"), Is.EqualTo("customRecords"));
+        Assert.That(root.Descendants(extension + "text").Single().Value, Is.EqualTo("preserved"));
+        using var savedRecords = result.GetPart(savedCache.Relationships["customRecords"].TargetPartName).OpenRead();
+        Assert.That(XElement.Load(savedRecords).Elements(spreadsheet + "r").Count(), Is.EqualTo(1));
+    }
+
     [TestCase("http://schemas.openxmlformats.org/spreadsheetml/2006/main", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")]
     [TestCase("http://purl.oclc.org/ooxml/spreadsheetml/main", "http://purl.oclc.org/ooxml/officeDocument/relationships")]
     public void ReadsWorkbookAndStreamsWorksheetCells(string spreadsheetNamespace, string relationshipNamespace)
