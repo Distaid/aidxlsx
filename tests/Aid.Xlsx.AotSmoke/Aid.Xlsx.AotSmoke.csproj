@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <TrimMode>full</TrimMode>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Aid.Xlsx\Aid.Xlsx.csproj" />
+    <ProjectReference Include="..\..\src\Aid.Xlsx.Opc\Aid.Xlsx.Opc.csproj" />
+    <ProjectReference Include="..\..\src\Aid.Xlsx.Formula\Aid.Xlsx.Formula.csproj" />
+  </ItemGroup>
+</Project>

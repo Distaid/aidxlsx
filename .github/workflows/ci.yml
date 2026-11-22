@@ -268,9 +268,11 @@ jobs:
           sudo apt-get install -y clang
           clang --version
       - name: trim publish
-        run: dotnet publish tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj -c ${{ env.CONFIGURATION }} -r linux-x64 -p:PublishTrimmed=true -p:TrimMode=full -o artifacts/aot/trim-linux-x64
+        run: dotnet publish tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj -c ${{ env.CONFIGURATION }} -r linux-x64 -p:PublishTrimmed=true -p:NuGetLockFilePath=obj/packages.trim.lock.json -o artifacts/aot/trim-linux-x64
+      - name: run trimmed smoke
+        run: ./artifacts/aot/trim-linux-x64/Aid.Xlsx.AotSmoke
       - name: native aot publish
-        run: dotnet publish tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj -c ${{ env.CONFIGURATION }} -r linux-x64 -p:PublishAot=true -o artifacts/aot/native-linux-x64
+        run: dotnet publish tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj -c ${{ env.CONFIGURATION }} -r linux-x64 -p:PublishAot=true -p:NuGetLockFilePath=obj/packages.aot.lock.json -o artifacts/aot/native-linux-x64
       - name: run native aot smoke
         run: ./artifacts/aot/native-linux-x64/Aid.Xlsx.AotSmoke
       - name: record binary size
