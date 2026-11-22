@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Write formula calculation chains, styles, shared strings, comments and pivot cache records through XML streams.
 - Read and write custom and extended workbook properties directly, retaining metadata outside the workbook model.
 - Open and save workbook ZIP containers with the built-in OPC layer, preserving untouched parts and their relationships.
 - Build the formula parser from repository sources and ship it inside `Aid.Xlsx`.

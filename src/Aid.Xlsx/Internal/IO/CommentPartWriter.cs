@@ -1,6 +1,5 @@
 #nullable disable
 
-using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,15 +11,13 @@ namespace Aid.Xlsx.Internal.IO
 {
     internal class CommentPartWriter
     {
-        internal static void GenerateWorksheetCommentsPartContent(WorksheetCommentsPart worksheetCommentsPart,
+        internal static void GenerateWorksheetCommentsPartContent(Stream partStream,
             XLWorksheet xlWorksheet)
         {
             var settings = new XmlWriterSettings
             {
-                CloseOutput = true,
                 Encoding = XLHelper.NoBomUTF8
             };
-            var partStream = worksheetCommentsPart.GetStream(FileMode.Create);
             using var xml = XmlWriter.Create(partStream, settings);
 
             var commentCells = new List<XLCell>();

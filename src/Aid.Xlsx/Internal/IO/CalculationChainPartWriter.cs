@@ -1,73 +1,56 @@
-#nullable disable
+using System.Xml.Linq;
 
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Spreadsheet;
-using System;
-using System.Linq;
-using static Aid.Xlsx.XLWorkbook;
+namespace Aid.Xlsx.Internal.IO;
 
-namespace Aid.Xlsx.Internal.IO
+internal static class CalculationChainPartWriter
 {
-    internal class CalculationChainPartWriter
+    private static readonly XNamespace Spreadsheet = OpenXmlConst.Main2006SsNs;
+
+    internal static XDocument? GenerateContent(Stream? existing, XLWorkbook workbook)
     {
-        internal static void GenerateContent(WorkbookPart workbookPart, XLWorkbook workbook, SaveContext context)
+        var document = existing is null ? null : XDocumentExtensions.Load(existing);
+        if (document?.Root is not { } root || root.Name != Spreadsheet + "calcChain")
         {
-            if (workbookPart.CalculationChainPart == null)
-                workbookPart.AddNewPart<CalculationChainPart>(context.RelIdGenerator.GetNext(RelType.Workbook));
+            root = new XElement(Spreadsheet + "calcChain");
+            document = new XDocument(root);
+        }
 
-            if (workbookPart.CalculationChainPart.CalculationChain == null)
-                workbookPart.CalculationChainPart.CalculationChain = new CalculationChain();
+        if ((string?)root.Attribute("xmlns") == Spreadsheet.NamespaceName)
+            root.Attribute("xmlns")!.Remove();
+        root.SetAttributeValue(XNamespace.Xmlns + "x", Spreadsheet.NamespaceName);
+        root.Elements(Spreadsheet + "c").Remove();
+        var cells = workbook.WorksheetsInternal.Cast<XLWorksheet>().SelectMany(GetCalculationCells);
+        root.AddFirst(cells);
+        return root.HasElements ? document : null;
+    }
 
-            var calculationChain = workbookPart.CalculationChainPart.CalculationChain;
-            calculationChain.RemoveAllChildren<CalculationCell>();
+    private static IEnumerable<XElement> GetCalculationCells(XLWorksheet sheet)
+    {
+        foreach (var cell in sheet.Internals.CellsCollection.GetCells(c => c.HasFormula))
+        {
+            // Excel does not generate calculation-chain entries for data tables.
+            if (cell.Formula.Type == FormulaType.DataTable)
+                continue;
 
-            foreach (var worksheet in workbook.WorksheetsInternal)
+            if (!cell.HasArrayFormula)
             {
-                foreach (var c in worksheet.Internals.CellsCollection.GetCells().Where(c => c.HasFormula))
-                {
-                    if (c.Formula.Type == FormulaType.DataTable)
-                    {
-                        // Do nothing, Excel doesn't generate calc chain for data table
-                    }
-                    else if (c.HasArrayFormula)
-                    {
-                        if (c.FormulaReference == null)
-                            c.FormulaReference = c.AsRange().RangeAddress;
-
-                        if (c.FormulaReference.FirstAddress.Equals(c.Address))
-                        {
-                            var cc = new CalculationCell
-                            {
-                                CellReference = c.Address.ToString(),
-                                SheetId = (Int32)worksheet.SheetId
-                            };
-
-                            cc.Array = true;
-                            calculationChain.AppendChild(cc);
-
-                            foreach (var childCell in worksheet.Range(c.FormulaReference).Cells())
-                            {
-                                calculationChain.AppendChild(new CalculationCell
-                                {
-                                    CellReference = childCell.Address.ToString(),
-                                    SheetId = (Int32)worksheet.SheetId,
-                                });
-                            }
-                        }
-                    }
-                    else
-                    {
-                        calculationChain.AppendChild(new CalculationCell
-                        {
-                            CellReference = c.Address.ToString(),
-                            SheetId = (Int32)worksheet.SheetId
-                        });
-                    }
-                }
+                yield return CreateEntry(cell, sheet.SheetId);
+                continue;
             }
 
-            if (!calculationChain.Any())
-                workbookPart.DeletePart(workbookPart.CalculationChainPart);
+            cell.FormulaReference ??= cell.AsRange().RangeAddress;
+            if (!cell.FormulaReference.FirstAddress.Equals(cell.Address))
+                continue;
+
+            var anchor = CreateEntry(cell, sheet.SheetId);
+            anchor.Add(new XAttribute("a", "1"));
+            yield return anchor;
+
+            foreach (var child in sheet.Range(cell.FormulaReference).Cells())
+                yield return CreateEntry(child, sheet.SheetId);
         }
     }
+
+    private static XElement CreateEntry(IXLCell cell, uint sheetId) =>
+        new(Spreadsheet + "c", new XAttribute("r", cell.Address.ToString()!), new XAttribute("i", sheetId));
 }

@@ -156,25 +156,6 @@ namespace Aid.Xlsx
                     Item.Remove();
                 }
             }
-            // Get the CalculationChainPart
-            //Note: An instance of this part type contains an ordered set of references to all cells in all worksheets in the
-            //workbook whose value is calculated from any formula
-
-            CalculationChainPart calChainPart;
-            calChainPart = wbPart.CalculationChainPart;
-            if (calChainPart != null)
-            {
-                var calChainEntries = calChainPart.CalculationChain.Descendants<CalculationCell>().Where(c => c.SheetId == sheetId);
-                List<CalculationCell> calcsToDelete = new List<CalculationCell>();
-                foreach (CalculationCell Item in calChainEntries)
-                    calcsToDelete.Add(Item);
-
-                foreach (CalculationCell Item in calcsToDelete)
-                    Item.Remove();
-
-                if (!calChainPart.CalculationChain.Any())
-                    wbPart.DeletePart(calChainPart);
-            }
         }
 
         // Adds child parts and generates content of the specified part.
@@ -218,13 +199,15 @@ namespace Aid.Xlsx
                                      workbookPart.AddNewPart<WorkbookStylesPart>(
                                          context.RelIdGenerator.GetNext(RelType.Workbook));
 
-            new StylesWriter().WriteContent(workbookStylesPart, XmlToEnumMapper.Instance, Styles, this, context);
+            using (var target = workbookStylesPart.GetStream(FileMode.Create, FileAccess.Write))
+                new StylesWriter().WriteContent(target, XmlToEnumMapper.Instance, Styles, this, context);
 
             var sharedStringTablePart = workbookPart.SharedStringTablePart ??
                                         workbookPart.AddNewPart<SharedStringTablePart>(
                                             context.RelIdGenerator.GetNext(RelType.Workbook));
 
-            SharedStringTableWriter.GenerateSharedStringTablePartContent(this, sharedStringTablePart, context);
+            using (var target = sharedStringTablePart.GetStream(FileMode.Create, FileAccess.Write))
+                SharedStringTableWriter.GenerateSharedStringTablePartContent(this, target, context);
 
             var cacheRelIds = PivotCachesInternal
                   .Select<XLPivotCache, String>(ps => ps.WorkbookCacheRelId)
@@ -296,7 +279,8 @@ namespace Aid.Xlsx
                         vmlDrawingPart = worksheetPart.AddNewPart<VmlDrawingPart>(worksheet.LegacyDrawingId);
                     }
 
-                    CommentPartWriter.GenerateWorksheetCommentsPartContent(commentsPart, worksheet);
+                    using (var target = commentsPart.GetStream(FileMode.Create, FileAccess.Write))
+                        CommentPartWriter.GenerateWorksheetCommentsPartContent(target, worksheet);
                     hasAnyVmlElements = VmlDrawingPartWriter.GenerateContent(vmlDrawingPart, worksheet);
                 }
                 else
@@ -338,14 +322,23 @@ namespace Aid.Xlsx
                 }
             }
 
+            var calculationChainPart = workbookPart.CalculationChainPart;
+            XDocument calculationChain = null;
             if (options.GenerateCalculationChain)
             {
-                CalculationChainPartWriter.GenerateContent(workbookPart, this, context);
+                using var existing = calculationChainPart?.GetStream(FileMode.Open, FileAccess.Read);
+                calculationChain = CalculationChainPartWriter.GenerateContent(existing, this);
             }
-            else
+
+            if (calculationChain is not null)
             {
-                if (workbookPart.CalculationChainPart is not null)
-                    workbookPart.DeletePart(workbookPart.CalculationChainPart);
+                calculationChainPart ??= workbookPart.AddNewPart<CalculationChainPart>(context.RelIdGenerator.GetNext(RelType.Workbook));
+                using var target = calculationChainPart.GetStream(FileMode.Create, FileAccess.Write);
+                calculationChain.Save(target, System.Xml.Linq.SaveOptions.DisableFormatting);
+            }
+            else if (calculationChainPart is not null)
+            {
+                workbookPart.DeletePart(calculationChainPart);
             }
 
             if (workbookPart.ThemePart == null)
@@ -546,7 +539,8 @@ namespace Aid.Xlsx
                     ? pivotTableCacheDefinitionPart.GetPartsOfType<PivotTableCacheRecordsPart>().Single()
                     : pivotTableCacheDefinitionPart.AddNewPart<PivotTableCacheRecordsPart>("rId1");
 
-                PivotCacheRecordsWriter.WriteContent(pivotTableCacheRecordsPart, xlPivotCache);
+                using var target = pivotTableCacheRecordsPart.GetStream(FileMode.Create, FileAccess.Write);
+                PivotCacheRecordsWriter.WriteContent(target, xlPivotCache);
             }
         }
 

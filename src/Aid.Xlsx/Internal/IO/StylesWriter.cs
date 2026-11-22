@@ -7,7 +7,6 @@ using Aid.Xlsx.Formatting;
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.Opc;
 using Aid.Xlsx.Utils;
-using DocumentFormat.OpenXml.Packaging;
 using static Aid.Xlsx.Internal.IO.OpenXmlConst;
 using PivotRegion = Aid.Xlsx.Formatting.XLPivotStyleRegionValues;
 using TableRegion = Aid.Xlsx.Formatting.XLTableStyleRegionValues;
@@ -52,7 +51,7 @@ internal class StylesWriter
 
     private readonly string _ns = Main2006SsNs;
 
-    internal void WriteContent(WorkbookStylesPart stylesPart, IEnumMapper mapper, XLWorkbookStyles styles, XLWorkbook workbook, XLWorkbook.SaveContext context)
+    internal void WriteContent(Stream partStream, IEnumMapper mapper, XLWorkbookStyles styles, XLWorkbook workbook, XLWorkbook.SaveContext context)
     {
         // Determine which format components are used and thus should be saved.
         var usedCellFormats = new HashSet<XLCellFormatValue>(ReferenceEqualityComparer<XLCellFormatValue>.Instance)
@@ -178,7 +177,6 @@ internal class StylesWriter
             Encoding = XLHelper.NoBomUTF8
         };
 
-        using var partStream = stylesPart.GetStream(FileMode.Create);
         using var xml = new XmlTreeWriter(XmlWriter.Create(partStream, settings), mapper);
 
         xml.WriteStartDocument("styleSheet", _ns);

@@ -2,7 +2,6 @@ using System.IO;
 using System.Xml;
 using Aid.Xlsx.Utils;
 using Aid.Xlsx.Extensions;
-using DocumentFormat.OpenXml.Packaging;
 using static Aid.Xlsx.XLWorkbook;
 using static Aid.Xlsx.Internal.IO.OpenXmlConst;
 
@@ -10,7 +9,7 @@ namespace Aid.Xlsx.Internal.IO
 {
     internal class SharedStringTableWriter
     {
-        internal static void GenerateSharedStringTablePartContent(XLWorkbook workbook, SharedStringTablePart sharedStringTablePart,
+        internal static void GenerateSharedStringTablePartContent(XLWorkbook workbook, Stream partStream,
             SaveContext context)
         {
             // Call all table headers to make sure their names are filled
@@ -18,10 +17,8 @@ namespace Aid.Xlsx.Internal.IO
 
             var settings = new XmlWriterSettings
             {
-                CloseOutput = true,
                 Encoding = XLHelper.NoBomUTF8
             };
-            var partStream = sharedStringTablePart.GetStream(FileMode.Create);
             using var xml = XmlWriter.Create(partStream, settings);
 
             xml.WriteStartDocument();

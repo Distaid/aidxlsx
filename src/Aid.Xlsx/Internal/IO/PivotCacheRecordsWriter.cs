@@ -2,21 +2,19 @@ using System;
 using System.IO;
 using System.Xml;
 using Aid.Xlsx.Extensions;
-using DocumentFormat.OpenXml.Packaging;
 using static Aid.Xlsx.Internal.IO.OpenXmlConst;
 
 namespace Aid.Xlsx.Internal.IO
 {
     internal class PivotCacheRecordsWriter
     {
-        internal static void WriteContent(PivotTableCacheRecordsPart recordsPart, XLPivotCache pivotCache)
+        internal static void WriteContent(Stream partStream, XLPivotCache pivotCache)
         {
             var settings = new XmlWriterSettings
             {
                 Encoding = XLHelper.NoBomUTF8
             };
 
-            using var partStream = recordsPart.GetStream(FileMode.Create);
             using var xml = XmlWriter.Create(partStream, settings);
 
             xml.WriteStartDocument();
