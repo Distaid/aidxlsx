@@ -69,8 +69,7 @@ src/Aid.Xlsx.Opc/               OPC container, relationships, XML/MCE primitives
 src/Aid.Xlsx.Formula/           formula parser
 src/Aid.Xlsx.Generators/        Roslyn incremental generators
 src/Aid.Xlsx.CodeGen/           XSD-based code generation (build-time tool)
-tests/                          unit, compatibility, AOT smoke and package checks
-benchmarks/                     BenchmarkDotNet benchmarks
+tests/                          unit, compatibility, AOT smoke, fuzzing and benchmarks
 eng/                            build and release scripts
 ```
 
@@ -87,6 +86,11 @@ dotnet build Aid.Xlsx.slnx -c Release
 
 The first restore needs network access. See the [migration guide](docs/migration-from-closedxml.md),
 [compatibility notes](docs/compatibility.md), and [NativeAOT guide](docs/native-aot.md).
+
+The GitHub release workflow can be dispatched to build the version in `Directory.Build.props`
+as a dry run. The build uploads the NuGet and symbol packages, a CycloneDX dependency SBOM,
+and SHA-256 checksums. Publication requires an owner-created version tag and the
+`nuget-production` environment.
 
 ## Relationship to ClosedXML
 

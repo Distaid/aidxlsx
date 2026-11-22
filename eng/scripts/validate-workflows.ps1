@@ -273,6 +273,8 @@ $releaseMissing = Find-MissingLiteral -Text $releaseText -Needles @(
     '--skip-duplicate',
     '--verify-tag',
     '.snupkg',
+    'Aid.Xlsx.cdx.json',
+    'SHA256SUMS.txt',
     'git tag --list',
     "github.event_name == 'push'",
     "github.event_name != 'push'",
@@ -498,8 +500,11 @@ if ($fallbackIndex -lt 0) {
 else {
     $fallbackEnd = [Math]::Min($releaseLinesForSecrets.Count - 1, $fallbackIndex + 20)
     $fallbackBlock = ($releaseLinesForSecrets[$fallbackIndex..$fallbackEnd] -join "`n")
-    if ($fallbackBlock -notmatch 'exit 0') {
-        $secretsIssues += 'the fallback is not optional: without the secret there is no exit 0'
+    if ($releaseText -notmatch "steps\.trusted\.outcome != 'success'") {
+        $secretsIssues += 'the fallback must run only when Trusted Publishing did not succeed'
+    }
+    if ($fallbackBlock -notmatch 'exit 1') {
+        $secretsIssues += 'publication must fail when both Trusted Publishing and the fallback key are unavailable'
     }
 }
 Add-Check 'TP path without secrets; API key is an optional fallback' ($secretsIssues.Count -eq 0) ($secretsIssues -join '; ')

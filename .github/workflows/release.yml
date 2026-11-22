@@ -48,6 +48,8 @@ jobs:
       - name: derive version
         id: derive
         shell: bash
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
           prefix=$(sed -n 's:.*<VersionPrefix>\([^<]*\)</VersionPrefix>.*:\1:p' Directory.Build.props | head -n 1)
@@ -70,13 +72,13 @@ jobs:
             ref_sha="$(git rev-parse HEAD)"
           else
             # dry run: by definition there is no tag, the input version is validated separately
-            version='${{ inputs.version }}'
-            ref_sha='${{ github.sha }}'
+            version="$REQUESTED_VERSION"
+            ref_sha="$GITHUB_SHA"
             tag="v$version"
           fi
 
-          if ! printf '%s' "$version" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-preview[1-9][0-9]*)?$'; then
-            echo "::error::version '$version' does not match the 0.x.y-previewN or 1.0.0 scheme"
+          if [[ ! "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-preview[1-9][0-9]*)?$ ]]; then
+            echo '::error::version must match the 0.x.y-previewN or 1.0.0 scheme'
             exit 1
           fi
           if [ "$expected" != "$version" ]; then
@@ -173,7 +175,7 @@ jobs:
           & $vswhere -latest -products * -requires Microsoft.VisualStudio.Workload.NativeDesktop -property installationPath
           & $vswhere -latest -property catalog_productDisplayVersion
       - name: publish native aot
-        run: dotnet publish tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj -c ${{ env.CONFIGURATION }} -r ${{ matrix.rid }} -p:PublishAot=true -o artifacts/aot/${{ matrix.rid }}
+        run: dotnet publish tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj -c ${{ env.CONFIGURATION }} -r ${{ matrix.rid }} -p:PublishAot=true -p:NuGetLockFilePath=obj/packages.${{ matrix.rid }}.lock.json -o artifacts/aot/${{ matrix.rid }}
       - name: run smoke
         shell: bash
         run: ./artifacts/aot/${{ matrix.rid }}/${{ matrix.binary }}
@@ -228,12 +230,26 @@ jobs:
             echo "::error::no package found for version $expected_version"
             exit 1
           fi
+      - name: generate dependency SBOM
+        shell: bash
+        env:
+          DOTNET_CLI_UI_LANGUAGE: en-US
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          dotnet tool install CycloneDX --version 6.3.2 --tool-path artifacts/tools/cyclonedx
+          # Polyfill supplies build-time source and is absent from the NuGet dependency graph.
+          artifacts/tools/cyclonedx/dotnet-CycloneDX src/Aid.Xlsx/Aid.Xlsx.csproj \
+            --framework net10.0 --disable-package-restore --exclude-dev --exclude-filter Polyfill \
+            --output-format Json --output artifacts/packages --filename Aid.Xlsx.cdx.json \
+            --set-name "$PACKAGE_ID" --set-version "$RELEASE_VERSION" --set-type Library
       - name: checksums
         shell: bash
         run: |
           set -euo pipefail
-          sha256sum artifacts/packages/*.nupkg artifacts/packages/*.snupkg > artifacts/packages/SHA256SUMS.txt
-          cat artifacts/packages/SHA256SUMS.txt
+          cd artifacts/packages
+          sha256sum *.nupkg *.snupkg Aid.Xlsx.cdx.json > SHA256SUMS.txt
+          cat SHA256SUMS.txt
       - name: reproducibility probe
         continue-on-error: true
         shell: bash
@@ -282,11 +298,15 @@ jobs:
       - name: NuGet login (Trusted Publishing)
         id: login
         uses: NuGet/login@v1
+        continue-on-error: true
         with:
           # The value must match the owner of the OIDC policy on nuget.org.
           # A NuGet username is set once and cannot be renamed.
           user: Distaid
       - name: push (Trusted Publishing)
+        id: trusted
+        if: steps.login.outcome == 'success'
+        continue-on-error: true
         env:
           TRUSTED_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: |
@@ -304,18 +324,18 @@ jobs:
               --timeout 600
           done
       - name: push (optional fallback scoped key from environment secret)
-        if: failure()
+        if: steps.trusted.outcome != 'success'
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
           set -euo pipefail
           if [ -z "${NUGET_API_KEY:-}" ]; then
-            echo "::notice::the fallback NUGET_API_KEY secret is not configured, which is fine: the main publication path needs no secrets."
-            exit 0
+            echo "::error::Trusted Publishing failed and no fallback NUGET_API_KEY is configured."
+            exit 1
           fi
           for pkg in artifacts/packages/*.nupkg; do
             echo "push $pkg (fallback)"
-            dotnet nuget push "$pkg" --source "$NUGET_SOURCE" --skip-duplicate --timeout 600
+            dotnet nuget push "$pkg" --source "$NUGET_SOURCE" --api-key "$NUGET_API_KEY" --skip-duplicate --timeout 600
           done
       - name: summary
         if: always()
@@ -356,6 +376,13 @@ jobs:
               printing && index($0, "## [") == 1 { exit }
               printing { print }
             ' CHANGELOG.md > artifacts/release-notes.md
+            if [ ! -s artifacts/release-notes.md ]; then
+              awk '
+                /^## \[Unreleased\]$/ { printing = 1; next }
+                printing && /^## \[|^\[Unreleased\]:/ { exit }
+                printing { print }
+              ' CHANGELOG.md > artifacts/release-notes.md
+            fi
           fi
           if [ ! -s artifacts/release-notes.md ]; then
             git log -1 --pretty='%s%n%n%b' > artifacts/release-notes.md
@@ -368,7 +395,7 @@ jobs:
           TAG: ${{ needs.version.outputs.tag }}
         run: |
           set -euo pipefail
-          assets=(artifacts/packages/*.nupkg artifacts/packages/*.snupkg artifacts/packages/SHA256SUMS.txt)
+          assets=(artifacts/packages/*.nupkg artifacts/packages/*.snupkg artifacts/packages/Aid.Xlsx.cdx.json artifacts/packages/SHA256SUMS.txt)
           prerelease=()
           case "${TAG}" in
             *-*) prerelease=(--prerelease) ;;
@@ -384,7 +411,7 @@ jobs:
   # dry run: publishes and creates nothing; verifies that the version is not taken by a tag yet.
   dry-run:
     name: dry-run
-    needs: [version]
+    needs: [version, pack]
     if: ${{ github.event_name != 'push' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10

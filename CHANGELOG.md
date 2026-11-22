@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- Preserve an existing pivot cache's refresh-on-open setting when saving a workbook.
-
 ### Changed
 
 - Generate built-in table theme and protection algorithm lookups at compile time.
@@ -42,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Include a CycloneDX dependency SBOM and SHA-256 checksums in the release artifacts.
 - Convert Excel 97–2003 BIFF8 worksheet data to `.xlsx` from paths or streams without Office automation.
 - Convert supported BIFF8 formulas to XLSX while retaining their cached results.
 - Preserve BIFF8 cell fonts, alignment, borders, fills, protection flags, and palette colors during conversion.
@@ -53,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Preserve an existing pivot cache's refresh-on-open setting when saving a workbook.
 - Install `Aid.Xlsx` without resolving a separate `Aid.Xlsx.Opc` package.
 - `InsertData`/`InsertTable` pass the row type to the readers explicitly instead of
   inferring it from the materialized row collection, which returned `object` and
@@ -61,8 +59,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 
-- `0.1.0-preview1` — the first public preview on NuGet, planned for after the upstream
-  import, the custom OPC/XML layer and the writer migration are complete. The version is
-  planned, not released: no release date is set and no package exists yet.
+- `0.1.0-preview1` — the first public preview on NuGet. Publication and the release date are pending.
 
 [Unreleased]: https://github.com/Distaid/aidxlsx/commits/main
