@@ -1,8 +1,11 @@
 using System.Reflection;
+using System.Xml.Linq;
 using Aid.Xlsx.Drawings;
+using Aid.Xlsx.Opc;
 using Aid.Xlsx.Workbooks;
 using Aid.Xlsx.Worksheets;
 using NUnit.Framework;
+using SaveOptions = Aid.Xlsx.Workbooks.SaveOptions;
 
 namespace Aid.Xlsx.Tests
 {
@@ -288,6 +291,25 @@ namespace Aid.Xlsx.Tests
                     Assert.AreEqual(originalCount - 2, ws.Pictures.Count);
                 }
             }
+        }
+
+        [Test]
+        public void DeletingLastImagePreservesOtherShapes()
+        {
+            using var input = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Other\Pictures\ImageShapeZOrder-Input.xlsx"));
+            using var workbook = new XlsxWorkbook(input);
+            var sheet = workbook.Worksheets.Single();
+            sheet.Pictures.Delete(sheet.Pictures.Single());
+            using var output = new MemoryStream();
+            workbook.SaveAs(output, new SaveOptions { ValidatePackage = true });
+            using var package = OpcPackage.Open(output);
+            var drawing = package.GetPart("/xl/drawings/drawing1.xml");
+            using var drawingStream = drawing.OpenRead();
+            var root = XElement.Load(drawingStream);
+            var ns = root.Name.Namespace;
+            Assert.AreEqual(2, root.Descendants(ns + "sp").Count());
+            Assert.IsEmpty(root.Descendants(ns + "pic"));
+            Assert.IsEmpty(drawing.Relationships);
         }
 
         [Test]

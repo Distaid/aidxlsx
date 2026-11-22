@@ -7,6 +7,7 @@ using Aid.Xlsx.ConditionalFormats;
 using Aid.Xlsx.DataValidation;
 using Aid.Xlsx.Drawings;
 using Aid.Xlsx.Internal.IO;
+using Aid.Xlsx.Opc;
 using Aid.Xlsx.Styles.Colors;
 using Aid.Xlsx.Styles;
 using Aid.Xlsx.Tests.Utils;
@@ -826,18 +827,24 @@ namespace Aid.Xlsx.Tests.Excel.Saving
         [Test]
         public void WorksheetWithDrawingCanBeModified()
         {
-            // Issue 2080: Drawing was loading the workbook DOM from the worksheet part and
-            // the OpenXML SDK was ignoring worksheet changes saved through streaming, but used
-            // the eager loaded DOM instead.
-            // Saved file doesn't contain shape because it's not yet supported (#1252)
-            TestHelper.LoadModifyAndCompare(
-                @"Other\Parts\WorksheetWithDrawingCanBeModified-input.xlsx",
-                wb =>
-                {
-                    var ws = wb.Worksheets.Single();
-                    ws.Cell("A1").Value = "B";
-                },
-                @"Other\Parts\WorksheetWithDrawingCanBeModified-output.xlsx");
+            using var input = TestHelper.GetStreamFromResource(TestHelper.GetResourcePath(@"Other\Parts\WorksheetWithDrawingCanBeModified-input.xlsx"));
+            using var original = OpcPackage.Open(input);
+            using var workbook = new XlsxWorkbook(input);
+            workbook.Worksheets.Single().Cell("A1").Value = "B";
+            using var output = new MemoryStream();
+            workbook.SaveAs(output, new SaveOptions { ValidatePackage = true });
+            output.Position = 0;
+            using var saved = OpcPackage.Open(output);
+            const string drawing = "/xl/drawings/drawing1.xml";
+            Assert.AreEqual(ReadDrawing(original), ReadDrawing(saved));
+            using var reloaded = new XlsxWorkbook(output);
+            Assert.AreEqual("B", reloaded.Worksheets.Single().Cell("A1").GetString());
+
+            static string ReadDrawing(OpcPackage package)
+            {
+                using var reader = new StreamReader(package.GetPart(drawing).OpenRead());
+                return reader.ReadToEnd();
+            }
         }
 
         [Test]

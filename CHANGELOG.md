@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Read and write worksheet conditional formatting rules and data bar settings directly through XML.
 - Read comment text with the same XML parser as rich text in cells.
 - Write legacy comment shapes directly through XML while preserving the drawing's other shapes.
+- Read and write picture anchors directly through DrawingML and preserve unrelated drawing elements when deleting pictures.
 - Read and write workbook settings, sheets, views, and defined names directly through SpreadsheetML.
 - Open and save workbook ZIP containers with the built-in OPC layer, preserving untouched parts and their relationships.
 - Build the formula parser from repository sources and ship it inside `Aid.Xlsx`.

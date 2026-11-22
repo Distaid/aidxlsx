@@ -138,7 +138,8 @@ namespace Aid.Xlsx.Tests
 
         private static void NormalizeNamespaceDeclarations(XDocument document, string contentType)
         {
-            if (contentType != "application/vnd.openxmlformats-package.core-properties+xml" &&
+            if (contentType is not ("application/vnd.openxmlformats-package.core-properties+xml" or
+                "application/vnd.openxmlformats-officedocument.drawing+xml") &&
                 document.Root?.Name != workbookTagName && document.Root?.Name != worksheetTagName)
                 return;
 

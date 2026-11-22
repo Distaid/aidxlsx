@@ -7,6 +7,7 @@ using Aid.Xlsx.Columns;
 using Aid.Xlsx.ConditionalFormats;
 using Aid.Xlsx.Coordinates;
 using Aid.Xlsx.DataValidation;
+using Aid.Xlsx.Drawings;
 using Aid.Xlsx.Exceptions;
 using Aid.Xlsx.Extensions;
 using Aid.Xlsx.PageSetup;
@@ -19,7 +20,6 @@ using Aid.Xlsx.Tables;
 using Aid.Xlsx.Utils;
 using Aid.Xlsx.Workbooks;
 using Aid.Xlsx.Worksheets;
-using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml;
@@ -34,7 +34,6 @@ using SpreadsheetHyperlinks = DocumentFormat.OpenXml.Spreadsheet.Hyperlinks;
 using SpreadsheetPageSetup = DocumentFormat.OpenXml.Spreadsheet.PageSetup;
 using X14 = DocumentFormat.OpenXml.Office2010.Excel;
 using XAttribute = System.Xml.Linq.XAttribute;
-using Xdr = DocumentFormat.OpenXml.Drawing.Spreadsheet;
 using XElement = System.Xml.Linq.XElement;
 using XName = System.Xml.Linq.XName;
 using XNamespace = System.Xml.Linq.XNamespace;
@@ -1297,43 +1296,20 @@ namespace Aid.Xlsx.Internal.IO
 
             #region Drawings
 
-            if (worksheetPart.DrawingsPart != null)
-            {
-                var xlPictures = xlWorksheet.Pictures as Drawings.XlsxPictures;
-                foreach (var removedPicture in xlPictures.Deleted)
-                {
-                    worksheetPart.DrawingsPart.DeletePart(removedPicture);
-                }
-                xlPictures.Deleted.Clear();
-            }
-
-            foreach (var pic in xlWorksheet.Pictures)
-            {
-                AddPictureAnchor(worksheetPart, pic, context);
-            }
-
-            if (xlWorksheet.Pictures.Count > 0)
-                RebaseNonVisualDrawingPropertiesIds(worksheetPart);
-
+            var previousDrawing = worksheetPart.DrawingsPart;
+            var previousDrawingId = previousDrawing is null ? null : worksheetPart.GetIdOfPart(previousDrawing);
+            var drawingId = SavePictures(worksheetPart, (XlsxPictures)xlWorksheet.Pictures, context);
             var tableParts = worksheet.Elements<TableParts>().First();
-            if (xlWorksheet.Pictures.Count > 0 && !worksheet.OfType<Drawing>().Any())
+            if (drawingId is not null && !worksheet.Elements<Drawing>().Any())
             {
-                var worksheetDrawing = new Drawing { Id = worksheetPart.GetIdOfPart(worksheetPart.DrawingsPart) };
-                worksheetDrawing.AddNamespaceDeclaration("r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+                var worksheetDrawing = new Drawing { Id = drawingId };
+                worksheetDrawing.AddNamespaceDeclaration("r", RelationshipsNs);
                 worksheet.InsertBefore(worksheetDrawing, tableParts);
                 cm.SetElement(XlsxWorksheetContents.Drawing, worksheet.Elements<Drawing>().First());
             }
-
-            // Instead of saving a file with an empty Drawings.xml file, rather remove the .xml file
-            var hasCharts = worksheetPart.DrawingsPart is not null && worksheetPart.DrawingsPart.Parts.Any();
-            if (worksheetPart.DrawingsPart is not null && // There is a drawing part for the sheet that could be deleted
-                xlWorksheet.LegacyDrawingId is null && // and sheet doesn't contain any form controls or comments or other shapes
-                xlWorksheet.Pictures.Count == 0 && // and also no pictures.
-                !hasCharts) // and no charts
+            else if (drawingId is null && previousDrawingId is not null)
             {
-                var id = worksheetPart.GetIdOfPart(worksheetPart.DrawingsPart);
-                worksheet.RemoveChild(worksheet.OfType<Drawing>().FirstOrDefault(p => p.Id == id));
-                worksheetPart.DeletePart(worksheetPart.DrawingsPart);
+                worksheet.RemoveChild(worksheet.Elements<Drawing>().FirstOrDefault(element => element.Id == previousDrawingId));
                 cm.SetElement(XlsxWorksheetContents.Drawing, null);
             }
 
@@ -1572,213 +1548,90 @@ namespace Aid.Xlsx.Internal.IO
                      left.OutlineLevel.Value == right.OutlineLevel.Value));
         }
 
-        // http://polymathprogrammer.com/2009/10/22/english-metric-units-and-open-xml/
-        // http://archive.oreilly.com/pub/post/what_is_an_emu.html
-        // https://en.wikipedia.org/wiki/Office_Open_XML_file_formats#DrawingML
-        private static Int64 ConvertToEnglishMetricUnits(Int32 pixels, Double resolution)
+        private static string SavePictures(WorksheetPart worksheetPart, XlsxPictures pictures, SaveContext context)
         {
-            return Convert.ToInt64(914400L * pixels / resolution);
-        }
+            var part = worksheetPart.DrawingsPart;
+            if (pictures.Count == 0 && pictures.Deleted.Count == 0)
+                return part is null ? null : worksheetPart.GetIdOfPart(part);
 
-        private static void AddPictureAnchor(WorksheetPart worksheetPart, Drawings.IXlsxPicture picture, SaveContext context)
-        {
-            var pic = picture as Drawings.XlsxPicture;
-            var drawingsPart = worksheetPart.DrawingsPart ??
-                               worksheetPart.AddNewPart<DrawingsPart>(context.RelIdGenerator.GetNext(RelType.Workbook));
-
-            if (drawingsPart.WorksheetDrawing == null)
-                drawingsPart.WorksheetDrawing = new Xdr.WorksheetDrawing();
-
-            var worksheetDrawing = drawingsPart.WorksheetDrawing;
-
-            // Add namespaces
-            if (!worksheetDrawing.NamespaceDeclarations.Any(nd => nd.Value.Equals("http://schemas.openxmlformats.org/drawingml/2006/main")))
-                worksheetDrawing.AddNamespaceDeclaration("a", "http://schemas.openxmlformats.org/drawingml/2006/main");
-
-            if (!worksheetDrawing.NamespaceDeclarations.Any(nd => nd.Value.Equals("http://schemas.openxmlformats.org/officeDocument/2006/relationships")))
-                worksheetDrawing.AddNamespaceDeclaration("r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
-            /////////
-
-            // Overwrite actual image binary data
-            ImagePart imagePart;
-            if (drawingsPart.HasPartWithId(pic.RelId))
-                imagePart = drawingsPart.GetPartById(pic.RelId) as ImagePart;
+            XElement root;
+            if (part is null)
+            {
+                part = worksheetPart.AddNewPart<DrawingsPart>(context.RelIdGenerator.GetNext(RelType.Workbook));
+                root = DrawingXml.Create();
+            }
             else
             {
-                pic.RelId = context.RelIdGenerator.GetNext(RelType.Workbook);
-                imagePart = drawingsPart.AddImagePart(pic.Format.ToOpenXml(), pic.RelId);
+                using var stream = part.GetStream(FileMode.Open, FileAccess.Read);
+                root = stream.Length == 0 ? DrawingXml.Create() : DrawingXml.Read(stream);
             }
 
-            using (var stream = new MemoryStream())
+            var anchorsByImage = root.Elements().Where(DrawingXml.IsPictureAnchor)
+                .Select(anchor => (Anchor: anchor, Id: DrawingXml.ImageId(anchor)))
+                .Where(item => item.Id is not null).ToLookup(item => item.Id, item => item.Anchor, StringComparer.Ordinal);
+            var matched = new HashSet<XElement>();
+            foreach (var picture in pictures.Cast<XlsxPicture>())
             {
-                pic.ImageStream.Position = 0;
-                pic.ImageStream.CopyTo(stream);
-                stream.Seek(0, SeekOrigin.Begin);
-                imagePart.FeedData(stream);
-            }
-            /////////
-
-            // Clear current anchors
-            var existingAnchor = GetAnchorFromImageId(drawingsPart, pic.RelId);
-
-            var wb = pic.Worksheet.Workbook;
-            var extentsCx = ConvertToEnglishMetricUnits(pic.Width, wb.DpiX);
-            var extentsCy = ConvertToEnglishMetricUnits(pic.Height, wb.DpiY);
-
-            var nvps = worksheetDrawing.Descendants<Xdr.NonVisualDrawingProperties>();
-            var nvpId = nvps.Any() ?
-                (UInt32Value)worksheetDrawing.Descendants<Xdr.NonVisualDrawingProperties>().Max(p => p.Id.Value) + 1 :
-                1U;
-
-            Xdr.FromMarker fMark;
-            Xdr.ToMarker tMark;
-            switch (pic.Placement)
-            {
-                case Drawings.XlsxPicturePlacement.FreeFloating:
-                    var absoluteAnchor = new Xdr.AbsoluteAnchor(
-                        new Xdr.Position
-                        {
-                            X = ConvertToEnglishMetricUnits(pic.Left, wb.DpiX),
-                            Y = ConvertToEnglishMetricUnits(pic.Top, wb.DpiY)
-                        },
-                        new Xdr.Extent
-                        {
-                            Cx = extentsCx,
-                            Cy = extentsCy
-                        },
-                        new Xdr.Picture(
-                            new Xdr.NonVisualPictureProperties(
-                                    new Xdr.NonVisualDrawingProperties { Id = nvpId, Name = pic.Name },
-                                    new Xdr.NonVisualPictureDrawingProperties(new PictureLocks { NoChangeAspect = true })
-                            ),
-                            new Xdr.BlipFill(
-                                new Blip { Embed = drawingsPart.GetIdOfPart(imagePart), CompressionState = BlipCompressionValues.Print },
-                                new Stretch(new FillRectangle())
-                            ),
-                            new Xdr.ShapeProperties(
-                                new Transform2D(
-                                    new Offset { X = 0, Y = 0 },
-                                    new Extents { Cx = extentsCx, Cy = extentsCy }
-                                ),
-                                new PresetGeometry { Preset = ShapeTypeValues.Rectangle }
-                            )
-                        ),
-                        new Xdr.ClientData()
-                    );
-
-                    AttachAnchor(absoluteAnchor, existingAnchor);
-                    break;
-
-                case Drawings.XlsxPicturePlacement.MoveAndSize:
-                    var moveAndSizeFromMarker = pic.Markers[Drawings.XlsxMarkerPosition.TopLeft];
-                    if (moveAndSizeFromMarker == null) moveAndSizeFromMarker = new Drawings.XlsxMarker(picture.Worksheet.Cell("A1"));
-                    fMark = new Xdr.FromMarker
-                    {
-                        ColumnId = new Xdr.ColumnId((moveAndSizeFromMarker.ColumnNumber - 1).ToInvariantString()),
-                        RowId = new Xdr.RowId((moveAndSizeFromMarker.RowNumber - 1).ToInvariantString()),
-                        ColumnOffset = new Xdr.ColumnOffset(ConvertToEnglishMetricUnits(moveAndSizeFromMarker.Offset.X, wb.DpiX).ToInvariantString()),
-                        RowOffset = new Xdr.RowOffset(ConvertToEnglishMetricUnits(moveAndSizeFromMarker.Offset.Y, wb.DpiY).ToInvariantString())
-                    };
-
-                    var moveAndSizeToMarker = pic.Markers[Drawings.XlsxMarkerPosition.BottomRight];
-                    if (moveAndSizeToMarker == null) moveAndSizeToMarker = new Drawings.XlsxMarker(picture.Worksheet.Cell("A1"), new System.Drawing.Point(picture.Width, picture.Height));
-                    tMark = new Xdr.ToMarker
-                    {
-                        ColumnId = new Xdr.ColumnId((moveAndSizeToMarker.ColumnNumber - 1).ToInvariantString()),
-                        RowId = new Xdr.RowId((moveAndSizeToMarker.RowNumber - 1).ToInvariantString()),
-                        ColumnOffset = new Xdr.ColumnOffset(ConvertToEnglishMetricUnits(moveAndSizeToMarker.Offset.X, wb.DpiX).ToInvariantString()),
-                        RowOffset = new Xdr.RowOffset(ConvertToEnglishMetricUnits(moveAndSizeToMarker.Offset.Y, wb.DpiY).ToInvariantString())
-                    };
-
-                    var twoCellAnchor = new Xdr.TwoCellAnchor(
-                        fMark,
-                        tMark,
-                        new Xdr.Picture(
-                            new Xdr.NonVisualPictureProperties(
-                                new Xdr.NonVisualDrawingProperties { Id = nvpId, Name = pic.Name },
-                                new Xdr.NonVisualPictureDrawingProperties(new PictureLocks { NoChangeAspect = true })
-                            ),
-                            new Xdr.BlipFill(
-                                new Blip { Embed = drawingsPart.GetIdOfPart(imagePart), CompressionState = BlipCompressionValues.Print },
-                                new Stretch(new FillRectangle())
-                            ),
-                            new Xdr.ShapeProperties(
-                                new Transform2D(
-                                    new Offset { X = 0, Y = 0 },
-                                    new Extents { Cx = extentsCx, Cy = extentsCy }
-                                ),
-                                new PresetGeometry { Preset = ShapeTypeValues.Rectangle }
-                            )
-                        ),
-                        new Xdr.ClientData()
-                    );
-
-                    AttachAnchor(twoCellAnchor, existingAnchor);
-                    break;
-
-                case Drawings.XlsxPicturePlacement.Move:
-                    var moveFromMarker = pic.Markers[Drawings.XlsxMarkerPosition.TopLeft];
-                    if (moveFromMarker == null) moveFromMarker = new Drawings.XlsxMarker(picture.Worksheet.Cell("A1"));
-                    fMark = new Xdr.FromMarker
-                    {
-                        ColumnId = new Xdr.ColumnId((moveFromMarker.ColumnNumber - 1).ToInvariantString()),
-                        RowId = new Xdr.RowId((moveFromMarker.RowNumber - 1).ToInvariantString()),
-                        ColumnOffset = new Xdr.ColumnOffset(ConvertToEnglishMetricUnits(moveFromMarker.Offset.X, wb.DpiX).ToInvariantString()),
-                        RowOffset = new Xdr.RowOffset(ConvertToEnglishMetricUnits(moveFromMarker.Offset.Y, wb.DpiY).ToInvariantString())
-                    };
-
-                    var oneCellAnchor = new Xdr.OneCellAnchor(
-                        fMark,
-                        new Xdr.Extent
-                        {
-                            Cx = extentsCx,
-                            Cy = extentsCy
-                        },
-                        new Xdr.Picture(
-                            new Xdr.NonVisualPictureProperties(
-                                new Xdr.NonVisualDrawingProperties { Id = nvpId, Name = pic.Name },
-                                new Xdr.NonVisualPictureDrawingProperties(new PictureLocks { NoChangeAspect = true })
-                            ),
-                            new Xdr.BlipFill(
-                                new Blip { Embed = drawingsPart.GetIdOfPart(imagePart), CompressionState = BlipCompressionValues.Print },
-                                new Stretch(new FillRectangle())
-                            ),
-                            new Xdr.ShapeProperties(
-                                new Transform2D(
-                                    new Offset { X = 0, Y = 0 },
-                                    new Extents { Cx = extentsCx, Cy = extentsCy }
-                                ),
-                                new PresetGeometry { Preset = ShapeTypeValues.Rectangle }
-                            )
-                        ),
-                        new Xdr.ClientData()
-                    );
-
-                    AttachAnchor(oneCellAnchor, existingAnchor);
-                    break;
-            }
-
-            void AttachAnchor(OpenXmlElement pictureAnchor, OpenXmlElement existingAnchor)
-            {
-                if (existingAnchor is not null)
+                ImagePart imagePart;
+                if (picture.RelId is not null && part.TryGetPartById(picture.RelId, out var related) && related is ImagePart image)
                 {
-                    worksheetDrawing.ReplaceChild(pictureAnchor, existingAnchor);
+                    imagePart = image;
                 }
                 else
                 {
-                    worksheetDrawing.Append(pictureAnchor);
+                    picture.RelId = context.RelIdGenerator.GetNext(RelType.Workbook);
+                    imagePart = part.AddImagePart(picture.Format.ToOpenXml(), picture.RelId);
+                }
+
+                picture.ImageStream.Position = 0;
+                imagePart.FeedData(picture.ImageStream);
+
+                var anchor = DrawingXml.CreatePictureAnchor(root.Name.Namespace, picture, picture.RelId);
+                var candidates = anchorsByImage[picture.RelId].Where(element => !matched.Contains(element)).ToList();
+                var existing = candidates.FirstOrDefault(element => element.Descendants(root.Name.Namespace + "cNvPr")
+                    .Any(properties => (string)properties.Attribute("name") == picture.Name));
+                existing ??= candidates.FirstOrDefault(element => element.Descendants(root.Name.Namespace + "cNvPr")
+                    .Any(properties => (int?)properties.Attribute("id") == picture.Id));
+                if (existing is null && candidates.Count == 1 && !pictures.Deleted.Contains(picture.RelId))
+                    existing = candidates[0];
+
+                if (existing is null)
+                {
+                    root.Add(anchor);
+                }
+                else
+                {
+                    matched.Add(existing);
+                    existing.ReplaceWith(anchor);
                 }
             }
-        }
 
-        private static void RebaseNonVisualDrawingPropertiesIds(WorksheetPart worksheetPart)
-        {
-            var worksheetDrawing = worksheetPart.DrawingsPart.WorksheetDrawing;
+            foreach (var removedId in pictures.Deleted.Distinct())
+            {
+                foreach (var anchor in anchorsByImage[removedId].Where(element => !matched.Contains(element)))
+                    anchor.Remove();
 
-            var toRebase = worksheetDrawing.Descendants<Xdr.NonVisualDrawingProperties>()
-                .ToList();
+                if (!root.Elements().Any(element => DrawingXml.ImageId(element) == removedId) && part.HasPartWithId(removedId))
+                    part.DeletePart(removedId);
+            }
 
-            toRebase.ForEach(nvdpr => nvdpr.Id = Convert.ToUInt32(toRebase.IndexOf(nvdpr) + 1));
+            pictures.Deleted.Clear();
+            if (!root.HasElements && !part.Parts.Any())
+            {
+                worksheetPart.DeletePart(part);
+                return null;
+            }
+
+            if (pictures.Count != 0)
+            {
+                var id = 1;
+                foreach (var properties in root.Descendants(root.Name.Namespace + "cNvPr"))
+                    properties.SetAttributeValue("id", id++);
+            }
+
+            using var output = part.GetStream(FileMode.Create, FileAccess.Write);
+            DrawingXml.Write(output, root);
+            return worksheetPart.GetIdOfPart(part);
         }
 
         private static void PopulateTablePartReferences(XlsxTables xlTables, Worksheet worksheet, XlsxWorksheetContentManager cm)

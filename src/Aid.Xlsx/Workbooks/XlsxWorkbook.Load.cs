@@ -19,7 +19,6 @@ using Aid.Xlsx.Utils;
 using Aid.Xlsx.Worksheets;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml;
-using Xdr = DocumentFormat.OpenXml.Drawing.Spreadsheet;
 
 namespace Aid.Xlsx.Workbooks
 {
@@ -301,99 +300,16 @@ namespace Aid.Xlsx.Workbooks
             }
         }
 
-        private void LoadDrawings(WorksheetPart wsPart, XlsxWorksheet ws)
+        private static void LoadDrawings(WorksheetPart worksheetPart, XlsxWorksheet sheet)
         {
-            if (wsPart.DrawingsPart != null)
-            {
-                var drawingsPart = wsPart.DrawingsPart;
+            if (worksheetPart.DrawingsPart is not { } part)
+                return;
 
-                foreach (var anchor in drawingsPart.WorksheetDrawing.ChildElements)
-                {
-                    var imgId = GetImageRelIdFromAnchor(anchor);
-
-                    //If imgId is null, we're probably dealing with a TextBox (or another shape) instead of a picture
-                    if (imgId == null) continue;
-
-                    var imagePart = drawingsPart.GetPartById(imgId);
-                    using (var stream = imagePart.GetStream())
-                    using (var ms = new MemoryStream())
-                    {
-                        stream.CopyTo(ms);
-                        var vsdp = GetPropertiesFromAnchor(anchor);
-
-                        var picture = ws.AddPicture(ms, vsdp.Name, Convert.ToInt32(vsdp.Id.Value)) as XlsxPicture;
-                        picture.RelId = imgId;
-
-                        Xdr.ShapeProperties spPr = anchor.Descendants<Xdr.ShapeProperties>().First();
-                        picture.Placement = XlsxPicturePlacement.FreeFloating;
-
-                        if (spPr?.Transform2D?.Extents?.Cx.HasValue ?? false)
-                            picture.Width = ConvertFromEnglishMetricUnits(spPr.Transform2D.Extents.Cx, ws.Workbook.DpiX);
-
-                        if (spPr?.Transform2D?.Extents?.Cy.HasValue ?? false)
-                            picture.Height = ConvertFromEnglishMetricUnits(spPr.Transform2D.Extents.Cy, ws.Workbook.DpiY);
-
-                        if (anchor is Xdr.AbsoluteAnchor)
-                        {
-                            var absoluteAnchor = anchor as Xdr.AbsoluteAnchor;
-                            picture.MoveTo(
-                                ConvertFromEnglishMetricUnits(absoluteAnchor.Position.X.Value, ws.Workbook.DpiX),
-                                ConvertFromEnglishMetricUnits(absoluteAnchor.Position.Y.Value, ws.Workbook.DpiY)
-                            );
-                        }
-                        else if (anchor is Xdr.OneCellAnchor)
-                        {
-                            var oneCellAnchor = anchor as Xdr.OneCellAnchor;
-                            var from = LoadMarker(ws, oneCellAnchor.FromMarker);
-                            picture.MoveTo(from.Cell, from.Offset);
-                        }
-                        else if (anchor is Xdr.TwoCellAnchor)
-                        {
-                            var twoCellAnchor = anchor as Xdr.TwoCellAnchor;
-                            var from = LoadMarker(ws, twoCellAnchor.FromMarker);
-                            var to = LoadMarker(ws, twoCellAnchor.ToMarker);
-
-                            if (twoCellAnchor.EditAs == null || !twoCellAnchor.EditAs.HasValue || twoCellAnchor.EditAs.Value == Xdr.EditAsValues.TwoCell)
-                            {
-                                picture.MoveTo(from.Cell, from.Offset, to.Cell, to.Offset);
-                            }
-                            else if (twoCellAnchor.EditAs.Value == Xdr.EditAsValues.Absolute)
-                            {
-                                var shapeProperties = twoCellAnchor.Descendants<Xdr.ShapeProperties>().FirstOrDefault();
-                                if (shapeProperties != null)
-                                {
-                                    picture.MoveTo(
-                                        ConvertFromEnglishMetricUnits(spPr.Transform2D.Offset.X, ws.Workbook.DpiX),
-                                        ConvertFromEnglishMetricUnits(spPr.Transform2D.Offset.Y, ws.Workbook.DpiY)
-                                    );
-                                }
-                            }
-                            else if (twoCellAnchor.EditAs.Value == Xdr.EditAsValues.OneCell)
-                            {
-                                picture.MoveTo(from.Cell, from.Offset);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private static Int32 ConvertFromEnglishMetricUnits(long emu, double resolution)
-        {
-            return Convert.ToInt32(emu * resolution / 914400);
-        }
-
-        private static XlsxMarker LoadMarker(XlsxWorksheet ws, Xdr.MarkerType marker)
-        {
-            var row = Math.Min(XlsxHelper.MaxRowNumber, Math.Max(1, Convert.ToInt32(marker.RowId.InnerText) + 1));
-            var column = Math.Min(XlsxHelper.MaxColumnNumber, Math.Max(1, Convert.ToInt32(marker.ColumnId.InnerText) + 1));
-            return new XlsxMarker(
-                ws.Cell(row, column),
-                new System.Drawing.Point(
-                    ConvertFromEnglishMetricUnits(Convert.ToInt32(marker.ColumnOffset.InnerText), ws.Workbook.DpiX),
-                    ConvertFromEnglishMetricUnits(Convert.ToInt32(marker.RowOffset.InnerText), ws.Workbook.DpiY)
-                )
-            );
+            using var stream = part.GetStream(FileMode.Open, FileAccess.Read);
+            DrawingXml.LoadPictures(DrawingXml.Read(stream), sheet,
+                id => part.TryGetPartById(id, out var image) && image is ImagePart
+                    ? image.GetStream(FileMode.Open, FileAccess.Read)
+                    : null);
         }
 
         #region Comment Helpers
