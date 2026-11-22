@@ -29,6 +29,14 @@ Require(salesSheet.Cell("D1").GetDouble() == 42d, "evaluated formula");
 Require(salesSheet.Cell("D1").Style.NumberFormat.Format == "0.00", "number format");
 Require(salesSheet.Cell("D2").GetDateTime() == new DateTime(2026, 1, 2), "date value");
 Require(salesSheet.Cell("D3").GetComment().Text == "Verified", "comment");
+
+using var legacy = typeof(Sale).Assembly.GetManifestResourceStream("legacy.xls")
+    ?? throw new InvalidOperationException("The BIFF8 fixture is missing.");
+using var converted = new MemoryStream();
+XlsConverter.Convert(legacy, converted);
+converted.Position = 0;
+using var convertedWorkbook = new XLWorkbook(converted);
+Require(convertedWorkbook.Worksheet("Hidden").Cell("A1").GetDouble() == 42, "BIFF8 conversion");
 Console.WriteLine("Workbook round-trip passed.");
 
 static void Require(bool valid, string scenario)

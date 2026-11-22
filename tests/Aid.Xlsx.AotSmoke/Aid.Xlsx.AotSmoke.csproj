@@ -13,4 +13,7 @@
     <ProjectReference Include="..\..\src\Aid.Xlsx.Formula\Aid.Xlsx.Formula.csproj" />
     <ProjectReference Include="..\..\src\Aid.Xlsx.Generators\Aid.Xlsx.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\Aid.Xlsx.Tests\IO\biff8-generated.xls" LogicalName="legacy.xls" />
+  </ItemGroup>
 </Project>

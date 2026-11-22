@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Convert Excel 97–2003 BIFF8 worksheet data to `.xlsx` from paths or streams without Office automation.
 - Generate reflection-free row mappers for `InsertMappedTable` and `InsertMappedData` from `[XlsxTable]` models.
 - Round-trip a workbook in fully trimmed and NativeAOT smoke applications.
 - Add an OPC ZIP container with content types, internal and external relationships, and byte-preserving copies of unchanged parts.
