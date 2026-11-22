@@ -5,9 +5,19 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ClosedXML" PrivateAssets="all" />
+    <PackageReference Include="DocumentFormat.OpenXml" PrivateAssets="all" />
     <ProjectReference Include="..\..\src\Aid.Xlsx\Aid.Xlsx.csproj" />
     <ProjectReference Include="..\..\src\Aid.Xlsx.Opc\Aid.Xlsx.Opc.csproj" />
     <ProjectReference Include="..\..\src\Aid.Xlsx.Formula\Aid.Xlsx.Formula.csproj" />
     <None Update="AcceptedDifferences.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\Aid.Xlsx.Tests\Resource\Examples\Misc\FormulasWithEvaluation.xlsx;
+                   ..\Aid.Xlsx.Tests\Resource\Examples\Misc\Hyperlinks.xlsx;
+                   ..\Aid.Xlsx.Tests\Resource\Examples\Misc\MergeCells.xlsx;
+                   ..\Aid.Xlsx.Tests\Resource\TryToLoad\CellsWithDateTimeDataTypeOrFormatting.xlsx;
+                   ..\Aid.Xlsx.Tests\Resource\TryToLoad\CommentAndButton.xlsx;
+                   ..\Aid.Xlsx.Tests\Resource\TryToLoad\PivotTableWithTableSource.xlsx;
+                   ..\Aid.Xlsx.Tests\Resource\TryToLoad\TableHeadersWithLineBreaks.xlsx;
+                   ..\Aid.Xlsx.Tests\Resource\TryToLoad\LO\xlsm\vba-user-function.xlsm"
+          Link="Corpus\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

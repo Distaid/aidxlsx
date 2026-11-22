@@ -33,4 +33,5 @@ foreach (var line in invalid)
     Console.Error.WriteLine($"Unexpected public API {line}");
 
 Console.WriteLine($"Compared {current.Count} Aid.Xlsx API declarations with {upstream.Count} upstream declarations. Accepted differences {accepted.Count}.");
-return unexpected.Length + resolved.Length + invalid.Length == 0 ? 0 : 1;
+var corpusPassed = WorkbookCorpus.Verify();
+return corpusPassed && unexpected.Length + resolved.Length + invalid.Length == 0 ? 0 : 1;
