@@ -1,29 +1,38 @@
-using System.Diagnostics;
+using System;
 using System.IO;
 using System.Linq;
-using System;
+using Aid.Xlsx.CodeGen.Model;
 using Aid.Xlsx.CodeGen.Model.Elements;
 using Aid.Xlsx.CodeGen.Model.TopLevel;
-using Aid.Xlsx.CodeGen.Model;
 using Aid.Xlsx.CodeGen.XsdParser;
 
 namespace Aid.Xlsx.CodeGen;
 
 public static class Program
 {
-    public static void Main(string[] args)
+    public static int Main(string[] args)
     {
-        if (args.Length != 3)
+        if (args is ["all"])
         {
-            Console.Error.WriteLine("Usage:");
-            Console.Error.WriteLine($"    {Process.GetCurrentProcess().ProcessName}.exe command name-of-ooxml.xsd output.cs");
-            Console.Error.WriteLine();
-            return;
+            var root = OoxmlSchema.FindRepository();
+            var schemaPath = OoxmlSchema.GetPath(root);
+            var output = Path.Combine(root, "src", "Aid.Xlsx", "Internal", "IO");
+            Generate("styles", schemaPath, Path.Combine(output, "StylesReader.g.cs"));
+            Generate("cache-records", schemaPath, Path.Combine(output, "PivotCacheRecordsReader.g.cs"));
+            Generate("partial-rst", schemaPath, Path.Combine(output, "RstReader.g.cs"));
+            Generate("partial-sheet-data", schemaPath, Path.Combine(output, "SheetDataReader.g.cs"));
+            return 0;
         }
 
-        var command = args[0];
-        var schemaPath = args[1];
-        var target = args[2];
+        if (args is [var command, var input, var target])
+            return Generate(command, input, target);
+
+        Console.Error.WriteLine("Usage: Aid.Xlsx.CodeGen all | <command> <schema.xsd> <output.cs>");
+        return 1;
+    }
+
+    private static int Generate(string command, string schemaPath, string target)
+    {
         using var fileStream = File.OpenRead(schemaPath);
         using var reader = new XmlTreeReader(fileStream, new XsdEnumMapper(), true);
         var parser = new XsdSchemaParser();
@@ -48,9 +57,12 @@ public static class Program
                 break;
 
             default:
-                Console.WriteLine($"Unknown command '{command}'");
-                break;
+                Console.Error.WriteLine($"Unknown command '{command}'.");
+                return 1;
         }
+
+        Console.WriteLine($"Generated {Path.GetFileName(target)}");
+        return 0;
     }
 
     private static void GenerateStylesReader(Schema schema, string target)
@@ -169,7 +181,6 @@ public static class Program
 
         var stylesReaderSource = stylesReaderGenerator.Generate();
         File.WriteAllText(target, stylesReaderSource);
-        Console.WriteLine(stylesReaderSource);
     }
 
     private static void GenerateCacheRecords(Schema schema, string target)
@@ -198,7 +209,6 @@ public static class Program
 
         var cacheRecordsSource = cacheRecordsGenerator.Generate();
         File.WriteAllText(target, cacheRecordsSource);
-        Console.WriteLine(cacheRecordsSource);
     }
 
     /// <summary>
@@ -263,7 +273,6 @@ public static class Program
 
         var rstSource = rstGenerator.Generate();
         File.WriteAllText(target, rstSource);
-        Console.WriteLine(rstSource);
     }
 
     /// <summary>
@@ -337,7 +346,6 @@ public static class Program
 
         var sheetDataSource = sheetDataGenerator.Generate();
         File.WriteAllText(target, sheetDataSource);
-        Console.WriteLine(sheetDataSource);
     }
 
     /// <summary>

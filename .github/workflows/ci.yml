@@ -48,9 +48,7 @@ jobs:
         run: |
           set -euo pipefail
           has() { if [ -d "$1" ]; then echo true; else echo false; fi }
-          # codegen-drift is enabled by a readiness marker: the Generation directory appears in phase 0
-          # (import/rename), while schemas and generated code appear only in phase 2.
-          if [ -f schemas/ooxml/SHA256SUMS ] || [ -n "$(find src -name '*.g.cs' -print -quit 2>/dev/null)" ]; then
+          if [ -f schemas/ooxml/SHA256SUMS ] || [ -n "$(find src -name '*.g.cs' -print -quit)" ]; then
             has_generation=true
           else
             has_generation=false
