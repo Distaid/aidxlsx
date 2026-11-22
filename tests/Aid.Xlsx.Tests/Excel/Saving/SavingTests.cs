@@ -6,7 +6,7 @@ using Aid.Xlsx.Cells;
 using Aid.Xlsx.ConditionalFormats;
 using Aid.Xlsx.DataValidation;
 using Aid.Xlsx.Drawings;
-using Aid.Xlsx.Internal.IO;
+using Aid.Xlsx.SpreadsheetML;
 using Aid.Xlsx.Opc;
 using Aid.Xlsx.Styles.Colors;
 using Aid.Xlsx.Styles;

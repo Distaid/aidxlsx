@@ -1,5 +1,5 @@
 using Aid.Xlsx.Coordinates;
-using Aid.Xlsx.Internal.IO;
+using Aid.Xlsx.SpreadsheetML;
 using Aid.Xlsx.Opc;
 using Aid.Xlsx.Styles.Colors;
 using Aid.Xlsx.Styles.Formatting;

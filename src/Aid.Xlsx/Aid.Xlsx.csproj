@@ -44,11 +44,8 @@
   </Target>
 
   <ItemGroup>
-    <EmbeddedResource Include="Graphics\Fonts\CarlitoBare-Bold.ttf" />
-    <EmbeddedResource Include="Graphics\Fonts\CarlitoBare-BoldItalic.ttf" />
-    <EmbeddedResource Include="Graphics\Fonts\CarlitoBare-Italic.ttf" />
-    <EmbeddedResource Include="Graphics\Fonts\CarlitoBare-Regular.ttf" />
-    <EmbeddedResource Include="Internal\IO\DefaultTheme.xml" LogicalName="Aid.Xlsx.DefaultTheme.xml" />
+    <EmbeddedResource Include="Rendering\Fonts\CarlitoBare-*.ttf" LogicalName="Aid.Xlsx.Graphics.Fonts.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="SpreadsheetML\Styles\DefaultTheme.xml" LogicalName="Aid.Xlsx.DefaultTheme.xml" />
   </ItemGroup>
 
   <ItemGroup>

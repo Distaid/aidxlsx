@@ -61,20 +61,16 @@ values. See the compatibility guide for conversion limits.
 
 ## Repository layout
 
-```text
-src/Aid.Xlsx/                   core library: domain folders at the top level
-                                (Cells, Ranges, Styles, PivotTables, ...); part
-                                readers and writers live in Internal/IO
-src/Aid.Xlsx.Opc/               OPC container, relationships, XML/MCE primitives
-src/Aid.Xlsx.Formula/           formula parser
-src/Aid.Xlsx.Generators/        Roslyn incremental generators
-src/Aid.Xlsx.CodeGen/           XSD-based code generation (build-time tool)
-tests/                          unit, compatibility, AOT smoke, fuzzing and benchmarks
-eng/                            build and release scripts
-```
+| Project | Responsibility |
+| --- | --- |
+| [Aid.Xlsx](src/Aid.Xlsx/README.md) | Workbook model, SpreadsheetML codecs, calculation, and BIFF8 conversion |
+| [Aid.Xlsx.Opc](src/Aid.Xlsx.Opc/README.md) | Package storage, part relationships, and XML traversal |
+| [Aid.Xlsx.Formula](src/Aid.Xlsx.Formula/README.md) | Formula and reference parsing |
+| [Aid.Xlsx.Generators](src/Aid.Xlsx.Generators/README.md) | Compiler-host generators for table mapping and workbook metadata |
+| [Aid.Xlsx.CodeGen](src/Aid.Xlsx.CodeGen/README.md) | Command-line generation of SpreadsheetML readers from the pinned XSD |
 
-> The core uses a flat layout: domain folders sit directly under `src/Aid.Xlsx/`, while
-> part readers and writers live in `src/Aid.Xlsx/Internal/IO/`.
+`tests/` contains the unit suite, compatibility checks, NativeAOT smoke test, fuzz targets, and
+standalone benchmarks. Repository validation lives under `eng/`.
 
 ## Building
 

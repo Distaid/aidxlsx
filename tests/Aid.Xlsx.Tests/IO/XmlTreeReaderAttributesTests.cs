@@ -1,6 +1,6 @@
 using System.Reflection;
 using System.Text;
-using Aid.Xlsx.Internal.IO;
+using Aid.Xlsx.SpreadsheetML;
 using Aid.Xlsx.Opc;
 using Aid.Xlsx.Utils;
 using NUnit.Framework;

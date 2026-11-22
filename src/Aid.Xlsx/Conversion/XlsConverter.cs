@@ -1,4 +1,5 @@
-using Aid.Xlsx.Internal.IO;
+using Aid.Xlsx.Conversion.Biff8;
+using Aid.Xlsx.Conversion.CompoundFile;
 using Aid.Xlsx.Workbooks;
 
 namespace Aid.Xlsx.Conversion;

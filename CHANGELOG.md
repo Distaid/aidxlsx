@@ -32,10 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Open and save workbook ZIP containers with the built-in OPC layer, preserving untouched parts and their relationships.
 - Resolve workbook and worksheet parts directly through OPC relationships when loading Strict and Transitional files.
 - Build the formula parser from repository sources and ship it inside `Aid.Xlsx`.
-- Restructured the solution for the port: the projects and namespaces are
-  `Aid.Xlsx.Opc` (OPC/XML layer) and `Aid.Xlsx.CodeGen` (XSD code generator); the core
-  library now uses a flat layout — domain folders sit directly under `src/Aid.Xlsx/`,
-  part readers and writers live in `src/Aid.Xlsx/Internal/IO/`.
+- Organize the five source projects by responsibility and document each in its own README.
+  The workbook model, SpreadsheetML codecs, calculation engine, and BIFF8 reader have separate directories.
 
 ### Added
 

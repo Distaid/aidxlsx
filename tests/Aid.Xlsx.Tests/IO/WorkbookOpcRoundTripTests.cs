@@ -1,7 +1,7 @@
 using System.Text;
 using System.Xml.Linq;
 using Aid.Xlsx.DataValidation;
-using Aid.Xlsx.Internal.IO;
+using Aid.Xlsx.SpreadsheetML;
 using Aid.Xlsx.Opc;
 using Aid.Xlsx.PageSetup;
 using Aid.Xlsx.Styles.Colors;

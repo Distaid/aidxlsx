@@ -39,15 +39,18 @@ metadata and the repository conventions described below.
 
 | Path | Purpose |
 |---|---|
-| `src/Aid.Xlsx` | The library: cell model, ranges, styles, tables, drawings, CalcEngine, part readers and writers (`Internal/IO`) |
+| `src/Aid.Xlsx` | Workbook model, calculation, SpreadsheetML codecs, and legacy workbook conversion |
 | `src/Aid.Xlsx.Opc` | OPC container, relationships, content types, XML/MCE primitives. Knows nothing about the Excel model |
+| `src/Aid.Xlsx.Formula` | Formula grammar, lexer, parser, and reference transformations |
+| `src/Aid.Xlsx.Generators` | Roslyn incremental generators for table mappers and workbook metadata |
 | `src/Aid.Xlsx.CodeGen` | Build-time generator: reads OOXML schemas, emits the `*.g.cs` readers |
 | `tests/Aid.Xlsx.Tests` | NUnit test suite |
 | `eng/scripts` | Repository validation scripts |
 | `.github/workflows` | CI gates |
 
-The library uses a flat domain layout: domain folders sit directly under `src/Aid.Xlsx/`,
-the only nested convenience folder is `Internal/IO`.
+Each source project has a README that describes its directory layout. In `src/Aid.Xlsx`,
+workbook domains live under `Model/` and file-format codecs under `SpreadsheetML/`.
+Keep public namespaces tied to the workbook domain when moving files between source directories.
 
 ## Code conventions
 
@@ -125,7 +128,7 @@ Rules:
 |---|---|
 | `core` | `src/Aid.Xlsx` model, ranges, cells, worksheets, workbook |
 | `opc` | `src/Aid.Xlsx.Opc` container, relationships, content types, XML primitives |
-| `io` | part readers and writers under `src/Aid.Xlsx/Internal/IO` |
+| `io` | part readers and writers under `src/Aid.Xlsx/SpreadsheetML` and BIFF8 conversion |
 | `calc` | CalcEngine and functions |
 | `styles` | styles, number formats, colors |
 | `tables` | tables, filters, structured references |

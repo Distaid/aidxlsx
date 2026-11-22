@@ -46,7 +46,7 @@ jobs:
       - name: instrument reader assemblies
         run: |
           artifacts/fuzz/tools/sharpfuzz artifacts/fuzz/bin/Aid.Xlsx.Opc.dll
-          artifacts/fuzz/tools/sharpfuzz artifacts/fuzz/bin/Aid.Xlsx.dll Aid.Xlsx.Internal.IO Aid.Xlsx.Workbooks
+          artifacts/fuzz/tools/sharpfuzz artifacts/fuzz/bin/Aid.Xlsx.dll Aid.Xlsx.SpreadsheetML Aid.Xlsx.Workbooks
       - name: fuzz (15 minutes)
         env:
           TARGET: ${{ matrix.target }}

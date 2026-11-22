@@ -1,5 +1,5 @@
 using System.Text;
-using Aid.Xlsx.Internal.IO;
+using Aid.Xlsx.SpreadsheetML;
 using Aid.Xlsx.Opc;
 using NUnit.Framework;
 

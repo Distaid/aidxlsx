@@ -1,7 +1,7 @@
 using System.Globalization;
 using Aid.Xlsx.Styles.Colors;
 using System.Xml.Linq;
-using Aid.Xlsx.Internal.IO;
+using Aid.Xlsx.SpreadsheetML;
 using Aid.Xlsx.Workbooks;
 using NUnit.Framework;
 
