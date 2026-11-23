@@ -6,6 +6,7 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" PrivateAssets="all" />
     <PackageReference Include="ClosedXML" PrivateAssets="all" />
+    <Compile Include="../Aid.Xlsx.NativeBenchmarks/WorkbookIoMeasurement.cs" Link="WorkbookIoMeasurement.cs" />
     <ProjectReference Include="../../src/Aid.Xlsx/Aid.Xlsx.csproj" />
     <ProjectReference Include="../../src/Aid.Xlsx.Opc/Aid.Xlsx.Opc.csproj" />
     <ProjectReference Include="../../src/Aid.Xlsx.Formula/Aid.Xlsx.Formula.csproj" />
