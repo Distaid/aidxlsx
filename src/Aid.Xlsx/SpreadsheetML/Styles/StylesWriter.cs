@@ -255,28 +255,16 @@ internal class StylesWriter
 
         // Fill the maps used in other parts to determine saved id for a format
         foreach (var (numberFormatId, numberFormat) in numberFormatMap.GetActual())
-        {
-            if (!context.NumberFormatMap.ContainsKey(numberFormat))
-                context.NumberFormatMap.Add(numberFormat, numberFormatId);
-        }
+            context.NumberFormatMap.TryAdd(numberFormat, numberFormatId);
 
         foreach (var (fontId, fontFormat) in fontFormatsMap.GetActual())
-        {
-            if (!context.FontMap.ContainsKey(fontFormat))
-                context.FontMap.Add(fontFormat, fontId);
-        }
+            context.FontMap.TryAdd(fontFormat, fontId);
 
         foreach (var (xfId, format) in cellXfsMap.GetActual())
-        {
-            if (!context.FormatMap.ContainsKey(format))
-                context.FormatMap.Add(format, (uint)xfId);
-        }
+            context.FormatMap.TryAdd(format, (uint)xfId);
 
         foreach (var (dxfId, dxf) in dxfMap.GetActual())
-        {
-            if (!context.DxfMap.ContainsKey(dxf))
-                context.DxfMap.Add(dxf, (uint)dxfId);
-        }
+            context.DxfMap.TryAdd(dxf, (uint)dxfId);
 
         return;
 

@@ -1362,7 +1362,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         {
             var matchString = match.Value;
             var matchIndex = match.Index;
-            if (value.Substring(0, matchIndex).CharCount('"') % 2 == 0)
+            if (value.AsSpan(0, matchIndex).Count('"') % 2 == 0)
             {
                 // Check that the match is not between quotes
                 sb.Append(value.Substring(lastIndex, matchIndex - lastIndex));
@@ -1508,7 +1508,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         {
             var matchString = match.Value;
             var matchIndex = match.Index;
-            if (value.Substring(0, matchIndex).CharCount('"') % 2 == 0)
+            if (value.AsSpan(0, matchIndex).Count('"') % 2 == 0)
             {
                 // Check that the match is not between quotes
                 sb.Append(value.Substring(lastIndex, matchIndex - lastIndex));

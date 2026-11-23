@@ -28,7 +28,7 @@ public class XStringConvert
     [return: NotNullIfNotNull(nameof(text))]
     public static string? Decode(string? text)
     {
-        if (string.IsNullOrWhiteSpace(text))
+        if (text is null || text.Length < 7)
             return text;
 
         // This method is on a hotpath and shouldn't allocate unless necessary.
@@ -48,8 +48,7 @@ public class XStringConvert
                 // Append text from last XString splice
                 sb.Append(text, prevSliceNextCharIndex, i - prevSliceNextCharIndex);
 
-                // Get hex digits from from _xABCD_ patterns. Polyfill doesn't have allocation-free
-                // API, so just decode the hex number.
+                // Read the four hexadecimal digits from the _xABCD_ pattern.
                 var codepoint = GetHexValue(textSpan.Slice(i + 2, 4));
 
                 sb.Append((char)codepoint);

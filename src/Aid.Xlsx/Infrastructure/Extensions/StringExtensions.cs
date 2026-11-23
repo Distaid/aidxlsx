@@ -12,11 +12,6 @@ internal static class StringExtensions
 {
     private static readonly Regex RegexNewLine = new Regex(@"((?<!\r)\n|\r\n)", RegexOptions.Compiled);
 
-    public static Int32 CharCount(this String instance, Char c)
-    {
-        return instance.Length - instance.Replace(c.ToString(), "").Length;
-    }
-
     public static String RemoveSpecialCharacters(this String str)
     {
         StringBuilder sb = new StringBuilder();

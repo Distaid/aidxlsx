@@ -35,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Build the formula parser from repository sources and ship it inside `Aid.Xlsx`.
 - Organize the five source projects by responsibility and document each in its own README.
   The workbook model, SpreadsheetML codecs, calculation engine, and BIFF8 reader have separate directories.
+- Use C# 14 extension blocks for internal helpers and reduce work in cell traversal, formula rewriting,
+  and XML encoding checks.
 
 ### Added
 
