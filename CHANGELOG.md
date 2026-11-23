@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-11-23
+
+### Changed
+
+- Apply a single code style across `src/` and enforce it in the build: predefined type
+  keywords, explicit types where the type is not apparent, collection expressions,
+  primary constructors, `readonly` struct members, and generated regexes. The public API
+  is unchanged.
+- Enable `EnforceCodeStyleInBuild` and record the analyzer policy in `.editorconfig`, so
+  a new style or analyzer violation fails the build instead of accumulating silently.
+- Make stateless internal helpers static and compile the internal regular expressions at
+  build time (`GeneratedRegex`), and prefer char and span overloads over temporary strings
+  on the cell, style, and formula paths.
+- Group the solution projects into `src/` and `tests/` solution folders.
+
+### Fixed
+
+- Name the offending parameter when throwing `ArgumentException` and
+  `ArgumentOutOfRangeException` instead of creating them without a message; the switch
+  fallbacks now include the received value.
+- Resolve the nullability mismatch in `Reference.RangeOp`, where a list of nullable
+  worksheets was assigned to a non-nullable collection.
+- Call `GC.SuppressFinalize` from `MceXmlReader.Dispose`.
+- Remove the unused `defaultStyle` constructor parameter of the internal `XlsxRange`.
+
+## [2.0.0] - 2026-11-23
+
 ### Changed
 
 - Raise the minimum runtime to .NET 11 for Aid.Xlsx 2.0.0. Aid.Xlsx 1.x supports .NET 10.
@@ -85,5 +112,7 @@ First stable release of Aid.Xlsx for .NET 10.
   produced empty ranges. Rows of different runtime types are no longer mixed in one
   grouped snapshot.
 
-[Unreleased]: https://github.com/Distaid/aidxlsx/compare/v1.0.0...main
+[Unreleased]: https://github.com/Distaid/aidxlsx/compare/v2.0.1...main
+[2.0.1]: https://github.com/Distaid/aidxlsx/releases/tag/v2.0.1
+[2.0.0]: https://github.com/Distaid/aidxlsx/releases/tag/v2.0.0
 [1.0.0]: https://github.com/Distaid/aidxlsx/releases/tag/v1.0.0
