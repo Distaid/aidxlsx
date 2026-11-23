@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The workbook model, SpreadsheetML codecs, calculation engine, and BIFF8 reader have separate directories.
 - Use C# 14 extension blocks for internal helpers and reduce work in cell traversal, formula rewriting,
   and XML encoding checks.
+- Index saved style IDs to reduce save time and allocations in workbooks with many distinct formats.
 
 ### Added
 

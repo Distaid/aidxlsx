@@ -10,6 +10,8 @@ internal class SequentialMap<TKey, T>
     /// </summary>
     private readonly Dictionary<int, TKey> _savedIdToActualId = new();
 
+    private readonly Dictionary<TKey, int> _actualIdToSavedId = new();
+
     private readonly IReadOnlyBiDictionary<TKey, T> _fullMap;
 
     /// <summary>
@@ -61,12 +63,14 @@ internal class SequentialMap<TKey, T>
 
     public void Add(TKey actualId)
     {
-        _savedIdToActualId.Add(_savedIdToActualId.Count, actualId);
+        Add(actualId, _savedIdToActualId.Count);
     }
 
     private void Add(TKey actualId, int saveId)
     {
         _savedIdToActualId.Add(saveId, actualId);
+        // Retain the first saved ID when an actual ID is registered more than once.
+        _actualIdToSavedId.TryAdd(actualId, saveId);
     }
 
     public void Sort()
@@ -90,12 +94,8 @@ internal class SequentialMap<TKey, T>
 
     public int GetSavedId(TKey actualId)
     {
-        // TODO Styles: Use a better better internal structure
-        foreach (var (mapSaveId, mapActualId) in _savedIdToActualId)
-        {
-            if (mapActualId.Equals(actualId))
-                return mapSaveId;
-        }
+        if (_actualIdToSavedId.TryGetValue(actualId, out var saveId))
+            return saveId;
 
         throw new InvalidOperationException($"Unable to find saveId for {actualId} of {typeof(T).Name}.");
     }
