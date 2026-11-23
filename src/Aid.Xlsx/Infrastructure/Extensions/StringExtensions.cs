@@ -151,7 +151,7 @@ internal static partial class StringExtensions
     {
         if (magic.Length > 4)
         {
-            throw new ArgumentException();
+            throw new ArgumentException("A magic number must be at most 4 characters long.", nameof(magic));
         }
 
         return Encoding.ASCII.GetBytes(magic).Select(x => (uint)x).Aggregate((acc, cur) => acc * 256 + cur);

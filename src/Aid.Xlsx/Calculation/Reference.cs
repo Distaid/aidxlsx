@@ -14,7 +14,7 @@ internal class Reference
     public Reference(XlsxRangeAddress area)
     {
         if (!area.IsNormalized)
-            throw new ArgumentException();
+            throw new ArgumentException("The area must be normalized.", nameof(area));
 
         Areas = [area];
     }
@@ -25,7 +25,7 @@ internal class Reference
     public Reference(List<XlsxRangeAddress> areas)
     {
         if (areas.Count < 1)
-            throw new ArgumentException();
+            throw new ArgumentException("At least one area is required.", nameof(areas));
 
         Areas = areas;
     }
@@ -33,7 +33,7 @@ internal class Reference
     public Reference(IXlsxRanges ranges)
     {
         if (ranges.Count < 1)
-            throw new ArgumentException();
+            throw new ArgumentException("At least one range is required.", nameof(ranges));
 
         var areas = new List<XlsxRangeAddress>(ranges.Count);
         foreach (var range in ranges)

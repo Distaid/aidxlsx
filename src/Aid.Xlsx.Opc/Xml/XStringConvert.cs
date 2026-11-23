@@ -101,7 +101,7 @@ public class XStringConvert
     private static uint GetHexValue(ReadOnlySpan<char> text)
     {
         if (text.Length > 8)
-            throw new ArgumentException();
+            throw new ArgumentException("A hexadecimal value cannot be longer than 8 characters.", nameof(text));
 
         var codepoint = 0u;
         foreach (var c in text)

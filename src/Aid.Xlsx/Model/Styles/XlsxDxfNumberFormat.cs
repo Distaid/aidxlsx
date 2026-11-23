@@ -41,7 +41,7 @@ internal class XlsxDxfNumberFormat : IXlsxNumberFormat
         set
         {
             if (!XlsxPredefinedFormat.FormatCodes.TryGetValue(value, out var format))
-                throw new ArgumentOutOfRangeException($"Only predefined format is permitted. Use nested enums/members of {nameof(XlsxPredefinedFormat)}.");
+                throw new ArgumentOutOfRangeException(nameof(value), value, $"Only predefined format is permitted. Use nested enums/members of {nameof(XlsxPredefinedFormat)}.");
 
             Format = format;
         }

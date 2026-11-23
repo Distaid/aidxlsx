@@ -49,7 +49,7 @@ internal readonly record struct Emu
             AbsLengthUnit.Point => PerPt,
             AbsLengthUnit.Pica => PerPc,
             AbsLengthUnit.Emu => 1,
-            _ => throw new ArgumentOutOfRangeException(),
+            _ => throw new ArgumentOutOfRangeException(nameof(srcUnit), srcUnit, "Unknown length unit."),
         };
     }
 

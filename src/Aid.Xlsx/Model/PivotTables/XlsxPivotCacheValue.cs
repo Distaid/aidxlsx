@@ -33,7 +33,7 @@ internal readonly struct XlsxPivotCacheValue
     internal static XlsxPivotCacheValue ForNumber(double number)
     {
         if (double.IsNaN(number) || double.IsInfinity(number))
-            throw new ArgumentOutOfRangeException();
+            throw new ArgumentOutOfRangeException(nameof(number), number, "The number must be finite.");
 
         return new XlsxPivotCacheValue(XlsxPivotCacheValueType.Number, number);
     }

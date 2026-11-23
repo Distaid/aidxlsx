@@ -94,7 +94,7 @@ internal class ValueSlice : ISlice
             XlsxDataType.Error => (XlsxError)value,
             XlsxDataType.DateTime => XlsxCellValue.FromSerialDateTime(value),
             XlsxDataType.TimeSpan => XlsxCellValue.FromSerialTimeSpan(value),
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Unknown cell data type.")
         };
     }
 
