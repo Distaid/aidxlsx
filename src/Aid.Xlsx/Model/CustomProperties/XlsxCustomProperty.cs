@@ -4,16 +4,11 @@ using Aid.Xlsx.Model.Workbooks;
 
 namespace Aid.Xlsx.Model.CustomProperties;
 
-internal class XlsxCustomProperty : IXlsxCustomProperty
+internal class XlsxCustomProperty(XlsxWorkbook workbook) : IXlsxCustomProperty
 {
-    private readonly XlsxWorkbook _workbook;
+    private readonly XlsxWorkbook _workbook = workbook;
 
     private String name;
-
-    public XlsxCustomProperty(XlsxWorkbook workbook)
-    {
-        _workbook = workbook;
-    }
 
     #region IXlsxCustomProperty Members
 

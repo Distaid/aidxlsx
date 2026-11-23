@@ -10,25 +10,17 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Cells;
 
-internal class XlsxCells : IXlsxCells, IEnumerable<XlsxCell>
+internal class XlsxCells(XlsxWorkbook workbook, bool usedCellsOnly, XlsxCellsUsedOptions options, Func<XlsxCell, Boolean>? predicate = null) : IXlsxCells, IEnumerable<XlsxCell>
 {
-    private readonly XlsxWorkbook _workbook;
+    private readonly XlsxWorkbook _workbook = workbook;
     private readonly List<XlsxRangeAddress> _rangeAddresses = [];
-    private readonly bool _usedCellsOnly;
-    private readonly Func<XlsxCell, Boolean> _predicate;
-    private readonly XlsxCellsUsedOptions _options;
+    private readonly bool _usedCellsOnly = usedCellsOnly;
+    private readonly Func<XlsxCell, Boolean> _predicate = predicate ?? (_ => true);
+    private readonly XlsxCellsUsedOptions _options = options;
 
     public XlsxCells(XlsxWorksheet worksheet, bool usedCellsOnly, XlsxCellsUsedOptions options, Func<XlsxCell, Boolean>? predicate = null)
         : this(worksheet.Workbook, usedCellsOnly, options, predicate)
     {
-    }
-
-    public XlsxCells(XlsxWorkbook workbook, bool usedCellsOnly, XlsxCellsUsedOptions options, Func<XlsxCell, Boolean>? predicate = null)
-    {
-        _workbook = workbook;
-        _usedCellsOnly = usedCellsOnly;
-        _options = options;
-        _predicate = predicate ?? (_ => true);
     }
 
     #region IEnumerable<XlsxCell> Members

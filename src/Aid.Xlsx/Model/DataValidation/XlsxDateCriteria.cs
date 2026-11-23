@@ -5,13 +5,8 @@ using Aid.Xlsx.Infrastructure.Extensions;
 
 namespace Aid.Xlsx.Model.DataValidation;
 
-public class XlsxDateCriteria : XlsxValidationCriteria
+public class XlsxDateCriteria(IXlsxDataValidation dataValidation) : XlsxValidationCriteria(dataValidation)
 {
-    public XlsxDateCriteria(IXlsxDataValidation dataValidation)
-        : base(dataValidation)
-    {
-    }
-
     public void Between(DateTime minValue, DateTime maxValue)
     {
         dataValidation.MinValue = minValue.ToOADate().ToInvariantString();

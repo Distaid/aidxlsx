@@ -3,7 +3,7 @@
 // Keep this file CodeMaid organised and cleaned
 namespace Aid.Xlsx.Model.Sparklines;
 
-internal class XlsxSparklineVerticalAxis : IXlsxSparklineVerticalAxis
+internal class XlsxSparklineVerticalAxis(IXlsxSparklineGroup sparklineGroup) : IXlsxSparklineVerticalAxis
 {
     #region Public Properties
 
@@ -82,12 +82,7 @@ internal class XlsxSparklineVerticalAxis : IXlsxSparklineVerticalAxis
 
     #endregion Private Fields
 
-    public IXlsxSparklineGroup SparklineGroup { get; }
-
-    public XlsxSparklineVerticalAxis(IXlsxSparklineGroup sparklineGroup)
-    {
-        SparklineGroup = sparklineGroup ?? throw new ArgumentNullException(nameof(sparklineGroup));
-    }
+    public IXlsxSparklineGroup SparklineGroup { get; } = sparklineGroup ?? throw new ArgumentNullException(nameof(sparklineGroup));
 
     public static void Copy(IXlsxSparklineVerticalAxis from, IXlsxSparklineVerticalAxis to)
     {

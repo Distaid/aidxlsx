@@ -6,15 +6,10 @@ using Aid.Xlsx.Model.Workbooks;
 
 namespace Aid.Xlsx.Model.PivotTables;
 
-internal class XlsxPivotCaches : IXlsxPivotCaches, IEnumerable<XlsxPivotCache>
+internal class XlsxPivotCaches(XlsxWorkbook workbook) : IXlsxPivotCaches, IEnumerable<XlsxPivotCache>
 {
-    private readonly XlsxWorkbook _workbook;
+    private readonly XlsxWorkbook _workbook = workbook;
     private readonly List<XlsxPivotCache> _caches = [];
-
-    public XlsxPivotCaches(XlsxWorkbook workbook)
-    {
-        _workbook = workbook;
-    }
 
     IXlsxPivotCache IXlsxPivotCaches.Add(IXlsxRange range) => Add(SheetArea.From(range));
 

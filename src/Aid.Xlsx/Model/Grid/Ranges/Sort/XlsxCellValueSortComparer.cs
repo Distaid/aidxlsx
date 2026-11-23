@@ -11,19 +11,11 @@ namespace Aid.Xlsx.Model.Grid.Ranges.Sort;
 ///   <item>Stable sort.</item>
 /// </list>
 /// </summary>
-internal class XlsxCellValueSortComparer : IComparer<XlsxCellValue>
+internal class XlsxCellValueSortComparer(IXlsxSortElement sortElement) : IComparer<XlsxCellValue>
 {
-    private readonly bool _isAscending;
-    private readonly bool _interpretBlankAsString;
-    private readonly StringComparer _comparer;
-
-    public XlsxCellValueSortComparer(IXlsxSortElement sortElement)
-    {
-        // Detecting current culture is expensive, when called enough time. Keep pre-calculated comparer.
-        _comparer = sortElement.MatchCase ? StringComparer.CurrentCulture : StringComparer.CurrentCultureIgnoreCase;
-        _isAscending = sortElement.SortOrder == XlsxSortOrder.Ascending;
-        _interpretBlankAsString = !sortElement.IgnoreBlanks;
-    }
+    private readonly bool _isAscending = sortElement.SortOrder == XlsxSortOrder.Ascending;
+    private readonly bool _interpretBlankAsString = !sortElement.IgnoreBlanks;
+    private readonly StringComparer _comparer = sortElement.MatchCase ? StringComparer.CurrentCulture : StringComparer.CurrentCultureIgnoreCase;
 
     public int Compare(XlsxCellValue x, XlsxCellValue y)
     {

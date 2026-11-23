@@ -2,7 +2,7 @@ using Aid.Xlsx.Infrastructure.Utilities;
 
 namespace Aid.Xlsx.SpreadsheetML.Xml;
 
-internal class SequentialMap<TKey, T>
+internal class SequentialMap<TKey, T>(IReadOnlyBiDictionary<TKey, T> fullMap)
     where TKey : struct
 {
     /// <summary>
@@ -12,18 +12,13 @@ internal class SequentialMap<TKey, T>
 
     private readonly Dictionary<TKey, int> _actualIdToSavedId = [];
 
-    private readonly IReadOnlyBiDictionary<TKey, T> _fullMap;
+    private readonly IReadOnlyBiDictionary<TKey, T> _fullMap = fullMap;
 
     /// <summary>
     /// A table that will be saved to file. Contains used and necessary entries along with
     /// the id under which the entry can be retrieved.
     /// </summary>
     private List<(int SaveId, T Actual)>? _saveTable;
-
-    public SequentialMap(IReadOnlyBiDictionary<TKey, T> fullMap)
-    {
-        _fullMap = fullMap;
-    }
 
     /// <summary>
     /// How many entries to save are in the map.

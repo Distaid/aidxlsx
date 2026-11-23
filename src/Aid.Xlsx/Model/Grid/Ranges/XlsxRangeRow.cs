@@ -10,16 +10,11 @@ namespace Aid.Xlsx.Model.Grid.Ranges;
 using System;
 using System.Linq;
 
-internal class XlsxRangeRow : XlsxRangeBase, IXlsxRangeRow
+/// <summary>
+/// The direct constructor should only be used in <see cref="XlsxWorksheet.RangeFactory"/>.
+/// </summary>
+internal class XlsxRangeRow(XlsxRangeAddress rangeAddress) : XlsxRangeBase(rangeAddress), IXlsxRangeRow
 {
-    /// <summary>
-    /// The direct constructor should only be used in <see cref="XlsxWorksheet.RangeFactory"/>.
-    /// </summary>
-    public XlsxRangeRow(XlsxRangeAddress rangeAddress)
-        : base(rangeAddress)
-    {
-    }
-
     internal override XlsxCellFormat Format => XlsxCellFormat.ForRange(Worksheet, RangeAddress);
 
     #region IXlsxRangeRow Members

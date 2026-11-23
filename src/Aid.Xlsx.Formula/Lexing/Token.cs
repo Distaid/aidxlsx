@@ -6,7 +6,7 @@ namespace Aid.Xlsx.Formulas.Lexing;
 /// <summary>
 /// A token for a formula input.
 /// </summary>
-internal readonly struct Token
+internal readonly struct Token(int symbolId, int startIndex, int length)
 {
     /// <summary>
     /// An error symbol id.
@@ -63,24 +63,17 @@ internal readonly struct Token
     /// See <c>FormulaLexer.tokens</c>. The value -1 indicates an error and unrecognized token and is always
     /// last token.
     /// </summary>
-    public readonly int SymbolId;
+    public readonly int SymbolId = symbolId;
 
     /// <summary>
     /// The starting index of a token, in code units (=chars).
     /// </summary>
-    public readonly int StartIndex;
+    public readonly int StartIndex = startIndex;
 
     /// <summary>
     /// Length of a token in code units (=chars). For non-error tokens, must be at least 1. Ignore for error token.
     /// </summary>
-    public readonly int Length;
-
-    public Token(int symbolId, int startIndex, int length)
-    {
-        SymbolId = symbolId;
-        StartIndex = startIndex;
-        Length = length;
-    }
+    public readonly int Length = length;
 
     public static Token EofSymbol(int index) => new(EofSymbolId, index, 0);
 

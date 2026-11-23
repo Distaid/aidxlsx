@@ -186,13 +186,9 @@ internal abstract class XlsxRangeIndex : IXlsxRangeIndex
 /// <summary>
 /// Generic version of <see cref="XlsxRangeIndex"/>.
 /// </summary>
-internal class XlsxRangeIndex<T> : XlsxRangeIndex, IXlsxRangeIndex<T>
+internal class XlsxRangeIndex<T>(IXlsxWorksheet worksheet) : XlsxRangeIndex(worksheet), IXlsxRangeIndex<T>
     where T : IXlsxAddressable
 {
-    public XlsxRangeIndex(IXlsxWorksheet worksheet) : base(worksheet)
-    {
-    }
-
     public bool Add(T range)
     {
         return base.Add(range);

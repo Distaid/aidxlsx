@@ -5,16 +5,10 @@ using Aid.Xlsx.Infrastructure.Extensions;
 
 namespace Aid.Xlsx.Calculation;
 
-internal class FormulaParser
+internal class FormulaParser(FunctionRegistry functionRegistry)
 {
-    private readonly AstFactory _nodeFactoryA1;
-    private readonly AstFactory _nodeFactoryR1C1;
-
-    public FormulaParser(FunctionRegistry functionRegistry)
-    {
-        _nodeFactoryA1 = new AstFactory(functionRegistry, true);
-        _nodeFactoryR1C1 = new AstFactory(functionRegistry, false);
-    }
+    private readonly AstFactory _nodeFactoryA1 = new AstFactory(functionRegistry, true);
+    private readonly AstFactory _nodeFactoryR1C1 = new AstFactory(functionRegistry, false);
 
     /// <summary>
     /// Parse a formula into an abstract syntax tree.

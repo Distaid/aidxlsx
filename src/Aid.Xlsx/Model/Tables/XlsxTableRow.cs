@@ -7,15 +7,9 @@ using Aid.Xlsx.Model.Grid.Ranges.Sort;
 
 namespace Aid.Xlsx.Model.Tables;
 
-internal class XlsxTableRow : XlsxRangeRow, IXlsxTableRow
+internal class XlsxTableRow(XlsxTableRange tableRange, XlsxRangeRow rangeRow) : XlsxRangeRow(rangeRow.RangeAddress), IXlsxTableRow
 {
-    private readonly XlsxTableRange _tableRange;
-
-    public XlsxTableRow(XlsxTableRange tableRange, XlsxRangeRow rangeRow)
-        : base(rangeRow.RangeAddress)
-    {
-        _tableRange = tableRange;
-    }
+    private readonly XlsxTableRange _tableRange = tableRange;
 
     #region IXlsxTableRow Members
 

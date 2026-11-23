@@ -5,13 +5,10 @@ using Aid.Xlsx.Infrastructure.Extensions;
 
 namespace Aid.Xlsx.Model.ConditionalFormats;
 
-internal class XlsxCFIconSet : IXlsxCFIconSet
+internal class XlsxCFIconSet(XlsxConditionalFormat conditionalFormat) : IXlsxCFIconSet
 {
-    private readonly XlsxConditionalFormat _conditionalFormat;
-    public XlsxCFIconSet(XlsxConditionalFormat conditionalFormat)
-    {
-        _conditionalFormat = conditionalFormat;
-    }
+    private readonly XlsxConditionalFormat _conditionalFormat = conditionalFormat;
+
     public IXlsxCFIconSet AddValue(XlsxCFIconSetOperator setOperator, String value, XlsxCFContentType type)
     {
         _conditionalFormat.IconSetOperators.Add(setOperator);

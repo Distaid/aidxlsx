@@ -14,17 +14,10 @@ namespace Aid.Xlsx.Model.PivotTables;
 /// <remarks>
 /// See <em>[OI-29500] 18.10.1.69 pivotField(PivotTable Field)</em> for details.
 /// </remarks>
-internal class XlsxPivotTableField
+internal class XlsxPivotTableField(XlsxPivotTable pivotTable)
 {
-    private readonly XlsxPivotTable _pivotTable;
+    private readonly XlsxPivotTable _pivotTable = pivotTable;
     private readonly List<XlsxPivotFieldItem> _items = [];
-
-    public XlsxPivotTableField(XlsxPivotTable pivotTable)
-    {
-        _pivotTable = pivotTable;
-        ShowAll = false; // The XML default value is true, but Excel always has false, so let's follow Excel.
-        Subtotals = [XlsxSubtotalFunction.Automatic];
-    }
 
     internal XlsxPivotTable PivotTable => _pivotTable;
 
@@ -118,7 +111,7 @@ internal class XlsxPivotTableField
     /// <summary>
     /// A flag that indicates whether to show all items for this field.
     /// </summary>
-    internal bool ShowAll { get; set; } = true;
+    internal bool ShowAll { get; set; } = false; // The XML default value is true, but Excel always has false, so let's follow Excel.
 
     /// <summary>
     /// Insert empty row below every item if the field is row/column axis. The last field in axis
@@ -166,7 +159,7 @@ internal class XlsxPivotTableField
     /// The subtotal items must be kept at the end of the <see cref="_items"/>, otherwise Excel will try to repair
     /// workbook.
     /// </remarks>
-    internal HashSet<XlsxSubtotalFunction> Subtotals { get; init; }
+    internal HashSet<XlsxSubtotalFunction> Subtotals { get; init; } = [XlsxSubtotalFunction.Automatic];
 
     internal bool ShowPropCell { get; init; } = false;
 

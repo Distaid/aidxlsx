@@ -6,13 +6,10 @@ using Aid.Xlsx.Model.RichText;
 
 namespace Aid.Xlsx.Model.PageSetup;
 
-internal class XlsxHFItem : IXlsxHFItem
+internal class XlsxHFItem(XlsxHeaderFooter headerFooter) : IXlsxHFItem
 {
-    internal readonly XlsxHeaderFooter HeaderFooter;
-    public XlsxHFItem(XlsxHeaderFooter headerFooter)
-    {
-        HeaderFooter = headerFooter;
-    }
+    internal readonly XlsxHeaderFooter HeaderFooter = headerFooter;
+
     public XlsxHFItem(XlsxHFItem defaultHFItem, XlsxHeaderFooter headerFooter)
         : this(headerFooter)
     {

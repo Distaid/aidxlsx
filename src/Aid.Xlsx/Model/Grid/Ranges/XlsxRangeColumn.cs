@@ -10,16 +10,11 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Ranges;
 
-internal class XlsxRangeColumn : XlsxRangeBase, IXlsxRangeColumn
+/// <summary>
+/// The direct constructor should only be used in <see cref="XlsxWorksheet.RangeFactory"/>.
+/// </summary>
+internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(rangeAddress), IXlsxRangeColumn
 {
-    /// <summary>
-    /// The direct constructor should only be used in <see cref="XlsxWorksheet.RangeFactory"/>.
-    /// </summary>
-    public XlsxRangeColumn(XlsxRangeAddress rangeAddress)
-        : base(rangeAddress)
-    {
-    }
-
     internal override XlsxCellFormat Format => XlsxCellFormat.ForRange(Worksheet, RangeAddress);
 
     #region IXlsxRangeColumn Members

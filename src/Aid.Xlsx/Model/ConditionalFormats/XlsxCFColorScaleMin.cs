@@ -6,13 +6,9 @@ using Aid.Xlsx.Model.Styles.Colors;
 
 namespace Aid.Xlsx.Model.ConditionalFormats;
 
-internal class XlsxCFColorScaleMin : IXlsxCFColorScaleMin
+internal class XlsxCFColorScaleMin(XlsxConditionalFormat conditionalFormat) : IXlsxCFColorScaleMin
 {
-    private readonly XlsxConditionalFormat _conditionalFormat;
-    public XlsxCFColorScaleMin(XlsxConditionalFormat conditionalFormat)
-    {
-        _conditionalFormat = conditionalFormat;
-    }
+    private readonly XlsxConditionalFormat _conditionalFormat = conditionalFormat;
 
     public IXlsxCFColorScaleMid Minimum(XlsxCFContentType type, String value, XlsxColor color)
     {

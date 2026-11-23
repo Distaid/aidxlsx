@@ -364,14 +364,9 @@ internal sealed class CalcContext
         }
     }
 
-    private class FunctionVisitor : CollectVisitor<FunctionVisitor>
+    private class FunctionVisitor(string function) : CollectVisitor<FunctionVisitor>
     {
-        public FunctionVisitor(string function)
-        {
-            FunctionName = function;
-        }
-
-        internal string FunctionName { get; }
+        internal string FunctionName { get; } = function;
 
         public bool Found { get; private set; }
 

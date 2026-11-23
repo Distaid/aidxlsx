@@ -11,11 +11,11 @@ using Aid.Xlsx.Model.Workbooks;
 
 namespace Aid.Xlsx.Model.Worksheets;
 
-internal class XlsxWorksheets : IXlsxWorksheets, IEnumerable<XlsxWorksheet>
+internal class XlsxWorksheets(XlsxWorkbook workbook) : IXlsxWorksheets, IEnumerable<XlsxWorksheet>
 {
-    private readonly XlsxWorkbook _workbook;
+    private readonly XlsxWorkbook _workbook = workbook;
     private readonly Dictionary<string, XlsxWorksheet> _worksheets = [with(XlsxHelper.SheetComparer)];
-    internal ICollection<String> Deleted { get; private set; }
+    internal ICollection<String> Deleted { get; private set; } = new HashSet<String>();
 
     /// <summary>
     /// SheetId that will be assigned to next created sheet.
@@ -23,12 +23,6 @@ internal class XlsxWorksheets : IXlsxWorksheets, IEnumerable<XlsxWorksheet>
     private UInt32 _nextSheetId = 1;
 
     #region Constructor
-
-    public XlsxWorksheets(XlsxWorkbook workbook)
-    {
-        _workbook = workbook;
-        Deleted = new HashSet<String>();
-    }
 
     #endregion Constructor
 

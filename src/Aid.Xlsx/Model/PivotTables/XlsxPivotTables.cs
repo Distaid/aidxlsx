@@ -8,16 +8,11 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.PivotTables;
 
-internal class XlsxPivotTables : IXlsxPivotTables, IEnumerable<XlsxPivotTable>
+internal class XlsxPivotTables(XlsxWorksheet worksheet) : IXlsxPivotTables, IEnumerable<XlsxPivotTable>
 {
     private readonly Dictionary<String, XlsxPivotTable> _pivotTables = [with(StringComparer.OrdinalIgnoreCase)];
 
-    public XlsxPivotTables(XlsxWorksheet worksheet)
-    {
-        Worksheet = worksheet ?? throw new ArgumentNullException(nameof(worksheet));
-    }
-
-    internal XlsxWorksheet Worksheet { get; }
+    internal XlsxWorksheet Worksheet { get; } = worksheet ?? throw new ArgumentNullException(nameof(worksheet));
 
     public void Add(XlsxPivotTable pivotTable)
     {

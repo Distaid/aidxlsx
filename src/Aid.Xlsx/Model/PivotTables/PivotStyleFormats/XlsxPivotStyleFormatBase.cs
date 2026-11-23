@@ -8,14 +8,9 @@ namespace Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 /// exposing API so user can define an area and then create the desired area (from what user
 /// specified) through <see cref="GetCurrentArea"/> method.
 /// </summary>
-internal abstract class XlsxPivotStyleFormatBase : IXlsxPivotStyleFormat
+internal abstract class XlsxPivotStyleFormatBase(XlsxPivotTable pivotTable) : IXlsxPivotStyleFormat
 {
-    protected readonly XlsxPivotTable PivotTable;
-
-    protected XlsxPivotStyleFormatBase(XlsxPivotTable pivotTable)
-    {
-        PivotTable = pivotTable;
-    }
+    protected readonly XlsxPivotTable PivotTable = pivotTable;
 
     #region IXlsxPivotStyleFormat members
 

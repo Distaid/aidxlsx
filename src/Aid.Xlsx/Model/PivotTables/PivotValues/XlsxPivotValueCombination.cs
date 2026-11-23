@@ -4,14 +4,10 @@ using Aid.Xlsx.Model.Grid.Cells;
 
 namespace Aid.Xlsx.Model.PivotTables.PivotValues;
 
-internal class XlsxPivotValueCombination : IXlsxPivotValueCombination
+internal class XlsxPivotValueCombination(IXlsxPivotValue pivotValue) : IXlsxPivotValueCombination
 {
-    private readonly IXlsxPivotValue _pivotValue;
+    private readonly IXlsxPivotValue _pivotValue = pivotValue;
 
-    public XlsxPivotValueCombination(IXlsxPivotValue pivotValue)
-    {
-        _pivotValue = pivotValue;
-    }
     public IXlsxPivotValue And(XlsxCellValue item)
     {
         return _pivotValue

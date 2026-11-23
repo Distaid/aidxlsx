@@ -8,13 +8,21 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Columns;
 
-internal class XlsxColumns : IXlsxColumns
+/// <summary>
+/// Create a new instance of <see cref="XlsxColumns"/>.
+/// </summary>
+/// <param name="workbook">Workbook to which all columns belong.</param>
+/// <param name="worksheet">If worksheet is specified it means that the created instance represents
+/// all columns on a worksheet so changing its width will affect all columns.</param>
+/// <param name="defaultStyleSheet">A sheet with a default style to use when initializing child entries.</param>
+/// <param name="lazyEnumerable">A predefined enumerator of <see cref="XlsxColumn"/> to support lazy initialization.</param>
+internal class XlsxColumns(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWorksheet? defaultStyleSheet = null, IEnumerable<XlsxColumn>? lazyEnumerable = null) : IXlsxColumns
 {
     private readonly List<XlsxColumn> _columnsCollection = [];
 
-    private readonly XlsxWorkbook _workbook;
-    private readonly XlsxWorksheet? _worksheet;
-    private readonly XlsxWorksheet? _defaultStyleSheet;
+    private readonly XlsxWorkbook _workbook = workbook;
+    private readonly XlsxWorksheet? _worksheet = worksheet;
+    private readonly XlsxWorksheet? _defaultStyleSheet = defaultStyleSheet;
 
     /// <summary>
     /// This object represents all columns of the worksheet, even non-materialized ones.
@@ -24,25 +32,9 @@ internal class XlsxColumns : IXlsxColumns
 
     private bool IsMaterialized => _lazyEnumerable == null;
 
-    private IEnumerable<XlsxColumn>? _lazyEnumerable;
+    private IEnumerable<XlsxColumn>? _lazyEnumerable = lazyEnumerable;
 
     private IEnumerable<XlsxColumn> Columns => _lazyEnumerable ?? _columnsCollection.AsEnumerable();
-
-    /// <summary>
-    /// Create a new instance of <see cref="XlsxColumns"/>.
-    /// </summary>
-    /// <param name="workbook">Workbook to which all columns belong.</param>
-    /// <param name="worksheet">If worksheet is specified it means that the created instance represents
-    /// all columns on a worksheet so changing its width will affect all columns.</param>
-    /// <param name="defaultStyleSheet">A sheet with a default style to use when initializing child entries.</param>
-    /// <param name="lazyEnumerable">A predefined enumerator of <see cref="XlsxColumn"/> to support lazy initialization.</param>
-    public XlsxColumns(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWorksheet? defaultStyleSheet = null, IEnumerable<XlsxColumn>? lazyEnumerable = null)
-    {
-        _workbook = workbook;
-        _worksheet = worksheet;
-        _defaultStyleSheet = defaultStyleSheet;
-        _lazyEnumerable = lazyEnumerable;
-    }
 
     #region IXlsxColumns Members
 

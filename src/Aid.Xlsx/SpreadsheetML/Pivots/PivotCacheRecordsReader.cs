@@ -6,22 +6,16 @@ using Aid.Xlsx.SpreadsheetML.Xml;
 
 namespace Aid.Xlsx.SpreadsheetML.Pivots;
 
-internal partial class PivotCacheRecordsReader
+internal partial class PivotCacheRecordsReader(XmlTreeReader reader, XlsxPivotCache pivotCache)
 {
     private readonly string _ns = OpenXmlConst.Main2006SsNs;
-    private readonly XmlTreeReader _reader;
-    private readonly XlsxPivotCache _pivotCache;
+    private readonly XmlTreeReader _reader = reader;
+    private readonly XlsxPivotCache _pivotCache = pivotCache;
 
     /// <summary>
     /// Index of current field that is read from the <c>r</c> element.
     /// </summary>
     private int _fieldIdx;
-
-    public PivotCacheRecordsReader(XmlTreeReader reader, XlsxPivotCache pivotCache)
-    {
-        _reader = reader;
-        _pivotCache = pivotCache;
-    }
 
     internal void ReadRecordsToCache()
     {

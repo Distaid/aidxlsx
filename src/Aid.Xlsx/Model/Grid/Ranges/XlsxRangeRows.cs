@@ -9,15 +9,10 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Ranges;
 
-internal class XlsxRangeRows : IXlsxRangeRows
+internal class XlsxRangeRows(XlsxWorksheet worksheet) : IXlsxRangeRows
 {
-    private readonly XlsxWorksheet _worksheet;
+    private readonly XlsxWorksheet _worksheet = worksheet;
     private readonly List<XlsxRangeRow> _ranges = [];
-
-    public XlsxRangeRows(XlsxWorksheet worksheet)
-    {
-        _worksheet = worksheet;
-    }
 
     internal XlsxCellFormat Format
     {

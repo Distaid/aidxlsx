@@ -6,13 +6,10 @@ using Aid.Xlsx.Model.Styles.Colors;
 
 namespace Aid.Xlsx.Model.ConditionalFormats;
 
-internal class XlsxCFColorScaleMid : IXlsxCFColorScaleMid
+internal class XlsxCFColorScaleMid(XlsxConditionalFormat conditionalFormat) : IXlsxCFColorScaleMid
 {
-    private readonly XlsxConditionalFormat _conditionalFormat;
-    public XlsxCFColorScaleMid(XlsxConditionalFormat conditionalFormat)
-    {
-        _conditionalFormat = conditionalFormat;
-    }
+    private readonly XlsxConditionalFormat _conditionalFormat = conditionalFormat;
+
     public IXlsxCFColorScaleMax Midpoint(XlsxCFContentType type, String value, XlsxColor color)
     {
         _conditionalFormat.Values.Add(new XlsxFormula { Value = value });

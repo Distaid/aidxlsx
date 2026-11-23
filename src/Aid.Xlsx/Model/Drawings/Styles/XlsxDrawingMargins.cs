@@ -2,13 +2,10 @@
 
 namespace Aid.Xlsx.Model.Drawings.Styles;
 
-internal class XlsxDrawingMargins : IXlsxDrawingMargins
+internal class XlsxDrawingMargins(IXlsxDrawingStyle style) : IXlsxDrawingMargins
 {
-    private readonly IXlsxDrawingStyle _style;
-    public XlsxDrawingMargins(IXlsxDrawingStyle style)
-    {
-        _style = style;
-    }
+    private readonly IXlsxDrawingStyle _style = style;
+
     public Boolean Automatic { get; set; }
     public IXlsxDrawingStyle SetAutomatic() { Automatic = true; return _style; }
     public IXlsxDrawingStyle SetAutomatic(Boolean value) { Automatic = value; return _style; }

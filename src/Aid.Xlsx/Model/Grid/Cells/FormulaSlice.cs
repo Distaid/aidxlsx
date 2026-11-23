@@ -4,17 +4,11 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Cells;
 
-internal class FormulaSlice : ISlice
+internal class FormulaSlice(XlsxWorksheet sheet) : ISlice
 {
-    private readonly XlsxWorksheet _sheet;
-    private readonly XlsxCalcEngine _engine;
+    private readonly XlsxWorksheet _sheet = sheet;
+    private readonly XlsxCalcEngine _engine = sheet.Workbook.CalcEngine;
     private readonly Slice<XlsxCellFormula?> _formulas = new();
-
-    public FormulaSlice(XlsxWorksheet sheet)
-    {
-        _sheet = sheet;
-        _engine = sheet.Workbook.CalcEngine;
-    }
 
     public bool IsEmpty => _formulas.IsEmpty;
 

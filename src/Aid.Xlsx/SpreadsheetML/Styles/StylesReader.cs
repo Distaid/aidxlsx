@@ -11,20 +11,20 @@ using Aid.Xlsx.SpreadsheetML.Xml;
 
 namespace Aid.Xlsx.SpreadsheetML.Styles;
 
-internal partial class StylesReader
+internal partial class StylesReader(XmlTreeReader reader, XlsxWorkbookStyles styles)
 {
-    private readonly XmlTreeReader _reader;
-    private readonly XlsxWorkbookStyles _styles;
+    private readonly XmlTreeReader _reader = reader;
+    private readonly XlsxWorkbookStyles _styles = styles;
     private readonly string _ns = OpenXmlConst.Main2006SsNs;
     private readonly SequentialNameGenerator _styleNameGenerator = new("Style ", 1);
 
     // Format components to use when not specified in xf record
-    private readonly XlsxNumberFormat _defaultNumberFormat;
-    private readonly XlsxFillFormatValue _defaultFillFormat;
-    private readonly XlsxBorderFormatValue _defaultBorderFormat;
-    private readonly XlsxAlignmentFormatValue _defaultAlignmentFormat;
-    private readonly XlsxProtectionFormatValue _defaultProtectionFormat;
-    private XlsxFontFormatValue _defaultFontFormat;
+    private readonly XlsxNumberFormat _defaultNumberFormat = styles.DefaultNormalStyle.NumberFormat;
+    private readonly XlsxFillFormatValue _defaultFillFormat = styles.DefaultNormalStyle.Fill;
+    private readonly XlsxBorderFormatValue _defaultBorderFormat = styles.DefaultNormalStyle.Border;
+    private readonly XlsxAlignmentFormatValue _defaultAlignmentFormat = styles.DefaultNormalStyle.Alignment;
+    private readonly XlsxProtectionFormatValue _defaultProtectionFormat = styles.DefaultNormalStyle.Protection;
+    private XlsxFontFormatValue _defaultFontFormat = styles.DefaultNormalStyle.Font;
 
     // Currently read CT_TableStyle element
     private Dictionary<TS, (XlsxDxfValue Dxf, int BandSize)> _currentTableStyle = [];
@@ -34,20 +34,6 @@ internal partial class StylesReader
     /// Style formats from <c>cellStyleXfs</c>.
     /// </summary>
     private List<XlsxCellFormatValue> _styleFormats = [];
-
-    public StylesReader(XmlTreeReader reader, XlsxWorkbookStyles styles)
-    {
-        _reader = reader;
-        _styles = styles;
-
-        // Set initial fallback values if part is empty
-        _defaultNumberFormat = styles.DefaultNormalStyle.NumberFormat;
-        _defaultFontFormat = styles.DefaultNormalStyle.Font;
-        _defaultFillFormat = styles.DefaultNormalStyle.Fill;
-        _defaultBorderFormat = styles.DefaultNormalStyle.Border;
-        _defaultAlignmentFormat = styles.DefaultNormalStyle.Alignment;
-        _defaultProtectionFormat = styles.DefaultNormalStyle.Protection;
-    }
 
     internal void Load()
     {

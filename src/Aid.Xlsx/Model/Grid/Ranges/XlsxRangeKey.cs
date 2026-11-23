@@ -3,17 +3,11 @@
 namespace Aid.Xlsx.Model.Grid.Ranges;
 
 [System.Diagnostics.DebuggerDisplay("{RangeType} {RangeAddress}")]
-internal struct XlsxRangeKey : IEquatable<XlsxRangeKey>
+internal struct XlsxRangeKey(XlsxRangeType rangeType, XlsxRangeAddress address) : IEquatable<XlsxRangeKey>
 {
-    public XlsxRangeType RangeType { get; private set; }
+    public XlsxRangeType RangeType { get; private set; } = rangeType;
 
-    public XlsxRangeAddress RangeAddress { get; private set; }
-
-    public XlsxRangeKey(XlsxRangeType rangeType, XlsxRangeAddress address)
-    {
-        RangeType = rangeType;
-        RangeAddress = address;
-    }
+    public XlsxRangeAddress RangeAddress { get; private set; } = address;
 
     #region Overrides
 

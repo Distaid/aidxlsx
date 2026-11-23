@@ -1,13 +1,8 @@
 namespace Aid.Xlsx.Model.Drawings.Styles;
 
-internal class XlsxDrawingWeb : IXlsxDrawingWeb
+internal class XlsxDrawingWeb(IXlsxDrawingStyle style) : IXlsxDrawingWeb
 {
-    private readonly IXlsxDrawingStyle _style;
-
-    public XlsxDrawingWeb(IXlsxDrawingStyle style)
-    {
-        _style = style;
-    }
+    private readonly IXlsxDrawingStyle _style = style;
 
     public String? AlternateText { get; set; }
 

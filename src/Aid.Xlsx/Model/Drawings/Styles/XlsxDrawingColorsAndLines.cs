@@ -4,14 +4,10 @@ using Aid.Xlsx.Model.Styles.Colors;
 
 namespace Aid.Xlsx.Model.Drawings.Styles;
 
-internal class XlsxDrawingColorsAndLines : IXlsxDrawingColorsAndLines
+internal class XlsxDrawingColorsAndLines(IXlsxDrawingStyle style) : IXlsxDrawingColorsAndLines
 {
-    private readonly IXlsxDrawingStyle _style;
+    private readonly IXlsxDrawingStyle _style = style;
 
-    public XlsxDrawingColorsAndLines(IXlsxDrawingStyle style)
-    {
-        _style = style;
-    }
     public XlsxColor FillColor { get; set; }
     public IXlsxDrawingStyle SetFillColor(XlsxColor value) { FillColor = value; return _style; }
     public Double FillTransparency { get; set; }

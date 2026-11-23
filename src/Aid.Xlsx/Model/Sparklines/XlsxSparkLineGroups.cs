@@ -7,15 +7,10 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Sparklines;
 
-internal class XlsxSparklineGroups : IXlsxSparklineGroups, IEnumerable<XlsxSparklineGroup>
+internal class XlsxSparklineGroups(XlsxWorksheet worksheet) : IXlsxSparklineGroups, IEnumerable<XlsxSparklineGroup>
 {
-    private readonly XlsxWorksheet _worksheet;
+    private readonly XlsxWorksheet _worksheet = worksheet ?? throw new ArgumentNullException(nameof(worksheet));
     private readonly List<XlsxSparklineGroup> _sparklineGroups = [];
-
-    public XlsxSparklineGroups(XlsxWorksheet worksheet)
-    {
-        _worksheet = worksheet ?? throw new ArgumentNullException(nameof(worksheet));
-    }
 
     public IXlsxWorksheet Worksheet => _worksheet;
 

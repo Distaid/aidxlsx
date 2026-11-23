@@ -5,13 +5,8 @@ using Aid.Xlsx.Infrastructure.Extensions;
 
 namespace Aid.Xlsx.Model.DataValidation;
 
-public abstract class XlsxWholeNumberCriteriaBase : XlsxValidationCriteria
+public abstract class XlsxWholeNumberCriteriaBase(IXlsxDataValidation dataValidation) : XlsxValidationCriteria(dataValidation)
 {
-    protected XlsxWholeNumberCriteriaBase(IXlsxDataValidation dataValidation)
-        : base(dataValidation)
-    {
-    }
-
     public void Between(Int32 minValue, Int32 maxValue) => base.Between(minValue.ToInvariantString(), maxValue.ToInvariantString());
 
     public void EqualOrGreaterThan(Int32 value) => base.EqualOrGreaterThan(value.ToInvariantString());

@@ -5,28 +5,19 @@ using Aid.Xlsx.Model.Styles.Colors;
 
 namespace Aid.Xlsx.Model.Drawings.Styles;
 
-internal class XlsxDrawingFont : IXlsxDrawingFont
+internal class XlsxDrawingFont(IXlsxDrawingStyle style) : IXlsxDrawingFont
 {
-    private readonly IXlsxDrawingStyle _style;
-
-    public XlsxDrawingFont(IXlsxDrawingStyle style)
-    {
-        _style = style;
-        FontName = "Tahoma";
-        FontSize = 9;
-        Underline = XlsxFontUnderlineValues.None;
-        FontColor = XlsxColor.FromIndex(64);
-    }
+    private readonly IXlsxDrawingStyle _style = style;
 
     public Boolean Bold { get; set; }
     public Boolean Italic { get; set; }
-    public XlsxFontUnderlineValues Underline { get; set; }
+    public XlsxFontUnderlineValues Underline { get; set; } = XlsxFontUnderlineValues.None;
     public Boolean Strikethrough { get; set; }
     public XlsxFontVerticalTextAlignmentValues VerticalAlignment { get; set; }
     public Boolean Shadow { get; set; }
-    public Double FontSize { get; set; }
-    public XlsxColor FontColor { get; set; }
-    public String FontName { get; set; }
+    public Double FontSize { get; set; } = 9;
+    public XlsxColor FontColor { get; set; } = XlsxColor.FromIndex(64);
+    public String FontName { get; set; } = "Tahoma";
     public XlsxFontFamilyNumberingValues FontFamilyNumbering { get; set; }
     public XlsxFontCharSet FontCharSet { get; set; }
     public XlsxFontScheme FontScheme { get; set; }

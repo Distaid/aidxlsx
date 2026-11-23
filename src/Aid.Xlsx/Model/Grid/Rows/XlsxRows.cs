@@ -8,12 +8,20 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Rows;
 
-internal class XlsxRows : IXlsxRows
+/// <summary>
+/// Create a new instance of <see cref="XlsxRows"/>.
+/// </summary>
+/// <param name="workbook">Workbook of the rows.</param>
+/// <param name="worksheet">If worksheet is specified it means that the created instance represents
+/// all rows on a worksheet so changing its height will affect all rows.</param>
+/// <param name="defaultStyleSheet">A sheet with a default style to use when initializing child entries.</param>
+/// <param name="lazyEnumerable">A predefined enumerator of <see cref="XlsxRow"/> to support lazy initialization.</param>
+internal class XlsxRows(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWorksheet? defaultStyleSheet = null, IEnumerable<XlsxRow>? lazyEnumerable = null) : IXlsxRows
 {
     private readonly List<XlsxRow> _rowsCollection = [];
-    private readonly XlsxWorkbook _workbook;
-    private readonly XlsxWorksheet? _worksheet;
-    private readonly XlsxWorksheet? _defaultStyleSheet;
+    private readonly XlsxWorkbook _workbook = workbook;
+    private readonly XlsxWorksheet? _worksheet = worksheet;
+    private readonly XlsxWorksheet? _defaultStyleSheet = defaultStyleSheet;
 
     /// <summary>
     /// This object represents all rows of the worksheet, even non-materialized ones.
@@ -23,24 +31,8 @@ internal class XlsxRows : IXlsxRows
 
     private bool IsMaterialized => _lazyEnumerable == null;
 
-    private IEnumerable<XlsxRow>? _lazyEnumerable;
+    private IEnumerable<XlsxRow>? _lazyEnumerable = lazyEnumerable;
     private IEnumerable<XlsxRow> Rows => _lazyEnumerable ?? _rowsCollection.AsEnumerable();
-
-    /// <summary>
-    /// Create a new instance of <see cref="XlsxRows"/>.
-    /// </summary>
-    /// <param name="workbook">Workbook of the rows.</param>
-    /// <param name="worksheet">If worksheet is specified it means that the created instance represents
-    /// all rows on a worksheet so changing its height will affect all rows.</param>
-    /// <param name="defaultStyleSheet">A sheet with a default style to use when initializing child entries.</param>
-    /// <param name="lazyEnumerable">A predefined enumerator of <see cref="XlsxRow"/> to support lazy initialization.</param>
-    public XlsxRows(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWorksheet? defaultStyleSheet = null, IEnumerable<XlsxRow>? lazyEnumerable = null)
-    {
-        _workbook = workbook;
-        _worksheet = worksheet;
-        _defaultStyleSheet = defaultStyleSheet;
-        _lazyEnumerable = lazyEnumerable;
-    }
 
     #region IXlsxRows Members
 

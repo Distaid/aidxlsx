@@ -8,17 +8,10 @@ namespace Aid.Xlsx.Model.Tables;
 
 using System.Linq;
 
-internal class XlsxTableRange : XlsxRange, IXlsxTableRange
+internal class XlsxTableRange(XlsxRange range, XlsxTable table) : XlsxRange(range.RangeAddress), IXlsxTableRange
 {
-    private readonly XlsxTable _table;
-    private readonly XlsxRange _range;
-
-    public XlsxTableRange(XlsxRange range, XlsxTable table)
-        : base(range.RangeAddress, range.Style)
-    {
-        _table = table;
-        _range = range;
-    }
+    private readonly XlsxTable _table = table;
+    private readonly XlsxRange _range = range;
 
     IXlsxTableRow IXlsxTableRange.FirstRow(Func<IXlsxTableRow, Boolean> predicate)
     {

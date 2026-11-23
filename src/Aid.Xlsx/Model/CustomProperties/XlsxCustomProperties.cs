@@ -4,14 +4,9 @@ using Aid.Xlsx.Model.Workbooks;
 
 namespace Aid.Xlsx.Model.CustomProperties;
 
-internal class XlsxCustomProperties : IXlsxCustomProperties, IEnumerable<IXlsxCustomProperty>
+internal class XlsxCustomProperties(XlsxWorkbook workbook) : IXlsxCustomProperties, IEnumerable<IXlsxCustomProperty>
 {
-    readonly XlsxWorkbook workbook;
-    public XlsxCustomProperties(XlsxWorkbook workbook)
-    {
-        this.workbook = workbook;
-    }
-
+    readonly XlsxWorkbook workbook = workbook;
     private readonly Dictionary<String, IXlsxCustomProperty> customProperties = [];
     public void Add(IXlsxCustomProperty customProperty)
     {

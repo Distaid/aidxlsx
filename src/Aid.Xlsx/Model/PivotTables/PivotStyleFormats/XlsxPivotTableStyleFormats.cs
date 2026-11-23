@@ -1,14 +1,9 @@
 // Keep this file CodeMaid organised and cleaned
 namespace Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 
-internal class XlsxPivotTableStyleFormats : IXlsxPivotTableStyleFormats
+internal class XlsxPivotTableStyleFormats(XlsxPivotTable pivotTable) : IXlsxPivotTableStyleFormats
 {
-    private readonly XlsxPivotTable _pivotTable;
-
-    public XlsxPivotTableStyleFormats(XlsxPivotTable pivotTable)
-    {
-        _pivotTable = pivotTable;
-    }
+    private readonly XlsxPivotTable _pivotTable = pivotTable;
 
     #region IXlsxPivotTableStyleFormats members
 

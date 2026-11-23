@@ -4,14 +4,9 @@ using Aid.Xlsx.Model.Grid.Coordinates;
 
 namespace Aid.Xlsx.Calculation;
 
-internal class XlsxAddressComparer : IEqualityComparer<IXlsxAddress>
+internal class XlsxAddressComparer(bool ignoreFixed) : IEqualityComparer<IXlsxAddress>
 {
-    private readonly bool _ignoreFixed;
-
-    public XlsxAddressComparer(bool ignoreFixed)
-    {
-        _ignoreFixed = ignoreFixed;
-    }
+    private readonly bool _ignoreFixed = ignoreFixed;
 
     public bool Equals(IXlsxAddress x, IXlsxAddress y)
     {

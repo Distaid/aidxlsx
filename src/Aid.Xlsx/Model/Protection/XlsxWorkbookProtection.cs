@@ -6,21 +6,15 @@ using static Aid.Xlsx.Model.Protection.XlsxProtectionAlgorithm;
 
 namespace Aid.Xlsx.Model.Protection;
 
-internal class XlsxWorkbookProtection : IXlsxWorkbookProtection
+internal class XlsxWorkbookProtection(XlsxProtectionAlgorithm.Algorithm algorithm, XlsxWorkbookProtectionElements allowedElements) : IXlsxWorkbookProtection
 {
     public XlsxWorkbookProtection(Algorithm algorithm)
         : this(algorithm, XlsxWorkbookProtectionElements.Windows)
     {
     }
 
-    public XlsxWorkbookProtection(Algorithm algorithm, XlsxWorkbookProtectionElements allowedElements)
-    {
-        this.Algorithm = algorithm;
-        this.AllowedElements = allowedElements;
-    }
-
-    public Algorithm Algorithm { get; internal set; }
-    public XlsxWorkbookProtectionElements AllowedElements { get; set; }
+    public Algorithm Algorithm { get; internal set; } = algorithm;
+    public XlsxWorkbookProtectionElements AllowedElements { get; set; } = allowedElements;
     public bool IsPasswordProtected => this.IsProtected && !String.IsNullOrEmpty(PasswordHash);
     public bool IsProtected { get; internal set; }
 

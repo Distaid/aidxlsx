@@ -10,14 +10,14 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Ranges;
 
-internal class XlsxRanges : IXlsxRanges, IEnumerable<XlsxRange>
+internal class XlsxRanges(XlsxWorkbook workbook) : IXlsxRanges, IEnumerable<XlsxRange>
 {
-    private readonly XlsxWorkbook _workbook;
+    private readonly XlsxWorkbook _workbook = workbook;
 
     /// <summary>
     /// Normally, XlsxRanges collection includes ranges from a single worksheet, but not necessarily.
     /// </summary>
-    private readonly Dictionary<IXlsxWorksheet, IXlsxRangeIndex<XlsxRange>> _indexes;
+    private readonly Dictionary<IXlsxWorksheet, IXlsxRangeIndex<XlsxRange>> _indexes = [];
     private IEnumerable<XlsxRange> Ranges => _indexes.Values.SelectMany(index => index.GetAll());
 
     private IXlsxRangeIndex<XlsxRange> GetRangeIndex(IXlsxWorksheet worksheet)
@@ -34,12 +34,6 @@ internal class XlsxRanges : IXlsxRanges, IEnumerable<XlsxRange>
     public XlsxRanges(XlsxWorksheet worksheet)
         : this(worksheet.Workbook)
     {
-    }
-
-    public XlsxRanges(XlsxWorkbook workbook)
-    {
-        _workbook = workbook;
-        _indexes = [];
     }
 
     internal XlsxCellFormat Format

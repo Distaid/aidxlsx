@@ -5,14 +5,9 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Ranges;
 
-internal class XlsxRangeFactory
+internal class XlsxRangeFactory(XlsxWorksheet worksheet)
 {
-    private readonly XlsxWorksheet _worksheet;
-
-    public XlsxRangeFactory(XlsxWorksheet worksheet)
-    {
-        _worksheet = worksheet ?? throw new ArgumentNullException(nameof(worksheet));
-    }
+    private readonly XlsxWorksheet _worksheet = worksheet ?? throw new ArgumentNullException(nameof(worksheet));
 
     #region Methods
 
@@ -32,7 +27,7 @@ internal class XlsxRangeFactory
 
     public XlsxRange CreateRange(XlsxRangeAddress rangeAddress)
     {
-        return new XlsxRange(rangeAddress, _worksheet.Style);
+        return new XlsxRange(rangeAddress);
     }
 
     public XlsxColumn CreateColumn(int columnNumber)

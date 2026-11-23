@@ -331,17 +331,11 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
 
     private static double PointsToPixels(double points, double dpi) => points / 72d * dpi;
 
-    private readonly struct MetricId : IEquatable<MetricId>
+    private readonly struct MetricId(IXlsxFontBase fontBase) : IEquatable<MetricId>
     {
-        private readonly FontStyle _style;
+        private readonly FontStyle _style = GetFontStyle(fontBase);
 
-        public MetricId(IXlsxFontBase fontBase)
-        {
-            Name = fontBase.FontName;
-            _style = GetFontStyle(fontBase);
-        }
-
-        public string Name { get; }
+        public string Name { get; } = fontBase.FontName;
 
         public bool Equals(MetricId other) => Name == other.Name && _style == other._style;
 

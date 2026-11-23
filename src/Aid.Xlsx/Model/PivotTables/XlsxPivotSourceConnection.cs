@@ -8,14 +8,9 @@ namespace Aid.Xlsx.Model.PivotTables;
 /// Source of data for a <see cref="XlsxPivotCache"/> that takes data from a connection
 /// to external source of data (e.g. database or a workbook).
 /// </summary>
-internal sealed class XlsxPivotSourceConnection : IXlsxPivotSource
+internal sealed class XlsxPivotSourceConnection(uint connectionId) : IXlsxPivotSource
 {
-    public XlsxPivotSourceConnection(uint connectionId)
-    {
-        ConnectionId = connectionId;
-    }
-
-    public uint ConnectionId { get; }
+    public uint ConnectionId { get; } = connectionId;
 
     public bool Equals(IXlsxPivotSource? otherSource)
     {

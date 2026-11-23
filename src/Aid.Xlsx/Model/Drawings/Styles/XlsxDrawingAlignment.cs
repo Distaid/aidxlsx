@@ -2,14 +2,10 @@
 
 namespace Aid.Xlsx.Model.Drawings.Styles;
 
-internal class XlsxDrawingAlignment : IXlsxDrawingAlignment
+internal class XlsxDrawingAlignment(IXlsxDrawingStyle style) : IXlsxDrawingAlignment
 {
-    private readonly IXlsxDrawingStyle _style;
+    private readonly IXlsxDrawingStyle _style = style;
 
-    public XlsxDrawingAlignment(IXlsxDrawingStyle style)
-    {
-        _style = style;
-    }
     public XlsxDrawingHorizontalAlignment Horizontal { get; set; }
     public IXlsxDrawingStyle SetHorizontal(XlsxDrawingHorizontalAlignment value) { Horizontal = value; return _style; }
     public XlsxDrawingVerticalAlignment Vertical { get; set; }

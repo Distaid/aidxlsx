@@ -5,14 +5,9 @@ using Aid.Xlsx.Model.Grid.Cells;
 
 namespace Aid.Xlsx.Model.DataValidation;
 
-public abstract class XlsxValidationCriteria : IXlsxValidationCriteria
+public abstract class XlsxValidationCriteria(IXlsxDataValidation dataValidation) : IXlsxValidationCriteria
 {
-    protected IXlsxDataValidation dataValidation;
-
-    protected XlsxValidationCriteria(IXlsxDataValidation dataValidation)
-    {
-        this.dataValidation = dataValidation;
-    }
+    protected IXlsxDataValidation dataValidation = dataValidation;
 
     #region IXlsxValidationCriteria Members
 

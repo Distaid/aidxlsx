@@ -4,14 +4,9 @@ using Aid.Xlsx.Model.Styles.Formatting;
 
 namespace Aid.Xlsx.Model.PivotTables.PivotValues;
 
-internal class XlsxPivotValueFormat : IXlsxPivotValueFormat
+internal class XlsxPivotValueFormat(XlsxPivotDataField pivotValue) : IXlsxPivotValueFormat
 {
-    private readonly XlsxPivotDataField _pivotValue;
-
-    public XlsxPivotValueFormat(XlsxPivotDataField pivotValue)
-    {
-        _pivotValue = pivotValue;
-    }
+    private readonly XlsxPivotDataField _pivotValue = pivotValue;
 
     public Int32 NumberFormatId
     {

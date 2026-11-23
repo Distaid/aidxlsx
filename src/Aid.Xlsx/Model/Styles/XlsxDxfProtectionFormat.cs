@@ -5,14 +5,9 @@ namespace Aid.Xlsx.Model.Styles;
 /// <summary>
 /// An API object to modify protection of a dxf.
 /// </summary>
-internal class XlsxDxfProtectionFormat : IXlsxProtection
+internal class XlsxDxfProtectionFormat(XlsxDxFormat parent) : IXlsxProtection
 {
-    private readonly XlsxDxFormat _parent;
-
-    public XlsxDxfProtectionFormat(XlsxDxFormat parent)
-    {
-        _parent = parent;
-    }
+    private readonly XlsxDxFormat _parent = parent;
 
     bool IXlsxProtection.Locked
     {

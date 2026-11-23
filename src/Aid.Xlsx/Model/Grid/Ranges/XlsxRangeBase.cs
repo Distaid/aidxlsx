@@ -23,15 +23,10 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Ranges;
 
-internal abstract class XlsxRangeBase : IXlsxRangeBase
+internal abstract class XlsxRangeBase(XlsxRangeAddress rangeAddress) : IXlsxRangeBase
 {
     private XlsxSortElements _sortRows;
     private XlsxSortElements _sortColumns;
-
-    protected XlsxRangeBase(XlsxRangeAddress rangeAddress)
-    {
-        _rangeAddress = rangeAddress;
-    }
 
     /// <summary>
     /// Get format API object tailored to the range type.
@@ -45,7 +40,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     #region Public properties
 
-    private XlsxRangeAddress _rangeAddress;
+    private XlsxRangeAddress _rangeAddress = rangeAddress;
 
     public XlsxRangeAddress RangeAddress
     {
@@ -798,7 +793,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         else if (Worksheet != null)
             return Worksheet.GetOrCreateRange(newRangeAddress);
         else
-            return new XlsxRange(newRangeAddress, Style);
+            return new XlsxRange(newRangeAddress);
     }
 
     public XlsxRange Range(String firstCellAddress, String lastCellAddress)

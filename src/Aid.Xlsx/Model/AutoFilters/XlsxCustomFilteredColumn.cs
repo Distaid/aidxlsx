@@ -2,16 +2,10 @@ using Aid.Xlsx.Model.Grid.Cells;
 
 namespace Aid.Xlsx.Model.AutoFilters;
 
-internal class XlsxCustomFilteredColumn : IXlsxCustomFilteredColumn
+internal class XlsxCustomFilteredColumn(XlsxFilterColumn filterColumn, XlsxConnector connector) : IXlsxCustomFilteredColumn
 {
-    private readonly XlsxFilterColumn _filterColumn;
-    private readonly XlsxConnector _connector;
-
-    public XlsxCustomFilteredColumn(XlsxFilterColumn filterColumn, XlsxConnector connector)
-    {
-        _filterColumn = filterColumn;
-        _connector = connector;
-    }
+    private readonly XlsxFilterColumn _filterColumn = filterColumn;
+    private readonly XlsxConnector _connector = connector;
 
     public void EqualTo(XlsxCellValue value, Boolean reapply)
     {

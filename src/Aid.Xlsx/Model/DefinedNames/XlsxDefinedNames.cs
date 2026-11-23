@@ -14,27 +14,21 @@ namespace Aid.Xlsx.Model.DefinedNames;
 /// <summary>
 /// A collection of a named ranges, either for workbook or for worksheet.
 /// </summary>
-internal class XlsxDefinedNames : IXlsxDefinedNames, IEnumerable<XlsxDefinedName>, ISheetListener
+internal class XlsxDefinedNames(XlsxWorkbook workbook) : IXlsxDefinedNames, IEnumerable<XlsxDefinedName>, ISheetListener
 {
     private readonly Dictionary<String, XlsxDefinedName> _namedRanges = [with(XlsxHelper.NameComparer)];
 
-    internal XlsxWorkbook Workbook { get; }
+    internal XlsxWorkbook Workbook { get; } = workbook;
 
     internal XlsxWorksheet? Worksheet { get; }
 
-    internal XlsxNamedRangeScope Scope { get; }
+    internal XlsxNamedRangeScope Scope { get; } = XlsxNamedRangeScope.Workbook;
 
     public XlsxDefinedNames(XlsxWorksheet worksheet)
         : this(worksheet.Workbook)
     {
         Worksheet = worksheet;
         Scope = XlsxNamedRangeScope.Worksheet;
-    }
-
-    public XlsxDefinedNames(XlsxWorkbook workbook)
-    {
-        Workbook = workbook;
-        Scope = XlsxNamedRangeScope.Workbook;
     }
 
     #region IXlsxNamedRanges Members

@@ -4,16 +4,10 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Drawings;
 
-internal class XlsxPictures : IXlsxPictures, IEnumerable<XlsxPicture>
+internal class XlsxPictures(XlsxWorksheet worksheet) : IXlsxPictures, IEnumerable<XlsxPicture>
 {
     private readonly List<XlsxPicture> _pictures = [];
-    private readonly XlsxWorksheet _worksheet;
-
-    public XlsxPictures(XlsxWorksheet worksheet)
-    {
-        _worksheet = worksheet;
-        Deleted = new HashSet<String>();
-    }
+    private readonly XlsxWorksheet _worksheet = worksheet;
 
     public int Count
     {
@@ -21,7 +15,7 @@ internal class XlsxPictures : IXlsxPictures, IEnumerable<XlsxPicture>
         get { return _pictures.Count; }
     }
 
-    internal ICollection<String> Deleted { get; private set; }
+    internal ICollection<String> Deleted { get; private set; } = new HashSet<String>();
 
     public IXlsxPicture Add(Stream stream)
     {

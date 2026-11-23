@@ -4,16 +4,10 @@ using Aid.Xlsx.Model.PivotTables.Areas;
 
 namespace Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 
-internal class XlsxPivotTableAxisFieldStyleFormats : IXlsxPivotFieldStyleFormats
+internal class XlsxPivotTableAxisFieldStyleFormats(XlsxPivotTable pivotTable, XlsxPivotTableAxisField axisField) : IXlsxPivotFieldStyleFormats
 {
-    private readonly XlsxPivotTable _pivotTable;
-    private readonly XlsxPivotTableAxisField _axisField;
-
-    public XlsxPivotTableAxisFieldStyleFormats(XlsxPivotTable pivotTable, XlsxPivotTableAxisField axisField)
-    {
-        _pivotTable = pivotTable;
-        _axisField = axisField;
-    }
+    private readonly XlsxPivotTable _pivotTable = pivotTable;
+    private readonly XlsxPivotTableAxisField _axisField = axisField;
 
     #region IXlsxPivotFieldStyleFormats
 

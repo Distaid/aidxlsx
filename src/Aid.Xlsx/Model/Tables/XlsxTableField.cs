@@ -7,21 +7,15 @@ using Aid.Xlsx.Model.Styles.Formatting;
 namespace Aid.Xlsx.Model.Tables;
 
 [DebuggerDisplay("{Name}")]
-internal class XlsxTableField : IXlsxTableField
+internal class XlsxTableField(XlsxTable table, String name) : IXlsxTableField
 {
     internal XlsxTotalsRowFunction totalsRowFunction;
     internal String? totalsRowLabel;
-    private readonly XlsxTable table;
+    private readonly XlsxTable table = table;
 
     private IXlsxRangeColumn? _column;
     private Int32 index;
-    private String name;
-
-    public XlsxTableField(XlsxTable table, String name)
-    {
-        this.table = table;
-        this.name = name;
-    }
+    private String name = name;
 
     public IXlsxRangeColumn Column
     {

@@ -9,16 +9,10 @@ namespace Aid.Xlsx.Model.Grid.Ranges;
 /// <summary>
 /// Engine for ranges consolidation. Supports IXlsxRanges including ranges from either one or multiple worksheets.
 /// </summary>
-internal class XlsxRangeConsolidationEngine
+internal class XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ranges)
 {
-    private readonly XlsxWorkbook _workbook;
-    private readonly XlsxRanges _allRanges;
-
-    public XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ranges)
-    {
-        _workbook = workbook;
-        _allRanges = ranges ?? throw new ArgumentNullException(nameof(ranges));
-    }
+    private readonly XlsxWorkbook _workbook = workbook;
+    private readonly XlsxRanges _allRanges = ranges ?? throw new ArgumentNullException(nameof(ranges));
 
     public XlsxRanges Consolidate()
     {

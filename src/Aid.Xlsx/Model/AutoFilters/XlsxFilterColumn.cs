@@ -4,17 +4,11 @@ using Aid.Xlsx.Model.Grid.Ranges;
 
 namespace Aid.Xlsx.Model.AutoFilters;
 
-internal class XlsxFilterColumn : IXlsxFilterColumn, IXlsxFilteredColumn, IEnumerable<XlsxFilter>
+internal class XlsxFilterColumn(XlsxAutoFilter autoFilter, Int32 column) : IXlsxFilterColumn, IXlsxFilteredColumn, IEnumerable<XlsxFilter>
 {
-    private readonly XlsxAutoFilter _autoFilter;
-    private readonly Int32 _column;
+    private readonly XlsxAutoFilter _autoFilter = autoFilter;
+    private readonly Int32 _column = column;
     private readonly List<XlsxFilter> _filters = [];
-
-    public XlsxFilterColumn(XlsxAutoFilter autoFilter, Int32 column)
-    {
-        _autoFilter = autoFilter;
-        _column = column;
-    }
 
     #region IXlsxFilterColumn Members
 

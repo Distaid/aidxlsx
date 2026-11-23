@@ -6,21 +6,14 @@ using Aid.Xlsx.CodeGen.Schema.Model.TopLevel;
 
 namespace Aid.Xlsx.CodeGen.Emission;
 
-public class ParserGenerator
+public class ParserGenerator(XsdSchema schema, SchemeTypeMap typeMap, string readerField)
 {
-    private readonly XsdSchema _schema;
-    private readonly string _readerName;
+    private readonly XsdSchema _schema = schema;
+    private readonly string _readerName = readerField;
     private readonly List<ParsletName> _parseMethods = [];
-    private readonly SchemeTypeMap _typeMap;
+    private readonly SchemeTypeMap _typeMap = typeMap;
     private readonly List<string> _usings = [];
     private string _targetNamespace = "Aid.Xlsx.SpreadsheetML";
-
-    public ParserGenerator(XsdSchema schema, SchemeTypeMap typeMap, string readerField)
-    {
-        _schema = schema;
-        _typeMap = typeMap;
-        _readerName = readerField;
-    }
 
     public ParserGenerator WithNamespace(string targetNamespace)
     {

@@ -5,13 +5,9 @@ using Aid.Xlsx.Infrastructure.Extensions;
 
 namespace Aid.Xlsx.Model.ConditionalFormats;
 
-internal class XlsxCFDataBarMax : IXlsxCFDataBarMax
+internal class XlsxCFDataBarMax(XlsxConditionalFormat conditionalFormat) : IXlsxCFDataBarMax
 {
-    private readonly XlsxConditionalFormat _conditionalFormat;
-    public XlsxCFDataBarMax(XlsxConditionalFormat conditionalFormat)
-    {
-        _conditionalFormat = conditionalFormat;
-    }
+    private readonly XlsxConditionalFormat _conditionalFormat = conditionalFormat;
 
     public void Maximum(XlsxCFContentType type, String value)
     {

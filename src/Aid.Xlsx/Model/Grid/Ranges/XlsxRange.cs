@@ -11,13 +11,8 @@ using Aid.Xlsx.Model.Tables;
 
 namespace Aid.Xlsx.Model.Grid.Ranges;
 
-internal class XlsxRange : XlsxRangeBase, IXlsxRange
+internal class XlsxRange(XlsxRangeAddress rangeAddress) : XlsxRangeBase(rangeAddress), IXlsxRange
 {
-    public XlsxRange(XlsxRangeAddress rangeAddress, IXlsxStyle defaultStyle)
-        : base(rangeAddress)
-    {
-    }
-
     internal override XlsxCellFormat Format => XlsxCellFormat.ForRange(Worksheet, RangeAddress);
 
     public override XlsxRangeType RangeType

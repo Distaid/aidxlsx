@@ -6,16 +6,10 @@ using static Aid.Xlsx.Model.Protection.XlsxProtectionAlgorithm;
 
 namespace Aid.Xlsx.Model.Protection;
 
-internal class XlsxSheetProtection : IXlsxSheetProtection
+internal class XlsxSheetProtection(XlsxProtectionAlgorithm.Algorithm algorithm) : IXlsxSheetProtection
 {
-    public XlsxSheetProtection(Algorithm algorithm)
-    {
-        this.Algorithm = algorithm;
-        AllowedElements = XlsxSheetProtectionElements.SelectEverything;
-    }
-
-    public Algorithm Algorithm { get; internal set; }
-    public XlsxSheetProtectionElements AllowedElements { get; set; }
+    public Algorithm Algorithm { get; internal set; } = algorithm;
+    public XlsxSheetProtectionElements AllowedElements { get; set; } = XlsxSheetProtectionElements.SelectEverything;
 
     public Boolean IsPasswordProtected => this.IsProtected && !String.IsNullOrEmpty(PasswordHash);
     public Boolean IsProtected { get; internal set; }

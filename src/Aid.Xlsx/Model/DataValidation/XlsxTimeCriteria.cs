@@ -3,13 +3,8 @@
 // Keep this file CodeMaid organised and cleaned
 namespace Aid.Xlsx.Model.DataValidation;
 
-public class XlsxTimeCriteria : XlsxValidationCriteria
+public class XlsxTimeCriteria(IXlsxDataValidation dataValidation) : XlsxValidationCriteria(dataValidation)
 {
-    public XlsxTimeCriteria(IXlsxDataValidation dataValidation)
-        : base(dataValidation)
-    {
-    }
-
     public void Between(TimeSpan minValue, TimeSpan maxValue) => base.Between(GetXLTime(minValue), GetXLTime(maxValue));
 
     public void EqualOrGreaterThan(TimeSpan value) => base.EqualOrGreaterThan(GetXLTime(value));

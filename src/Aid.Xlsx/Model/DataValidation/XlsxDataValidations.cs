@@ -7,15 +7,10 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.DataValidation;
 
-internal class XlsxDataValidations : IXlsxDataValidations, IEnumerable<XlsxDataValidation>, ISheetListener
+internal class XlsxDataValidations(XlsxWorksheet worksheet) : IXlsxDataValidations, IEnumerable<XlsxDataValidation>, ISheetListener
 {
     private readonly List<XlsxDataValidation> _dataValidations = [];
-    private readonly XlsxWorksheet _worksheet;
-
-    public XlsxDataValidations(XlsxWorksheet worksheet)
-    {
-        _worksheet = worksheet ?? throw new ArgumentNullException(nameof(worksheet));
-    }
+    private readonly XlsxWorksheet _worksheet = worksheet ?? throw new ArgumentNullException(nameof(worksheet));
 
     #region IXlsxDataValidations Members
 

@@ -5,13 +5,9 @@ using Aid.Xlsx.Infrastructure.Extensions;
 
 namespace Aid.Xlsx.Model.ConditionalFormats;
 
-internal class XlsxCFDataBarMin : IXlsxCFDataBarMin
+internal class XlsxCFDataBarMin(XlsxConditionalFormat conditionalFormat) : IXlsxCFDataBarMin
 {
-    private readonly XlsxConditionalFormat _conditionalFormat;
-    public XlsxCFDataBarMin(XlsxConditionalFormat conditionalFormat)
-    {
-        _conditionalFormat = conditionalFormat;
-    }
+    private readonly XlsxConditionalFormat _conditionalFormat = conditionalFormat;
 
     public IXlsxCFDataBarMax Minimum(XlsxCFContentType type, String value)
     {

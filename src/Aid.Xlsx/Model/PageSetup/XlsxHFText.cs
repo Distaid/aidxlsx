@@ -9,17 +9,11 @@ using Aid.Xlsx.Model.Styles.Colors;
 
 namespace Aid.Xlsx.Model.PageSetup;
 
-internal class XlsxHFText
+internal class XlsxHFText(XlsxRichString richText, XlsxHFItem hfItem)
 {
-    private readonly XlsxHFItem _hfItem;
+    private readonly XlsxHFItem _hfItem = hfItem;
 
-    public XlsxHFText(XlsxRichString richText, XlsxHFItem hfItem)
-    {
-        RichText = richText;
-        _hfItem = hfItem;
-    }
-
-    public XlsxRichString RichText { get; private set; }
+    public XlsxRichString RichText { get; private set; } = richText;
 
     public String GetHFText(String prevText)
     {

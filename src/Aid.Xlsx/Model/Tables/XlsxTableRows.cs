@@ -7,15 +7,10 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Tables;
 
-internal class XlsxTableRows : IXlsxTableRows
+internal class XlsxTableRows(XlsxWorksheet worksheet) : IXlsxTableRows
 {
-    private readonly XlsxWorksheet _worksheet;
+    private readonly XlsxWorksheet _worksheet = worksheet;
     private readonly List<XlsxTableRow> _ranges = [];
-
-    public XlsxTableRows(XlsxWorksheet worksheet)
-    {
-        _worksheet = worksheet;
-    }
 
     #region IXlsxTableRows Members
 

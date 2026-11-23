@@ -14,9 +14,9 @@ namespace Aid.Xlsx.Model.ConditionalFormats;
 /// a collection of <see cref="XlsxConditionalFormat"/>. Doesn't contain pivot table formats,
 /// they are in pivot table <see cref="XlsxPivotTable.ConditionalFormats"/>,
 /// </summary>
-internal class XlsxConditionalFormats : IXlsxConditionalFormats, IEnumerable<XlsxConditionalFormat>, ISheetListener
+internal class XlsxConditionalFormats(XlsxWorksheet worksheet) : IXlsxConditionalFormats, IEnumerable<XlsxConditionalFormat>, ISheetListener
 {
-    private readonly XlsxWorksheet _worksheet;
+    private readonly XlsxWorksheet _worksheet = worksheet;
     private readonly List<XlsxConditionalFormat> _conditionalFormats = [];
 
     private static readonly List<XlsxConditionalFormatType> CFTypesExcludedFromConsolidation =
@@ -29,11 +29,6 @@ internal class XlsxConditionalFormats : IXlsxConditionalFormats, IEnumerable<Xls
         XlsxConditionalFormatType.IsDuplicate,
         XlsxConditionalFormatType.IsUnique
     ];
-
-    public XlsxConditionalFormats(XlsxWorksheet worksheet)
-    {
-        _worksheet = worksheet;
-    }
 
     public void Add(IXlsxConditionalFormat conditionalFormat)
     {

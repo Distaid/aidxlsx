@@ -33,7 +33,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     /// The direct constructor should only be used in <see cref="XlsxWorksheet.RangeFactory"/>.
     /// </summary>
     public XlsxTable(XlsxRangeAddress tableArea, IXlsxStyle defaultStyle)
-        : base(tableArea, defaultStyle)
+        : base(tableArea)
     {
         InitializeValues(false);
     }

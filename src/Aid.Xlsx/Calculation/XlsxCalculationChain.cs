@@ -359,11 +359,11 @@ internal class XlsxCalculationChain
         return exception;
     }
 
-    private readonly struct Link
+    private readonly struct Link(SheetPoint previous, SheetPoint next, int lastPosition)
     {
-        internal readonly SheetPoint Previous;
+        internal readonly SheetPoint Previous = previous;
 
-        internal readonly SheetPoint Next;
+        internal readonly SheetPoint Next = next;
 
         /// <summary>
         /// <para>
@@ -393,13 +393,6 @@ internal class XlsxCalculationChain
         /// </para>
         /// </summary>
         /// <remarks>Used for cycle detection.</remarks>
-        internal readonly int LastPosition;
-
-        public Link(SheetPoint previous, SheetPoint next, int lastPosition)
-        {
-            Previous = previous;
-            Next = next;
-            LastPosition = lastPosition;
-        }
+        internal readonly int LastPosition = lastPosition;
     }
 }

@@ -2,14 +2,10 @@
 
 namespace Aid.Xlsx.Model.Drawings.Styles;
 
-internal class XlsxDrawingProtection : IXlsxDrawingProtection
+internal class XlsxDrawingProtection(IXlsxDrawingStyle style) : IXlsxDrawingProtection
 {
-    private readonly IXlsxDrawingStyle _style;
+    private readonly IXlsxDrawingStyle _style = style;
 
-    public XlsxDrawingProtection(IXlsxDrawingStyle style)
-    {
-        _style = style;
-    }
     public Boolean Locked { get; set; }
     public IXlsxDrawingStyle SetLocked() { Locked = true; return _style; }
     public IXlsxDrawingStyle SetLocked(Boolean value) { Locked = value; return _style; }

@@ -6,13 +6,9 @@ using Aid.Xlsx.Model.Styles.Colors;
 
 namespace Aid.Xlsx.Model.ConditionalFormats;
 
-internal class XlsxCFColorScaleMax : IXlsxCFColorScaleMax
+internal class XlsxCFColorScaleMax(XlsxConditionalFormat conditionalFormat) : IXlsxCFColorScaleMax
 {
-    private readonly XlsxConditionalFormat _conditionalFormat;
-    public XlsxCFColorScaleMax(XlsxConditionalFormat conditionalFormat)
-    {
-        _conditionalFormat = conditionalFormat;
-    }
+    private readonly XlsxConditionalFormat _conditionalFormat = conditionalFormat;
 
     public void Maximum(XlsxCFContentType type, String value, XlsxColor color)
     {

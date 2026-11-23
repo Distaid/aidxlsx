@@ -8,16 +8,10 @@ using Aid.Xlsx.Model.Tables;
 
 namespace Aid.Xlsx.Calculation;
 
-internal class CalculationVisitor : IFormulaVisitor<CalcContext, AnyValue>
+internal class CalculationVisitor(FunctionRegistry functions) : IFormulaVisitor<CalcContext, AnyValue>
 {
-    private readonly FunctionRegistry _functions;
-    private readonly ArrayPool<AnyValue> _argsPool;
-
-    public CalculationVisitor(FunctionRegistry functions)
-    {
-        _functions = functions;
-        _argsPool = ArrayPool<AnyValue>.Create(XlsxConstants.MaxFunctionArguments, 100);
-    }
+    private readonly FunctionRegistry _functions = functions;
+    private readonly ArrayPool<AnyValue> _argsPool = ArrayPool<AnyValue>.Create(XlsxConstants.MaxFunctionArguments, 100);
 
     public AnyValue Visit(CalcContext context, ScalarNode node)
     {

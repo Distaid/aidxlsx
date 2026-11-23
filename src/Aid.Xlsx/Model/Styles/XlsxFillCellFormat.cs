@@ -10,7 +10,7 @@ namespace Aid.Xlsx.Model.Styles;
 /// Most of the various logic that adjusts background color or pattern based on changes to pattern
 /// type or background color have been inherited from original implementation.
 /// </remarks>
-internal sealed partial class XlsxFillCellFormat
+internal sealed partial class XlsxFillCellFormat(XlsxCellFormat parent)
 {
     private static readonly XlsxPatternFill PatternNone = new()
     {
@@ -19,12 +19,7 @@ internal sealed partial class XlsxFillCellFormat
         BackgroundColor = XlsxColor.Automatic
     };
 
-    private readonly XlsxCellFormat _parent;
-
-    public XlsxFillCellFormat(XlsxCellFormat parent)
-    {
-        _parent = parent;
-    }
+    private readonly XlsxCellFormat _parent = parent;
 
     private XlsxColor BackgroundColor
     {

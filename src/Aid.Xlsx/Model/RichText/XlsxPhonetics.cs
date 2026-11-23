@@ -4,25 +4,15 @@ using Aid.Xlsx.Model.Styles.Formatting;
 
 namespace Aid.Xlsx.Model.RichText;
 
-internal class XlsxPhonetics : IXlsxPhonetics
+internal class XlsxPhonetics(XlsxFontFormatValue font, XlsxFontFormatValue defaultFont, XlsxWorkbookStyles styles, Action onChange) : IXlsxPhonetics
 {
     private readonly List<IXlsxPhonetic> _phonetics = [];
-    private readonly XlsxWorkbookStyles _styles;
-    private readonly XlsxFontFormatValue _defaultFont;
-    private readonly Action _onChange;
-    private XlsxFontFormatValue _font;
-    private XlsxPhoneticAlignment _alignment;
-    private XlsxPhoneticType _type;
-
-    public XlsxPhonetics(XlsxFontFormatValue font, XlsxFontFormatValue defaultFont, XlsxWorkbookStyles styles, Action onChange)
-    {
-        _styles = styles;
-        _defaultFont = defaultFont;
-        _font = font;
-        _type = XlsxPhoneticType.FullWidthKatakana;
-        _alignment = XlsxPhoneticAlignment.Left;
-        _onChange = onChange;
-    }
+    private readonly XlsxWorkbookStyles _styles = styles;
+    private readonly XlsxFontFormatValue _defaultFont = defaultFont;
+    private readonly Action _onChange = onChange;
+    private XlsxFontFormatValue _font = font;
+    private XlsxPhoneticAlignment _alignment = XlsxPhoneticAlignment.Left;
+    private XlsxPhoneticType _type = XlsxPhoneticType.FullWidthKatakana;
 
     public Int32 Count => _phonetics.Count;
 

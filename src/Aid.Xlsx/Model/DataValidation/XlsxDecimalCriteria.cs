@@ -5,13 +5,8 @@ using Aid.Xlsx.Infrastructure.Extensions;
 
 namespace Aid.Xlsx.Model.DataValidation;
 
-public class XlsxDecimalCriteria : XlsxValidationCriteria
+public class XlsxDecimalCriteria(IXlsxDataValidation dataValidation) : XlsxValidationCriteria(dataValidation)
 {
-    public XlsxDecimalCriteria(IXlsxDataValidation dataValidation)
-        : base(dataValidation)
-    {
-    }
-
     public void Between(Double minValue, Double maxValue) => base.Between(minValue.ToInvariantString(), maxValue.ToInvariantString());
 
     public void EqualOrGreaterThan(Double value) => base.EqualOrGreaterThan(value.ToInvariantString());
