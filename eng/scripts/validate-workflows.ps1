@@ -14,7 +14,7 @@
       * release.yml: single publication path by tag, dry-run via workflow_dispatch,
         NuGet/login@v1 + environment nuget-production, concurrency group: release,
         tag ancestry only in the push branch, gh release create --verify-tag without --target;
-      * global.json pins SDK 10.0.403 with rollForward disabled (an exact pin keeps lock files stable);
+      * global.json pins a stable SDK with rollForward disabled (an exact pin keeps lock files stable);
       * no suspicious replace calls in workflows and eng scripts;
       * no references to internal planning documents in committable files
         (the repository is public: no plan documents, no section numbers).
@@ -291,9 +291,10 @@ if (Test-Path -LiteralPath $globalJsonPath) {
         $globalJson = [System.IO.File]::ReadAllText($globalJsonPath) | ConvertFrom-Json
         # The SDK is pinned exactly (rollForward disabled): a floating SDK would change restore
         # behaviour and the lock files between machines.
-        $globalJsonOk = ($globalJson.sdk.version -eq '10.0.403') -and ($globalJson.sdk.rollForward -eq 'disable')
+        $globalJsonOk = ($globalJson.sdk.version -match '^11\.0\.[0-9]+$') -and
+            ($globalJson.sdk.rollForward -eq 'disable') -and ($globalJson.sdk.allowPrerelease -eq $false)
         if (-not $globalJsonOk) {
-            $globalJsonDetail = ('version=' + $globalJson.sdk.version + ', rollForward=' + $globalJson.sdk.rollForward)
+            $globalJsonDetail = ('version=' + $globalJson.sdk.version + ', rollForward=' + $globalJson.sdk.rollForward + ', allowPrerelease=' + $globalJson.sdk.allowPrerelease)
         }
     }
     catch {
@@ -303,7 +304,7 @@ if (Test-Path -LiteralPath $globalJsonPath) {
 else {
     $globalJsonDetail = 'file is missing'
 }
-Add-Check 'global.json: SDK 10.0.403 with rollForward disabled' $globalJsonOk $globalJsonDetail
+Add-Check 'global.json: stable .NET 11 SDK with rollForward disabled' $globalJsonOk $globalJsonDetail
 
 # --- 9. Tag ancestry only in the push branch; dry-run via git tag --list
 # refs/tags/$tag^{commit} is allowed only inside the branch
@@ -378,7 +379,7 @@ Add-Check 'fuzz.yml: instrumented targets, timed run, artifacts' ($fuzzMissing.C
 # Version and metadata live in a single Directory.Build.props (the repository owner pattern).
 $propsText = Read-RepoFile 'Directory.Build.props'
 $propsMissing = Find-MissingLiteral -Text $propsText -Needles @(
-    '<LangVersion>14</LangVersion>',
+    '<LangVersion>15</LangVersion>',
     '<Nullable>enable</Nullable>',
     '<ImplicitUsings>enable</ImplicitUsings>',
     '<TreatWarningsAsErrors>true</TreatWarningsAsErrors>',
@@ -390,7 +391,7 @@ $propsMissing = Find-MissingLiteral -Text $propsText -Needles @(
     '<EnableTrimAnalyzer>true</EnableTrimAnalyzer>',
     '<EnableAotAnalyzer>true</EnableAotAnalyzer>',
     '<EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>',
-    'net10.0',
+    '<TargetFramework>net11.0</TargetFramework>',
     '<Version Condition=',
     '<AssemblyVersion>',
     '<FileVersion>',
@@ -407,7 +408,7 @@ if ($propsText -notmatch '<VersionPrefix>(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1
 if ($propsText -match '<VersionSuffix>([^<]*)</VersionSuffix>' -and $Matches[1] -notmatch '^(preview[1-9][0-9]*)?$') {
     $propsMissing += 'VersionSuffix must be empty or previewN'
 }
-Add-Check 'Directory.Build.props: build + version + metadata (TFM net10.0)' ($propsMissing.Count -eq 0) ('missing: ' + ($propsMissing -join ', '))
+Add-Check 'Directory.Build.props: build + version + metadata (TFM net11.0)' ($propsMissing.Count -eq 0) ('missing: ' + ($propsMissing -join ', '))
 
 # The version must not be duplicated in a separate file: the single source is Directory.Build.props.
 $versionsFileIssues = @()

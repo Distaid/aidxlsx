@@ -48,7 +48,7 @@ public class XlsxCellValueTests
     {
         new object[] { 5.875m, 5.875d },
         new object[] { Decimal.MaxValue, 7.922816251426434E+28 },
-        new object[] { 1.0E-28m, 1.0000000000000001E-28d }
+        new object[] { 1.0E-28m, 1.0E-28d } // .NET 11 rounds to the nearest representable double.
     };
 
     [TestCaseSource(nameof(DecimalTestCases))]

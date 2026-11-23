@@ -2,7 +2,7 @@
 
 ![Aid.Xlsx icon](https://raw.githubusercontent.com/Distaid/aidxlsx/main/assets/icon.png)
 
-[![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+[![.NET 11](https://img.shields.io/badge/.NET-11.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/en-us/download/dotnet/11.0)
 [![Latest GitHub release](https://img.shields.io/github/v/release/Distaid/aidxlsx?label=GitHub%20release)](https://github.com/Distaid/aidxlsx/releases/latest)
 [![NuGet version](https://img.shields.io/nuget/v/Aid.Xlsx?logo=nuget&label=NuGet)](https://www.nuget.org/packages/Aid.Xlsx)
 [![NuGet downloads](https://img.shields.io/nuget/dt/Aid.Xlsx?label=NuGet%20downloads)](https://www.nuget.org/packages/Aid.Xlsx)
@@ -10,10 +10,10 @@
 [![MIT license](https://img.shields.io/badge/license-MIT-blue)](https://github.com/Distaid/aidxlsx/blob/main/LICENSE)
 
 Aid.Xlsx is a .NET library for reading, creating and editing `.xlsx` and `.xlsm`
-workbooks. It targets `net10.0` and uses its own OPC/XML layer. The Open XML SDK is
+workbooks. It targets `net11.0` and uses its own OPC/XML layer. The Open XML SDK is
 used by the tests for schema validation.
 
-The `1.x` release line targets .NET 10. The move to .NET 11 is planned for `2.0.0`.
+Aid.Xlsx `2.x` targets .NET 11. For .NET 10 applications, use Aid.Xlsx `1.x`.
 
 ## Documentation
 
@@ -36,7 +36,7 @@ in the [documentation index](docs/README.md).
 
 ## Target framework and NativeAOT
 
-The runtime library, tests and samples target `net10.0`. The build-time source generator
+The runtime library, tests and samples target `net11.0`. The build-time source generator
 targets `netstandard2.0` so that it can run in the compiler host.
 
 The runtime libraries enable trim, AOT and single-file analyzers. The smoke application
@@ -94,7 +94,7 @@ Load and save timings, allocations, and commands to reproduce the measurements a
 
 ## Building
 
-Use the .NET SDK pinned in `global.json` (`10.0.403`) from the repository root.
+Use the .NET SDK pinned in `global.json` from the repository root.
 
 ```powershell
 dotnet build Aid.Xlsx.slnx -c Release
@@ -103,10 +103,10 @@ dotnet build Aid.Xlsx.slnx -c Release
 The first restore needs network access. See the [migration guide](docs/migration-from-closedxml.md),
 [compatibility notes](docs/compatibility.md), and [NativeAOT guide](docs/native-aot.md).
 
-For `1.0.0`, run the GitHub `release` workflow on `main` with `version` set to `1.0.0`.
+Run the GitHub `release` workflow on `main` with the version from `Directory.Build.props`.
 This dry run uploads the NuGet and symbol packages, a CycloneDX dependency SBOM, and
-SHA-256 checksums. After it passes, publication is triggered by the owner pushing
-`v1.0.0` on the verified commit. The publish job uses the `nuget-production` environment.
+SHA-256 checksums. The owner can then push the matching version tag on the verified commit
+to publish using the `nuget-production` environment.
 
 ## License
 

@@ -1,6 +1,6 @@
 # Aid.Xlsx documentation
 
-Use Aid.Xlsx in a .NET 10 application to create, read, and edit Excel workbooks.
+Use Aid.Xlsx in a .NET application to create, read, and edit Excel workbooks.
 
 | Guide | What it covers |
 | --- | --- |

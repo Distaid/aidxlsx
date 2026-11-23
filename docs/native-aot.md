@@ -1,6 +1,6 @@
 # NativeAOT and trimming
 
-Use the `Aid.Xlsx` package from a .NET 10 application. The package includes the table
+Use `Aid.Xlsx` 2.x from a .NET 11 application. The package includes the table
 mapper generator. Annotate each concrete row type with `[XlsxTable]` and call
 `InsertMappedData` or `InsertMappedTable`. Public instance fields and readable properties
 become columns. `[XlsxColumn]` controls heading, order, and number format. `[XlsxIgnore]`

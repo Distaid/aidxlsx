@@ -6,12 +6,12 @@
     It is also the single source of the version and of the common package metadata:
     there is no separate versions file.
 
-    The default target framework is net10.0; targeting .NET 11 is a separate task.
+    Projects target net11.0 by default.
   -->
 
   <!-- ======================= Version (single source) ======================= -->
   <PropertyGroup>
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionPrefix>2.0.0</VersionPrefix>
     <Version Condition="'$(Version)' == '' and '$(VersionSuffix)' != ''">$(VersionPrefix)-$(VersionSuffix)</Version>
     <Version Condition="'$(Version)' == ''">$(VersionPrefix)</Version>
   </PropertyGroup>
@@ -28,7 +28,7 @@
 
   <!-- ======================= Build properties ============================== -->
   <PropertyGroup>
-    <LangVersion>14</LangVersion>
+    <LangVersion>15</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -55,9 +55,9 @@
     <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
-  <!-- Single target framework: projects without an explicit TargetFramework get net10.0. -->
+  <!-- Compiler-host components can override the default target framework. -->
   <PropertyGroup Condition="'$(TargetFramework)' == '' and '$(TargetFrameworks)' == ''">
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
   </PropertyGroup>
 
   <!-- ======================= Assembly versions ============================= -->
@@ -68,14 +68,6 @@
     <_AidPreviewNumber Condition="'$(VersionSuffix)' != ''">$([System.Text.RegularExpressions.Regex]::Match('$(VersionSuffix)', '\d+').Value)</_AidPreviewNumber>
     <_AidPreviewNumber Condition="'$(_AidPreviewNumber)' == ''">0</_AidPreviewNumber>
     <FileVersion>$([System.Version]::Parse('$(VersionPrefix)').Major).$([System.Version]::Parse('$(VersionPrefix)').Minor).$([System.Version]::Parse('$(VersionPrefix)').Build).$(_AidPreviewNumber)</FileVersion>
-  </PropertyGroup>
-
-  <!--
-    Package validation baseline. Empty until the first published version; from the second
-    version onwards it holds the published number and the project passes it to
-    PackageValidationBaselineVersion.
-  -->
-  <PropertyGroup>
   </PropertyGroup>
 
   <!-- ======================= AOT/trim for libraries ======================= -->

@@ -2,18 +2,20 @@
 
 ## Install Aid.Xlsx
 
-Create a console application with the .NET 10 SDK.
+For Aid.Xlsx 2.x, create a console application with the .NET 11 SDK.
 
 ```sh
-dotnet new console --framework net10.0 --name WorkbookExample
+dotnet new console --framework net11.0 --name WorkbookExample
 cd WorkbookExample
 ```
 
-Once `1.0.0` is available on NuGet.org, add it from your application directory.
+Add the package from your application directory once `2.0.0` is available on NuGet.org.
 
 ```sh
-dotnet add package Aid.Xlsx --version 1.0.0
+dotnet add package Aid.Xlsx --version 2.0.0
 ```
+
+For a .NET 10 application, target `net10.0` and install Aid.Xlsx `1.0.0` from NuGet.org.
 
 To try the current source, pack the library from the repository root.
 
@@ -25,7 +27,7 @@ From your application directory, use the version in the generated `.nupkg` filen
 and the absolute path to the local package directory.
 
 ```sh
-dotnet add package Aid.Xlsx --version 1.0.0 --no-restore
+dotnet add package Aid.Xlsx --version 2.0.0 --no-restore
 dotnet restore --source "<absolute-path-to-artifacts/packages>" --source https://api.nuget.org/v3/index.json
 ```
 

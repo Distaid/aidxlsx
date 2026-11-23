@@ -7,12 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Raise the minimum runtime to .NET 11 for Aid.Xlsx 2.0.0. Aid.Xlsx 1.x supports .NET 10.
+- Build with the .NET 11 SDK and C# 15. The source generator still targets .NET Standard 2.0 for Roslyn.
+- Use .NET 11's correctly rounded `decimal`-to-`double` conversion for numeric cells.
+
 ### Added
 
 - Show the package icon, target .NET version, release and NuGet versions, download count, CI status, and license in the README.
 
 ### Fixed
 
+- Preserve workbook formula midpoint rounding across the .NET upgrade.
 - Download release assets from the release packaging job and verify their checksums before creating a GitHub Release.
 
 ## [1.0.0]

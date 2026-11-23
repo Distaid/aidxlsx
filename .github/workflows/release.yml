@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Dry run: the version from Directory.Build.props, for example 1.0.0 (nothing is published)'
+        description: 'Dry run: the version from Directory.Build.props, for example 2.0.0 (nothing is published)'
         required: true
         type: string
 
@@ -240,9 +240,10 @@ jobs:
         run: |
           set -euo pipefail
           dotnet tool install CycloneDX --version 6.3.2 --tool-path artifacts/tools/cyclonedx
+          framework=$(dotnet msbuild src/Aid.Xlsx/Aid.Xlsx.csproj -nologo -getProperty:TargetFramework)
           # Polyfill supplies build-time source and is absent from the NuGet dependency graph.
           artifacts/tools/cyclonedx/dotnet-CycloneDX src/Aid.Xlsx/Aid.Xlsx.csproj \
-            --framework net10.0 --disable-package-restore --exclude-dev --exclude-filter Polyfill \
+            --framework "$framework" --disable-package-restore --exclude-dev --exclude-filter Polyfill \
             --output-format Json --output artifacts/packages --filename Aid.Xlsx.cdx.json \
             --set-name "$PACKAGE_ID" --set-version "$RELEASE_VERSION" --set-type Library
       - name: checksums

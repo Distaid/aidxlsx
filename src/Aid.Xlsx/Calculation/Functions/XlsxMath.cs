@@ -111,7 +111,7 @@ internal static class XlsxMath
         {
             var coef = Math.Pow(10, Math.Abs(digits));
             var shifted = value / coef;
-            shifted = Math.Round(shifted, 0, MidpointRounding.AwayFromZero);
+            shifted = Math.Round(shifted, MidpointRounding.AwayFromZero);
 
             // if coef is infinity
             if (shifted == 0)
@@ -120,7 +120,12 @@ internal static class XlsxMath
             return shifted * coef;
         }
 
-        // Double can store at most 15 digits and anything below that is float artefact
-        return Math.Round(value, (int)Math.Min(digits, 15), MidpointRounding.AwayFromZero);
+        // Keep worksheet midpoint rounding, including cases like ROUND(2.15, 1).
+        // Math.Round with a digit count now rounds the exact binary input on .NET 11.
+        if (Math.Abs(value) >= 1e16 || digits == 0)
+            return Math.Round(value, MidpointRounding.AwayFromZero);
+
+        var scale = Math.Pow(10, Math.Min(digits, 15));
+        return Math.Round(value * scale, MidpointRounding.AwayFromZero) / scale;
     }
 }

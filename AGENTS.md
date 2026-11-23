@@ -5,7 +5,7 @@ This file is the entry point for anyone (human or AI) making changes in this rep
 ## What this project is
 
 `Aid.Xlsx` is a .NET library for reading, creating and editing `.xlsx` and `.xlsm`
-workbooks. It targets `net10.0` and is built around its own OPC/XML layer instead of the
+workbooks. It targets `net11.0` and is built around its own OPC/XML layer instead of the
 OpenXml SDK, with NativeAOT as a first-class goal.
 
 ## Prerequisites
