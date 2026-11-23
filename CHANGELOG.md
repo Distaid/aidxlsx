@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0]
+
+First stable release of Aid.Xlsx for .NET 10.
+
 ### Changed
 
 - Use checked-in compatibility baselines and isolate the optional comparison benchmark from the main solution.
@@ -64,8 +68,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   produced empty ranges. Rows of different runtime types are no longer mixed in one
   grouped snapshot.
 
-### Planned
-
-- `0.1.0-preview1` — the first public preview on NuGet. Publication and the release date are pending.
-
-[Unreleased]: https://github.com/Distaid/aidxlsx/commits/main
+[Unreleased]: https://github.com/Distaid/aidxlsx/compare/v1.0.0...main
+[1.0.0]: https://github.com/Distaid/aidxlsx/releases/tag/v1.0.0

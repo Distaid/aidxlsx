@@ -1,10 +1,10 @@
 # Aid.Xlsx
 
-**Status: pre-alpha.** No package has been published yet, and the public API may change.
-
 Aid.Xlsx is a .NET library for reading, creating and editing `.xlsx` and `.xlsm`
 workbooks. It targets `net10.0` and uses its own OPC/XML layer. The Open XML SDK is
 used by the tests for schema validation.
+
+The `1.x` release line targets .NET 10. The move to .NET 11 is planned for `2.0.0`.
 
 ## Documentation
 
@@ -94,10 +94,10 @@ dotnet build Aid.Xlsx.slnx -c Release
 The first restore needs network access. See the [migration guide](docs/migration-from-closedxml.md),
 [compatibility notes](docs/compatibility.md), and [NativeAOT guide](docs/native-aot.md).
 
-The GitHub release workflow can be dispatched to build the version in `Directory.Build.props`
-as a dry run. The build uploads the NuGet and symbol packages, a CycloneDX dependency SBOM,
-and SHA-256 checksums. Publication requires an owner-created version tag and the
-`nuget-production` environment.
+For `1.0.0`, run the GitHub `release` workflow on `main` with `version` set to `1.0.0`.
+This dry run uploads the NuGet and symbol packages, a CycloneDX dependency SBOM, and
+SHA-256 checksums. After it passes, publication is triggered by the owner pushing
+`v1.0.0` on the verified commit. The publish job uses the `nuget-production` environment.
 
 ## License
 

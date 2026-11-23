@@ -391,8 +391,6 @@ $propsMissing = Find-MissingLiteral -Text $propsText -Needles @(
     '<EnableAotAnalyzer>true</EnableAotAnalyzer>',
     '<EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>',
     'net10.0',
-    '<VersionPrefix>0.1.0</VersionPrefix>',
-    '<VersionSuffix>preview1</VersionSuffix>',
     '<Version Condition=',
     '<AssemblyVersion>',
     '<FileVersion>',
@@ -403,6 +401,12 @@ $propsMissing = Find-MissingLiteral -Text $propsText -Needles @(
     '<PublishRepositoryUrl>true</PublishRepositoryUrl>',
     '<Copyright>Copyright (c) 2026 Distaid</Copyright>'
 )
+if ($propsText -notmatch '<VersionPrefix>(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)</VersionPrefix>') {
+    $propsMissing += 'VersionPrefix with MAJOR.MINOR.PATCH format'
+}
+if ($propsText -match '<VersionSuffix>([^<]*)</VersionSuffix>' -and $Matches[1] -notmatch '^(preview[1-9][0-9]*)?$') {
+    $propsMissing += 'VersionSuffix must be empty or previewN'
+}
 Add-Check 'Directory.Build.props: build + version + metadata (TFM net10.0)' ($propsMissing.Count -eq 0) ('missing: ' + ($propsMissing -join ', '))
 
 # The version must not be duplicated in a separate file: the single source is Directory.Build.props.

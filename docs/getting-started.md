@@ -9,10 +9,10 @@ dotnet new console --framework net10.0 --name WorkbookExample
 cd WorkbookExample
 ```
 
-Once the preview package is available on NuGet.org, add it from your application directory.
+Once `1.0.0` is available on NuGet.org, add it from your application directory.
 
 ```sh
-dotnet add package Aid.Xlsx --prerelease
+dotnet add package Aid.Xlsx --version 1.0.0
 ```
 
 To try the current source, pack the library from the repository root.
@@ -25,7 +25,7 @@ From your application directory, use the version in the generated `.nupkg` filen
 and the absolute path to the local package directory.
 
 ```sh
-dotnet add package Aid.Xlsx --version 0.1.0-preview1 --no-restore
+dotnet add package Aid.Xlsx --version 1.0.0 --no-restore
 dotnet restore --source "<absolute-path-to-artifacts/packages>" --source https://api.nuget.org/v3/index.json
 ```
 
