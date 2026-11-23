@@ -26,3 +26,98 @@ trim_trailing_whitespace = false
 [*.{ps1,psm1}]
 indent_size = 4
 charset = utf-8-bom
+
+# ---------------------------------------------------------------------------
+# Analyzer and style policy for the library sources
+# ---------------------------------------------------------------------------
+# The rules below are clean across src/ and are promoted to warnings so they
+# cannot regress. They are enforced twice: by the build (EnforceCodeStyleInBuild)
+# and by the format steps in CI. The test project is excluded on purpose: it
+# predates nullable reference types and is not part of the public surface.
+[src/**/*.cs]
+dotnet_diagnostic.IDE0016.severity = warning
+dotnet_diagnostic.IDE0019.severity = warning
+dotnet_diagnostic.IDE0028.severity = warning
+dotnet_diagnostic.IDE0031.severity = warning
+dotnet_diagnostic.IDE0033.severity = warning
+dotnet_diagnostic.IDE0037.severity = warning
+dotnet_diagnostic.IDE0038.severity = warning
+dotnet_diagnostic.IDE0039.severity = warning
+dotnet_diagnostic.IDE0041.severity = warning
+dotnet_diagnostic.IDE0042.severity = warning
+dotnet_diagnostic.IDE0044.severity = warning
+dotnet_diagnostic.IDE0054.severity = warning
+dotnet_diagnostic.IDE0056.severity = warning
+dotnet_diagnostic.IDE0057.severity = warning
+dotnet_diagnostic.IDE0059.severity = warning
+dotnet_diagnostic.IDE0062.severity = warning
+dotnet_diagnostic.IDE0063.severity = warning
+dotnet_diagnostic.IDE0066.severity = warning
+dotnet_diagnostic.IDE0071.severity = warning
+dotnet_diagnostic.IDE0074.severity = warning
+dotnet_diagnostic.IDE0075.severity = warning
+dotnet_diagnostic.IDE0083.severity = warning
+dotnet_diagnostic.IDE0090.severity = warning
+dotnet_diagnostic.IDE0180.severity = warning
+dotnet_diagnostic.IDE0220.severity = warning
+dotnet_diagnostic.IDE0250.severity = warning
+dotnet_diagnostic.IDE0251.severity = warning
+dotnet_diagnostic.IDE0270.severity = warning
+dotnet_diagnostic.IDE0301.severity = warning
+dotnet_diagnostic.IDE0302.severity = warning
+dotnet_diagnostic.IDE0305.severity = warning
+dotnet_diagnostic.IDE0306.severity = warning
+dotnet_diagnostic.IDE0350.severity = warning
+dotnet_diagnostic.IDE1006.severity = warning
+dotnet_diagnostic.CA1507.severity = warning
+dotnet_diagnostic.CA1510.severity = warning
+dotnet_diagnostic.CA1511.severity = warning
+dotnet_diagnostic.CA1512.severity = warning
+dotnet_diagnostic.CA1513.severity = warning
+dotnet_diagnostic.CA1816.severity = warning
+dotnet_diagnostic.CA1826.severity = warning
+dotnet_diagnostic.CA1829.severity = warning
+dotnet_diagnostic.CA1834.severity = warning
+dotnet_diagnostic.CA1845.severity = warning
+dotnet_diagnostic.CA1846.severity = warning
+dotnet_diagnostic.CA1847.severity = warning
+dotnet_diagnostic.CA1850.severity = warning
+dotnet_diagnostic.CA1853.severity = warning
+dotnet_diagnostic.CA1860.severity = warning
+dotnet_diagnostic.CA1861.severity = warning
+dotnet_diagnostic.CA1862.severity = warning
+dotnet_diagnostic.CA1864.severity = warning
+dotnet_diagnostic.CA1866.severity = warning
+dotnet_diagnostic.CA1868.severity = warning
+dotnet_diagnostic.CA1870.severity = warning
+dotnet_diagnostic.CA2208.severity = warning
+dotnet_diagnostic.CA2249.severity = warning
+dotnet_diagnostic.CA2263.severity = warning
+dotnet_diagnostic.SYSLIB1045.severity = warning
+
+# Rules that are deliberately not enforced, with the reason next to each one.
+# IDE0300: a collection expression has no valid target type in a few generic and
+#          attribute contexts used here; the remaining sites stay reviewed by hand.
+dotnet_diagnostic.IDE0300.severity = suggestion
+# IDE0060: unused parameters are kept where they belong to a public signature or
+#          to a delegate contract.
+dotnet_diagnostic.IDE0060.severity = suggestion
+# CA1517: the affected parameters are bound to the CalcEngineFunction delegate,
+#         which takes Span<T>, so widening them to ReadOnlySpan<T> is impossible.
+dotnet_diagnostic.CA1517.severity = suggestion
+# CA1859: changing parameter and return types for performance is a design
+#         decision, not a style rule; reviewed case by case.
+dotnet_diagnostic.CA1859.severity = suggestion
+# CA1822: the remaining member is public; making it static would break the API.
+dotnet_diagnostic.CA1822.severity = suggestion
+# CA1069: Hangeul/Hangul are an intentional alias for the same enum value.
+dotnet_diagnostic.CA1069.severity = none
+# CA2211: NoBomUTF8 is a public field; making it readonly is an API change.
+dotnet_diagnostic.CA2211.severity = none
+# CA2231: adding equality operators to XlsxCellValue is an API addition, not style.
+dotnet_diagnostic.CA2231.severity = none
+
+# CA2208 cannot be satisfied where the switch fallback is over a local value that
+# is not a parameter of the enclosing method.
+[src/Aid.Xlsx/Model/Grid/Cells/ValueSlice.cs]
+dotnet_diagnostic.CA2208.severity = none
