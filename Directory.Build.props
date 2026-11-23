@@ -36,6 +36,12 @@
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <!--
+      Style rules are part of the build: the severities in .editorconfig decide what
+      fails. The library sources promote the cleaned rule set to warnings, so a new
+      style violation breaks the build instead of silently accumulating.
+    -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!--
       "latest" instead of "latest-recommended": the recommended set (CA1805/CA1859/CA1305/CA1822/
       CA1716 and others) reports about 650 findings on the imported sources. That is the state of
       the imported code, not a regression of this port. Returning to "latest-recommended" is a
