@@ -72,7 +72,7 @@ internal class XlsxHFText(XlsxRichString richText, XlsxHFItem hfItem)
         var lastColorPosition = prevText.LastIndexOf("&K");
 
         if (
-            (lastColorPosition >= 0 && !RichText.FontColor.Equals(XlsxColor.FromHtml("#" + prevText.Substring(lastColorPosition + 2, 6))))
+            (lastColorPosition >= 0 && !RichText.FontColor.Equals(XlsxColor.FromHtml(string.Concat("#", prevText.AsSpan(lastColorPosition + 2, 6)))))
             || (lastColorPosition == -1 && !RichText.FontColor.Equals(wsFont.FontColor))
             )
             sb.Append("&K" + RichText.FontColor.Color.ToHex()[2..]);

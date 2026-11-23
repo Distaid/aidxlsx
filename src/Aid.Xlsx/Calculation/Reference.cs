@@ -156,7 +156,7 @@ internal class Reference
                 intersections.Add(intersectedArea);
         }
 
-        return intersections.Any() ? new Reference(intersections) : XlsxError.NullValue;
+        return intersections.Count != 0 ? new Reference(intersections) : XlsxError.NullValue;
     }
 
     /// <summary>

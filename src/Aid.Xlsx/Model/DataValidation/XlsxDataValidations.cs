@@ -203,7 +203,7 @@ internal class XlsxDataValidations(XlsxWorksheet worksheet) : IXlsxDataValidatio
         var rules = _dataValidations.ToList();
         _dataValidations.Clear();
 
-        while (rules.Any())
+        while (rules.Count != 0)
         {
             var consRule = rules.First();
             _dataValidations.Add(consRule);

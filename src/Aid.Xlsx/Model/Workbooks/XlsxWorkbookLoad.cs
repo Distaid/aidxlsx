@@ -597,8 +597,8 @@ public partial class XlsxWorkbook
     {
         var lockedElement = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "Locked");
         var lockTextElement = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "LockText");
-        Boolean locked = lockedElement != null && lockedElement.Value.ToLower() == "true";
-        Boolean lockText = lockTextElement != null && lockTextElement.Value.ToLower() == "true";
+        Boolean locked = lockedElement != null && lockedElement.Value.Equals("true", StringComparison.CurrentCultureIgnoreCase);
+        Boolean lockText = lockTextElement != null && lockTextElement.Value.Equals("true", StringComparison.CurrentCultureIgnoreCase);
         drawing.Style.Protection.Locked = locked;
         drawing.Style.Protection.LockText = lockText;
     }
@@ -607,8 +607,8 @@ public partial class XlsxWorkbook
     {
         var moveWithCellsElement = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "MoveWithCells");
         var sizeWithCellsElement = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "SizeWithCells");
-        Boolean moveWithCells = !(moveWithCellsElement != null && moveWithCellsElement.Value.ToLower() == "true");
-        Boolean sizeWithCells = !(sizeWithCellsElement != null && sizeWithCellsElement.Value.ToLower() == "true");
+        Boolean moveWithCells = !(moveWithCellsElement != null && moveWithCellsElement.Value.Equals("true", StringComparison.CurrentCultureIgnoreCase));
+        Boolean sizeWithCells = !(sizeWithCellsElement != null && sizeWithCellsElement.Value.Equals("true", StringComparison.CurrentCultureIgnoreCase));
         if (moveWithCells && !sizeWithCells)
             drawing.Style.Properties.Positioning = XlsxDrawingAnchor.MoveWithCells;
         else if (moveWithCells && sizeWithCells)

@@ -1452,7 +1452,7 @@ internal sealed partial class XlsxCell : IXlsxCell, IXlsxFormatContainer
                     sb.Append(matchString);
             }
             else
-                sb.Append(value.Substring(lastIndex, matchIndex - lastIndex + matchString.Length));
+                sb.Append(value.AsSpan(lastIndex, matchIndex - lastIndex + matchString.Length));
 
             lastIndex = matchIndex + matchString.Length;
         }
@@ -1618,7 +1618,7 @@ internal sealed partial class XlsxCell : IXlsxCell, IXlsxFormatContainer
                     sb.Append(matchString);
             }
             else
-                sb.Append(value.Substring(lastIndex, matchIndex - lastIndex + matchString.Length));
+                sb.Append(value.AsSpan(lastIndex, matchIndex - lastIndex + matchString.Length));
             lastIndex = matchIndex + matchString.Length;
         }
 

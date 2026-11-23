@@ -117,7 +117,7 @@ internal static class Information
         if (collection.TryPickT0(out var array, out var reference))
             return array.Apply(static v => ToNumber(v), ctx);
 
-        var area = reference.Areas.First();
+        var area = reference.Areas[0];
         var referenceValue = ctx.GetCellValue(area.Worksheet, area.FirstAddress.RowNumber, area.FirstAddress.RowNumber);
         return ToNumber(referenceValue).ToAnyValue();
 

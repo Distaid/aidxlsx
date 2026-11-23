@@ -1502,7 +1502,7 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
 
         if (Workbook.DefinedNames.TryGetValue(cellAddressInRange, out var definedName))
         {
-            if (!definedName.Ranges.Any())
+            if (definedName.Ranges.Count == 0)
                 return null;
 
             return definedName.Ranges.First().FirstCell().CastTo<XlsxCell>();
@@ -1524,7 +1524,7 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
 
         if (Workbook.DefinedNamesInternal.TryGetValue(rangeAddressStr, out var workbookDefinedName))
         {
-            if (!workbookDefinedName.Ranges.Any())
+            if (workbookDefinedName.Ranges.Count == 0)
                 return null;
 
             return workbookDefinedName.Ranges.First().CastTo<XlsxRange>();

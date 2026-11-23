@@ -596,7 +596,7 @@ internal abstract class XlsxRangeBase(XlsxRangeAddress rangeAddress) : IXlsxRang
     {
         var cellsUsed = CellsUsedInternal(options, r => r.FirstCell(), predicate).ToList();
 
-        if (!cellsUsed.Any())
+        if (cellsUsed.Count == 0)
             return null;
 
         var firstRow = cellsUsed.Min(c => c.Address.RowNumber);
@@ -625,7 +625,7 @@ internal abstract class XlsxRangeBase(XlsxRangeAddress rangeAddress) : IXlsxRang
     {
         var cellsUsed = CellsUsedInternal(options, r => r.LastCell(), predicate).ToList();
 
-        if (!cellsUsed.Any())
+        if (cellsUsed.Count == 0)
             return null;
 
         var lastRow = cellsUsed.Max(c => c.Address.RowNumber);

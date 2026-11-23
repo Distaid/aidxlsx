@@ -79,7 +79,7 @@ internal class XlsxPictures(XlsxWorksheet worksheet) : IXlsxPictures, IEnumerabl
             .Where(picture => picture.Name.Equals(pictureName, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
-        if (!picturesToDelete.Any())
+        if (picturesToDelete.Count == 0)
             throw new ArgumentOutOfRangeException(nameof(pictureName), $"Picture {pictureName} was not found.");
 
         foreach (var picture in picturesToDelete)

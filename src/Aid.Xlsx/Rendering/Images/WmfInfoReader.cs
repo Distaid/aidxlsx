@@ -96,13 +96,13 @@ internal class WmfInfoReader : ImageInfoReader
         return new XlsxPictureInfo(XlsxPictureFormat.Wmf, Size.Empty, physSize);
     }
 
-    private static uint GetU32LE(Span<byte> s, int i)
+    private static uint GetU32LE(ReadOnlySpan<byte> s, int i)
         => (uint)(s[i + 0] | (s[i + 1] << 8) | (s[i + 2] << 16) | (s[i + 3] << 24));
 
-    private static ushort GetU16LE(Span<byte> s, int i)
+    private static ushort GetU16LE(ReadOnlySpan<byte> s, int i)
         => (ushort)(s[i + 0] | (s[i + 1] << 8));
 
-    private static short GetS16LE(Span<byte> s, int i)
+    private static short GetS16LE(ReadOnlySpan<byte> s, int i)
         => (short)(s[i + 0] | (s[i + 1] << 8));
 
     private static int ToHiMetric(int size, double unitsPerInch) =>

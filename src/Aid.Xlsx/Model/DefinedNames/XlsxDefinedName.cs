@@ -79,7 +79,7 @@ internal class XlsxDefinedName : IXlsxDefinedName, IWorkbookListener
                 throw new ArgumentException("Formula can't be empty.");
 
             var references = FormulaReferences.ForFormula(formula);
-            if (references.References.Any())
+            if (references.References.Count != 0)
             {
                 // `[MS-XLSX] 2.2.2.5: The formula MUST NOT use the local-cell-reference production
                 // rule.` Excel will refuse to load a workbook with such a defined name (e.g. `A1`).

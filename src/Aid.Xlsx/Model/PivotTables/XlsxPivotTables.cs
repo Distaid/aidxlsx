@@ -17,7 +17,7 @@ internal class XlsxPivotTables(XlsxWorksheet worksheet) : IXlsxPivotTables, IEnu
     public void Add(XlsxPivotTable pivotTable)
     {
         var pivotCache = pivotTable.PivotCache;
-        if (!pivotCache.FieldNames.Any())
+        if (pivotCache.FieldNames.Count == 0)
             pivotCache.Refresh();
 
         _pivotTables.Add(pivotTable.Name, pivotTable);

@@ -620,7 +620,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
 
     private void checkForWorksheetsPresent()
     {
-        if (!Worksheets.Any())
+        if (Worksheets.Count == 0)
             throw new InvalidOperationException("Workbooks need at least one worksheet.");
     }
 

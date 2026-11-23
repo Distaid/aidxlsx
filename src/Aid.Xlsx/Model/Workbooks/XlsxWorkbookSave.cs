@@ -145,7 +145,7 @@ public partial class XlsxWorkbook
             new XDocument(workbookRoot).Save(target, System.Xml.Linq.SaveOptions.DisableFormatting);
 
         // Phase 2 - All parts and relationships are set, fill in the parts.
-        if (allPivotTables.Any())
+        if (allPivotTables.Count != 0)
         {
             GeneratePivotCaches(package, workbookPart);
         }
