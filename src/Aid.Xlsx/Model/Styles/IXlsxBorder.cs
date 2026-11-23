@@ -120,9 +120,9 @@ public interface IXlsxBorder : IEquatable<IXlsxBorder>
     /// </remarks>
     XlsxColor BottomBorderColor { get; set; }
 
-    Boolean DiagonalUp { get; set; }
+    bool DiagonalUp { get; set; }
 
-    Boolean DiagonalDown { get; set; }
+    bool DiagonalDown { get; set; }
 
     /// <summary>
     /// Get or set style of the diagonal border.
@@ -199,9 +199,9 @@ public interface IXlsxBorder : IEquatable<IXlsxBorder>
     /// <inheritdoc cref="BottomBorderColor"/>
     IXlsxStyle SetBottomBorderColor(XlsxColor value);
 
-    IXlsxStyle SetDiagonalUp(); IXlsxStyle SetDiagonalUp(Boolean value);
+    IXlsxStyle SetDiagonalUp(); IXlsxStyle SetDiagonalUp(bool value);
 
-    IXlsxStyle SetDiagonalDown(); IXlsxStyle SetDiagonalDown(Boolean value);
+    IXlsxStyle SetDiagonalDown(); IXlsxStyle SetDiagonalDown(bool value);
 
     /// <summary>
     /// Set style of the diagonal border.

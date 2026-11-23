@@ -14,14 +14,14 @@ internal static class CustomPropertiesXml
 
     internal static void Read(Stream stream, IXlsxCustomProperties properties)
     {
-        var root = XDocumentExtensions.Load(stream)?.Root;
+        XElement? root = XDocumentExtensions.Load(stream)?.Root;
         if (root is null)
             return;
 
-        foreach (var property in root.Elements(Custom + "property"))
+        foreach (XElement property in root.Elements(Custom + "property"))
         {
             var name = (string?)property.Attribute("name");
-            var value = property.Elements().FirstOrDefault();
+            XElement? value = property.Elements().FirstOrDefault();
             if (string.IsNullOrWhiteSpace(name) || value is null)
                 continue;
 
@@ -40,7 +40,7 @@ internal static class CustomPropertiesXml
     /// <returns>The XML, or <see langword="null"/> if the entire part can be removed.</returns>
     internal static XDocument? Update(Stream? existing, IXlsxCustomProperties properties)
     {
-        var root = existing is null ? null : XDocumentExtensions.Load(existing)?.Root;
+        XElement? root = existing is null ? null : XDocumentExtensions.Load(existing)?.Root;
         if (root?.Name != Custom + "Properties")
             root = new XElement(Custom + "Properties");
 
@@ -51,11 +51,11 @@ internal static class CustomPropertiesXml
 
         var updated = properties.ToDictionary(property => property.Name, StringComparer.Ordinal);
         var reservedIds = new HashSet<int>();
-        foreach (var element in root.Elements(Custom + "property").ToArray())
+        foreach (XElement? element in root.Elements(Custom + "property").ToArray())
         {
             var name = (string?)element.Attribute("name");
-            var variant = element.Elements().FirstOrDefault()?.Name;
-            if (name is not null && updated.Remove(name, out var property))
+            XName? variant = element.Elements().FirstOrDefault()?.Name;
+            if (name is not null && updated.Remove(name, out IXlsxCustomProperty? property))
             {
                 element.ReplaceNodes(SerializeValue(property));
             }
@@ -71,7 +71,7 @@ internal static class CustomPropertiesXml
         }
 
         var nextId = 2;
-        foreach (var property in updated.Values)
+        foreach (IXlsxCustomProperty? property in updated.Values)
         {
             while (reservedIds.Contains(nextId))
                 nextId++;

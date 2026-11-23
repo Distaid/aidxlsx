@@ -5,7 +5,7 @@ using Aid.Xlsx.Model.Styles.Colors;
 
 namespace Aid.Xlsx.Model.Sparklines;
 
-internal class XlsxSparklineHorizontalAxis : IXlsxSparklineHorizontalAxis
+internal class XlsxSparklineHorizontalAxis(IXlsxSparklineGroup sparklineGroup) : IXlsxSparklineHorizontalAxis
 {
     #region Public Properties
 
@@ -17,16 +17,10 @@ internal class XlsxSparklineHorizontalAxis : IXlsxSparklineHorizontalAxis
 
     public bool RightToLeft { get; set; }
 
-    public IXlsxSparklineGroup SparklineGroup { get; }
+    public IXlsxSparklineGroup SparklineGroup { get; } = sparklineGroup ?? throw new ArgumentNullException(nameof(sparklineGroup));
 
     #endregion Public Properties
-
     #region Public Constructors
-
-    public XlsxSparklineHorizontalAxis(IXlsxSparklineGroup sparklineGroup)
-    {
-        SparklineGroup = sparklineGroup ?? throw new ArgumentNullException(nameof(sparklineGroup));
-    }
 
     #endregion Public Constructors
 

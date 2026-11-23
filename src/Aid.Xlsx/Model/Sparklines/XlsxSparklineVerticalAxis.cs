@@ -3,17 +3,17 @@
 // Keep this file CodeMaid organised and cleaned
 namespace Aid.Xlsx.Model.Sparklines;
 
-internal class XlsxSparklineVerticalAxis : IXlsxSparklineVerticalAxis
+internal class XlsxSparklineVerticalAxis(IXlsxSparklineGroup sparklineGroup) : IXlsxSparklineVerticalAxis
 {
     #region Public Properties
 
-    public Double? ManualMax
+    public double? ManualMax
     {
         get => _manualMax;
         set => SetManualMax(value);
     }
 
-    public Double? ManualMin
+    public double? ManualMin
     {
         get => _manualMin;
         set => SetManualMin(value);
@@ -35,7 +35,7 @@ internal class XlsxSparklineVerticalAxis : IXlsxSparklineVerticalAxis
 
     #region Public Methods
 
-    public IXlsxSparklineVerticalAxis SetManualMax(Double? manualMax)
+    public IXlsxSparklineVerticalAxis SetManualMax(double? manualMax)
     {
         if (manualMax != null)
             MaxAxisType = XlsxSparklineAxisMinMax.Custom;
@@ -44,7 +44,7 @@ internal class XlsxSparklineVerticalAxis : IXlsxSparklineVerticalAxis
         return this;
     }
 
-    public IXlsxSparklineVerticalAxis SetManualMin(Double? manualMin)
+    public IXlsxSparklineVerticalAxis SetManualMin(double? manualMin)
     {
         if (manualMin != null)
             MinAxisType = XlsxSparklineAxisMinMax.Custom;
@@ -75,19 +75,14 @@ internal class XlsxSparklineVerticalAxis : IXlsxSparklineVerticalAxis
 
     #region Private Fields
 
-    private Double? _manualMax;
-    private Double? _manualMin;
+    private double? _manualMax;
+    private double? _manualMin;
     private XlsxSparklineAxisMinMax _maxAxisType;
     private XlsxSparklineAxisMinMax _minAxisType;
 
     #endregion Private Fields
 
-    public IXlsxSparklineGroup SparklineGroup { get; }
-
-    public XlsxSparklineVerticalAxis(IXlsxSparklineGroup sparklineGroup)
-    {
-        SparklineGroup = sparklineGroup ?? throw new ArgumentNullException(nameof(sparklineGroup));
-    }
+    public IXlsxSparklineGroup SparklineGroup { get; } = sparklineGroup ?? throw new ArgumentNullException(nameof(sparklineGroup));
 
     public static void Copy(IXlsxSparklineVerticalAxis from, IXlsxSparklineVerticalAxis to)
     {

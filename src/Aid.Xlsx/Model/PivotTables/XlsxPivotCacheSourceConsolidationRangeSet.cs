@@ -13,7 +13,7 @@ internal class XlsxPivotCacheSourceConsolidationRangeSet
     /// and page filter exists, it is displayed as a blank. There can be at most 4 indexes, because
     /// there can be at most 4 page filters.
     /// </summary>
-    public IReadOnlyList<uint?> Indexes { get; init; } = Array.Empty<uint?>();
+    public IReadOnlyList<uint?> Indexes { get; init; } = [];
 
     /// <summary>
     /// If range set is from another workbook, a relationship id to the workbook from cache definition.

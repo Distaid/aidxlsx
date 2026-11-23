@@ -64,7 +64,6 @@ internal sealed class XlsxWorksheetInternals : IDisposable
 
     private void ThrowIfDisposed()
     {
-        if (_disposed)
-            throw new ObjectDisposedException(nameof(XlsxWorksheetInternals));
+        ObjectDisposedException.ThrowIf(_disposed, this);
     }
 }

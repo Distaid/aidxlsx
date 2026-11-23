@@ -35,7 +35,7 @@ internal class WorksheetPartWriter
             xlWorksheet.ConditionalFormats.Consolidate();
 
         WorksheetXml xml;
-        using (var source = worksheetPart.Length == 0 ? null : worksheetPart.OpenRead())
+        using (Stream source = worksheetPart.Length == 0 ? null : worksheetPart.OpenRead())
             xml = WorksheetXml.Create(source, xlWorksheet.Internals.RowsCollection.Values.Any(row => row.DyDescent.HasValue));
 
         xml.UpdateSettings(xlWorksheet);
@@ -54,25 +54,25 @@ internal class WorksheetPartWriter
         xml.UpdatePrintSettings(xlWorksheet);
 
         var tables = (XlsxTables)xlWorksheet.Tables;
-        var emptyTable = tables.FirstOrDefault<XlsxTable>(table => table.DataRange is null);
+        XlsxTable emptyTable = tables.FirstOrDefault<XlsxTable>(table => table.DataRange is null);
         if (emptyTable is not null)
             throw new EmptyTableException($"Table '{emptyTable.Name}' should have at least 1 row.");
         xml.UpdateTableReferences(tables.Cast<XlsxTable>().Select(table => table.RelId));
         tables.Deleted.Clear();
 
-        var (previousDrawingId, _) = package.FirstRelatedPart(worksheetPart, "drawing");
+        (string previousDrawingId, OpcPart _) = package.FirstRelatedPart(worksheetPart, "drawing");
         var drawingId = SavePictures(package, worksheetPart, (XlsxPictures)xlWorksheet.Pictures, context);
         xml.UpdateDrawingReferences(previousDrawingId, drawingId, xlWorksheet.LegacyDrawingId);
 
-        using var stream = worksheetPart.OpenWrite();
+        using Stream stream = worksheetPart.OpenWrite();
         using var writer = XmlWriter.Create(stream, new XmlWriterSettings { Encoding = new UTF8Encoding(false) });
         xml.Write(writer, () => StreamSheetData(writer, xlWorksheet, context, options));
     }
 
     private static void WriteCellValue(XmlWriter w, XlsxCell xlCell, SaveContext context)
     {
-        var value = xlCell.CachedValue;
-        var dataType = value.Type;
+        XlsxCellValue value = xlCell.CachedValue;
+        XlsxDataType dataType = value.Type;
         if (dataType == XlsxDataType.Blank)
             return;
 
@@ -95,7 +95,7 @@ internal class WorksheetPartWriter
                 else
                 {
                     w.WriteStartElement("is", Main2006SsNs);
-                    var richText = xlCell.RichText;
+                    XlsxImmutableRichText richText = xlCell.RichText;
                     if (richText is not null)
                     {
                         TextSerializer.WriteRichTextElements(w, richText, context);
@@ -125,7 +125,7 @@ internal class WorksheetPartWriter
         else if (dataType == XlsxDataType.DateTime)
         {
             // OpenXML SDK validator requires a specific format, in addition to the spec, but can reads many more
-            var date = value.GetDateTime();
+            DateTime date = value.GetDateTime();
             if (xlCell.Worksheet.Workbook.Use1904DateSystem)
                 date = date.AddDays(-1462);
 
@@ -144,14 +144,14 @@ internal class WorksheetPartWriter
             throw new InvalidOperationException();
         }
 
-        static void WriteStringValue(XmlWriter w, String text)
+        static void WriteStringValue(XmlWriter w, string text)
         {
             w.WriteStartElement("v", Main2006SsNs);
             w.WriteString(text);
             w.WriteEndElement();
         }
 
-        static void WriteNumberValue(XmlWriter w, Double value)
+        static void WriteNumberValue(XmlWriter w, double value)
         {
             w.WriteStartElement("v", Main2006SsNs);
             w.WriteNumberValue(value);
@@ -161,7 +161,7 @@ internal class WorksheetPartWriter
 
     private static string SavePictures(WorkbookPackage package, OpcPart worksheetPart, XlsxPictures pictures, SaveContext context)
     {
-        var (drawingId, part) = package.FirstRelatedPart(worksheetPart, "drawing");
+        (string drawingId, OpcPart part) = package.FirstRelatedPart(worksheetPart, "drawing");
         if (pictures.Count == 0 && pictures.Deleted.Count == 0)
             return drawingId;
 
@@ -174,17 +174,17 @@ internal class WorksheetPartWriter
         }
         else
         {
-            using var stream = part.OpenRead();
+            using Stream stream = part.OpenRead();
             root = part.Length == 0 ? DrawingXml.Create() : DrawingXml.Read(stream);
         }
 
-        var anchorsByImage = root.Elements().Where(DrawingXml.IsPictureAnchor)
+        ILookup<string, XElement> anchorsByImage = root.Elements().Where(DrawingXml.IsPictureAnchor)
             .Select(anchor => (Anchor: anchor, Id: DrawingXml.ImageId(anchor)))
             .Where(item => item.Id is not null).ToLookup(item => item.Id, item => item.Anchor, StringComparer.Ordinal);
         var matched = new HashSet<XElement>();
-        foreach (var picture in pictures.Cast<XlsxPicture>())
+        foreach (XlsxPicture picture in pictures.Cast<XlsxPicture>())
         {
-            var imagePart = picture.RelId is null ? null : package.RelatedPart(part, picture.RelId, "image");
+            OpcPart imagePart = picture.RelId is null ? null : package.RelatedPart(part, picture.RelId, "image");
             if (imagePart is null)
             {
                 picture.RelId = context.RelIdGenerator.GetNext(RelType.Workbook);
@@ -192,12 +192,12 @@ internal class WorksheetPartWriter
             }
 
             picture.ImageStream.Position = 0;
-            using (var imageStream = imagePart.OpenWrite())
+            using (Stream imageStream = imagePart.OpenWrite())
                 picture.ImageStream.CopyTo(imageStream);
 
-            var anchor = DrawingXml.CreatePictureAnchor(root.Name.Namespace, picture, picture.RelId);
+            XElement anchor = DrawingXml.CreatePictureAnchor(root.Name.Namespace, picture, picture.RelId);
             var candidates = anchorsByImage[picture.RelId].Where(element => !matched.Contains(element)).ToList();
-            var existing = candidates.FirstOrDefault(element => element.Descendants(root.Name.Namespace + "cNvPr")
+            XElement existing = candidates.FirstOrDefault(element => element.Descendants(root.Name.Namespace + "cNvPr")
                 .Any(properties => (string)properties.Attribute("name") == picture.Name));
             existing ??= candidates.FirstOrDefault(element => element.Descendants(root.Name.Namespace + "cNvPr")
                 .Any(properties => (int?)properties.Attribute("id") == picture.Id));
@@ -217,7 +217,7 @@ internal class WorksheetPartWriter
 
         foreach (var removedId in pictures.Deleted.Distinct())
         {
-            foreach (var anchor in anchorsByImage[removedId].Where(element => !matched.Contains(element)))
+            foreach (XElement anchor in anchorsByImage[removedId].Where(element => !matched.Contains(element)))
                 anchor.Remove();
 
             if (!root.Elements().Any(element => DrawingXml.ImageId(element) == removedId))
@@ -234,11 +234,11 @@ internal class WorksheetPartWriter
         if (pictures.Count != 0)
         {
             var id = 1;
-            foreach (var properties in root.Descendants(root.Name.Namespace + "cNvPr"))
+            foreach (XElement properties in root.Descendants(root.Name.Namespace + "cNvPr"))
                 properties.SetAttributeValue("id", id++);
         }
 
-        using var output = part.OpenWrite();
+        using Stream output = part.OpenWrite();
         DrawingXml.Write(output, root);
         return drawingId;
     }
@@ -264,7 +264,7 @@ internal class WorksheetPartWriter
         rows.Sort();
         var rowPropIndex = 0;
         uint rowStyleId = 0;
-        foreach (var xlCell in xlWorksheet.Internals.CellsCollection.GetCells())
+        foreach (XlsxCell xlCell in xlWorksheet.Internals.CellsCollection.GetCells())
         {
             var currentRowNumber = xlCell.Point.Row;
 
@@ -279,7 +279,7 @@ internal class WorksheetPartWriter
                 }
 
                 var rowNumber = rows[rowPropIndex];
-                var xlRow = xlWorksheet.Internals.RowsCollection[rowNumber];
+                XlsxRow xlRow = xlWorksheet.Internals.RowsCollection[rowNumber];
                 if (RowHasCustomProps(xlRow))
                 {
                     WriteStartRow(xml, xlRow, rowNumber, maxColumn, context);
@@ -307,7 +307,7 @@ internal class WorksheetPartWriter
                 if (isRowOpened)
                     xml.WriteEndElement(); // row
 
-                if (xlWorksheet.Internals.RowsCollection.TryGetValue(currentRowNumber, out var row))
+                if (xlWorksheet.Internals.RowsCollection.TryGetValue(currentRowNumber, out XlsxRow row))
                 {
                     rowPropIndex++;
                     rowStyleId = context.GetStyleId(row.FormatValue);
@@ -333,7 +333,7 @@ internal class WorksheetPartWriter
         while (rowPropIndex < rows.Count)
         {
             var rowNumber = rows[rowPropIndex];
-            var xlRow = xlWorksheet.Internals.RowsCollection[rowNumber];
+            XlsxRow xlRow = xlWorksheet.Internals.RowsCollection[rowNumber];
             if (RowHasCustomProps(xlRow))
             {
                 WriteStartRow(xml, xlRow, rowNumber, 0, context);
@@ -423,7 +423,7 @@ internal class WorksheetPartWriter
             // the thickBot/thickBot attributes.
         }
 
-        static void WriteStartCell(XmlWriter w, XlsxCell xlCell, Char[] reference, int referenceLength, String dataType, UInt32 styleId)
+        static void WriteStartCell(XmlWriter w, XlsxCell xlCell, char[] reference, int referenceLength, string dataType, uint styleId)
         {
             w.WriteStartElement("c", Main2006SsNs);
 
@@ -451,12 +451,12 @@ internal class WorksheetPartWriter
         {
             var styleId = context.GetStyleId(xlCell.GetFormat());
 
-            Span<Char> cellRefSpan = cellRef;
+            Span<char> cellRefSpan = cellRef;
             var cellRefLen = xlCell.Point.Format(cellRefSpan);
 
             if (xlCell.HasFormula)
             {
-                String dataType = null;
+                string dataType = null;
                 if (options.PreserveFormulaCache)
                 {
                     dataType = FormulaDataType[(int)xlCell.CachedValue.Type];
@@ -476,7 +476,7 @@ internal class WorksheetPartWriter
 
                 WriteStartCell(xml, xlCell, cellRef, cellRefLen, dataType, styleId);
 
-                var xlFormula = xlCell.Formula;
+                XlsxCellFormula xlFormula = xlCell.Formula;
                 if (xlFormula.Type == FormulaType.DataTable)
                 {
                     // Data table doesn't write actual text of formula, that is referenced by context
@@ -540,13 +540,13 @@ internal class WorksheetPartWriter
             }
             else if (tableTotalCells.Contains(xlCell.Address))
             {
-                var table = xlCell.Worksheet.Tables.First<XlsxTable>(t => t.AsRange().Contains(xlCell));
+                XlsxTable table = xlCell.Worksheet.Tables.First<XlsxTable>(t => t.AsRange().Contains(xlCell));
                 var field = (XlsxTableField)table.Fields.First(f => f.Column.ColumnNumber() == xlCell.Address.ColumnNumber);
 
                 // If this is a cell in the totals row that contains a label (xor with function), write label
                 // Only label can be written. Total functions are basically formulas that use structured
                 // references and SR are not yet supported, so not yet possible to calculate total values.
-                if (!String.IsNullOrWhiteSpace(field.TotalsRowLabel))
+                if (!string.IsNullOrWhiteSpace(field.TotalsRowLabel))
                 {
                     // Excel requires that table totals row label attribute in tableColumn must match the cell
                     // string from SST. If they don't match, Excel will consider it a corrupt workbook.
@@ -581,8 +581,8 @@ internal class WorksheetPartWriter
     /// An array to convert data type for a formula cell. Key is <see cref="XlsxDataType"/>.
     /// It saves some performance through direct indexation instead of switch.
     /// </summary>
-    private static readonly String[] FormulaDataType =
-    {
+    private static readonly string[] FormulaDataType =
+    [
         null, // blank
         "b", // boolean
         null, // number, default value, no need to save type
@@ -590,14 +590,14 @@ internal class WorksheetPartWriter
         "e", // error
         null, // datetime, saved as serialized date-time
         null // timespan, saved as serialized date-time
-    };
+    ];
 
     /// <summary>
     /// An array to convert data type for a cell that only contains a value. Key is <see cref="XlsxDataType"/>.
     /// It saves some performance through direct indexation instead of switch.
     /// </summary>
-    private static readonly String[] ValueDataType =
-    {
+    private static readonly string[] ValueDataType =
+    [
         null, // blank
         "b", // boolean
         null, // number, default value, no need to save type
@@ -605,17 +605,17 @@ internal class WorksheetPartWriter
         "e", // error
         null, // datetime, saved as serialized date-time
         null // timespan, saved as serialized date-time
-    };
+    ];
 
-    private static String GetCellValueType(XlsxCell xlCell)
+    private static string GetCellValueType(XlsxCell xlCell)
     {
-        var dataType = xlCell.DataType;
+        XlsxDataType dataType = xlCell.DataType;
         if (dataType == XlsxDataType.Text && !xlCell.ShareString)
             return "inlineStr";
         return ValueDataType[(int)dataType];
     }
 
-    private static Int32 GetMaxColumn(XlsxWorksheet xlWorksheet)
+    private static int GetMaxColumn(XlsxWorksheet xlWorksheet)
     {
         var maxColumn = 0;
 

@@ -21,13 +21,13 @@ public interface IXlsxDrawingAlignment
 {
     XlsxDrawingHorizontalAlignment Horizontal { get; set; }
     XlsxDrawingVerticalAlignment Vertical { get; set; }
-    Boolean AutomaticSize { get; set; }
+    bool AutomaticSize { get; set; }
     XlsxDrawingTextDirection Direction { get; set; }
     XlsxDrawingTextOrientation Orientation { get; set; }
 
     IXlsxDrawingStyle SetHorizontal(XlsxDrawingHorizontalAlignment value);
     IXlsxDrawingStyle SetVertical(XlsxDrawingVerticalAlignment value);
-    IXlsxDrawingStyle SetAutomaticSize(); IXlsxDrawingStyle SetAutomaticSize(Boolean value);
+    IXlsxDrawingStyle SetAutomaticSize(); IXlsxDrawingStyle SetAutomaticSize(bool value);
     IXlsxDrawingStyle SetDirection(XlsxDrawingTextDirection value);
     IXlsxDrawingStyle SetOrientation(XlsxDrawingTextOrientation value);
 

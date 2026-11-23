@@ -43,7 +43,7 @@ internal partial class XlsxProtectionCellFormat : IXlsxProtection
         if (other is null)
             return false;
 
-        var protection = Resolve(static style => style.Protection);
+        XlsxProtectionFormatValue protection = Resolve(static style => style.Protection);
         return protection.Locked == other.Locked && protection.Hidden == other.Hidden;
     }
 }

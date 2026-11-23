@@ -34,42 +34,20 @@ using Aid.Xlsx.Rendering;
 namespace Aid.Xlsx.Model.Grid.Cells;
 
 [DebuggerDisplay("{Address}")]
-internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
+internal sealed partial class XlsxCell : IXlsxCell, IXlsxFormatContainer
 {
-    public static readonly Regex A1SimpleRegex = new Regex(
-        //  @"(?<=\W)" // Start with non word
-        @"(?<Reference>" // Start Group to pick
-        + @"(?<Sheet>" // Start Sheet Name, optional
-        + @"("
-        + @"\'([^\[\]\*/\\\?:\']+|\'\')\'"
-        // Sheet name with special characters, surrounding apostrophes are required
-        + @"|"
-        + @"\'?\w+\'?" // Sheet name with letters and numbers, surrounding apostrophes are optional
-        + @")"
-        + @"!)?" // End Sheet Name, optional
-        + @"(?<Range>" // Start range
-        + @"(?<![\w\d])" // Preceded by anything but a letter or a number
-        + @"\$?[a-zA-Z]{1,3}\$?\d{1,7}" // A1 Address 1
-        + @"(?<RangeEnd>:\$?[a-zA-Z]{1,3}\$?\d{1,7})?" // A1 Address 2, optional
-        + @"(?![\w\d])" // followed by anything but a letter or a number
-        + @"|"
-        + @"(?<ColumnNumbers>\$?\d{1,7}:\$?\d{1,7})" // 1:1
-        + @"|"
-        + @"(?<ColumnLetters>\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})" // A:A
-        + @")" // End Range
-        + @")" // End Group to pick
-               //+ @"(?=\W)" // End with non word
-        , RegexOptions.Compiled);
+    [GeneratedRegex(@"(?<Reference>(?<Sheet>(\'([^\[\]\*/\\\?:\']+|\'\')\'|\'?\w+\'?)!)?(?<Range>(?<![\w\d])\$?[a-zA-Z]{1,3}\$?\d{1,7}(?<RangeEnd>:\$?[a-zA-Z]{1,3}\$?\d{1,7})?(?![\w\d])|(?<ColumnNumbers>\$?\d{1,7}:\$?\d{1,7})|(?<ColumnLetters>\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})))", RegexOptions.Compiled)]
+    public static partial Regex A1SimpleRegex { get; }
 
-    private static readonly Regex A1RowRegex = new Regex(
-        @"(\$?\d{1,7}:\$?\d{1,7})" // 1:1
-        , RegexOptions.Compiled);
+    [GeneratedRegex(@"(\$?\d{1,7}:\$?\d{1,7})" // 1:1
+    , RegexOptions.Compiled)]
+    private static partial Regex A1RowRegex { get; }
 
-    private static readonly Regex A1ColumnRegex = new Regex(
-        @"(\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})" // A:A
-        , RegexOptions.Compiled);
+    [GeneratedRegex(@"(\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})")] // A:A
+    private static partial Regex A1ColumnRegex { get; }
 
-    private static readonly Regex utfPattern = new Regex(@"(?<!_x005F)_x(?!005F)([0-9A-F]{4})_", RegexOptions.Compiled);
+    [GeneratedRegex(@"(?<!_x005F)_x(?!005F)([0-9A-F]{4})_")]
+    private static partial Regex utfPattern { get; }
 
 
     private readonly XlsxCellsCollection _cellsCollection;
@@ -133,40 +111,40 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         get => _cellsCollection.MiscSlice[_rowNumber, _columnNumber].Comment;
         set
         {
-            ref readonly var original = ref _cellsCollection.MiscSlice[_rowNumber, _columnNumber];
+            ref readonly XlsxMiscSliceContent original = ref _cellsCollection.MiscSlice[_rowNumber, _columnNumber];
             if (original.Comment != value)
             {
-                var modified = original;
+                XlsxMiscSliceContent modified = original;
                 modified.Comment = value;
                 _cellsCollection.MiscSlice.Set(_rowNumber, _columnNumber, in modified);
             }
         }
     }
 
-    internal UInt32? CellMetaIndex
+    internal uint? CellMetaIndex
     {
         get => _cellsCollection.MiscSlice[_rowNumber, _columnNumber].CellMetaIndex;
         set
         {
-            ref readonly var original = ref _cellsCollection.MiscSlice[_rowNumber, _columnNumber];
+            ref readonly XlsxMiscSliceContent original = ref _cellsCollection.MiscSlice[_rowNumber, _columnNumber];
             if (original.CellMetaIndex != value)
             {
-                var modified = original;
+                XlsxMiscSliceContent modified = original;
                 modified.CellMetaIndex = value;
                 _cellsCollection.MiscSlice.Set(_rowNumber, _columnNumber, in modified);
             }
         }
     }
 
-    internal UInt32? ValueMetaIndex
+    internal uint? ValueMetaIndex
     {
         get => _cellsCollection.MiscSlice[_rowNumber, _columnNumber].ValueMetaIndex;
         set
         {
-            ref readonly var original = ref _cellsCollection.MiscSlice[_rowNumber, _columnNumber];
+            ref readonly XlsxMiscSliceContent original = ref _cellsCollection.MiscSlice[_rowNumber, _columnNumber];
             if (original.ValueMetaIndex != value)
             {
-                var modified = original;
+                XlsxMiscSliceContent modified = original;
                 modified.ValueMetaIndex = value;
                 _cellsCollection.MiscSlice.Set(_rowNumber, _columnNumber, in modified);
             }
@@ -222,10 +200,10 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
     public XlsxRichText GetRichText()
     {
-        var sliceRichText = SliceRichText;
+        XlsxImmutableRichText sliceRichText = SliceRichText;
         if (sliceRichText is not null)
         {
-            var cellFormat = GetFormat();
+            XlsxCellFormatValue cellFormat = GetFormat();
             return new XlsxRichText(this, cellFormat.Font, sliceRichText);
         }
 
@@ -234,10 +212,10 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
     public XlsxRichText CreateRichText()
     {
-        var fontFormat = GetFormat().Font;
+        XlsxFontFormatValue fontFormat = GetFormat().Font;
 
         // Don't include rich text string with 0 length to a new rich text
-        var richText = DataType == XlsxDataType.Blank
+        XlsxRichText richText = DataType == XlsxDataType.Blank
             ? new XlsxRichText(this, fontFormat)
             : new XlsxRichText(this, fontFormat, GetFormattedString());
         SliceRichText = XlsxImmutableRichText.Create(richText);
@@ -274,7 +252,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
         // Mimic Excel behavior: When a value is set to a a certain types (e.g. timespan or
         // a date), the format of a cell is changed.
-        var valueRequiredFormat = Worksheet.GetStyleForValue(value, Point);
+        XlsxCellFormatValue valueRequiredFormat = Worksheet.GetStyleForValue(value, Point);
         if (valueRequiredFormat is not null)
             FormatValue = valueRequiredFormat;
 
@@ -284,7 +262,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             var text = value.GetText();
             if (text.Length > 0 && text[0] == '\'')
             {
-                value = text.Substring(1);
+                value = text[1..];
             }
         }
 
@@ -295,16 +273,16 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         if (setTableHeader)
         {
             var cellRange = new Area(Point, Point);
-            foreach (var table in Worksheet.Tables)
+            foreach (XlsxTable table in Worksheet.Tables)
                 table.RefreshFieldsFromCells(cellRange);
         }
 
         return this;
     }
 
-    public Boolean GetBoolean() => Value.GetBoolean();
+    public bool GetBoolean() => Value.GetBoolean();
 
-    public Double GetDouble() => Value.GetNumber();
+    public double GetDouble() => Value.GetNumber();
 
     public string GetText() => Value.GetText();
 
@@ -314,7 +292,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
     public TimeSpan GetTimeSpan() => Value.GetTimeSpan();
 
-    public Boolean TryGetValue<T>(out T value)
+    public bool TryGetValue<T>(out T value)
     {
         XlsxCellValue currentValue;
         try
@@ -328,7 +306,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             return false;
         }
 
-        var targetType = typeof(T);
+        Type targetType = typeof(T);
         var isNullable = targetType.IsNullableType();
         if (isNullable && currentValue.TryConvert(out Blank _))
         {
@@ -338,21 +316,21 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
         // JIT compiles a separate version for each T value type and one for all reference types
         // Optimization then removes the double casting for value types.
-        var underlyingType = targetType.GetUnderlyingType();
+        Type underlyingType = targetType.GetUnderlyingType();
         if (underlyingType == typeof(DateTime) && currentValue.TryConvert(out DateTime dateTime))
         {
             value = (T)(object)dateTime;
             return true;
         }
 
-        var culture = CultureInfo.CurrentCulture;
+        CultureInfo culture = CultureInfo.CurrentCulture;
         if (underlyingType == typeof(TimeSpan) && currentValue.TryConvert(out TimeSpan timeSpan, culture))
         {
             value = (T)(object)timeSpan;
             return true;
         }
 
-        if (underlyingType == typeof(Boolean) && currentValue.TryConvert(out Boolean boolean))
+        if (underlyingType == typeof(bool) && currentValue.TryConvert(out bool boolean))
         {
             value = (T)(object)boolean;
             return true;
@@ -384,22 +362,22 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             return false;
         }
 
-        var typeCode = Type.GetTypeCode(underlyingType);
+        TypeCode typeCode = Type.GetTypeCode(underlyingType);
 
         // T is a floating point numbers
         if (typeCode >= TypeCode.Single && typeCode <= TypeCode.Decimal)
         {
-            if (!currentValue.TryConvert(out Double doubleValue, culture))
+            if (!currentValue.TryConvert(out double doubleValue, culture))
                 return false;
 
-            if (typeCode == TypeCode.Single && doubleValue is < Single.MinValue or > Single.MaxValue)
+            if (typeCode == TypeCode.Single && doubleValue is < float.MinValue or > float.MaxValue)
                 return false;
 
             value = typeCode switch
             {
-                TypeCode.Single => (T)(object)(Single)doubleValue,
+                TypeCode.Single => (T)(object)(float)doubleValue,
                 TypeCode.Double => (T)(object)doubleValue,
-                TypeCode.Decimal => (T)(object)(Decimal)doubleValue,
+                TypeCode.Decimal => (T)(object)(decimal)doubleValue,
                 _ => throw new NotSupportedException()
             };
             return true;
@@ -408,7 +386,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         // T is an integer
         if (typeCode >= TypeCode.SByte && typeCode <= TypeCode.UInt64)
         {
-            if (!currentValue.TryConvert(out Double doubleValue, culture))
+            if (!currentValue.TryConvert(out double doubleValue, culture))
                 return false;
 
             if (!doubleValue.Equals(Math.Truncate(doubleValue)))
@@ -416,14 +394,14 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
             var valueIsWithinBounds = typeCode switch
             {
-                TypeCode.SByte => doubleValue >= SByte.MinValue && doubleValue <= SByte.MaxValue,
-                TypeCode.Byte => doubleValue >= Byte.MinValue && doubleValue <= Byte.MaxValue,
-                TypeCode.Int16 => doubleValue >= Int16.MinValue && doubleValue <= Int16.MaxValue,
-                TypeCode.UInt16 => doubleValue >= UInt16.MinValue && doubleValue <= UInt16.MaxValue,
-                TypeCode.Int32 => doubleValue >= Int32.MinValue && doubleValue <= Int32.MaxValue,
-                TypeCode.UInt32 => doubleValue >= UInt32.MinValue && doubleValue <= UInt32.MaxValue,
-                TypeCode.Int64 => doubleValue >= Int64.MinValue && doubleValue <= Int64.MaxValue,
-                TypeCode.UInt64 => doubleValue >= UInt64.MinValue && doubleValue <= UInt64.MaxValue,
+                TypeCode.SByte => doubleValue >= sbyte.MinValue && doubleValue <= sbyte.MaxValue,
+                TypeCode.Byte => doubleValue >= byte.MinValue && doubleValue <= byte.MaxValue,
+                TypeCode.Int16 => doubleValue >= short.MinValue && doubleValue <= short.MaxValue,
+                TypeCode.UInt16 => doubleValue >= ushort.MinValue && doubleValue <= ushort.MaxValue,
+                TypeCode.Int32 => doubleValue >= int.MinValue && doubleValue <= int.MaxValue,
+                TypeCode.UInt32 => doubleValue >= uint.MinValue && doubleValue <= uint.MaxValue,
+                TypeCode.Int64 => doubleValue >= long.MinValue && doubleValue <= long.MaxValue,
+                TypeCode.UInt64 => doubleValue >= ulong.MinValue && doubleValue <= ulong.MaxValue,
                 _ => throw new NotSupportedException()
             };
             if (!valueIsWithinBounds)
@@ -431,14 +409,14 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
             value = typeCode switch
             {
-                TypeCode.SByte => (T)(object)(SByte)doubleValue,
-                TypeCode.Byte => (T)(object)(Byte)doubleValue,
-                TypeCode.Int16 => (T)(object)(Int16)doubleValue,
-                TypeCode.UInt16 => (T)(object)(UInt16)doubleValue,
-                TypeCode.Int32 => (T)(object)(Int32)doubleValue,
-                TypeCode.UInt32 => (T)(object)(UInt32)doubleValue,
-                TypeCode.Int64 => (T)(object)(Int64)doubleValue,
-                TypeCode.UInt64 => (T)(object)(UInt64)doubleValue,
+                TypeCode.SByte => (T)(object)(sbyte)doubleValue,
+                TypeCode.Byte => (T)(object)(byte)doubleValue,
+                TypeCode.Int16 => (T)(object)(short)doubleValue,
+                TypeCode.UInt16 => (T)(object)(ushort)doubleValue,
+                TypeCode.Int32 => (T)(object)(int)doubleValue,
+                TypeCode.UInt32 => (T)(object)(uint)doubleValue,
+                TypeCode.Int64 => (T)(object)(long)doubleValue,
+                TypeCode.UInt64 => (T)(object)(ulong)doubleValue,
                 _ => throw new NotSupportedException()
             };
             return true;
@@ -449,10 +427,10 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
     private static bool TryGetStringValue<T>(out T value, XlsxCellValue currentValue)
     {
-        if (typeof(T) == typeof(String))
+        if (typeof(T) == typeof(string))
         {
             var s = currentValue.ToString(CultureInfo.CurrentCulture);
-            var matches = utfPattern.Matches(s);
+            MatchCollection matches = utfPattern.Matches(s);
 
             if (matches.Count == 0)
             {
@@ -463,11 +441,11 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             var sb = new StringBuilder();
             var lastIndex = 0;
 
-            foreach (var match in matches.Cast<Match>())
+            foreach (Match match in matches.Cast<Match>())
             {
                 var matchString = match.Value;
                 var matchIndex = match.Index;
-                sb.Append(s.Substring(lastIndex, matchIndex - lastIndex));
+                sb.Append(s[lastIndex..matchIndex]);
 
                 sb.Append((char)int.Parse(match.Groups[1].Value, NumberStyles.AllowHexSpecifier));
 
@@ -475,7 +453,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             }
 
             if (lastIndex < s.Length)
-                sb.Append(s.Substring(lastIndex));
+                sb.Append(s[lastIndex..]);
 
             value = (T)Convert.ChangeType(sb.ToString(), typeof(T));
             return true;
@@ -492,7 +470,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         throw new InvalidCastException($"Cannot convert {Address.ToStringRelative(true)}'s value to " + typeof(T));
     }
 
-    public String GetString() => Value.ToString(CultureInfo.CurrentCulture);
+    public string GetString() => Value.ToString(CultureInfo.CurrentCulture);
 
     public string GetFormattedString(CultureInfo culture = null)
     {
@@ -514,7 +492,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
     internal string GetFormattedString(XlsxCellValue value, CultureInfo culture = null)
     {
         culture ??= CultureInfo.CurrentCulture;
-        var numberFormat = GetFormat().NumberFormat;
+        XlsxNumberFormat numberFormat = GetFormat().NumberFormat;
         return value.IsUnifiedNumber
             ? value.GetUnifiedNumber().ToExcelFormat(numberFormat, culture)
             : value.ToString(culture);
@@ -537,7 +515,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
     /// </summary>
     /// <param name="force">Flag indicating whether a recalculation must be performed even is cell does not need it.</param>
     /// <returns>Null if cell does not contain a formula. Calculated value otherwise.</returns>
-    public void Evaluate(Boolean force)
+    public void Evaluate(bool force)
     {
         if (Formula is null)
         {
@@ -551,7 +529,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         }
 
         // TODO: Only one cell, somehow
-        var wb = Worksheet.Workbook;
+        XlsxWorkbook wb = Worksheet.Workbook;
         wb.CalcEngine.Recalculate(wb, null);
     }
 
@@ -618,15 +596,15 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
     }
 
     [RequiresUnreferencedCode("Inserting data from an IEnumerable uses reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
-    public IXlsxTable InsertTable<T>(IEnumerable<T> data, String tableName, Boolean createTable)
+    public IXlsxTable InsertTable<T>(IEnumerable<T> data, string tableName, bool createTable)
     {
         return InsertTable(data, tableName, createTable, addHeadings: true, transpose: false);
     }
 
     [RequiresUnreferencedCode("Inserting data from an IEnumerable uses reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
-    public IXlsxTable InsertTable<T>(IEnumerable<T> data, String tableName, Boolean createTable, Boolean addHeadings, Boolean transpose)
+    public IXlsxTable InsertTable<T>(IEnumerable<T> data, string tableName, bool createTable, bool addHeadings, bool transpose)
     {
-        var reader = InsertDataReaderFactory.Instance.CreateReader(data);
+        IInsertDataReader reader = InsertDataReaderFactory.Instance.CreateReader(data);
         return Worksheet.InsertTable(Point, reader, tableName, createTable, addHeadings, transpose);
     }
 
@@ -635,17 +613,17 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         return InsertTable(data, null, true);
     }
 
-    public IXlsxTable InsertTable(DataTable data, Boolean createTable)
+    public IXlsxTable InsertTable(DataTable data, bool createTable)
     {
         return InsertTable(data, null, createTable);
     }
 
-    public IXlsxTable InsertTable(DataTable data, String tableName)
+    public IXlsxTable InsertTable(DataTable data, string tableName)
     {
         return InsertTable(data, tableName, true);
     }
 
-    public IXlsxTable InsertTable(DataTable data, String tableName, Boolean createTable)
+    public IXlsxTable InsertTable(DataTable data, string tableName, bool createTable)
     {
         if (data == null || data.Columns.Count == 0)
             return null;
@@ -656,13 +634,13 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         if (createTable && this.Worksheet.Tables.Any<XlsxTable>(t => t.Contains(this)))
             throw new InvalidOperationException($"This cell '{this.Address}' is already part of a table.");
 
-        var reader = InsertDataReaderFactory.Instance.CreateReader(data);
+        IInsertDataReader reader = InsertDataReaderFactory.Instance.CreateReader(data);
         return Worksheet.InsertTable(Point, reader, tableName, createTable, addHeadings: true, transpose: false);
     }
 
     public XlsxTableCellType TableCellType()
     {
-        var table = this.Worksheet.Tables.FirstOrDefault<XlsxTable>(t => t.AsRange().Contains(this));
+        XlsxTable table = this.Worksheet.Tables.FirstOrDefault<XlsxTable>(t => t.AsRange().Contains(this));
         if (table == null) return XlsxTableCellType.None;
 
         if (table.ShowHeaderRow && table.HeadersRow().RowNumber().Equals(this._rowNumber)) return XlsxTableCellType.Header;
@@ -674,19 +652,19 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
     [RequiresUnreferencedCode("Inserting data from an IEnumerable uses reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
     public IXlsxRange InsertData(IEnumerable data)
     {
-        if (data == null || data is String)
+        if (data == null || data is string)
             return null;
 
         return InsertData(data, transpose: false);
     }
 
     [RequiresUnreferencedCode("Inserting data from an IEnumerable uses reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
-    public IXlsxRange InsertData(IEnumerable data, Boolean transpose)
+    public IXlsxRange InsertData(IEnumerable data, bool transpose)
     {
-        if (data == null || data is String)
+        if (data == null || data is string)
             return null;
 
-        var reader = InsertDataReaderFactory.Instance.CreateReader(data);
+        IInsertDataReader reader = InsertDataReaderFactory.Instance.CreateReader(data);
         return Worksheet.InsertData(Point, reader, addHeadings: false, transpose: transpose);
     }
 
@@ -695,7 +673,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         if (dataTable == null)
             return null;
 
-        var reader = InsertDataReaderFactory.Instance.CreateReader(dataTable);
+        IInsertDataReader reader = InsertDataReaderFactory.Instance.CreateReader(dataTable);
         return Worksheet.InsertData(Point, reader, addHeadings: false, transpose: false);
     }
 
@@ -712,9 +690,8 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         //Checking if called from range to avoid stack overflow
         if (!calledFromRange && IsMerged())
         {
-            var firstOrDefault = Worksheet.Internals.MergedRanges.GetIntersectedRanges(Address).FirstOrDefault();
-            if (firstOrDefault != null)
-                firstOrDefault.Clear(clearOptions);
+            IXlsxRange firstOrDefault = Worksheet.Internals.MergedRanges.GetIntersectedRanges(Address).FirstOrDefault();
+            firstOrDefault?.Clear(clearOptions);
         }
         else
         {
@@ -722,7 +699,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             {
                 SetHyperlink(null);
                 SliceCellValue = Blank.Value;
-                FormulaA1 = String.Empty;
+                FormulaA1 = string.Empty;
             }
 
             if (clearOptions.HasFlag(XlsxClearOptions.NormalFormats))
@@ -743,7 +720,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
             if (clearOptions.HasFlag(XlsxClearOptions.DataValidation) && HasDataValidation)
             {
-                var validation = CreateDataValidation();
+                XlsxDataValidation validation = CreateDataValidation();
                 Worksheet.DataValidations.Delete(validation);
             }
 
@@ -763,7 +740,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
     public string FormulaA1
     {
-        get => Formula?.A1 ?? String.Empty;
+        get => Formula?.A1 ?? string.Empty;
 
         set
         {
@@ -771,7 +748,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
                 return;
 
             var formula = value?.TrimFormulaEqual();
-            if (!String.IsNullOrWhiteSpace(formula))
+            if (!string.IsNullOrWhiteSpace(formula))
             {
                 var fixedFunctionsFormula = FormulaTransformation.FixFutureFunctions(formula, Worksheet.Name, Point);
                 Formula = XlsxCellFormula.NormalA1(fixedFunctionsFormula);
@@ -787,7 +764,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
     public string FormulaR1C1
     {
-        get => Formula?.GetFormulaR1C1(Point) ?? String.Empty;
+        get => Formula?.GetFormulaR1C1(Point) ?? string.Empty;
 
         set
         {
@@ -795,7 +772,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
                 return;
 
             var formula = value?.TrimFormulaEqual();
-            if (!String.IsNullOrWhiteSpace(formula))
+            if (!string.IsNullOrWhiteSpace(formula))
             {
                 var formulaA1 = FormulaConverter.ToA1(formula, _rowNumber, _columnNumber);
                 var fixedFunctionsFormulaA1 = FormulaTransformation.FixFutureFunctions(formulaA1, Worksheet.Name, Point);
@@ -812,7 +789,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
     public XlsxHyperlink GetHyperlink()
     {
-        if (Worksheet.Hyperlinks.TryGet(Point, out var hyperlink))
+        if (Worksheet.Hyperlinks.TryGet(Point, out XlsxHyperlink hyperlink))
             return hyperlink;
 
         return CreateHyperlink();
@@ -826,8 +803,8 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         if (hyperlink is null)
             return;
 
-        var cellFormat = GetFormat();
-        var sheetFormat = Worksheet.GetFormat();
+        XlsxCellFormatValue cellFormat = GetFormat();
+        XlsxCellFormatValue sheetFormat = Worksheet.GetFormat();
         if (ReferenceEquals(cellFormat, sheetFormat))
         {
             FormatValue = Styles.GetModifiedFormat(cellFormat, font => font with
@@ -914,7 +891,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         return CreateComment(shapeId: null);
     }
 
-    public Boolean IsMerged()
+    public bool IsMerged()
     {
         return Worksheet.Internals.MergedRanges.Contains(this);
     }
@@ -928,12 +905,12 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             .FirstOrDefault();
     }
 
-    public Boolean IsEmpty()
+    public bool IsEmpty()
     {
         return IsEmpty(XlsxCellsUsedOptions.AllContents);
     }
 
-    public Boolean IsEmpty(XlsxCellsUsedOptions options)
+    public bool IsEmpty(XlsxCellsUsedOptions options)
     {
         var isValueEmpty = SliceCellValue.Type switch
         {
@@ -949,7 +926,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         {
             if (FormatValue is { } cellFormat)
             {
-                var inheritedFormat = Worksheet.GetInheritedFormat(Point);
+                XlsxCellFormatValue inheritedFormat = Worksheet.GetInheritedFormat(Point);
                 if (!XlsxCellFormatValue.AreSame(cellFormat, inheritedFormat))
                     return false;
             }
@@ -990,7 +967,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         return target;
     }
 
-    public IXlsxCell CopyTo(String target)
+    public IXlsxCell CopyTo(string target)
     {
         return CopyTo(GetTargetCell(target, Worksheet));
     }
@@ -1000,24 +977,24 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         return CopyFrom(otherCell as XlsxCell, XlsxCellCopyOptions.All);
     }
 
-    public IXlsxCell CopyFrom(String otherCell)
+    public IXlsxCell CopyFrom(string otherCell)
     {
         return CopyFrom(GetTargetCell(otherCell, Worksheet));
     }
 
-    public IXlsxCell SetFormulaA1(String formula)
+    public IXlsxCell SetFormulaA1(string formula)
     {
         FormulaA1 = formula;
         return this;
     }
 
-    public IXlsxCell SetFormulaR1C1(String formula)
+    public IXlsxCell SetFormulaR1C1(string formula)
     {
         FormulaR1C1 = formula;
         return this;
     }
 
-    public Boolean HasSparkline => Sparkline != null;
+    public bool HasSparkline => Sparkline != null;
 
     /// <summary> The sparkline assigned to the cell </summary>
     public IXlsxSparkline Sparkline => Worksheet.SparklineGroups.GetSparkline(this);
@@ -1027,7 +1004,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         return FindDataValidation() ?? CreateDataValidation();
     }
 
-    public Boolean HasDataValidation
+    public bool HasDataValidation
     {
         get { return FindDataValidation() != null; }
     }
@@ -1038,7 +1015,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
     /// <returns>The data validation rule applying to the current cell or null if there is no such rule.</returns>
     private IXlsxDataValidation FindDataValidation()
     {
-        Worksheet.DataValidations.TryGet(new XlsxRangeAddress(Address, Address), out var dataValidation);
+        Worksheet.DataValidations.TryGet(new XlsxRangeAddress(Address, Address), out IXlsxDataValidation dataValidation);
         return dataValidation;
     }
 
@@ -1059,7 +1036,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         return AsRange().AddConditionalFormat();
     }
 
-    public Boolean Active
+    public bool Active
     {
         get => Worksheet.ActiveCell == Point;
         set
@@ -1071,24 +1048,24 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         }
     }
 
-    public IXlsxCell SetActive(Boolean value = true)
+    public IXlsxCell SetActive(bool value = true)
     {
         Active = value;
         return this;
     }
 
-    public Boolean HasHyperlink => Worksheet.Hyperlinks.HasHyperlink(Point);
+    public bool HasHyperlink => Worksheet.Hyperlinks.HasHyperlink(Point);
 
     /// <inheritdoc />
-    public Boolean ShowPhonetic
+    public bool ShowPhonetic
     {
         get => _cellsCollection.MiscSlice[_rowNumber, _columnNumber].HasPhonetic;
         set
         {
-            ref readonly var original = ref _cellsCollection.MiscSlice[_rowNumber, _columnNumber];
+            ref readonly XlsxMiscSliceContent original = ref _cellsCollection.MiscSlice[_rowNumber, _columnNumber];
             if (original.HasPhonetic != value)
             {
-                var modified = original;
+                XlsxMiscSliceContent modified = original;
                 modified.HasPhonetic = value;
                 _cellsCollection.MiscSlice.Set(_rowNumber, _columnNumber, in modified);
             }
@@ -1134,8 +1111,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
     public IXlsxCell CopyFrom(IXlsxRangeBase rangeObject)
     {
-        if (rangeObject is null)
-            throw new ArgumentNullException(nameof(rangeObject));
+        ArgumentNullException.ThrowIfNull(rangeObject);
 
         var asRange = (XlsxRangeBase)rangeObject;
         var maxRows = asRange.RowCount();
@@ -1144,7 +1120,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         var lastRow = Math.Min(_rowNumber + maxRows - 1, XlsxHelper.MaxRowNumber);
         var lastColumn = Math.Min(_columnNumber + maxColumns - 1, XlsxHelper.MaxColumnNumber);
 
-        var targetRange = Worksheet.Range(_rowNumber, _columnNumber, lastRow, lastColumn);
+        XlsxRange targetRange = Worksheet.Range(_rowNumber, _columnNumber, lastRow, lastColumn);
 
         if (!(asRange is XlsxRow || asRange is XlsxColumn))
         {
@@ -1153,11 +1129,11 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
         var minRow = asRange.RangeAddress.FirstAddress.RowNumber;
         var minColumn = asRange.RangeAddress.FirstAddress.ColumnNumber;
-        var cellsUsed = asRange.CellsUsed(XlsxCellsUsedOptions.All
+        IXlsxCells cellsUsed = asRange.CellsUsed(XlsxCellsUsedOptions.All
                                           & ~XlsxCellsUsedOptions.ConditionalFormats
                                           & ~XlsxCellsUsedOptions.DataValidation
                                           & ~XlsxCellsUsedOptions.MergedRanges);
-        foreach (var sourceCell in cellsUsed)
+        foreach (IXlsxCell sourceCell in cellsUsed)
         {
             Worksheet.Cell(
                 _rowNumber + sourceCell.Address.RowNumber - minRow,
@@ -1190,13 +1166,13 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             .GetAllInRange(asRange.RangeAddress)
             .ToList();
 
-        foreach (var dataValidation in dataValidations)
+        foreach (IXlsxDataValidation dataValidation in dataValidations)
         {
             XlsxDataValidation newDataValidation = null;
-            foreach (var dvRange in dataValidation.Ranges.Where(r => r.Intersects(asRange)))
+            foreach (IXlsxRange dvRange in dataValidation.Ranges.Where(r => r.Intersects(asRange)))
             {
-                var dvTargetAddress = dvRange.RangeAddress.Relative(asRange.RangeAddress, targetRange.RangeAddress);
-                var dvTargetRange = Worksheet.Range(dvTargetAddress);
+                IXlsxRangeAddress dvTargetAddress = dvRange.RangeAddress.Relative(asRange.RangeAddress, targetRange.RangeAddress);
+                XlsxRange dvTargetRange = Worksheet.Range(dvTargetAddress);
                 if (newDataValidation == null)
                 {
                     newDataValidation = dvTargetRange.CreateDataValidation();
@@ -1213,7 +1189,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
     private void ClearMerged()
     {
-        List<IXlsxRange> mergeToDelete = Worksheet.Internals.MergedRanges.GetIntersectedRanges(Address).ToList();
+        List<IXlsxRange> mergeToDelete = [.. Worksheet.Internals.MergedRanges.GetIntersectedRanges(Address)];
 
         mergeToDelete.ForEach(m => Worksheet.Internals.MergedRanges.Remove(m));
     }
@@ -1231,7 +1207,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
     internal void CopyValuesFrom(XlsxCell source)
     {
         // Rich text is basically a super set of a value. Setting a value would override rich text and vice versa.
-        var sourceRichText = source.SliceRichText;
+        XlsxImmutableRichText sourceRichText = source.SliceRichText;
         if (sourceRichText is null)
             SliceCellValue = source.SliceCellValue;
         else
@@ -1240,21 +1216,21 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         FormulaR1C1 = source.FormulaR1C1;
         SliceComment = source.SliceComment == null ? null : XlsxComment.CreateAsCopy(this, source, source.SliceComment);
 
-        if (source.Worksheet.Hyperlinks.TryGet(source.Point, out var sourceHyperlink))
+        if (source.Worksheet.Hyperlinks.TryGet(source.Point, out XlsxHyperlink sourceHyperlink))
         {
             SetCellHyperlink(new XlsxHyperlink(sourceHyperlink));
         }
     }
 
-    private IXlsxCell GetTargetCell(String target, XlsxWorksheet defaultWorksheet)
+    private IXlsxCell GetTargetCell(string target, XlsxWorksheet defaultWorksheet)
     {
         var pair = target.Split('!');
         if (pair.Length == 1)
             return defaultWorksheet.Cell(target);
 
         var wsName = pair[0];
-        if (wsName.StartsWith("'"))
-            wsName = wsName.Substring(1, wsName.Length - 2);
+        if (wsName.StartsWith('\''))
+            wsName = wsName[1..^1];
         return defaultWorksheet.Workbook.Worksheet(wsName).Cell(pair[1]);
     }
 
@@ -1285,10 +1261,10 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
         var sourceDataAddress = otherCell.Sparkline.SourceData.RangeAddress.ToString();
         var shiftedRangeAddress = GetFormulaA1(otherCell.GetFormulaR1C1(sourceDataAddress));
-        var sourceDataWorksheet = otherCell.Worksheet == otherCell.Sparkline.SourceData.Worksheet
+        XlsxWorksheet sourceDataWorksheet = otherCell.Worksheet == otherCell.Sparkline.SourceData.Worksheet
             ? Worksheet
             : (XlsxWorksheet)otherCell.Sparkline.SourceData.Worksheet;
-        var sourceData = sourceDataWorksheet.Range(shiftedRangeAddress);
+        XlsxRange sourceData = sourceDataWorksheet.Range(shiftedRangeAddress);
 
         IXlsxSparklineGroup group;
         if (otherCell.Worksheet == Worksheet)
@@ -1300,7 +1276,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             group = Worksheet.SparklineGroups.Add(new XlsxSparklineGroup(Worksheet, otherCell.Sparkline.SparklineGroup));
             if (otherCell.Sparkline.SparklineGroup.DateRange != null)
             {
-                var dateRangeWorksheet =
+                IXlsxWorksheet dateRangeWorksheet =
                     otherCell.Worksheet == otherCell.Sparkline.SparklineGroup.DateRange.Worksheet
                         ? Worksheet
                         : otherCell.Sparkline.SparklineGroup.DateRange.Worksheet;
@@ -1345,45 +1321,45 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         FormulaA1 = ShiftFormulaRows(FormulaA1, Worksheet, shiftedRange, rowsShifted);
     }
 
-    internal static String ShiftFormulaRows(String formulaA1, XlsxWorksheet worksheetInAction, XlsxRange shiftedRange,
+    internal static string ShiftFormulaRows(string formulaA1, XlsxWorksheet worksheetInAction, XlsxRange shiftedRange,
                                             int rowsShifted)
     {
-        if (String.IsNullOrWhiteSpace(formulaA1)) return String.Empty;
+        if (string.IsNullOrWhiteSpace(formulaA1)) return string.Empty;
 
         var value = formulaA1;
 
-        var regex = A1SimpleRegex;
+        Regex regex = A1SimpleRegex;
 
         var sb = new StringBuilder();
         var lastIndex = 0;
 
         var shiftedWsName = shiftedRange.Worksheet.Name;
-        foreach (var match in regex.Matches(value).Cast<Match>())
+        foreach (Match match in regex.Matches(value).Cast<Match>())
         {
             var matchString = match.Value;
             var matchIndex = match.Index;
             if (value.AsSpan(0, matchIndex).Count('"') % 2 == 0)
             {
                 // Check that the match is not between quotes
-                sb.Append(value.Substring(lastIndex, matchIndex - lastIndex));
+                sb.Append(value[lastIndex..matchIndex]);
                 string sheetName;
                 var useSheetName = false;
                 if (matchString.Contains('!'))
                 {
-                    sheetName = matchString.Substring(0, matchString.IndexOf('!'));
+                    sheetName = matchString[..matchString.IndexOf('!')];
                     if (sheetName[0] == '\'')
-                        sheetName = sheetName.Substring(1, sheetName.Length - 2);
+                        sheetName = sheetName[1..^1];
                     useSheetName = true;
                 }
                 else
                     sheetName = worksheetInAction.Name;
 
-                if (String.Compare(sheetName, shiftedWsName, true) == 0)
+                if (string.Compare(sheetName, shiftedWsName, true) == 0)
                 {
-                    var rangeAddress = matchString.Substring(matchString.IndexOf('!') + 1);
+                    var rangeAddress = matchString[(matchString.IndexOf('!') + 1)..];
                     if (!A1ColumnRegex.IsMatch(rangeAddress))
                     {
-                        var matchRange = worksheetInAction.Workbook.Worksheet(sheetName).Range(rangeAddress);
+                        IXlsxRange matchRange = worksheetInAction.Workbook.Worksheet(sheetName).Range(rangeAddress);
                         if (shiftedRange.RangeAddress.FirstAddress.RowNumber <= matchRange.RangeAddress.LastAddress.RowNumber
                             && shiftedRange.RangeAddress.FirstAddress.ColumnNumber <= matchRange.RangeAddress.FirstAddress.ColumnNumber
                             && shiftedRange.RangeAddress.LastAddress.ColumnNumber >= matchRange.RangeAddress.LastAddress.ColumnNumber)
@@ -1403,19 +1379,19 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
                                 if (row1String[0] == '$')
                                 {
                                     row1 = "$" +
-                                            (XlsxHelper.TrimRowNumber(Int32.Parse(row1String.Substring(1)) + rowsShifted)).ToInvariantString();
+                                            (XlsxHelper.TrimRowNumber(int.Parse(row1String[1..]) + rowsShifted)).ToInvariantString();
                                 }
                                 else
-                                    row1 = (XlsxHelper.TrimRowNumber(Int32.Parse(row1String) + rowsShifted)).ToInvariantString();
+                                    row1 = (XlsxHelper.TrimRowNumber(int.Parse(row1String) + rowsShifted)).ToInvariantString();
 
                                 string row2;
                                 if (row2String[0] == '$')
                                 {
                                     row2 = "$" +
-                                            (XlsxHelper.TrimRowNumber(Int32.Parse(row2String.Substring(1)) + rowsShifted)).ToInvariantString();
+                                            (XlsxHelper.TrimRowNumber(int.Parse(row2String[1..]) + rowsShifted)).ToInvariantString();
                                 }
                                 else
-                                    row2 = (XlsxHelper.TrimRowNumber(Int32.Parse(row2String) + rowsShifted)).ToInvariantString();
+                                    row2 = (XlsxHelper.TrimRowNumber(int.Parse(row2String) + rowsShifted)).ToInvariantString();
 
                                 sb.Append(row1);
                                 sb.Append(':');
@@ -1476,13 +1452,13 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
                     sb.Append(matchString);
             }
             else
-                sb.Append(value.Substring(lastIndex, matchIndex - lastIndex + matchString.Length));
+                sb.Append(value.AsSpan(lastIndex, matchIndex - lastIndex + matchString.Length));
 
             lastIndex = matchIndex + matchString.Length;
         }
 
         if (lastIndex < value.Length)
-            sb.Append(value.Substring(lastIndex));
+            sb.Append(value[lastIndex..]);
 
         return sb.ToString();
     }
@@ -1492,44 +1468,44 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         FormulaA1 = ShiftFormulaColumns(FormulaA1, Worksheet, shiftedRange, columnsShifted);
     }
 
-    internal static String ShiftFormulaColumns(String formulaA1, XlsxWorksheet worksheetInAction, XlsxRange shiftedRange,
+    internal static string ShiftFormulaColumns(string formulaA1, XlsxWorksheet worksheetInAction, XlsxRange shiftedRange,
                                                int columnsShifted)
     {
-        if (String.IsNullOrWhiteSpace(formulaA1)) return String.Empty;
+        if (string.IsNullOrWhiteSpace(formulaA1)) return string.Empty;
 
         var value = formulaA1;
 
-        var regex = A1SimpleRegex;
+        Regex regex = A1SimpleRegex;
 
         var sb = new StringBuilder();
         var lastIndex = 0;
 
-        foreach (var match in regex.Matches(value).Cast<Match>())
+        foreach (Match match in regex.Matches(value).Cast<Match>())
         {
             var matchString = match.Value;
             var matchIndex = match.Index;
             if (value.AsSpan(0, matchIndex).Count('"') % 2 == 0)
             {
                 // Check that the match is not between quotes
-                sb.Append(value.Substring(lastIndex, matchIndex - lastIndex));
+                sb.Append(value[lastIndex..matchIndex]);
                 string sheetName;
                 var useSheetName = false;
                 if (matchString.Contains('!'))
                 {
-                    sheetName = matchString.Substring(0, matchString.IndexOf('!'));
+                    sheetName = matchString[..matchString.IndexOf('!')];
                     if (sheetName[0] == '\'')
-                        sheetName = sheetName.Substring(1, sheetName.Length - 2);
+                        sheetName = sheetName[1..^1];
                     useSheetName = true;
                 }
                 else
                     sheetName = worksheetInAction.Name;
 
-                if (String.Compare(sheetName, shiftedRange.Worksheet.Name, true) == 0)
+                if (string.Compare(sheetName, shiftedRange.Worksheet.Name, true) == 0)
                 {
-                    var rangeAddress = matchString.Substring(matchString.IndexOf('!') + 1);
+                    var rangeAddress = matchString[(matchString.IndexOf('!') + 1)..];
                     if (!A1RowRegex.IsMatch(rangeAddress))
                     {
-                        var matchRange = worksheetInAction.Workbook.Worksheet(sheetName).Range(rangeAddress);
+                        IXlsxRange matchRange = worksheetInAction.Workbook.Worksheet(sheetName).Range(rangeAddress);
 
                         if (shiftedRange.RangeAddress.FirstAddress.ColumnNumber <=
                             matchRange.RangeAddress.LastAddress.ColumnNumber
@@ -1557,7 +1533,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
                                     column1 = "$" +
                                                 XlsxHelper.GetColumnLetterFromNumber(
                                                     XlsxHelper.GetColumnNumberFromLetter(
-                                                        column1String.Substring(1)) + columnsShifted, true);
+                                                        column1String[1..]) + columnsShifted, true);
                                 }
                                 else
                                 {
@@ -1573,7 +1549,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
                                     column2 = "$" +
                                                 XlsxHelper.GetColumnLetterFromNumber(
                                                     XlsxHelper.GetColumnNumberFromLetter(
-                                                        column2String.Substring(1)) + columnsShifted, true);
+                                                        column2String[1..]) + columnsShifted, true);
                                 }
                                 else
                                 {
@@ -1642,17 +1618,17 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
                     sb.Append(matchString);
             }
             else
-                sb.Append(value.Substring(lastIndex, matchIndex - lastIndex + matchString.Length));
+                sb.Append(value.AsSpan(lastIndex, matchIndex - lastIndex + matchString.Length));
             lastIndex = matchIndex + matchString.Length;
         }
 
         if (lastIndex < value.Length)
-            sb.Append(value.Substring(lastIndex));
+            sb.Append(value[lastIndex..]);
 
         return sb.ToString();
     }
 
-    private XlsxCell CellShift(Int32 rowsToShift, Int32 columnsToShift)
+    private XlsxCell CellShift(int rowsToShift, int columnsToShift)
     {
         return Worksheet.Cell(_rowNumber + rowsToShift, _columnNumber + columnsToShift);
     }
@@ -1664,7 +1640,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         return CellAbove();
     }
 
-    IXlsxCell IXlsxCell.CellAbove(Int32 step)
+    IXlsxCell IXlsxCell.CellAbove(int step)
     {
         return CellAbove(step);
     }
@@ -1674,7 +1650,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         return CellAbove(1);
     }
 
-    public XlsxCell CellAbove(Int32 step)
+    public XlsxCell CellAbove(int step)
     {
         return CellShift(step * -1, 0);
     }
@@ -1688,7 +1664,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         return CellBelow();
     }
 
-    IXlsxCell IXlsxCell.CellBelow(Int32 step)
+    IXlsxCell IXlsxCell.CellBelow(int step)
     {
         return CellBelow(step);
     }
@@ -1698,7 +1674,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         return CellBelow(1);
     }
 
-    public XlsxCell CellBelow(Int32 step)
+    public XlsxCell CellBelow(int step)
     {
         return CellShift(step, 0);
     }
@@ -1712,7 +1688,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         return CellLeft();
     }
 
-    IXlsxCell IXlsxCell.CellLeft(Int32 step)
+    IXlsxCell IXlsxCell.CellLeft(int step)
     {
         return CellLeft(step);
     }
@@ -1722,7 +1698,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         return CellLeft(1);
     }
 
-    public XlsxCell CellLeft(Int32 step)
+    public XlsxCell CellLeft(int step)
     {
         return CellShift(0, step * -1);
     }
@@ -1736,7 +1712,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         return CellRight();
     }
 
-    IXlsxCell IXlsxCell.CellRight(Int32 step)
+    IXlsxCell IXlsxCell.CellRight(int step)
     {
         return CellRight(step);
     }
@@ -1746,16 +1722,16 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         return CellRight(1);
     }
 
-    public XlsxCell CellRight(Int32 step)
+    public XlsxCell CellRight(int step)
     {
         return CellShift(0, step);
     }
 
     #endregion XlsxCell Right
 
-    public Boolean HasFormula => Formula is not null;
+    public bool HasFormula => Formula is not null;
 
-    public Boolean HasArrayFormula => Formula?.Type == FormulaType.Array;
+    public bool HasArrayFormula => Formula?.Type == FormulaType.Array;
 
     public IXlsxRangeAddress FormulaReference
     {
@@ -1764,7 +1740,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             if (Formula is null)
                 return null;
 
-            var range = Formula.Range;
+            Area range = Formula.Range;
             if (range == default)
                 return null;
 
@@ -1792,7 +1768,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
     private IXlsxRangeAddress FindCurrentRegion()
     {
-        var sheet = Worksheet;
+        XlsxWorksheet sheet = Worksheet;
 
         var minRow = _rowNumber;
         var minCol = _columnNumber;
@@ -1847,7 +1823,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         {
             for (var row = borderMinRow; row <= borderMaxRow; row++)
             {
-                var verticalBorderCell = sheet.Cell(row, borderColumn);
+                XlsxCell verticalBorderCell = sheet.Cell(row, borderColumn);
                 if (!verticalBorderCell.IsEmpty(XlsxCellsUsedOptions.AllContents))
                 {
                     return false;
@@ -1861,7 +1837,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         {
             for (var col = borderMinColumn; col <= borderMaxColumn; col++)
             {
-                var horizontalBorderCell = sheet.Cell(borderRow, col);
+                XlsxCell horizontalBorderCell = sheet.Cell(borderRow, col);
                 if (!horizontalBorderCell.IsEmpty(XlsxCellsUsedOptions.AllContents))
                 {
                     return false;
@@ -1888,13 +1864,13 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
     /// <param name="output">List where items are added.</param>
     internal void GetGlyphBoxes(IXlsxGraphicEngine engine, Dpi dpi, List<GlyphBox> output)
     {
-        var richText = SliceRichText;
+        XlsxImmutableRichText richText = SliceRichText;
         if (richText is not null)
         {
-            foreach (var richTextRun in richText.Runs)
+            foreach (XlsxImmutableRichText.RichTextRun richTextRun in richText.Runs)
             {
                 var text = richText.GetRunText(richTextRun);
-                var font = richTextRun.Font.ToFontBase();
+                IXlsxFontBase font = richTextRun.Font.ToFontBase();
                 AddGlyphs(text, font, engine, dpi, output);
             }
         }
@@ -1906,10 +1882,10 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
         static void AddGlyphs(string text, IXlsxFontBase font, IXlsxGraphicEngine engine, Dpi dpi, List<GlyphBox> output)
         {
-            Span<int> zeroWidthJoiner = stackalloc int[1] { 0x200D };
+            Span<int> zeroWidthJoiner = [0x200D];
             var prevWasNewLine = false;
             var graphemeStarts = StringInfo.ParseCombiningCharacters(text);
-            var textSpan = text.AsSpan();
+            ReadOnlySpan<char> textSpan = text.AsSpan();
 
             // If we have more than 1 code unit per grapheme, the code units can
             // be distributed through multiple grapheme. In the worst case, all extra
@@ -1918,14 +1894,14 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             for (var i = 0; i < graphemeStarts.Length; ++i)
             {
                 var startIdx = graphemeStarts[i];
-                var slice = textSpan.Slice(startIdx);
+                ReadOnlySpan<char> slice = textSpan[startIdx..];
                 if (slice.TrySliceNewLine(out var eolLen))
                 {
                     i += eolLen - 1;
                     if (prevWasNewLine)
                     {
                         // If there are consecutive new lines, we need height of new the lines between them
-                        var box = engine.GetGlyphBox(zeroWidthJoiner, font, dpi);
+                        GlyphBox box = engine.GetGlyphBox(zeroWidthJoiner, font, dpi);
                         output.Add(box);
                     }
 
@@ -1934,12 +1910,12 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
                 }
                 else
                 {
-                    var codeUnits = i + 1 < graphemeStarts.Length
-                        ? textSpan.Slice(startIdx, graphemeStarts[i + 1] - startIdx)
-                        : textSpan.Slice(startIdx);
+                    ReadOnlySpan<char> codeUnits = i + 1 < graphemeStarts.Length
+                        ? textSpan[startIdx..graphemeStarts[i + 1]]
+                        : textSpan[startIdx..];
                     var count = codeUnits.ToCodePoints(codePointsBuffer);
-                    ReadOnlySpan<int> grapheme = codePointsBuffer.Slice(0, count);
-                    var box = engine.GetGlyphBox(grapheme, font, dpi);
+                    ReadOnlySpan<int> grapheme = codePointsBuffer[..count];
+                    GlyphBox box = engine.GetGlyphBox(grapheme, font, dpi);
                     output.Add(box);
                     prevWasNewLine = false;
                 }

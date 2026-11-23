@@ -59,7 +59,7 @@ internal static class OpcPartName
             return source;
 
         var firstSlash = path.IndexOf('/');
-        var firstSegment = firstSlash < 0 ? path.AsSpan() : path.AsSpan(0, firstSlash);
+        ReadOnlySpan<char> firstSegment = firstSlash < 0 ? path.AsSpan() : path.AsSpan(0, firstSlash);
         if (path.Length == 0 || path.EndsWith('/') || firstSegment.Contains(':'))
             throw new InvalidDataException($"Invalid internal OPC target '{target}'.");
 

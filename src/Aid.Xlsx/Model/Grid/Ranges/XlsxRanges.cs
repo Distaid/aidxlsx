@@ -10,14 +10,14 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Ranges;
 
-internal class XlsxRanges : IXlsxRanges, IEnumerable<XlsxRange>
+internal class XlsxRanges(XlsxWorkbook workbook) : IXlsxRanges, IEnumerable<XlsxRange>
 {
-    private readonly XlsxWorkbook _workbook;
+    private readonly XlsxWorkbook _workbook = workbook;
 
     /// <summary>
     /// Normally, XlsxRanges collection includes ranges from a single worksheet, but not necessarily.
     /// </summary>
-    private readonly Dictionary<IXlsxWorksheet, IXlsxRangeIndex<XlsxRange>> _indexes;
+    private readonly Dictionary<IXlsxWorksheet, IXlsxRangeIndex<XlsxRange>> _indexes = [];
     private IEnumerable<XlsxRange> Ranges => _indexes.Values.SelectMany(index => index.GetAll());
 
     private IXlsxRangeIndex<XlsxRange> GetRangeIndex(IXlsxWorksheet worksheet)
@@ -36,18 +36,12 @@ internal class XlsxRanges : IXlsxRanges, IEnumerable<XlsxRange>
     {
     }
 
-    public XlsxRanges(XlsxWorkbook workbook)
-    {
-        _workbook = workbook;
-        _indexes = new Dictionary<IXlsxWorksheet, IXlsxRangeIndex<XlsxRange>>();
-    }
-
     internal XlsxCellFormat Format
     {
         get
         {
-            var sheet = Ranges.FirstOrDefault()?.Worksheet;
-            var areas = Ranges.Select(x => SheetArea.From(x.RangeAddress)).ToArray();
+            XlsxWorksheet? sheet = Ranges.FirstOrDefault()?.Worksheet;
+            SheetArea[] areas = [.. Ranges.Select(x => SheetArea.From(x.RangeAddress))];
             return XlsxCellFormat.ForAreas(_workbook, areas, sheet);
         }
     }
@@ -104,7 +98,7 @@ internal class XlsxRanges : IXlsxRanges, IEnumerable<XlsxRange>
     /// row/column shifting events. Until ranges are unsubscribed they cannot be collected by GC.</param>
     public void RemoveAll(Predicate<IXlsxRange>? match = null, bool releaseEventHandlers = true)
     {
-        foreach (var index in _indexes.Values)
+        foreach (IXlsxRangeIndex<XlsxRange> index in _indexes.Values)
         {
             Count -= index.RemoveAll(match ?? (_ => true));
         }
@@ -131,12 +125,12 @@ internal class XlsxRanges : IXlsxRanges, IEnumerable<XlsxRange>
         return GetEnumerator();
     }
 
-    public Boolean Contains(IXlsxCell cell)
+    public bool Contains(IXlsxCell cell)
     {
         return GetIntersectedRanges((XlsxAddress)cell.Address).Any();
     }
 
-    public Boolean Contains(IXlsxRange range)
+    public bool Contains(IXlsxRange range)
     {
         return GetIntersectedRanges((XlsxRangeAddress)range.RangeAddress)
             .Any(r => r.Contains(range));
@@ -184,17 +178,17 @@ internal class XlsxRanges : IXlsxRanges, IEnumerable<XlsxRange>
         get { return Ranges.Select(range => range.GetDataValidation()).Where(dv => dv != null); }
     }
 
-    public IXlsxRanges AddToNamed(String rangeName)
+    public IXlsxRanges AddToNamed(string rangeName)
     {
         return AddToNamed(rangeName, XlsxScope.Workbook);
     }
 
-    public IXlsxRanges AddToNamed(String rangeName, XlsxScope scope)
+    public IXlsxRanges AddToNamed(string rangeName, XlsxScope scope)
     {
         return AddToNamed(rangeName, XlsxScope.Workbook, null);
     }
 
-    public IXlsxRanges AddToNamed(String rangeName, XlsxScope scope, String? comment)
+    public IXlsxRanges AddToNamed(string rangeName, XlsxScope scope, string? comment)
     {
         Ranges.ForEach(r => r.AddToNamed(rangeName, scope, comment));
         return this;
@@ -239,8 +233,8 @@ internal class XlsxRanges : IXlsxRanges, IEnumerable<XlsxRange>
 
     public override string ToString()
     {
-        String retVal = Ranges.Aggregate(String.Empty, (agg, r) => agg + (r.ToString() + ","));
-        if (retVal.Length > 0) retVal = retVal.Substring(0, retVal.Length - 1);
+        string retVal = Ranges.Aggregate(string.Empty, (agg, r) => agg + (r.ToString() + ","));
+        if (retVal.Length > 0) retVal = retVal[..^1];
         return retVal;
     }
 
@@ -265,9 +259,9 @@ internal class XlsxRanges : IXlsxRanges, IEnumerable<XlsxRange>
 
     public IXlsxDataValidation CreateDataValidation()
     {
-        var firstRange = Ranges.First();
-        var dataValidation = firstRange.Worksheet.DataValidations.Create(firstRange.SheetRange);
-        foreach (var range in Ranges.Skip(1))
+        XlsxRange firstRange = Ranges.First();
+        XlsxDataValidation dataValidation = firstRange.Worksheet.DataValidations.Create(firstRange.SheetRange);
+        foreach (XlsxRange? range in Ranges.Skip(1))
         {
             dataValidation.AddRange(range);
         }
@@ -283,7 +277,7 @@ internal class XlsxRanges : IXlsxRanges, IEnumerable<XlsxRange>
 
     public void Select()
     {
-        foreach (var range in this)
+        foreach (XlsxRange range in this)
             range.Select();
     }
 

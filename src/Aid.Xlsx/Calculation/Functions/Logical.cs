@@ -17,7 +17,7 @@ internal static class Logical
 
     private static AnyValue And(CalcContext ctx, Span<AnyValue> args)
     {
-        var aggResult = args.Aggregate(
+        OneOf<bool, XlsxError> aggResult = args.Aggregate(
             ctx,
             true,
             XlsxError.IncompatibleValue,
@@ -27,13 +27,13 @@ internal static class Logical
                 // Skip values that can't be converted, but aren't errors, like "text"
                 if (v.IsError)
                     return v.GetError();
-                if (!v.TryCoerceLogicalOrBlankOrNumberOrText(out var logical, out var _))
+                if (!v.TryCoerceLogicalOrBlankOrNumberOrText(out var logical, out XlsxError _))
                     return true;
                 return logical;
             },
             static v => v.IsLogical || v.IsNumber); // No text conversion for element of collection, blanks are ignored in references
 
-        if (!aggResult.TryPickT0(out var value, out var error))
+        if (!aggResult.TryPickT0(out var value, out XlsxError error))
             return error;
 
         return value;
@@ -46,7 +46,7 @@ internal static class Logical
 
     private static AnyValue If(ScalarValue condition, AnyValue valueIfTrue, AnyValue valueIfFalse)
     {
-        if (!condition.TryCoerceLogicalOrBlankOrNumberOrText(out var value, out var error))
+        if (!condition.TryCoerceLogicalOrBlankOrNumberOrText(out var value, out XlsxError error))
             return error;
 
         return value ? valueIfTrue : valueIfFalse;
@@ -60,14 +60,14 @@ internal static class Logical
         return alternative.ToAnyValue();
     }
 
-    private static AnyValue Not(Boolean value)
+    private static AnyValue Not(bool value)
     {
         return !value;
     }
 
     private static AnyValue Or(CalcContext ctx, Span<AnyValue> args)
     {
-        var aggResult = args.Aggregate(
+        OneOf<bool, XlsxError> aggResult = args.Aggregate(
             ctx,
             false,
             XlsxError.IncompatibleValue,
@@ -77,13 +77,13 @@ internal static class Logical
                 // Skip values that can't be converted, but aren't errors, like "text"
                 if (v.IsError)
                     return v.GetError();
-                if (!v.TryCoerceLogicalOrBlankOrNumberOrText(out var logical, out var _))
+                if (!v.TryCoerceLogicalOrBlankOrNumberOrText(out var logical, out XlsxError _))
                     return false;
                 return logical;
             },
             static v => v.IsLogical || v.IsNumber); // No text conversion for element of collection, blanks are ignored in references
 
-        if (!aggResult.TryPickT0(out var value, out var error))
+        if (!aggResult.TryPickT0(out var value, out XlsxError error))
             return error;
 
         return value;

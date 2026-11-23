@@ -10,13 +10,13 @@ public class SchemeTypeMap
     /// <summary>
     /// Simple type map. The key is an XML simple name, the value is info about how to work with it in the C# code.
     /// </summary>
-    private readonly Dictionary<string, SimpleTypeMapping> _simpleTypeMap = new();
+    private readonly Dictionary<string, SimpleTypeMapping> _simpleTypeMap = [];
 
     /// <summary>
     /// Map of XML complex type or element group name to C# type (as a text). If there isn't a record in the map,
     /// there is no mapping codegen will use <c>void</c>.
     /// </summary>
-    private readonly Dictionary<ParsletName, (string FinalType, string ItemType)> _parsletMap = new();
+    private readonly Dictionary<ParsletName, (string FinalType, string ItemType)> _parsletMap = [];
 
     /// <summary>
     /// A dictionary of parse calls, i.e. a code used to call a parslet. Under normal circumstance,
@@ -30,7 +30,7 @@ public class SchemeTypeMap
     ///     collision.</item>
     /// </list>
     /// </summary>
-    private readonly Dictionary<ParsletName, string> _manualParseCall = new();
+    private readonly Dictionary<ParsletName, string> _manualParseCall = [];
 
     public SchemeTypeMap AddComplexTypeMapping(ParsletName complexTypeName, string cSharpType)
     {
@@ -88,7 +88,7 @@ public class SchemeTypeMap
     internal string GetSimpleTypeMethod(AttributeElement attribute)
     {
         var simpleTypeName = attribute.Type ?? throw new InvalidOperationException();
-        var simpleType = _simpleTypeMap[simpleTypeName];
+        SimpleTypeMapping simpleType = _simpleTypeMap[simpleTypeName];
         var expressionTemplate = attribute.IsOptional ? simpleType.OptionalTemplate : simpleType.RequiredTemplate;
         if (expressionTemplate.Contains("{0}", StringComparison.Ordinal))
             return expressionTemplate.Replace("{0}", attribute.Name, StringComparison.Ordinal);
@@ -100,7 +100,7 @@ public class SchemeTypeMap
 
     internal bool TryGetParsletCsType(ParsletName name, [NotNullWhen(true)] out string? csType)
     {
-        if (_parsletMap.TryGetValue(name, out var map))
+        if (_parsletMap.TryGetValue(name, out (string FinalType, string ItemType) map))
         {
             csType = map.FinalType;
             return true;
@@ -112,7 +112,7 @@ public class SchemeTypeMap
 
     internal bool TryItemGetValue(ParsletName parsletName, [NotNullWhen(true)] out string? csItemType)
     {
-        if (_parsletMap.TryGetValue(parsletName, out var map))
+        if (_parsletMap.TryGetValue(parsletName, out (string FinalType, string ItemType) map))
         {
             csItemType = map.ItemType;
             return true;

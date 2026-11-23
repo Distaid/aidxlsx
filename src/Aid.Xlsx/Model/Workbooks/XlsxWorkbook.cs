@@ -61,8 +61,8 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
 
     #region Static
 
-    public static Double DefaultRowHeight { get; private set; }
-    public static Double DefaultColumnWidth { get; private set; }
+    public static double DefaultRowHeight { get; private set; }
+    public static double DefaultColumnWidth { get; private set; }
 
     public static IXlsxPageSetup DefaultPageOptions
     {
@@ -108,7 +108,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     /// </summary>
     public static XlsxCellSetValueBehavior CellSetValueBehavior { get; set; }
 
-    public static XlsxWorkbook OpenFromTemplate(String path)
+    public static XlsxWorkbook OpenFromTemplate(string path)
     {
         return new XlsxWorkbook(path, asTemplate: true);
     }
@@ -242,13 +242,13 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     ///   Gets or sets the default row height for the workbook.
     ///   <para>All new worksheets will use this row height.</para>
     /// </summary>
-    public Double RowHeight { get; set; }
+    public double RowHeight { get; set; }
 
     /// <summary>
     ///   Gets or sets the default column width for the workbook.
     ///   <para>All new worksheets will use this column width.</para>
     /// </summary>
-    public Double ColumnWidth { get; set; }
+    public double ColumnWidth { get; set; }
 
     /// <summary>
     ///   Gets or sets the default page options for the workbook.
@@ -308,10 +308,10 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     /// </summary>
     public XlsxCalculateMode CalculateMode { get; set; }
 
-    public Boolean CalculationOnSave { get; set; }
-    public Boolean ForceFullCalculation { get; set; }
-    public Boolean FullCalculationOnLoad { get; set; }
-    public Boolean FullPrecision { get; set; }
+    public bool CalculationOnSave { get; set; }
+    public bool ForceFullCalculation { get; set; }
+    public bool FullCalculationOnLoad { get; set; }
+    public bool FullPrecision { get; set; }
 
     /// <summary>
     ///   Gets or sets the workbook's reference style.
@@ -328,46 +328,46 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         private init;
     }
 
-    public Boolean ShowFormulas { get; set; }
-    public Boolean ShowGridLines { get; set; }
-    public Boolean ShowOutlineSymbols { get; set; }
-    public Boolean ShowRowColHeaders { get; set; }
-    public Boolean ShowRuler { get; set; }
-    public Boolean ShowWhiteSpace { get; set; }
-    public Boolean ShowZeros { get; set; }
-    public Boolean RightToLeft { get; set; }
+    public bool ShowFormulas { get; set; }
+    public bool ShowGridLines { get; set; }
+    public bool ShowOutlineSymbols { get; set; }
+    public bool ShowRowColHeaders { get; set; }
+    public bool ShowRuler { get; set; }
+    public bool ShowWhiteSpace { get; set; }
+    public bool ShowZeros { get; set; }
+    public bool RightToLeft { get; set; }
 
-    public Boolean DefaultShowFormulas
+    public bool DefaultShowFormulas
     {
         get { return false; }
     }
 
-    public Boolean DefaultShowGridLines
+    public bool DefaultShowGridLines
     {
         get { return true; }
     }
 
-    public Boolean DefaultShowOutlineSymbols
+    public bool DefaultShowOutlineSymbols
     {
         get { return true; }
     }
 
-    public Boolean DefaultShowRowColHeaders
+    public bool DefaultShowRowColHeaders
     {
         get { return true; }
     }
 
-    public Boolean DefaultShowRuler
+    public bool DefaultShowRuler
     {
         get { return true; }
     }
 
-    public Boolean DefaultShowWhiteSpace
+    public bool DefaultShowWhiteSpace
     {
         get { return true; }
     }
 
-    public Boolean DefaultShowZeros
+    public bool DefaultShowZeros
     {
         get { return true; }
     }
@@ -381,7 +381,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         }
     } = new XlsxFileSharing();
 
-    public Boolean DefaultRightToLeft
+    public bool DefaultRightToLeft
     {
         get { return false; }
     }
@@ -407,32 +407,32 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
 
 #nullable enable
     [Obsolete($"Use {nameof(DefinedName)} instead.")]
-    public IXlsxDefinedName? NamedRange(String name) => DefinedName(name);
+    public IXlsxDefinedName? NamedRange(string name) => DefinedName(name);
 
     /// <inheritdoc/>
-    public IXlsxDefinedName? DefinedName(String name)
+    public IXlsxDefinedName? DefinedName(string name)
     {
         ThrowIfDisposed();
-        if (name.Contains("!"))
+        if (name.Contains('!'))
         {
             var split = name.Split('!');
             var first = split[0];
-            var wsName = first.StartsWith("'") ? first.Substring(1, first.Length - 2) : first;
+            var wsName = first.StartsWith('\'') ? first[1..^1] : first;
             var sheetlessName = split[1];
             if (TryGetWorksheet(wsName, out XlsxWorksheet ws))
             {
-                if (ws.DefinedNames.TryGetScopedValue(sheetlessName, out var sheetDefinedName))
+                if (ws.DefinedNames.TryGetScopedValue(sheetlessName, out XlsxDefinedName? sheetDefinedName))
                     return sheetDefinedName;
             }
 
             name = sheetlessName;
         }
 
-        return DefinedNamesInternal.TryGetScopedValue(name, out var definedName) ? definedName : null;
+        return DefinedNamesInternal.TryGetScopedValue(name, out XlsxDefinedName? definedName) ? definedName : null;
     }
 #nullable disable
 
-    public Boolean TryGetWorksheet(String name, out IXlsxWorksheet worksheet)
+    public bool TryGetWorksheet(string name, out IXlsxWorksheet worksheet)
     {
         ThrowIfDisposed();
         if (TryGetWorksheet(name, out XlsxWorksheet foundSheet))
@@ -445,13 +445,13 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         return false;
     }
 
-    internal Boolean TryGetWorksheet(String name, [NotNullWhen(true)] out XlsxWorksheet worksheet)
+    internal bool TryGetWorksheet(string name, [NotNullWhen(true)] out XlsxWorksheet worksheet)
     {
         ThrowIfDisposed();
         return WorksheetsInternal.TryGetWorksheet(name, out worksheet);
     }
 
-    public IXlsxRange RangeFromFullAddress(String rangeAddress, out IXlsxWorksheet ws)
+    public IXlsxRange RangeFromFullAddress(string rangeAddress, out IXlsxWorksheet ws)
     {
         ThrowIfDisposed();
         if (!rangeAddress.Contains('!'))
@@ -472,7 +472,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         return null;
     }
 
-    public IXlsxCell CellFromFullAddress(String cellAddress, out IXlsxWorksheet ws)
+    public IXlsxCell CellFromFullAddress(string cellAddress, out IXlsxWorksheet ws)
     {
         ThrowIfDisposed();
         if (!cellAddress.Contains('!'))
@@ -509,7 +509,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     /// <summary>
     ///   Saves the current workbook and optionally performs validation
     /// </summary>
-    public void Save(Boolean validate, Boolean evaluateFormulae = false)
+    public void Save(bool validate, bool evaluateFormulae = false)
     {
         ThrowIfDisposed();
         Save(new SaveOptions
@@ -523,7 +523,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     public void Save(SaveOptions options)
     {
         ThrowIfDisposed();
-        checkForWorksheetsPresent();
+        CheckForWorksheetsPresent();
         if (_loadSource == XlsxLoadSource.New)
             throw new InvalidOperationException("This is a new file. Please use one of the 'SaveAs' methods.");
 
@@ -538,7 +538,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     /// <summary>
     ///   Saves the current workbook to a file.
     /// </summary>
-    public void SaveAs(String file)
+    public void SaveAs(string file)
     {
         ThrowIfDisposed();
 #if DEBUG
@@ -551,7 +551,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     /// <summary>
     ///   Saves the current workbook to a file and optionally validates it.
     /// </summary>
-    public void SaveAs(String file, Boolean validate, Boolean evaluateFormulae = false)
+    public void SaveAs(string file, bool validate, bool evaluateFormulae = false)
     {
         ThrowIfDisposed();
         SaveAs(file, new SaveOptions
@@ -562,10 +562,10 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         });
     }
 
-    public void SaveAs(String file, SaveOptions options)
+    public void SaveAs(string file, SaveOptions options)
     {
         ThrowIfDisposed();
-        checkForWorksheetsPresent();
+        CheckForWorksheetsPresent();
 
         var directoryName = Path.GetDirectoryName(file);
         if (!string.IsNullOrWhiteSpace(directoryName)) Directory.CreateDirectory(directoryName);
@@ -579,7 +579,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         }
         else if (_loadSource == XlsxLoadSource.File)
         {
-            if (String.Compare(_originalFile.Trim(), file.Trim(), true) != 0)
+            if (string.Compare(_originalFile.Trim(), file.Trim(), true) != 0)
             {
                 File.Copy(_originalFile, file, true);
                 File.SetAttributes(file, FileAttributes.Normal);
@@ -591,11 +591,9 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         {
             _originalStream.Position = 0;
 
-            using (var fileStream = File.Create(file))
-            {
-                CopyStream(_originalStream, fileStream);
-                CreatePackage(fileStream, false, _spreadsheetDocumentType, options);
-            }
+            using FileStream fileStream = File.Create(file);
+            CopyStream(_originalStream, fileStream);
+            CreatePackage(fileStream, false, _spreadsheetDocumentType, options);
         }
 
         _loadSource = XlsxLoadSource.File;
@@ -608,30 +606,21 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         var extension = Path.GetExtension(filePath);
 
         if (string.IsNullOrEmpty(extension)) throw new ArgumentException("Empty extension is not supported.");
-        extension = extension.Substring(1).ToLowerInvariant();
+        extension = extension[1..].ToLowerInvariant();
 
-        switch (extension)
+        return extension switch
         {
-            case "xlsm":
-                return WorkbookPackageType.MacroEnabledWorkbook;
-
-            case "xltm":
-                return WorkbookPackageType.MacroEnabledTemplate;
-
-            case "xlsx":
-                return WorkbookPackageType.Workbook;
-
-            case "xltx":
-                return WorkbookPackageType.Template;
-
-            default:
-                throw new ArgumentException(String.Format("Extension '{0}' is not supported. Supported extensions are '.xlsx', '.xlsm', '.xltx' and '.xltm'.", extension));
-        }
+            "xlsm" => WorkbookPackageType.MacroEnabledWorkbook,
+            "xltm" => WorkbookPackageType.MacroEnabledTemplate,
+            "xlsx" => WorkbookPackageType.Workbook,
+            "xltx" => WorkbookPackageType.Template,
+            _ => throw new ArgumentException(string.Format("Extension '{0}' is not supported. Supported extensions are '.xlsx', '.xlsm', '.xltx' and '.xltm'.", extension)),
+        };
     }
 
-    private void checkForWorksheetsPresent()
+    private void CheckForWorksheetsPresent()
     {
-        if (!Worksheets.Any())
+        if (Worksheets.Count == 0)
             throw new InvalidOperationException("Workbooks need at least one worksheet.");
     }
 
@@ -651,7 +640,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     /// <summary>
     ///   Saves the current workbook to a stream and optionally validates it.
     /// </summary>
-    public void SaveAs(Stream stream, Boolean validate, Boolean evaluateFormulae = false)
+    public void SaveAs(Stream stream, bool validate, bool evaluateFormulae = false)
     {
         ThrowIfDisposed();
         SaveAs(stream, new SaveOptions
@@ -665,7 +654,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     public void SaveAs(Stream stream, SaveOptions options)
     {
         ThrowIfDisposed();
-        checkForWorksheetsPresent();
+        CheckForWorksheetsPresent();
         if (_loadSource == XlsxLoadSource.New)
         {
             // dm 20130422, this method or better the method SpreadsheetDocument.Create which is called
@@ -680,15 +669,13 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
             else
             {
                 // the harder way
-                using (var ms = new MemoryStream())
-                {
-                    CreatePackage(ms, true, _spreadsheetDocumentType, options);
-                    // not really necessary, because I changed CopyStream too.
-                    // but for better understanding and if somebody in the future
-                    // provide an changed version of CopyStream
-                    ms.Position = 0;
-                    CopyStream(ms, stream);
-                }
+                using var ms = new MemoryStream();
+                CreatePackage(ms, true, _spreadsheetDocumentType, options);
+                // not really necessary, because I changed CopyStream too.
+                // but for better understanding and if somebody in the future
+                // provide an changed version of CopyStream
+                ms.Position = 0;
+                CopyStream(ms, stream);
             }
         }
         else if (_loadSource == XlsxLoadSource.File)
@@ -729,7 +716,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     public IXlsxTable Table(string tableName, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase)
     {
         ThrowIfDisposed();
-        if (!TryGetTable(tableName, out var table, comparisonType))
+        if (!TryGetTable(tableName, out XlsxTable table, comparisonType))
             throw new ArgumentOutOfRangeException($"Table {tableName} was not found.");
 
         return table;
@@ -754,11 +741,11 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     internal bool TryGetTable(SheetArea area, out XlsxTable foundTable)
     {
         ThrowIfDisposed();
-        foreach (var sheet in WorksheetsInternal)
+        foreach (XlsxWorksheet sheet in WorksheetsInternal)
         {
             if (XlsxHelper.SheetComparer.Equals(sheet.Name, area.Name))
             {
-                foreach (var table in sheet.Tables)
+                foreach (XlsxTable table in sheet.Tables)
                 {
                     if (table.Area != area.Area)
                         continue;
@@ -776,31 +763,31 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         return false;
     }
 
-    public IXlsxWorksheet Worksheet(String name)
+    public IXlsxWorksheet Worksheet(string name)
     {
         ThrowIfDisposed();
         return WorksheetsInternal.Worksheet(name);
     }
 
-    public IXlsxWorksheet Worksheet(Int32 position)
+    public IXlsxWorksheet Worksheet(int position)
     {
         ThrowIfDisposed();
         return WorksheetsInternal.Worksheet(position);
     }
 
-    public IXlsxCustomProperty CustomProperty(String name)
+    public IXlsxCustomProperty CustomProperty(string name)
     {
         ThrowIfDisposed();
         return CustomProperties.CustomProperty(name);
     }
 
-    public IXlsxCells FindCells(Func<IXlsxCell, Boolean> predicate)
+    public IXlsxCells FindCells(Func<IXlsxCell, bool> predicate)
     {
         ThrowIfDisposed();
         var cells = new XlsxCells(this, false, XlsxCellsUsedOptions.AllContents);
-        foreach (var ws in WorksheetsInternal)
+        foreach (XlsxWorksheet ws in WorksheetsInternal)
         {
-            foreach (XlsxCell cell in ws.CellsUsed(XlsxCellsUsedOptions.All))
+            foreach (XlsxCell cell in ws.CellsUsed(XlsxCellsUsedOptions.All).Cast<XlsxCell>())
             {
                 if (predicate(cell))
                     cells.Add(cell);
@@ -809,7 +796,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         return cells;
     }
 
-    public IXlsxRows FindRows(Func<IXlsxRow, Boolean> predicate)
+    public IXlsxRows FindRows(Func<IXlsxRow, bool> predicate)
     {
         ThrowIfDisposed();
         var rows = new XlsxRows(this, worksheet: null, defaultStyleSheet: null);
@@ -821,7 +808,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         return rows;
     }
 
-    public IXlsxColumns FindColumns(Func<IXlsxColumn, Boolean> predicate)
+    public IXlsxColumns FindColumns(Func<IXlsxColumn, bool> predicate)
     {
         ThrowIfDisposed();
         var columns = new XlsxColumns(this, worksheet: null, defaultStyleSheet: null);
@@ -839,12 +826,12 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     /// <param name="searchText">The search text.</param>
     /// <param name="compareOptions">The compare options.</param>
     /// <param name="searchFormulae">if set to <c>true</c> search formulae instead of cell values.</param>
-    public IEnumerable<IXlsxCell> Search(String searchText, CompareOptions compareOptions = CompareOptions.Ordinal, Boolean searchFormulae = false)
+    public IEnumerable<IXlsxCell> Search(string searchText, CompareOptions compareOptions = CompareOptions.Ordinal, bool searchFormulae = false)
     {
         ThrowIfDisposed();
-        foreach (var ws in WorksheetsInternal)
+        foreach (XlsxWorksheet ws in WorksheetsInternal)
         {
-            foreach (var cell in ws.Search(searchText, compareOptions, searchFormulae))
+            foreach (IXlsxCell cell in ws.Search(searchText, compareOptions, searchFormulae))
                 yield return cell;
         }
     }
@@ -852,7 +839,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     #region Fields
 
     private XlsxLoadSource _loadSource = XlsxLoadSource.New;
-    private String _originalFile;
+    private string _originalFile;
     private Stream _originalStream;
     private XlsxWorkbookProtection _workbookProtection;
 
@@ -868,7 +855,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     {
     }
 
-    internal XlsxWorkbook(String file, Boolean asTemplate)
+    internal XlsxWorkbook(string file, bool asTemplate)
         : this(new LoadOptions())
     {
         Styles = new XlsxWorkbookStyles();
@@ -879,12 +866,12 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     ///   Opens an existing workbook from a file.
     /// </summary>
     /// <param name = "file">The file to open.</param>
-    public XlsxWorkbook(String file)
+    public XlsxWorkbook(string file)
         : this(file, new LoadOptions())
     {
     }
 
-    public XlsxWorkbook(String file, LoadOptions loadOptions)
+    public XlsxWorkbook(string file, LoadOptions loadOptions)
         : this(loadOptions)
     {
         _loadSource = XlsxLoadSource.File;
@@ -920,8 +907,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
 
     public XlsxWorkbook(LoadOptions loadOptions)
     {
-        if (loadOptions is null)
-            throw new ArgumentNullException(nameof(loadOptions));
+        ArgumentNullException.ThrowIfNull(loadOptions);
 
         DpiX = loadOptions.Dpi.X;
         DpiY = loadOptions.Dpi.Y;
@@ -964,17 +950,17 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
 
     internal sealed class UnsupportedSheet
     {
-        public Boolean IsActive;
-        public UInt32 SheetId;
-        public Int32 Position;
+        public bool IsActive;
+        public uint SheetId;
+        public int Position;
     }
 
     #endregion Nested type: UnsupportedSheet
 
-    public IXlsxCell Cell(String namedCell)
+    public IXlsxCell Cell(string namedCell)
     {
         ThrowIfDisposed();
-        var namedRange = DefinedName(namedCell);
+        IXlsxDefinedName namedRange = DefinedName(namedCell);
         if (namedRange != null)
         {
             return namedRange.Ranges?.FirstOrDefault()?.FirstCell();
@@ -983,28 +969,28 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
             return CellFromFullAddress(namedCell, out _);
     }
 
-    public IXlsxCells Cells(String namedCells)
+    public IXlsxCells Cells(string namedCells)
     {
         ThrowIfDisposed();
         return Ranges(namedCells).Cells();
     }
 
-    public IXlsxRange Range(String range)
+    public IXlsxRange Range(string range)
     {
         ThrowIfDisposed();
-        var namedRange = DefinedName(range);
+        IXlsxDefinedName namedRange = DefinedName(range);
         if (namedRange != null)
             return namedRange.Ranges.FirstOrDefault();
         else
             return RangeFromFullAddress(range, out _);
     }
 
-    public IXlsxRanges Ranges(String ranges)
+    public IXlsxRanges Ranges(string ranges)
     {
         ThrowIfDisposed();
         var retVal = new XlsxRanges(this);
         var rangePairs = ranges.Split(',');
-        foreach (var range in rangePairs.Select(r => Range(r.Trim())).Where(range => range != null))
+        foreach (IXlsxRange range in rangePairs.Select(r => Range(r.Trim())).Where(range => range != null))
         {
             retVal.Add(range);
         }
@@ -1030,20 +1016,20 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         if (_disposed)
             return;
 
-        foreach (var worksheet in WorksheetsInternal)
+        foreach (XlsxWorksheet worksheet in WorksheetsInternal)
             worksheet.Cleanup();
 
         _disposed = true;
     }
 
-    public Boolean Use1904DateSystem { get; set; }
+    public bool Use1904DateSystem { get; set; }
 
     public XlsxWorkbook SetUse1904DateSystem()
     {
         return SetUse1904DateSystem(true);
     }
 
-    public XlsxWorkbook SetUse1904DateSystem(Boolean value)
+    public XlsxWorkbook SetUse1904DateSystem(bool value)
     {
         Use1904DateSystem = value;
         return this;
@@ -1055,19 +1041,19 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         return Worksheets.Add();
     }
 
-    public IXlsxWorksheet AddWorksheet(Int32 position)
+    public IXlsxWorksheet AddWorksheet(int position)
     {
         ThrowIfDisposed();
         return Worksheets.Add(position);
     }
 
-    public IXlsxWorksheet AddWorksheet(String sheetName)
+    public IXlsxWorksheet AddWorksheet(string sheetName)
     {
         ThrowIfDisposed();
         return Worksheets.Add(sheetName);
     }
 
-    public IXlsxWorksheet AddWorksheet(String sheetName, Int32 position)
+    public IXlsxWorksheet AddWorksheet(string sheetName, int position)
     {
         ThrowIfDisposed();
         return Worksheets.Add(sheetName, position);
@@ -1091,13 +1077,13 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         return Worksheets.Add(dataTable);
     }
 
-    public IXlsxWorksheet AddWorksheet(DataTable dataTable, String sheetName)
+    public IXlsxWorksheet AddWorksheet(DataTable dataTable, string sheetName)
     {
         ThrowIfDisposed();
         return Worksheets.Add(dataTable, sheetName);
     }
 
-    public IXlsxWorksheet AddWorksheet(DataTable dataTable, String sheetName, String tableName)
+    public IXlsxWorksheet AddWorksheet(DataTable dataTable, string sheetName, string tableName)
     {
         ThrowIfDisposed();
         return Worksheets.Add(dataTable, sheetName, tableName);
@@ -1110,7 +1096,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         get { return _calcEngine ??= new XlsxCalcEngine(CultureInfo.CurrentCulture); }
     }
 
-    public XlsxCellValue Evaluate(String expression)
+    public XlsxCellValue Evaluate(string expression)
     {
         ThrowIfDisposed();
         return CalcEngine.EvaluateFormula(expression, this).ToCellValue();
@@ -1122,7 +1108,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     public void RecalculateAllFormulas()
     {
         ThrowIfDisposed();
-        foreach (var sheet in WorksheetsInternal)
+        foreach (XlsxWorksheet sheet in WorksheetsInternal)
             sheet.Internals.CellsCollection.FormulaSlice.MarkDirty(Area.Full);
 
         CalcEngine.Recalculate(this, null);
@@ -1139,7 +1125,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     /// <summary>
     /// Evaluate a formula and return a value. Formulas with references don't work and culture used for conversion is invariant.
     /// </summary>
-    public static XlsxCellValue EvaluateExpr(String expression)
+    public static XlsxCellValue EvaluateExpr(string expression)
     {
         return CalcEngineExpr.EvaluateFormula(expression).ToCellValue();
     }
@@ -1147,14 +1133,14 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     /// <summary>
     /// Evaluate a formula and return a value. Use current culture.
     /// </summary>
-    internal static XlsxCellValue EvaluateExprCurrent(String expression)
+    internal static XlsxCellValue EvaluateExprCurrent(string expression)
     {
         return new XlsxCalcEngine(CultureInfo.CurrentCulture).EvaluateFormula(expression).ToCellValue();
     }
 
-    public String Author { get; set; }
+    public string Author { get; set; }
 
-    public Boolean LockStructure
+    public bool LockStructure
     {
         get
         {
@@ -1171,13 +1157,13 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         }
     }
 
-    public XlsxWorkbook SetLockStructure(Boolean value)
+    public XlsxWorkbook SetLockStructure(bool value)
     {
         ThrowIfDisposed();
         LockStructure = value; return this;
     }
 
-    public Boolean LockWindows
+    public bool LockWindows
     {
         get
         {
@@ -1194,15 +1180,15 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         }
     }
 
-    public XlsxWorkbook SetLockWindows(Boolean value)
+    public XlsxWorkbook SetLockWindows(bool value)
     {
         ThrowIfDisposed();
         LockWindows = value;
         return this;
     }
 
-    public Boolean IsPasswordProtected => Protection.IsPasswordProtected;
-    public Boolean IsProtected => Protection.IsProtected;
+    public bool IsPasswordProtected => Protection.IsPasswordProtected;
+    public bool IsProtected => Protection.IsProtected;
 
     IXlsxWorkbookProtection IXlsxProtectable<IXlsxWorkbookProtection, XlsxWorkbookProtectionElements>.Protection
     {
@@ -1250,13 +1236,13 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         return Protection.Protect(algorithm, allowedElements);
     }
 
-    public IXlsxWorkbookProtection Protect(String password, Algorithm algorithm = DefaultProtectionAlgorithm)
+    public IXlsxWorkbookProtection Protect(string password, Algorithm algorithm = DefaultProtectionAlgorithm)
     {
         ThrowIfDisposed();
         return Protect(password, algorithm, XlsxWorkbookProtectionElements.Windows);
     }
 
-    public IXlsxWorkbookProtection Protect(String password, Algorithm algorithm, XlsxWorkbookProtectionElements allowedElements)
+    public IXlsxWorkbookProtection Protect(string password, Algorithm algorithm, XlsxWorkbookProtectionElements allowedElements)
     {
         ThrowIfDisposed();
         return Protection.Protect(password, algorithm, allowedElements);
@@ -1298,7 +1284,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         return Protection.Unprotect();
     }
 
-    public IXlsxWorkbookProtection Unprotect(String password)
+    public IXlsxWorkbookProtection Unprotect(string password)
     {
         ThrowIfDisposed();
         return Protection.Unprotect(password);
@@ -1310,7 +1296,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         return Unprotect();
     }
 
-    IXlsxElementProtection IXlsxProtectable.Unprotect(String password)
+    IXlsxElementProtection IXlsxProtectable.Unprotect(string password)
     {
         ThrowIfDisposed();
         return Unprotect(password);
@@ -1337,20 +1323,13 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     public override string ToString()
     {
         ThrowIfDisposed();
-        switch (_loadSource)
+        return _loadSource switch
         {
-            case XlsxLoadSource.New:
-                return "XlsxWorkbook(new)";
-
-            case XlsxLoadSource.File:
-                return String.Format("XlsxWorkbook({0})", _originalFile);
-
-            case XlsxLoadSource.Stream:
-                return String.Format("XlsxWorkbook({0})", _originalStream.ToString());
-
-            default:
-                throw new NotImplementedException();
-        }
+            XlsxLoadSource.New => "XlsxWorkbook(new)",
+            XlsxLoadSource.File => string.Format("XlsxWorkbook({0})", _originalFile),
+            XlsxLoadSource.Stream => string.Format("XlsxWorkbook({0})", _originalStream.ToString()),
+            _ => throw new NotImplementedException(),
+        };
     }
 
     internal XlsxCellFormat Format
@@ -1364,7 +1343,6 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
 
     private void ThrowIfDisposed()
     {
-        if (_disposed)
-            throw new ObjectDisposedException(nameof(XlsxWorkbook));
+        ObjectDisposedException.ThrowIf(_disposed, this);
     }
 }

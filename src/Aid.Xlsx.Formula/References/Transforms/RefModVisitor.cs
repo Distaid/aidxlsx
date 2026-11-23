@@ -64,7 +64,7 @@ public class RefModVisitor : IAstFactory<TransformedSymbol, TransformedSymbol, M
             return TransformedSymbol.CopyOriginal(ctx.Formula, range);
 
         // Deal with `Sheet!REF!`, `#REF!A1` and `#REF!#REF!`
-        var symbol = ctx.Formula.AsSpan().Slice(range.Start, range.Length);
+        ReadOnlySpan<char> symbol = ctx.Formula.AsSpan().Slice(range.Start, range.Length);
         var sheetIsRefError = symbol.StartsWith(REF_ERROR.AsSpan(), StringComparison.OrdinalIgnoreCase);
 
         if (sheetIsRefError)
@@ -76,11 +76,11 @@ public class RefModVisitor : IAstFactory<TransformedSymbol, TransformedSymbol, M
         }
 
         // Sheet!#REF! is a valid formula per grammar and Excel, though it displeases me.
-        var sheet = symbol.Slice(0, symbol.Length - REF_ERROR.Length - 1);
+        ReadOnlySpan<char> sheet = symbol[..(symbol.Length - REF_ERROR.Length - 1)];
         var modifiedSheet = ModifySheet(ctx, sheet.ToString());
         var nodeText = new StringBuilder()
             .AppendSheetReference(modifiedSheet)
-            .Append(symbol.Slice(symbol.Length - REF_ERROR.Length))
+            .Append(symbol[^REF_ERROR.Length..])
             .ToString();
         return TransformedSymbol.ToText(ctx.Formula, range, nodeText);
     }
@@ -100,7 +100,7 @@ public class RefModVisitor : IAstFactory<TransformedSymbol, TransformedSymbol, M
     /// <inheritdoc />
     public TransformedSymbol Reference(ModContext ctx, SymbolRange range, ReferenceArea reference)
     {
-        var modifiedReference = ModifyRef(ctx, reference);
+        ReferenceArea? modifiedReference = ModifyRef(ctx, reference);
         if (modifiedReference is null)
             return TransformedSymbol.ToText(ctx.Formula, range, REF_ERROR);
 
@@ -111,7 +111,7 @@ public class RefModVisitor : IAstFactory<TransformedSymbol, TransformedSymbol, M
     public TransformedSymbol SheetReference(ModContext ctx, SymbolRange range, string sheet, ReferenceArea reference)
     {
         var modifiedSheet = ModifySheet(ctx, sheet);
-        var modifiedReference = ModifyRef(ctx, reference);
+        ReferenceArea? modifiedReference = ModifyRef(ctx, reference);
         if (modifiedSheet is null || modifiedReference is null)
             return TransformedSymbol.ToText(ctx.Formula, range, REF_ERROR);
 
@@ -121,7 +121,7 @@ public class RefModVisitor : IAstFactory<TransformedSymbol, TransformedSymbol, M
     /// <inheritdoc />
     public TransformedSymbol BangReference(ModContext ctx, SymbolRange range, ReferenceArea reference)
     {
-        var modifiedReference = ModifyRef(ctx, reference);
+        ReferenceArea? modifiedReference = ModifyRef(ctx, reference);
         if (modifiedReference is null)
             return TransformedSymbol.ToText(ctx.Formula, range, BANG_REF_ERROR);
 
@@ -133,7 +133,7 @@ public class RefModVisitor : IAstFactory<TransformedSymbol, TransformedSymbol, M
     {
         var modifiedFirstSheet = ModifySheet(ctx, firstSheet);
         var modifiedLastSheet = ModifySheet(ctx, lastSheet);
-        var modifiedReference = ModifyRef(ctx, reference);
+        ReferenceArea? modifiedReference = ModifyRef(ctx, reference);
         if (modifiedFirstSheet is null || modifiedLastSheet is null || modifiedReference is null)
             return TransformedSymbol.ToText(ctx.Formula, range, REF_ERROR);
 
@@ -143,7 +143,7 @@ public class RefModVisitor : IAstFactory<TransformedSymbol, TransformedSymbol, M
     /// <inheritdoc />
     public TransformedSymbol ExternalSheetReference(ModContext ctx, SymbolRange range, int workbookIndex, string sheet, ReferenceArea reference)
     {
-        var modifiedReference = ModifyRef(ctx, reference);
+        ReferenceArea? modifiedReference = ModifyRef(ctx, reference);
         if (modifiedReference is null)
             return TransformedSymbol.ToText(ctx.Formula, range, REF_ERROR);
 
@@ -155,7 +155,7 @@ public class RefModVisitor : IAstFactory<TransformedSymbol, TransformedSymbol, M
     {
         var modifiedFirstSheet = ModifySheet(ctx, firstSheet);
         var modifiedLastSheet = ModifySheet(ctx, lastSheet);
-        var modifiedReference = ModifyRef(ctx, reference);
+        ReferenceArea? modifiedReference = ModifyRef(ctx, reference);
         if (modifiedFirstSheet is null || modifiedLastSheet is null || modifiedReference is null)
             return TransformedSymbol.ToText(ctx.Formula, range, REF_ERROR);
 
@@ -165,7 +165,7 @@ public class RefModVisitor : IAstFactory<TransformedSymbol, TransformedSymbol, M
     /// <inheritdoc />
     public TransformedSymbol Function(ModContext ctx, SymbolRange range, ReadOnlySpan<char> functionName, IReadOnlyList<TransformedSymbol> arguments)
     {
-        var modifiedFunction = ModifyFunction(ctx, functionName);
+        ReadOnlySpan<char> modifiedFunction = ModifyFunction(ctx, functionName);
         return s_copyVisitor.Function(ctx, range, modifiedFunction, arguments);
     }
 
@@ -196,14 +196,14 @@ public class RefModVisitor : IAstFactory<TransformedSymbol, TransformedSymbol, M
     {
         // Parser doesn't detect LOG10 as a function (there is no list of functions),
         // but as a cell function. Make sure not to transform it.
-        var functionName = ctx.Formula.AsSpan(range.Start, ctx.Formula.IndexOf('(', range.Start) - range.Start);
+        ReadOnlySpan<char> functionName = ctx.Formula.AsSpan(range.Start, ctx.Formula.IndexOf('(', range.Start) - range.Start);
         if (functionName.Equals("LOG10".AsSpan(), StringComparison.OrdinalIgnoreCase))
         {
-            var modifiedName = ModifyFunction(ctx, functionName);
+            ReadOnlySpan<char> modifiedName = ModifyFunction(ctx, functionName);
             return s_copyVisitor.Function(ctx, range, modifiedName, arguments);
         }
 
-        var modifiedCell = ModifyCellFunction(ctx, cell);
+        RowCol? modifiedCell = ModifyCellFunction(ctx, cell);
         if (modifiedCell is null)
             return TransformedSymbol.ToText(ctx.Formula, range, REF_ERROR);
 

@@ -19,12 +19,12 @@ internal class XlsxPivotTableAxis : IXlsxPivotFields
     /// <summary>
     /// Fields displayed on the axis, in the order of the fields on the axis.
     /// </summary>
-    private readonly List<FieldIndex> _fields = new();
+    private readonly List<FieldIndex> _fields = [];
 
     /// <summary>
     /// Values of one row/column in an axis. Items are not kept in sync with <see cref="_fields"/>.
     /// </summary>
-    private readonly List<XlsxPivotFieldAxisItem> _axisItems = new();
+    private readonly List<XlsxPivotFieldAxisItem> _axisItems = [];
 
     internal XlsxPivotTableAxis(XlsxPivotTable pivotTable, XlsxPivotAxis axis)
     {
@@ -45,26 +45,26 @@ internal class XlsxPivotTableAxis : IXlsxPivotFields
 
     internal bool ContainsDataField => _fields.Any(x => x.IsDataField);
 
-    IXlsxPivotField IXlsxPivotFields.Add(String sourceName) => Add(sourceName, sourceName);
+    IXlsxPivotField IXlsxPivotFields.Add(string sourceName) => Add(sourceName, sourceName);
 
-    IXlsxPivotField IXlsxPivotFields.Add(String sourceName, String customName) => Add(sourceName, customName);
+    IXlsxPivotField IXlsxPivotFields.Add(string sourceName, string customName) => Add(sourceName, customName);
 
     void IXlsxPivotFields.Clear() => Clear();
 
-    Boolean IXlsxPivotFields.Contains(String sourceName) => Contains(sourceName);
+    bool IXlsxPivotFields.Contains(string sourceName) => Contains(sourceName);
 
-    Boolean IXlsxPivotFields.Contains(IXlsxPivotField pivotField) => Contains(pivotField.SourceName);
+    bool IXlsxPivotFields.Contains(IXlsxPivotField pivotField) => Contains(pivotField.SourceName);
 
-    IXlsxPivotField IXlsxPivotFields.Get(String sourceName)
+    IXlsxPivotField IXlsxPivotFields.Get(string sourceName)
     {
-        if (!_pivotTable.TryGetSourceNameFieldIndex(sourceName, out var index) ||
+        if (!_pivotTable.TryGetSourceNameFieldIndex(sourceName, out FieldIndex index) ||
             !_fields.Contains(index))
             throw new KeyNotFoundException($"Field with source name '{sourceName}' not found in {_axis}.");
 
         return new XlsxPivotTableAxisField(_pivotTable, index);
     }
 
-    IXlsxPivotField IXlsxPivotFields.Get(Int32 index)
+    IXlsxPivotField IXlsxPivotFields.Get(int index)
     {
         if (index < 0 || index >= _fields.Count)
             throw new IndexOutOfRangeException();
@@ -72,17 +72,17 @@ internal class XlsxPivotTableAxis : IXlsxPivotFields
         return new XlsxPivotTableAxisField(_pivotTable, _fields[index]);
     }
 
-    Int32 IXlsxPivotFields.IndexOf(String sourceName)
+    int IXlsxPivotFields.IndexOf(string sourceName)
     {
         return IndexOf(sourceName);
     }
 
-    Int32 IXlsxPivotFields.IndexOf(IXlsxPivotField pf)
+    int IXlsxPivotFields.IndexOf(IXlsxPivotField pf)
     {
         return IndexOf(pf.SourceName);
     }
 
-    void IXlsxPivotFields.Remove(String sourceName)
+    void IXlsxPivotFields.Remove(string sourceName)
     {
         var index = IndexOf(sourceName);
         if (index == -1)
@@ -98,7 +98,7 @@ internal class XlsxPivotTableAxis : IXlsxPivotFields
 
     public IEnumerator<XlsxPivotTableAxisField> GetEnumerator()
     {
-        foreach (var fieldIndex in _fields)
+        foreach (FieldIndex fieldIndex in _fields)
             yield return new XlsxPivotTableAxisField(_pivotTable, fieldIndex);
     }
 
@@ -109,7 +109,7 @@ internal class XlsxPivotTableAxis : IXlsxPivotFields
 
     internal bool Contains(string sourceName)
     {
-        if (!_pivotTable.TryGetSourceNameFieldIndex(sourceName, out var index))
+        if (!_pivotTable.TryGetSourceNameFieldIndex(sourceName, out FieldIndex index))
             return false;
 
         return _fields.Contains(index);
@@ -126,9 +126,9 @@ internal class XlsxPivotTableAxis : IXlsxPivotFields
         _fields.Add(fieldIndex);
     }
 
-    private XlsxPivotTableAxisField Add(String sourceName, String customName)
+    private XlsxPivotTableAxisField Add(string sourceName, string customName)
     {
-        var field = AddField(sourceName, customName);
+        XlsxPivotTableAxisField field = AddField(sourceName, customName);
 
         // Excel by default adds a subtotal, but earlier versions of the port didn't have them,
         // so keep API behavior.
@@ -138,9 +138,9 @@ internal class XlsxPivotTableAxis : IXlsxPivotFields
         return field;
     }
 
-    internal XlsxPivotTableAxisField AddField(String sourceName, String customName)
+    internal XlsxPivotTableAxisField AddField(string sourceName, string customName)
     {
-        var index = _pivotTable.AddFieldToAxis(sourceName, customName, _axis);
+        FieldIndex index = _pivotTable.AddFieldToAxis(sourceName, customName, _axis);
         _fields.Add(index);
         return new XlsxPivotTableAxisField(_pivotTable, index);
     }
@@ -155,16 +155,16 @@ internal class XlsxPivotTableAxis : IXlsxPivotFields
 
     internal void Clear()
     {
-        foreach (var fieldIndex in _fields)
+        foreach (FieldIndex fieldIndex in _fields)
             _pivotTable.RemoveFieldFromAxis(fieldIndex);
 
         _axisItems.Clear();
         _fields.Clear();
     }
 
-    private Int32 IndexOf(String sourceName)
+    private int IndexOf(string sourceName)
     {
-        if (!_pivotTable.TryGetSourceNameFieldIndex(sourceName, out var fieldIndex))
+        if (!_pivotTable.TryGetSourceNameFieldIndex(sourceName, out FieldIndex fieldIndex))
             return -1;
 
         return _fields.IndexOf(fieldIndex);

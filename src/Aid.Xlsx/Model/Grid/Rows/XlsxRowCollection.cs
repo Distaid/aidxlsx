@@ -7,13 +7,13 @@ namespace Aid.Xlsx.Model.Grid.Rows;
 
 using System.Collections;
 
-internal class XlsxRowsCollection : IDictionary<Int32, XlsxRow>
+internal class XlsxRowsCollection : IDictionary<int, XlsxRow>
 {
-    private readonly Dictionary<Int32, XlsxRow> _dictionary = new Dictionary<Int32, XlsxRow>();
+    private readonly Dictionary<int, XlsxRow> _dictionary = [];
 
-    public Dictionary<Int32, XlsxRow> Deleted { get; } = new Dictionary<Int32, XlsxRow>();
+    public Dictionary<int, XlsxRow> Deleted { get; } = [];
 
-    public Int32 MaxRowUsed;
+    public int MaxRowUsed;
 
     #region IDictionary<int,XlsxRow> Members
 
@@ -112,13 +112,13 @@ internal class XlsxRowsCollection : IDictionary<Int32, XlsxRow>
 
     #endregion IDictionary<int,XlsxRow> Members
 
-    public void ShiftRowsDown(Int32 startingRow, Int32 rowsToShift)
+    public void ShiftRowsDown(int startingRow, int rowsToShift)
     {
         foreach (int ro in _dictionary.Keys.Where(k => k >= startingRow).OrderByDescending(k => k))
         {
-            var rowToMove = _dictionary[ro];
+            XlsxRow rowToMove = _dictionary[ro];
             _dictionary.Remove(ro);
-            Int32 newRowNum = ro + rowsToShift;
+            int newRowNum = ro + rowsToShift;
             if (newRowNum <= XlsxHelper.MaxRowNumber)
             {
                 rowToMove.SetRowNumber(newRowNum);
@@ -127,9 +127,9 @@ internal class XlsxRowsCollection : IDictionary<Int32, XlsxRow>
         }
     }
 
-    public void RemoveAll(Func<XlsxRow, Boolean> predicate)
+    public void RemoveAll(Func<XlsxRow, bool> predicate)
     {
-        foreach (var row in _dictionary.Values.Where(predicate).Where(row1 => !Deleted.ContainsKey(row1.RowNumber())))
+        foreach (XlsxRow row in _dictionary.Values.Where(predicate).Where(row1 => !Deleted.ContainsKey(row1.RowNumber())))
         {
             Deleted.Add(row.RowNumber(), row);
         }

@@ -15,20 +15,20 @@ internal class UntypedObjectReader : IInsertDataReader
     [RequiresUnreferencedCode("A sequence with mixed runtime item types is split by type and dispatched to reflection-based readers. Use a homogeneous typed sequence or a DataTable to stay trim-compatible.")]
     public UntypedObjectReader(IEnumerable data)
     {
-        _data = (data ?? new object[0]).Cast<object>();
-        _readers = CreateReaders().ToList();
+        _data = (data ?? Array.Empty<object>()).Cast<object>();
+        _readers = [.. CreateReaders()];
 
         IEnumerable<IInsertDataReader> CreateReaders()
         {
             if (!_data.Any())
                 yield break;
 
-            List<object> itemsOfSameType = new List<object>();
+            var itemsOfSameType = new List<object>();
             Type previousType = null;
 
             foreach (var item in _data)
             {
-                var currentType = item?.GetType();
+                Type currentType = item?.GetType();
 
                 if (previousType != currentType && itemsOfSameType.Count > 0)
                 {
@@ -61,9 +61,9 @@ internal class UntypedObjectReader : IInsertDataReader
 
     public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
     {
-        foreach (var reader in _readers)
+        foreach (IInsertDataReader reader in _readers)
         {
-            foreach (var item in reader.GetRecords())
+            foreach (IEnumerable<XlsxCellValue> item in reader.GetRecords())
             {
                 yield return item;
             }
@@ -82,6 +82,6 @@ internal class UntypedObjectReader : IInsertDataReader
 
     private IInsertDataReader GetFirstNonNullReader()
     {
-        return _readers.FirstOrDefault(r => !(r is NullDataReader));
+        return _readers.FirstOrDefault(r => r is not NullDataReader);
     }
 }

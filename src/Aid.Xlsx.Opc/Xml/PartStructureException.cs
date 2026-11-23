@@ -156,7 +156,7 @@ public class PartStructureException : Exception
     {
         if (reader is not null)
         {
-            var lineInfo = reader.LineInfo;
+            LineInfo lineInfo = reader.LineInfo;
             message += $" Line:{lineInfo.LineNumber}, Position:{lineInfo.LinePosition}.";
         }
 

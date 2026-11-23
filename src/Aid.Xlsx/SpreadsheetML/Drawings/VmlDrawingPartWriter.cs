@@ -19,8 +19,8 @@ internal static class VmlDrawingPartWriter
 
     internal static XDocument? GenerateContent(Stream? existing, XlsxWorksheet worksheet, bool hasComments)
     {
-        var document = (existing is null ? null : XDocumentExtensions.Load(existing)) ?? new XDocument(new XElement("xml"));
-        var root = document.Root!.Element("xml") ?? document.Root;
+        XDocument document = (existing is null ? null : XDocumentExtensions.Load(existing)) ?? new XDocument(new XElement("xml"));
+        XElement root = document.Root!.Element("xml") ?? document.Root;
         root.Elements().Where(element => IsCommentShape(element) ||
             (element.Name == Vml + "shapetype" && (string?)element.Attribute("id") == XlsxConstants.Comment.ShapeTypeId)).Remove();
         if (!hasComments)
@@ -36,7 +36,7 @@ internal static class VmlDrawingPartWriter
             new XElement(Vml + "stroke", new XAttribute("joinstyle", "miter")),
             new XElement(Vml + "path", new XAttribute("gradientshapeok", "true"), new XAttribute(Office + "connecttype", "rect")));
 
-        var cells = worksheet.Internals.CellsCollection.GetCells(cell => cell.HasComment);
+        IEnumerable<XlsxCell> cells = worksheet.Internals.CellsCollection.GetCells(cell => cell.HasComment);
         root.AddFirst(template, cells.Select(GenerateCommentShape));
         return document;
     }
@@ -63,9 +63,9 @@ internal static class VmlDrawingPartWriter
     // VML Shape for Comment
     private static XElement GenerateCommentShape(XlsxCell cell)
     {
-        var comment = cell.GetComment();
-        var style = comment.Style;
-        var colors = style.ColorsAndLines;
+        XlsxComment comment = cell.GetComment();
+        IXlsxDrawingStyle style = comment.Style;
+        IXlsxDrawingColorsAndLines colors = style.ColorsAndLines;
         var fillColor = "#" + colors.FillColor.Color.ToHex()[2..];
         return new XElement(Vml + "shape",
             new XAttribute("id", "_x0000_s" + comment.ShapeId.ToInvariantString()),
@@ -99,8 +99,8 @@ internal static class VmlDrawingPartWriter
 
     private static XElement GetStroke(IXlsxDrawingStyle style)
     {
-        var colors = style.ColorsAndLines;
-        var dash = colors.LineDash;
+        IXlsxDrawingColorsAndLines colors = style.ColorsAndLines;
+        XlsxDashStyle dash = colors.LineDash;
         var line = colors.LineStyle switch
         {
             XlsxLineStyle.Single => "single",
@@ -120,7 +120,7 @@ internal static class VmlDrawingPartWriter
     private static XElement GetTextBox(IXlsxDrawingStyle ds)
     {
         var sb = new StringBuilder();
-        var a = ds.Alignment;
+        IXlsxDrawingAlignment a = ds.Alignment;
 
         if (a.Direction == XlsxDrawingTextDirection.Context)
             sb.Append("mso-direction-alt:auto;");
@@ -143,9 +143,9 @@ internal static class VmlDrawingPartWriter
         if (sb.Length > 0)
             tb.SetAttributeValue("style", sb.ToString());
 
-        var dm = ds.Margins;
+        IXlsxDrawingMargins dm = ds.Margins;
         if (!dm.Automatic)
-            tb.SetAttributeValue("inset", String.Concat(
+            tb.SetAttributeValue("inset", string.Concat(
                 dm.Left.ToInvariantString(), "in,",
                 dm.Top.ToInvariantString(), "in,",
                 dm.Right.ToInvariantString(), "in,",
@@ -156,12 +156,12 @@ internal static class VmlDrawingPartWriter
 
     private static string GetAnchor(XlsxCell cell)
     {
-        var c = cell.GetComment();
+        XlsxComment c = cell.GetComment();
         var cWidth = c.Style.Size.Width;
         var fcNumber = c.Position.Column - 1;
         var fcOffset = Convert.ToInt32(c.Position.ColumnOffset * 7.5);
         var widthFromColumns = cell.Worksheet.Column(c.Position.Column).Width - c.Position.ColumnOffset;
-        var lastCell = cell.CellRight(c.Position.Column - cell.Address.ColumnNumber);
+        XlsxCell lastCell = cell.CellRight(c.Position.Column - cell.Address.ColumnNumber);
         while (widthFromColumns <= cWidth)
         {
             lastCell = lastCell.CellRight();
@@ -189,12 +189,12 @@ internal static class VmlDrawingPartWriter
 
     private static string GetCommentStyle(XlsxCell cell)
     {
-        var c = cell.GetComment();
+        XlsxComment c = cell.GetComment();
         var sb = new StringBuilder("position:absolute; ");
 
         sb.Append("visibility:");
         sb.Append(c.Visible ? "visible" : "hidden");
-        sb.Append(";");
+        sb.Append(';');
 
         sb.Append("width:");
         sb.Append(Math.Round(c.Style.Size.Width * 7.5, 2).ToInvariantString());

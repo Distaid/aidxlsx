@@ -22,11 +22,11 @@ public interface IXlsxStyle : IEquatable<IXlsxStyle>
     /// Has no effect if cell values is not a <see cref="XlsxDataType.Text"/>. Doesn't affect values during runtime,
     /// text values are returned without quote.
     /// </summary>
-    Boolean IncludeQuotePrefix { get; set; }
+    bool IncludeQuotePrefix { get; set; }
 
     IXlsxNumberFormat NumberFormat { get; set; }
 
     IXlsxProtection Protection { get; set; }
 
-    IXlsxStyle SetIncludeQuotePrefix(Boolean includeQuotePrefix = true);
+    IXlsxStyle SetIncludeQuotePrefix(bool includeQuotePrefix = true);
 }

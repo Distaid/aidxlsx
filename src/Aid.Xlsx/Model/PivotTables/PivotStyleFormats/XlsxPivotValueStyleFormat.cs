@@ -14,7 +14,7 @@ internal class XlsxPivotValueStyleFormat : XlsxPivotStyleFormatBase, IXlsxPivotV
     /// The term "lie on" means that either column or a row of data cell
     /// intersects a label cell of referenced field.
     /// </summary>
-    private readonly List<FieldReference> _fieldReferences = new();
+    private readonly List<FieldReference> _fieldReferences = [];
 
     public XlsxPivotValueStyleFormat(XlsxPivotTable pivotTable, FieldIndex fieldIndex)
         : base(pivotTable)
@@ -39,7 +39,7 @@ internal class XlsxPivotValueStyleFormat : XlsxPivotStyleFormatBase, IXlsxPivotV
         if (predicate is null)
             return AndWith(field);
 
-        var pivotField = PivotTable.PivotFields[fieldIndex];
+        XlsxPivotTableField pivotField = PivotTable.PivotFields[fieldIndex];
         var filteredItems = pivotField.GetAllItems(predicate)
             .WhereNotNull(fieldItem => fieldItem.ItemIndex)
             .Select(itemIndex => (uint)itemIndex)
@@ -64,7 +64,7 @@ internal class XlsxPivotValueStyleFormat : XlsxPivotStyleFormatBase, IXlsxPivotV
     internal override XlsxPivotArea GetCurrentArea()
     {
         var area = new XlsxPivotArea();
-        foreach (var fieldReference in _fieldReferences)
+        foreach (FieldReference fieldReference in _fieldReferences)
         {
             var reference = new XlsxPivotReference
             {
@@ -84,7 +84,7 @@ internal class XlsxPivotValueStyleFormat : XlsxPivotStyleFormatBase, IXlsxPivotV
 
     internal override bool Filter(XlsxPivotArea area)
     {
-        var currentArea = GetCurrentArea();
+        XlsxPivotArea currentArea = GetCurrentArea();
         return XlsxPivotAreaComparer.Instance.Equals(area, currentArea);
     }
 

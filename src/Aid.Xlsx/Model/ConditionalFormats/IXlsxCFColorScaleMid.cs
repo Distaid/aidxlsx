@@ -6,9 +6,9 @@ namespace Aid.Xlsx.Model.ConditionalFormats;
 
 public interface IXlsxCFColorScaleMid
 {
-    IXlsxCFColorScaleMax Midpoint(XlsxCFContentType type, String value, XlsxColor color);
-    IXlsxCFColorScaleMax Midpoint(XlsxCFContentType type, Double value, XlsxColor color);
-    void Maximum(XlsxCFContentType type, String value, XlsxColor color);
-    void Maximum(XlsxCFContentType type, Double value, XlsxColor color);
+    IXlsxCFColorScaleMax Midpoint(XlsxCFContentType type, string value, XlsxColor color);
+    IXlsxCFColorScaleMax Midpoint(XlsxCFContentType type, double value, XlsxColor color);
+    void Maximum(XlsxCFContentType type, string value, XlsxColor color);
+    void Maximum(XlsxCFContentType type, double value, XlsxColor color);
     void HighestValue(XlsxColor color);
 }

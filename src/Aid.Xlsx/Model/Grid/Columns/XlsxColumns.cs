@@ -8,13 +8,21 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Columns;
 
-internal class XlsxColumns : IXlsxColumns
+/// <summary>
+/// Create a new instance of <see cref="XlsxColumns"/>.
+/// </summary>
+/// <param name="workbook">Workbook to which all columns belong.</param>
+/// <param name="worksheet">If worksheet is specified it means that the created instance represents
+/// all columns on a worksheet so changing its width will affect all columns.</param>
+/// <param name="defaultStyleSheet">A sheet with a default style to use when initializing child entries.</param>
+/// <param name="lazyEnumerable">A predefined enumerator of <see cref="XlsxColumn"/> to support lazy initialization.</param>
+internal class XlsxColumns(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWorksheet? defaultStyleSheet = null, IEnumerable<XlsxColumn>? lazyEnumerable = null) : IXlsxColumns
 {
-    private readonly List<XlsxColumn> _columnsCollection = new List<XlsxColumn>();
+    private readonly List<XlsxColumn> _columnsCollection = [];
 
-    private readonly XlsxWorkbook _workbook;
-    private readonly XlsxWorksheet? _worksheet;
-    private readonly XlsxWorksheet? _defaultStyleSheet;
+    private readonly XlsxWorkbook _workbook = workbook;
+    private readonly XlsxWorksheet? _worksheet = worksheet;
+    private readonly XlsxWorksheet? _defaultStyleSheet = defaultStyleSheet;
 
     /// <summary>
     /// This object represents all columns of the worksheet, even non-materialized ones.
@@ -24,25 +32,9 @@ internal class XlsxColumns : IXlsxColumns
 
     private bool IsMaterialized => _lazyEnumerable == null;
 
-    private IEnumerable<XlsxColumn>? _lazyEnumerable;
+    private IEnumerable<XlsxColumn>? _lazyEnumerable = lazyEnumerable;
 
     private IEnumerable<XlsxColumn> Columns => _lazyEnumerable ?? _columnsCollection.AsEnumerable();
-
-    /// <summary>
-    /// Create a new instance of <see cref="XlsxColumns"/>.
-    /// </summary>
-    /// <param name="workbook">Workbook to which all columns belong.</param>
-    /// <param name="worksheet">If worksheet is specified it means that the created instance represents
-    /// all columns on a worksheet so changing its width will affect all columns.</param>
-    /// <param name="defaultStyleSheet">A sheet with a default style to use when initializing child entries.</param>
-    /// <param name="lazyEnumerable">A predefined enumerator of <see cref="XlsxColumn"/> to support lazy initialization.</param>
-    public XlsxColumns(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWorksheet? defaultStyleSheet = null, IEnumerable<XlsxColumn>? lazyEnumerable = null)
-    {
-        _workbook = workbook;
-        _worksheet = worksheet;
-        _defaultStyleSheet = defaultStyleSheet;
-        _lazyEnumerable = lazyEnumerable;
-    }
 
     #region IXlsxColumns Members
 
@@ -56,7 +48,7 @@ internal class XlsxColumns : IXlsxColumns
         return GetEnumerator();
     }
 
-    public Double Width
+    public double Width
     {
         set
         {
@@ -78,12 +70,12 @@ internal class XlsxColumns : IXlsxColumns
         }
         else
         {
-            var toDelete = new Dictionary<IXlsxWorksheet, List<Int32>>();
+            var toDelete = new Dictionary<IXlsxWorksheet, List<int>>();
             foreach (XlsxColumn c in Columns)
             {
-                if (!toDelete.TryGetValue(c.Worksheet, out List<Int32>? list))
+                if (!toDelete.TryGetValue(c.Worksheet, out List<int>? list))
                 {
-                    list = new List<Int32>();
+                    list = [];
                     toDelete.Add(c.Worksheet, list);
                 }
 
@@ -104,31 +96,31 @@ internal class XlsxColumns : IXlsxColumns
         return this;
     }
 
-    public IXlsxColumns AdjustToContents(Int32 startRow)
+    public IXlsxColumns AdjustToContents(int startRow)
     {
         Columns.ForEach(c => c.AdjustToContents(startRow));
         return this;
     }
 
-    public IXlsxColumns AdjustToContents(Int32 startRow, Int32 endRow)
+    public IXlsxColumns AdjustToContents(int startRow, int endRow)
     {
         Columns.ForEach(c => c.AdjustToContents(startRow, endRow));
         return this;
     }
 
-    public IXlsxColumns AdjustToContents(Double minWidth, Double maxWidth)
+    public IXlsxColumns AdjustToContents(double minWidth, double maxWidth)
     {
         Columns.ForEach(c => c.AdjustToContents(minWidth, maxWidth));
         return this;
     }
 
-    public IXlsxColumns AdjustToContents(Int32 startRow, Double minWidth, Double maxWidth)
+    public IXlsxColumns AdjustToContents(int startRow, double minWidth, double maxWidth)
     {
         Columns.ForEach(c => c.AdjustToContents(startRow, minWidth, maxWidth));
         return this;
     }
 
-    public IXlsxColumns AdjustToContents(Int32 startRow, Int32 endRow, Double minWidth, Double maxWidth)
+    public IXlsxColumns AdjustToContents(int startRow, int endRow, double minWidth, double maxWidth)
     {
         Columns.ForEach(c => c.AdjustToContents(startRow, endRow, minWidth, maxWidth));
         return this;
@@ -149,7 +141,7 @@ internal class XlsxColumns : IXlsxColumns
         Group(false);
     }
 
-    public void Group(Int32 outlineLevel)
+    public void Group(int outlineLevel)
     {
         Group(outlineLevel, false);
     }
@@ -159,17 +151,17 @@ internal class XlsxColumns : IXlsxColumns
         Ungroup(false);
     }
 
-    public void Group(Boolean collapse)
+    public void Group(bool collapse)
     {
         Columns.ForEach(c => c.Group(collapse));
     }
 
-    public void Group(Int32 outlineLevel, Boolean collapse)
+    public void Group(int outlineLevel, bool collapse)
     {
         Columns.ForEach(c => c.Group(outlineLevel, collapse));
     }
 
-    public void Ungroup(Boolean ungroupFromAll)
+    public void Ungroup(bool ungroupFromAll)
     {
         Columns.ForEach(c => c.Ungroup(ungroupFromAll));
     }
@@ -200,7 +192,7 @@ internal class XlsxColumns : IXlsxColumns
         return cells;
     }
 
-    public IXlsxCells CellsUsed(Boolean includeFormats)
+    public IXlsxCells CellsUsed(bool includeFormats)
     {
         return CellsUsed(includeFormats
             ? XlsxCellsUsedOptions.All
@@ -265,7 +257,7 @@ internal class XlsxColumns : IXlsxColumns
 
     public void Select()
     {
-        foreach (var range in this)
+        foreach (IXlsxColumn range in this)
             range.Select();
     }
 

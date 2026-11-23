@@ -20,7 +20,7 @@ internal class XlsxRichText : XlsxFormattedText<IXlsxRichText>, IXlsxRichText
     internal XlsxRichText(XlsxCell cell, XlsxFontFormatValue defaultFont, XlsxImmutableRichText original)
         : base(defaultFont, cell.Worksheet.Workbook.Styles)
     {
-        foreach (var originalRun in original.Runs)
+        foreach (XlsxImmutableRichText.RichTextRun originalRun in original.Runs)
         {
             var runText = original.GetRunText(originalRun);
             AddText(new XlsxRichString(runText, originalRun.Font, this, Styles, OnContentChanged));
@@ -32,7 +32,7 @@ internal class XlsxRichText : XlsxFormattedText<IXlsxRichText>, IXlsxRichText
             XlsxPhonetics phonetics;
             if (original.PhoneticsProperties.HasValue)
             {
-                var originalProps = original.PhoneticsProperties.Value;
+                XlsxImmutableRichText.PhoneticProperties originalProps = original.PhoneticsProperties.Value;
                 phonetics = new XlsxPhonetics(originalProps.Font, defaultFont, Styles, OnContentChanged)
                 {
                     Type = originalProps.Type,
@@ -44,7 +44,7 @@ internal class XlsxRichText : XlsxFormattedText<IXlsxRichText>, IXlsxRichText
                 phonetics = new XlsxPhonetics(defaultFont, defaultFont, Styles, OnContentChanged);
             }
 
-            foreach (var phoneticRun in original.PhoneticRuns)
+            foreach (XlsxImmutableRichText.PhoneticRun phoneticRun in original.PhoneticRuns)
                 phonetics.Add(phoneticRun.Text, phoneticRun.StartIndex, phoneticRun.EndIndex);
 
             Phonetics = phonetics;
@@ -55,7 +55,7 @@ internal class XlsxRichText : XlsxFormattedText<IXlsxRichText>, IXlsxRichText
         _cell = cell;
     }
 
-    internal XlsxRichText(XlsxCell cell, XlsxFontFormatValue defaultFont, String text)
+    internal XlsxRichText(XlsxCell cell, XlsxFontFormatValue defaultFont, string text)
         : this(cell, defaultFont)
     {
         AddText(new XlsxRichString(text, defaultFont, this, Styles, OnContentChanged));
@@ -78,7 +78,7 @@ internal class XlsxRichText : XlsxFormattedText<IXlsxRichText>, IXlsxRichText
             throw new InvalidOperationException("The rich text isn't a content of a cell.");
 
         _cell.SetOnlyValue(Text);
-        var point = _cell.Point;
+        Point point = _cell.Point;
         var richText = XlsxImmutableRichText.Create(this);
         _cell.Worksheet.Internals.CellsCollection.ValueSlice.SetRichText(point, richText);
     }

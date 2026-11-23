@@ -33,24 +33,24 @@ public interface IXlsxWorksheet : IXlsxRangeBase, IXlsxProtectable<IXlsxSheetPro
     /// <summary>
     /// Gets or sets the default column width for this worksheet.
     /// </summary>
-    Double ColumnWidth { get; set; }
+    double ColumnWidth { get; set; }
 
     /// <summary>
     /// Gets or sets the default row height for this worksheet.
     /// </summary>
-    Double RowHeight { get; set; }
+    double RowHeight { get; set; }
 
     /// <summary>
     /// Gets or sets the name (caption) of this worksheet. The sheet rename also renames sheet
     /// in formulas and defined names.
     /// </summary>
-    String Name { get; set; }
+    string Name { get; set; }
 
     /// <summary>
     /// Gets or sets the position of the sheet.
     /// <para>When setting the Position all other sheets' positions are shifted accordingly.</para>
     /// </summary>
-    Int32 Position { get; set; }
+    int Position { get; set; }
 
     /// <summary>
     /// Gets an object to manipulate the sheet's print options.
@@ -142,21 +142,21 @@ public interface IXlsxWorksheet : IXlsxRangeBase, IXlsxProtectable<IXlsxSheetPro
     /// <para>e.g. Columns("G:H"), Columns("10:11,13:14"), Columns("P:Q,S:T"), Columns("V")</para>
     /// </summary>
     /// <param name="columns">The columns to return.</param>
-    IXlsxColumns Columns(String columns);
+    IXlsxColumns Columns(string columns);
 
     /// <summary>
     /// Gets a collection of the specified columns in this worksheet.
     /// </summary>
     /// <param name="firstColumn">The first column to return.</param>
     /// <param name="lastColumn">The last column to return.</param>
-    IXlsxColumns Columns(String firstColumn, String lastColumn);
+    IXlsxColumns Columns(string firstColumn, string lastColumn);
 
     /// <summary>
     /// Gets a collection of the specified columns in this worksheet.
     /// </summary>
     /// <param name="firstColumn">The first column to return.</param>
     /// <param name="lastColumn">The last column to return.</param>
-    IXlsxColumns Columns(Int32 firstColumn, Int32 lastColumn);
+    IXlsxColumns Columns(int firstColumn, int lastColumn);
 
     /// <summary>
     /// Gets a collection of all rows in this worksheet.
@@ -168,32 +168,32 @@ public interface IXlsxWorksheet : IXlsxRangeBase, IXlsxProtectable<IXlsxSheetPro
     /// <para>e.g. Rows("4:5"), Rows("7:8,10:11"), Rows("13")</para>
     /// </summary>
     /// <param name="rows">The rows to return.</param>
-    IXlsxRows Rows(String rows);
+    IXlsxRows Rows(string rows);
 
     /// <summary>
     /// Gets a collection of the specified rows in this worksheet.
     /// </summary>
     /// <param name="firstRow">The first row to return.</param>
     /// <param name="lastRow">The last row to return.</param>
-    IXlsxRows Rows(Int32 firstRow, Int32 lastRow);
+    IXlsxRows Rows(int firstRow, int lastRow);
 
     /// <summary>
     /// Gets the specified row of the worksheet.
     /// </summary>
     /// <param name="row">The worksheet's row.</param>
-    IXlsxRow Row(Int32 row);
+    IXlsxRow Row(int row);
 
     /// <summary>
     /// Gets the specified column of the worksheet.
     /// </summary>
     /// <param name="column">The worksheet's column.</param>
-    IXlsxColumn Column(Int32 column);
+    IXlsxColumn Column(int column);
 
     /// <summary>
     /// Gets the specified column of the worksheet.
     /// </summary>
     /// <param name="column">The worksheet's column.</param>
-    IXlsxColumn Column(String column);
+    IXlsxColumn Column(string column);
 
     /// <summary>
     /// Gets the cell at the specified row and column.
@@ -288,25 +288,25 @@ public interface IXlsxWorksheet : IXlsxRangeBase, IXlsxProtectable<IXlsxSheetPro
     /// Collapses the outlined rows of the specified level.
     /// </summary>
     /// <param name="outlineLevel">The outline level.</param>
-    IXlsxWorksheet CollapseRows(Int32 outlineLevel);
+    IXlsxWorksheet CollapseRows(int outlineLevel);
 
     /// <summary>
     /// Collapses the outlined columns of the specified level.
     /// </summary>
     /// <param name="outlineLevel">The outline level.</param>
-    IXlsxWorksheet CollapseColumns(Int32 outlineLevel);
+    IXlsxWorksheet CollapseColumns(int outlineLevel);
 
     /// <summary>
     /// Expands the outlined rows of the specified level.
     /// </summary>
     /// <param name="outlineLevel">The outline level.</param>
-    IXlsxWorksheet ExpandRows(Int32 outlineLevel);
+    IXlsxWorksheet ExpandRows(int outlineLevel);
 
     /// <summary>
     /// Expands the outlined columns of the specified level.
     /// </summary>
     /// <param name="outlineLevel">The outline level.</param>
-    IXlsxWorksheet ExpandColumns(Int32 outlineLevel);
+    IXlsxWorksheet ExpandColumns(int outlineLevel);
 
     /// <summary>
     /// Deletes this worksheet.
@@ -322,14 +322,14 @@ public interface IXlsxWorksheet : IXlsxRangeBase, IXlsxProtectable<IXlsxSheetPro
     IXlsxDefinedNames DefinedNames { get; }
 
     [Obsolete($"Use {nameof(DefinedName)} instead.")]
-    IXlsxDefinedName NamedRange(String rangeName);
+    IXlsxDefinedName NamedRange(string rangeName);
 
     /// <summary>
     /// Gets the specified defined name.
     /// </summary>
     /// <param name="name">Name identifier of defined name, without sheet name.</param>
     /// <exception cref="ArgumentException">Name wasn't found in sheets defined names.</exception>
-    IXlsxDefinedName DefinedName(String name);
+    IXlsxDefinedName DefinedName(string name);
 
     /// <summary>
     /// Gets an object to manage how the worksheet is going to displayed by Excel.
@@ -340,13 +340,13 @@ public interface IXlsxWorksheet : IXlsxRangeBase, IXlsxProtectable<IXlsxSheetPro
     /// Gets the Excel table of the given index
     /// </summary>
     /// <param name="index">Index of the table to return</param>
-    IXlsxTable Table(Int32 index);
+    IXlsxTable Table(int index);
 
     /// <summary>
     /// Gets the Excel table of the given name
     /// </summary>
     /// <param name="name">Name of the table to return</param>
-    IXlsxTable Table(String name);
+    IXlsxTable Table(string name);
 
     /// <summary>
     /// Gets an object to manage this worksheet's Excel tables
@@ -357,9 +357,9 @@ public interface IXlsxWorksheet : IXlsxRangeBase, IXlsxProtectable<IXlsxSheetPro
     /// Copies the
     /// </summary>
     /// <param name="newSheetName"></param>
-    IXlsxWorksheet CopyTo(String newSheetName);
+    IXlsxWorksheet CopyTo(string newSheetName);
 
-    IXlsxWorksheet CopyTo(String newSheetName, Int32 position);
+    IXlsxWorksheet CopyTo(string newSheetName, int position);
 
     IXlsxWorksheet CopyTo(XlsxWorkbook workbook);
 
@@ -369,9 +369,9 @@ public interface IXlsxWorksheet : IXlsxRangeBase, IXlsxProtectable<IXlsxSheetPro
     /// <param name="workbook">Workbook into which copy this sheet.</param>
     /// <param name="newSheetName">Name of new sheet in the <paramref name="workbook"/> where will the data be copied. Sheet will be in the last position.</param>
     /// <returns>Newly created sheet in the <paramref name="workbook"/>.</returns>
-    IXlsxWorksheet CopyTo(XlsxWorkbook workbook, String newSheetName);
+    IXlsxWorksheet CopyTo(XlsxWorkbook workbook, string newSheetName);
 
-    IXlsxWorksheet CopyTo(XlsxWorkbook workbook, String newSheetName, Int32 position);
+    IXlsxWorksheet CopyTo(XlsxWorkbook workbook, string newSheetName, int position);
 
     IXlsxRange? RangeUsed();
 
@@ -391,71 +391,71 @@ public interface IXlsxWorksheet : IXlsxRangeBase, IXlsxProtectable<IXlsxSheetPro
 
     IXlsxRange Sort();
 
-    IXlsxRange Sort(String columnsToSortBy, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true);
+    IXlsxRange Sort(string columnsToSortBy, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true);
 
-    IXlsxRange Sort(Int32 columnToSortBy, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true);
+    IXlsxRange Sort(int columnToSortBy, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true);
 
-    IXlsxRange SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true);
+    IXlsxRange SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true);
 
     //IXlsxCharts Charts { get; }
 
-    Boolean ShowFormulas { get; set; }
+    bool ShowFormulas { get; set; }
 
-    Boolean ShowGridLines { get; set; }
+    bool ShowGridLines { get; set; }
 
-    Boolean ShowOutlineSymbols { get; set; }
+    bool ShowOutlineSymbols { get; set; }
 
-    Boolean ShowRowColHeaders { get; set; }
+    bool ShowRowColHeaders { get; set; }
 
-    Boolean ShowRuler { get; set; }
+    bool ShowRuler { get; set; }
 
-    Boolean ShowWhiteSpace { get; set; }
+    bool ShowWhiteSpace { get; set; }
 
-    Boolean ShowZeros { get; set; }
+    bool ShowZeros { get; set; }
 
-    IXlsxWorksheet SetShowFormulas(); IXlsxWorksheet SetShowFormulas(Boolean value);
+    IXlsxWorksheet SetShowFormulas(); IXlsxWorksheet SetShowFormulas(bool value);
 
-    IXlsxWorksheet SetShowGridLines(); IXlsxWorksheet SetShowGridLines(Boolean value);
+    IXlsxWorksheet SetShowGridLines(); IXlsxWorksheet SetShowGridLines(bool value);
 
-    IXlsxWorksheet SetShowOutlineSymbols(); IXlsxWorksheet SetShowOutlineSymbols(Boolean value);
+    IXlsxWorksheet SetShowOutlineSymbols(); IXlsxWorksheet SetShowOutlineSymbols(bool value);
 
-    IXlsxWorksheet SetShowRowColHeaders(); IXlsxWorksheet SetShowRowColHeaders(Boolean value);
+    IXlsxWorksheet SetShowRowColHeaders(); IXlsxWorksheet SetShowRowColHeaders(bool value);
 
-    IXlsxWorksheet SetShowRuler(); IXlsxWorksheet SetShowRuler(Boolean value);
+    IXlsxWorksheet SetShowRuler(); IXlsxWorksheet SetShowRuler(bool value);
 
-    IXlsxWorksheet SetShowWhiteSpace(); IXlsxWorksheet SetShowWhiteSpace(Boolean value);
+    IXlsxWorksheet SetShowWhiteSpace(); IXlsxWorksheet SetShowWhiteSpace(bool value);
 
-    IXlsxWorksheet SetShowZeros(); IXlsxWorksheet SetShowZeros(Boolean value);
+    IXlsxWorksheet SetShowZeros(); IXlsxWorksheet SetShowZeros(bool value);
 
     XlsxColor TabColor { get; set; }
 
     IXlsxWorksheet SetTabColor(XlsxColor color);
 
-    Boolean TabSelected { get; set; }
+    bool TabSelected { get; set; }
 
-    Boolean TabActive { get; set; }
+    bool TabActive { get; set; }
 
-    IXlsxWorksheet SetTabSelected(); IXlsxWorksheet SetTabSelected(Boolean value);
+    IXlsxWorksheet SetTabSelected(); IXlsxWorksheet SetTabSelected(bool value);
 
-    IXlsxWorksheet SetTabActive(); IXlsxWorksheet SetTabActive(Boolean value);
+    IXlsxWorksheet SetTabActive(); IXlsxWorksheet SetTabActive(bool value);
 
-    IXlsxPivotTable PivotTable(String name);
+    IXlsxPivotTable PivotTable(string name);
 
     IXlsxPivotTables PivotTables { get; }
 
-    Boolean RightToLeft { get; set; }
+    bool RightToLeft { get; set; }
 
-    IXlsxWorksheet SetRightToLeft(); IXlsxWorksheet SetRightToLeft(Boolean value);
+    IXlsxWorksheet SetRightToLeft(); IXlsxWorksheet SetRightToLeft(bool value);
 
     IXlsxAutoFilter AutoFilter { get; }
 
-    IXlsxRows RowsUsed(XlsxCellsUsedOptions options = XlsxCellsUsedOptions.AllContents, Func<IXlsxRow, Boolean>? predicate = null);
+    IXlsxRows RowsUsed(XlsxCellsUsedOptions options = XlsxCellsUsedOptions.AllContents, Func<IXlsxRow, bool>? predicate = null);
 
-    IXlsxRows RowsUsed(Func<IXlsxRow, Boolean>? predicate);
+    IXlsxRows RowsUsed(Func<IXlsxRow, bool>? predicate);
 
-    IXlsxColumns ColumnsUsed(XlsxCellsUsedOptions options = XlsxCellsUsedOptions.AllContents, Func<IXlsxColumn, Boolean>? predicate = null);
+    IXlsxColumns ColumnsUsed(XlsxCellsUsedOptions options = XlsxCellsUsedOptions.AllContents, Func<IXlsxColumn, bool>? predicate = null);
 
-    IXlsxColumns ColumnsUsed(Func<IXlsxColumn, Boolean>? predicate);
+    IXlsxColumns ColumnsUsed(Func<IXlsxColumn, bool>? predicate);
 
     IXlsxRanges MergedRanges { get; }
 
@@ -476,28 +476,28 @@ public interface IXlsxWorksheet : IXlsxRangeBase, IXlsxProtectable<IXlsxSheetPro
     /// <param name="expression">Formula to evaluate.</param>
     /// <param name="formulaAddress">A cell address that is used to provide context for formula calculation (mostly implicit intersection).</param>
     /// <exception cref="MissingContextException">If <paramref name="formulaAddress"/> was needed for some part of calculation.</exception>
-    XlsxCellValue Evaluate(String expression, string? formulaAddress = null);
+    XlsxCellValue Evaluate(string expression, string? formulaAddress = null);
 
     /// <summary>
     /// Force recalculation of all cell formulas in the sheet while leaving other sheets without change, even if their dirty cells.
     /// </summary>
     void RecalculateAllFormulas();
 
-    String Author { get; set; }
+    string Author { get; set; }
 
     IXlsxPictures Pictures { get; }
 
-    IXlsxPicture Picture(String pictureName);
+    IXlsxPicture Picture(string pictureName);
 
     IXlsxPicture AddPicture(Stream stream);
 
-    IXlsxPicture AddPicture(Stream stream, String name);
+    IXlsxPicture AddPicture(Stream stream, string name);
 
     IXlsxPicture AddPicture(Stream stream, XlsxPictureFormat format);
 
-    IXlsxPicture AddPicture(Stream stream, XlsxPictureFormat format, String name);
+    IXlsxPicture AddPicture(Stream stream, XlsxPictureFormat format, string name);
 
-    IXlsxPicture AddPicture(String imageFile);
+    IXlsxPicture AddPicture(string imageFile);
 
-    IXlsxPicture AddPicture(String imageFile, String name);
+    IXlsxPicture AddPicture(string imageFile, string name);
 }

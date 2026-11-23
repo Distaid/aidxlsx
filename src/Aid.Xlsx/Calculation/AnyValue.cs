@@ -51,8 +51,7 @@ internal readonly struct AnyValue
 
     public static AnyValue From(string text)
     {
-        if (text is null)
-            throw new ArgumentNullException();
+        ArgumentNullException.ThrowIfNull(text);
 
         return new AnyValue(TextValue, default, default, text, default, default, default);
     }
@@ -61,16 +60,14 @@ internal readonly struct AnyValue
 
     public static AnyValue From(Array array)
     {
-        if (array is null)
-            throw new ArgumentNullException();
+        ArgumentNullException.ThrowIfNull(array);
 
         return new(ArrayValue, default, default, default, default, array, default);
     }
 
     public static AnyValue From(Reference reference)
     {
-        if (reference is null)
-            throw new ArgumentNullException();
+        ArgumentNullException.ThrowIfNull(reference);
 
         return new(ReferenceValue, default, default, default, default, default, reference);
     }
@@ -196,7 +193,7 @@ internal readonly struct AnyValue
     /// </summary>
     public bool TryPickCollectionArray(out Array array, CalcContext ctx)
     {
-        if (TryPickArea(out var areaAddress, out _))
+        if (TryPickArea(out XlsxRangeAddress areaAddress, out _))
         {
             array = new ReferenceArray(areaAddress, ctx);
             return true;
@@ -225,7 +222,7 @@ internal readonly struct AnyValue
     /// </remarks>
     internal bool TryPickSingleOrMultiValue(out ScalarValue scalar, out Array array, CalcContext ctx)
     {
-        if (TryPickScalar(out scalar, out var collection))
+        if (TryPickScalar(out scalar, out CollectionValue collection))
         {
             array = default;
             return true;
@@ -233,7 +230,7 @@ internal readonly struct AnyValue
 
         // For some weird reason, 1x1 array doesn't count as a scalar, unlike single cell reference
         // proof {=TYPE(A1+1)} is 1 (scalar), but {=TYPE({1}+1)} is 64 (array).
-        if (collection.TryPickT0(out array, out var reference))
+        if (collection.TryPickT0(out array, out Reference reference))
         {
             scalar = default;
             return false;
@@ -301,12 +298,12 @@ internal readonly struct AnyValue
     /// </summary>
     public static AnyValue ReferenceRange(in AnyValue left, in AnyValue right, CalcContext ctx)
     {
-        var leftConversionResult = ConvertToReference(left);
-        if (!leftConversionResult.TryPickT0(out var leftReference, out var leftError))
+        OneOf<Reference, XlsxError> leftConversionResult = ConvertToReference(left);
+        if (!leftConversionResult.TryPickT0(out Reference leftReference, out XlsxError leftError))
             return leftError;
 
-        var rightConversionResult = ConvertToReference(right);
-        if (!rightConversionResult.TryPickT0(out var rightReference, out var rightError))
+        OneOf<Reference, XlsxError> rightConversionResult = ConvertToReference(right);
+        if (!rightConversionResult.TryPickT0(out Reference rightReference, out XlsxError rightError))
             return rightError;
 
         return Reference.RangeOp(leftReference, rightReference, ctx.Worksheet).Match<AnyValue>(
@@ -320,12 +317,12 @@ internal readonly struct AnyValue
     /// </summary>
     public static AnyValue ReferenceUnion(in AnyValue left, in AnyValue right)
     {
-        var leftConversionResult = ConvertToReference(left);
-        if (!leftConversionResult.TryPickT0(out var leftReference, out var leftError))
+        OneOf<Reference, XlsxError> leftConversionResult = ConvertToReference(left);
+        if (!leftConversionResult.TryPickT0(out Reference leftReference, out XlsxError leftError))
             return leftError;
 
-        var rightConversionResult = ConvertToReference(right);
-        if (!rightConversionResult.TryPickT0(out var rightReference, out var rightError))
+        OneOf<Reference, XlsxError> rightConversionResult = ConvertToReference(right);
+        if (!rightConversionResult.TryPickT0(out Reference rightReference, out XlsxError rightError))
             return rightError;
 
         return Reference.UnionOp(leftReference, rightReference);
@@ -359,7 +356,7 @@ internal readonly struct AnyValue
 
     private static AnyValue UnaryOperation(in AnyValue value, Func<double, double> operatorFn, CalcContext context)
     {
-        var isSingle = value.TryPickSingleOrMultiValue(out var single, out var array, context);
+        var isSingle = value.TryPickSingleOrMultiValue(out ScalarValue single, out Array array, context);
         if (isSingle)
             return UnaryArithmeticOp(single, operatorFn, context).ToAnyValue();
 
@@ -368,8 +365,8 @@ internal readonly struct AnyValue
 
     private static ScalarValue UnaryArithmeticOp(ScalarValue value, Func<double, double> op, CalcContext ctx)
     {
-        var conversionResult = value.ToNumber(ctx.Culture);
-        if (!conversionResult.TryPickT0(out var number, out var error))
+        OneOf<double, XlsxError> conversionResult = value.ToNumber(ctx.Culture);
+        if (!conversionResult.TryPickT0(out var number, out XlsxError error))
             return error;
 
         return op(number);
@@ -381,7 +378,7 @@ internal readonly struct AnyValue
 
     public static AnyValue BinaryPlus(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return BinaryArithmeticOp(in leftItem, in rightItem, static (lhs, rhs) => lhs + rhs, ctx);
         }, context);
@@ -389,7 +386,7 @@ internal readonly struct AnyValue
 
     public static AnyValue BinaryMinus(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return BinaryArithmeticOp(in leftItem, in rightItem, static (lhs, rhs) => lhs - rhs, ctx);
         }, context);
@@ -397,7 +394,7 @@ internal readonly struct AnyValue
 
     public static AnyValue BinaryMult(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return BinaryArithmeticOp(in leftItem, in rightItem, static (lhs, rhs) => lhs * rhs, ctx);
         }, context);
@@ -405,7 +402,7 @@ internal readonly struct AnyValue
 
     public static AnyValue BinaryDiv(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return BinaryArithmeticOp(in leftItem, in rightItem, static (lhs, rhs) => rhs == 0.0 ? XlsxError.DivisionByZero : lhs / rhs, ctx);
         }, context);
@@ -413,7 +410,7 @@ internal readonly struct AnyValue
 
     public static AnyValue BinaryExp(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return BinaryArithmeticOp(in leftItem, in rightItem, static (lhs, rhs) => lhs == 0 && rhs == 0 ? XlsxError.NumberInvalid : Math.Pow(lhs, rhs), ctx);
         }, context);
@@ -425,7 +422,7 @@ internal readonly struct AnyValue
 
     public static AnyValue IsEqual(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return CompareValues(leftItem, rightItem, ctx.Culture).Match<ScalarValue>(
                 static cmp => cmp == 0,
@@ -435,7 +432,7 @@ internal readonly struct AnyValue
 
     public static AnyValue IsNotEqual(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return CompareValues(leftItem, rightItem, ctx.Culture).Match<ScalarValue>(
                 static cmp => cmp != 0,
@@ -445,7 +442,7 @@ internal readonly struct AnyValue
 
     public static AnyValue IsGreaterThan(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return CompareValues(leftItem, rightItem, ctx.Culture).Match<ScalarValue>(
                 static cmp => cmp > 0,
@@ -455,7 +452,7 @@ internal readonly struct AnyValue
 
     public static AnyValue IsGreaterThanOrEqual(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return CompareValues(leftItem, rightItem, ctx.Culture).Match<ScalarValue>(
                 static cmp => cmp >= 0,
@@ -465,7 +462,7 @@ internal readonly struct AnyValue
 
     public static AnyValue IsLessThan(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return CompareValues(leftItem, rightItem, ctx.Culture).Match<ScalarValue>(
                 static cmp => cmp < 0,
@@ -475,7 +472,7 @@ internal readonly struct AnyValue
 
     public static AnyValue IsLessThanOrEqual(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return CompareValues(leftItem, rightItem, ctx.Culture).Match<ScalarValue>(
                 static cmp => cmp <= 0,
@@ -487,14 +484,14 @@ internal readonly struct AnyValue
 
     public static AnyValue Concat(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
-            var leftTextResult = leftItem.ToText(ctx.Culture);
-            if (!leftTextResult.TryPickT0(out var leftText, out var leftError))
+            OneOf<string, XlsxError> leftTextResult = leftItem.ToText(ctx.Culture);
+            if (!leftTextResult.TryPickT0(out var leftText, out XlsxError leftError))
                 return leftError;
 
-            var rightTextResult = rightItem.ToText(ctx.Culture);
-            if (!rightTextResult.TryPickT0(out var rightText, out var rightError))
+            OneOf<string, XlsxError> rightTextResult = rightItem.ToText(ctx.Culture);
+            if (!rightTextResult.TryPickT0(out var rightText, out XlsxError rightError))
                 return rightError;
 
             if ((long)leftText.Length + rightText.Length > XlsxHelper.CellTextLimit)
@@ -506,8 +503,8 @@ internal readonly struct AnyValue
 
     private static AnyValue BinaryOperation(in AnyValue left, in AnyValue right, BinaryFunc func, CalcContext context)
     {
-        var isLeftSingle = left.TryPickSingleOrMultiValue(out var leftSingle, out var leftArray, context);
-        var isRightSingle = right.TryPickSingleOrMultiValue(out var rightSingle, out var rightArray, context);
+        var isLeftSingle = left.TryPickSingleOrMultiValue(out ScalarValue leftSingle, out Array leftArray, context);
+        var isRightSingle = right.TryPickSingleOrMultiValue(out ScalarValue rightSingle, out Array rightArray, context);
 
         if (isLeftSingle && isRightSingle)
             return func(in leftSingle, in rightSingle, context).ToAnyValue();
@@ -527,22 +524,22 @@ internal readonly struct AnyValue
         var unifiedRows = Math.Max(leftArray.Height, rightArray.Height);
         var unifiedColumns = Math.Max(leftArray.Width, rightArray.Width);
 
-        var leftBroadcastedArray = leftArray.Broadcast(unifiedRows, unifiedColumns);
-        var rightBroadcastedArray = rightArray.Broadcast(unifiedRows, unifiedColumns);
+        Array leftBroadcastedArray = leftArray.Broadcast(unifiedRows, unifiedColumns);
+        Array rightBroadcastedArray = rightArray.Broadcast(unifiedRows, unifiedColumns);
 
         return leftBroadcastedArray.Apply(rightBroadcastedArray, func, context);
     }
 
     private static ScalarValue BinaryArithmeticOp(in ScalarValue left, in ScalarValue right, BinaryNumberFunc func, CalcContext ctx)
     {
-        var leftConversionResult = left.ToNumber(ctx.Culture);
-        if (!leftConversionResult.TryPickT0(out var leftNumber, out var leftError))
+        OneOf<double, XlsxError> leftConversionResult = left.ToNumber(ctx.Culture);
+        if (!leftConversionResult.TryPickT0(out var leftNumber, out XlsxError leftError))
         {
             return leftError;
         }
 
-        var rightConversionResult = right.ToNumber(ctx.Culture);
-        if (!rightConversionResult.TryPickT0(out var rightNumber, out var rightError))
+        OneOf<double, XlsxError> rightConversionResult = right.ToNumber(ctx.Culture);
+        if (!rightConversionResult.TryPickT0(out var rightNumber, out XlsxError rightError))
         {
             return rightError;
         }
@@ -629,10 +626,10 @@ internal readonly struct AnyValue
         if (IsScalarType)
             return (1, 1);
 
-        if (TryPickArray(out var array))
+        if (TryPickArray(out Array array))
             return (array.Height, array.Width);
 
-        if (TryPickArea(out var area, out _))
+        if (TryPickArea(out XlsxRangeAddress area, out _))
             return (area.RowSpan, area.ColumnSpan);
 
         // Multi area is just error = scalar

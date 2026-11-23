@@ -4,14 +4,9 @@ using Aid.Xlsx.Model.Grid.Cells;
 
 namespace Aid.Xlsx.DataImport.RowReaders;
 
-internal class ArrayReader : IInsertDataReader
+internal class ArrayReader(IEnumerable<IEnumerable> data) : IInsertDataReader
 {
-    private readonly IEnumerable<IEnumerable> _data;
-
-    public ArrayReader(IEnumerable<IEnumerable> data)
-    {
-        _data = data ?? throw new ArgumentNullException(nameof(data));
-    }
+    private readonly IEnumerable<IEnumerable> _data = data ?? throw new ArgumentNullException(nameof(data));
 
     public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
     {

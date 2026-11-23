@@ -223,7 +223,7 @@ public readonly struct RowCol : IEquatable<RowCol>
     /// <exception cref="ArgumentOutOfRangeException">Row or col is out of valid row or column number.</exception>
     public RowCol ToA1(int anchorRow, int anchorCol)
     {
-        var (newRowPosition, newColPosition) = ToA1Positions(anchorRow, anchorCol);
+        (int newRowPosition, int newColPosition) = ToA1Positions(anchorRow, anchorCol);
 
         // Modulo is expensive and because of grammar and row/col constraints, we can't go out of 1 range on each side.
         if (RowType == Relative)
@@ -247,7 +247,7 @@ public readonly struct RowCol : IEquatable<RowCol>
 
     internal RowCol? ToA1OrError(int anchorRow, int anchorCol)
     {
-        var (newRowPosition, newColPosition) = ToA1Positions(anchorRow, anchorCol);
+        (int newRowPosition, int newColPosition) = ToA1Positions(anchorRow, anchorCol);
         if (RowType == Relative && newRowPosition is < 1 or > MaxRow)
             return null;
 

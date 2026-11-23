@@ -44,7 +44,7 @@ internal class FunctionRegistry
 
     public bool TryGetFunc(string name, out int paramMin, out int paramMax)
     {
-        if (_func.TryGetValue(name, out var func))
+        if (_func.TryGetValue(name, out FunctionDefinition func))
         {
             paramMin = func.MinParams;
             paramMax = func.MaxParams;

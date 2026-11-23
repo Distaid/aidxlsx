@@ -17,12 +17,12 @@ internal static class SignatureAdapter
         return (_, _) => f().ToAnyValue();
     }
 
-    public static CalcEngineFunction AdaptCoerced(Func<Boolean, AnyValue> f)
+    public static CalcEngineFunction AdaptCoerced(Func<bool, AnyValue> f)
     {
         return (ctx, args) =>
         {
-            var arg0Converted = CoerceToLogical(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<bool, XlsxError> arg0Converted = CoerceToLogical(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
             return f(arg0);
@@ -33,8 +33,8 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
             return f(arg0).ToAnyValue();
@@ -45,8 +45,8 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
             return f(ctx, arg0).ToAnyValue();
@@ -57,8 +57,8 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToScalarValue(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<ScalarValue, XlsxError> arg0Converted = ToScalarValue(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out ScalarValue arg0, out XlsxError err0))
                 return err0;
 
             return f(ctx, arg0).ToAnyValue();
@@ -69,12 +69,12 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToNumber(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
             return f(ctx, arg0, arg1).ToAnyValue();
@@ -85,16 +85,16 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToNumber(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
-            var arg2Converted = ToNumber(args[2], ctx);
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            OneOf<double, XlsxError> arg2Converted = ToNumber(args[2], ctx);
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
             return f(ctx, arg0, arg1, arg2).ToAnyValue();
@@ -105,16 +105,16 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToNumber(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
-            var arg2Converted = ToText(args[2], ctx);
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            OneOf<string, XlsxError> arg2Converted = ToText(args[2], ctx);
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
             return f(ctx, arg0, arg1, arg2).ToAnyValue();
@@ -125,20 +125,20 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToNumber(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
-            var arg2Converted = ToNumber(args[2], ctx);
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            OneOf<double, XlsxError> arg2Converted = ToNumber(args[2], ctx);
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
-            var arg3Converted = CoerceToLogical(args[3], ctx);
-            if (!arg3Converted.TryPickT0(out var arg3, out var err3))
+            OneOf<bool, XlsxError> arg3Converted = CoerceToLogical(args[3], ctx);
+            if (!arg3Converted.TryPickT0(out var arg3, out XlsxError err3))
                 return err3;
 
             return f(ctx, arg0, arg1, arg2, arg3);
@@ -149,8 +149,8 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToText(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<string, XlsxError> arg0Converted = ToText(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
             return f(ctx, arg0).ToAnyValue();
@@ -161,12 +161,12 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToText(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<string, XlsxError> arg0Converted = ToText(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToText(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<string, XlsxError> arg1Converted = ToText(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
             return f(arg0, arg1).ToAnyValue();
@@ -177,12 +177,12 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToText(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<string, XlsxError> arg0Converted = ToText(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToNumber(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
             return f(ctx, arg0, arg1).ToAnyValue();
@@ -193,20 +193,20 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToText(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<string, XlsxError> arg0Converted = ToText(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToNumber(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
-            var arg2Converted = ToNumber(args[2], ctx);
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            OneOf<double, XlsxError> arg2Converted = ToNumber(args[2], ctx);
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
-            var arg3Converted = ToText(args[3], ctx);
-            if (!arg3Converted.TryPickT0(out var arg3, out var err3))
+            OneOf<string, XlsxError> arg3Converted = ToText(args[3], ctx);
+            if (!arg3Converted.TryPickT0(out var arg3, out XlsxError err3))
                 return err3;
 
             return f(ctx, arg0, arg1, arg2, arg3).ToAnyValue();
@@ -217,16 +217,16 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToText(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<string, XlsxError> arg0Converted = ToText(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToNumber(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
-            var arg2Converted = ToNumber(args[2], ctx);
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            OneOf<double, XlsxError> arg2Converted = ToNumber(args[2], ctx);
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
             return f(ctx, arg0, arg1, arg2).ToAnyValue();
@@ -237,10 +237,10 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0 = args[0];
+            AnyValue arg0 = args[0];
 
-            var arg1Converted = ToNumber(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
             return f(ctx, arg0, arg1);
@@ -251,15 +251,15 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToText(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<string, XlsxError> arg0Converted = ToText(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
             var arg1 = default(ScalarValue?);
             if (args.Length > 1)
             {
-                var arg1Converted = ToScalarValue(args[1], ctx);
-                if (!arg1Converted.TryPickT0(out var arg1Value, out var err1))
+                OneOf<ScalarValue, XlsxError> arg1Converted = ToScalarValue(args[1], ctx);
+                if (!arg1Converted.TryPickT0(out ScalarValue arg1Value, out XlsxError err1))
                     return err1;
 
                 arg1 = arg1Value;
@@ -275,10 +275,10 @@ internal static class SignatureAdapter
         return (ctx, args) =>
         {
             var texts = new List<string>(args.Length);
-            foreach (var arg in args)
+            foreach (AnyValue arg in args)
             {
-                var argConverted = ToText(arg, ctx);
-                if (!argConverted.TryPickT0(out var text, out var error))
+                OneOf<string, XlsxError> argConverted = ToText(arg, ctx);
+                if (!argConverted.TryPickT0(out var text, out XlsxError error))
                     return error;
 
                 texts.Add(text);
@@ -297,8 +297,8 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToScalarValue(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<ScalarValue, XlsxError> arg0Converted = ToScalarValue(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out ScalarValue arg0, out XlsxError err0))
                 return err0;
 
             return f(ctx, arg0);
@@ -309,12 +309,12 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToScalarValue(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<ScalarValue, XlsxError> arg0Converted = ToScalarValue(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out ScalarValue arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToText(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<string, XlsxError> arg1Converted = ToText(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
             return f(ctx, arg0, arg1).ToAnyValue();
@@ -325,12 +325,12 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToScalarValue(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<ScalarValue, XlsxError> arg0Converted = ToScalarValue(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out ScalarValue arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToScalarValue(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<ScalarValue, XlsxError> arg1Converted = ToScalarValue(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out ScalarValue arg1, out XlsxError err1))
                 return err1;
 
             return f(arg0, arg1);
@@ -341,10 +341,10 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0 = args[0];
+            AnyValue arg0 = args[0];
 
-            var arg1Converted = ToScalarValue(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<ScalarValue, XlsxError> arg1Converted = ToScalarValue(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out ScalarValue arg1, out XlsxError err1))
                 return err1;
 
             return f(ctx, arg0, arg1);
@@ -356,9 +356,9 @@ internal static class SignatureAdapter
         return (ctx, args) =>
         {
             var arrays = new List<Array>();
-            foreach (var arg in args)
+            foreach (AnyValue arg in args)
             {
-                if (arg.TryPickSingleOrMultiValue(out var scalar, out var array, ctx))
+                if (arg.TryPickSingleOrMultiValue(out ScalarValue scalar, out Array array, ctx))
                     array = new ScalarArray(scalar, 1, 1);
 
                 arrays.Add(array);
@@ -372,16 +372,16 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToText(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<string, XlsxError> arg0Converted = ToText(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = CoerceToLogical(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<bool, XlsxError> arg1Converted = CoerceToLogical(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
             var remainingArgs = new List<AnyValue>();
-            foreach (var arg in args[2..])
+            foreach (AnyValue arg in args[2..])
                 remainingArgs.Add(arg);
 
             return f(ctx, arg0, arg1, remainingArgs).ToAnyValue();
@@ -392,12 +392,12 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToScalarValue(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<ScalarValue, XlsxError> arg0Converted = ToScalarValue(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out ScalarValue arg0, out XlsxError err0))
                 return err0;
 
-            var arg1 = args[1];
-            var arg2 = args.Length > 2 ? args[2] : lastDefault;
+            AnyValue arg1 = args[1];
+            AnyValue arg2 = args.Length > 2 ? args[2] : lastDefault;
             return f(arg0, arg1, arg2);
         };
     }
@@ -406,12 +406,12 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToNumber(args.Length > 1 ? args[1] : lastDefault, ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args.Length > 1 ? args[1] : lastDefault, ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
             return f(ctx, arg0, arg1).ToAnyValue();
@@ -422,16 +422,16 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToNumber(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
-            var arg2Converted = ToNumber(args.Length > 2 ? args[2] : lastDefault, ctx);
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            OneOf<double, XlsxError> arg2Converted = ToNumber(args.Length > 2 ? args[2] : lastDefault, ctx);
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
             return f(ctx, arg0, arg1, arg2).ToAnyValue();
@@ -442,16 +442,16 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToNumber(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
-            var arg2Converted = CoerceToLogical(args.Length > 2 ? args[2] : lastDefault, ctx);
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            OneOf<bool, XlsxError> arg2Converted = CoerceToLogical(args.Length > 2 ? args[2] : lastDefault, ctx);
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
             return f(ctx, arg0, arg1, arg2).ToAnyValue();
@@ -462,12 +462,12 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToText(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<string, XlsxError> arg0Converted = ToText(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToNumber(args.Length > 1 ? args[1] : lastDefault, ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args.Length > 1 ? args[1] : lastDefault, ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
             return f(ctx, arg0, arg1).ToAnyValue();
@@ -478,16 +478,16 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToNumber(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
-            var arg2Converted = ToNumber(args.Length > 2 ? args[2] : lastDefault, ctx);
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            OneOf<double, XlsxError> arg2Converted = ToNumber(args.Length > 2 ? args[2] : lastDefault, ctx);
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
             return f(arg0, arg1, arg2).ToAnyValue();
@@ -498,11 +498,11 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var argsLoop = args[1..].ToArray();
+            AnyValue[] argsLoop = args[1..].ToArray();
             return f(ctx, arg0, argsLoop);
         };
     }
@@ -511,19 +511,19 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToText(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<string, XlsxError> arg0Converted = ToText(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToText(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<string, XlsxError> arg1Converted = ToText(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
             OneOf<double, Blank> arg2Optional = Blank.Value;
             if (args.Length > 2)
             {
-                var arg2Converted = ToNumber(args[2], ctx);
-                if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+                OneOf<double, XlsxError> arg2Converted = ToNumber(args[2], ctx);
+                if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                     return err2;
 
                 arg2Optional = arg2;
@@ -537,12 +537,12 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToScalarValue(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<ScalarValue, XlsxError> arg0Converted = ToScalarValue(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out ScalarValue arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = args.Length > 1 ? ToScalarValue(args[1], ctx) : ScalarValue.Blank;
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<ScalarValue, XlsxError> arg1Converted = args.Length > 1 ? ToScalarValue(args[1], ctx) : ScalarValue.Blank;
+            if (!arg1Converted.TryPickT0(out ScalarValue arg1, out XlsxError err1))
                 return err1;
 
             return f(ctx, arg0, arg1).ToAnyValue();
@@ -553,15 +553,15 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToScalarValue(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<ScalarValue, XlsxError> arg0Converted = ToScalarValue(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out ScalarValue arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToScalarValue(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<ScalarValue, XlsxError> arg1Converted = ToScalarValue(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out ScalarValue arg1, out XlsxError err1))
                 return err1;
 
-            var arg2 = args.Length > 2 ? args[2] : AnyValue.Blank;
+            AnyValue arg2 = args.Length > 2 ? args[2] : AnyValue.Blank;
 
             return f(ctx, arg0, arg1, arg2).ToAnyValue();
         };
@@ -571,13 +571,13 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0 = args[0];
+            AnyValue arg0 = args[0];
 
-            var arg1Converted = ToScalarValue(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<ScalarValue, XlsxError> arg1Converted = ToScalarValue(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out ScalarValue arg1, out XlsxError err1))
                 return err1;
 
-            var arg2 = args.Length > 2 ? args[2] : AnyValue.Blank;
+            AnyValue arg2 = args.Length > 2 ? args[2] : AnyValue.Blank;
 
             return f(ctx, arg0, arg1, arg2);
         };
@@ -590,8 +590,8 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var tallyRange = args[0];
-            if (!ToCriteria(ctx, args[1..]).TryPickT0(out var criteria, out var error))
+            AnyValue tallyRange = args[0];
+            if (!ToCriteria(ctx, args[1..]).TryPickT0(out List<(AnyValue Range, ScalarValue Criteria)> criteria, out XlsxError error))
                 return error;
 
             return f(ctx, tallyRange, criteria);
@@ -605,7 +605,7 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            if (!ToCriteria(ctx, args).TryPickT0(out var criteria, out var error))
+            if (!ToCriteria(ctx, args).TryPickT0(out List<(AnyValue Range, ScalarValue Criteria)> criteria, out XlsxError error))
                 return error;
 
             return f(ctx, criteria);
@@ -616,11 +616,11 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0 = args[0];
+            AnyValue arg0 = args[0];
             var numbers = new List<int>(args.Length - 1);
             for (var i = 1; i < args.Length; ++i)
             {
-                if (!ToNumber(args[i], ctx).TryPickT0(out var number, out var error))
+                if (!ToNumber(args[i], ctx).TryPickT0(out var number, out XlsxError error))
                     return error;
 
                 numbers.Add((int)number);
@@ -634,13 +634,13 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToScalarValue(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<ScalarValue, XlsxError> arg0Converted = ToScalarValue(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out ScalarValue arg0, out XlsxError err0))
                 return err0;
 
-            var arg1 = args[1];
-            var arg2Converted = args.Length > 2 ? ToNumber(args[2], ctx) : 1;
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            AnyValue arg1 = args[1];
+            OneOf<double, XlsxError> arg2Converted = args.Length > 2 ? ToNumber(args[2], ctx) : 1;
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
             return f(ctx, arg0, arg1, (int)arg2).ToAnyValue();
@@ -655,30 +655,30 @@ internal static class SignatureAdapter
             if (args[0].IsLogical)
                 return XlsxError.IncompatibleValue;
 
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
             if (args[1].IsLogical)
                 return XlsxError.IncompatibleValue;
 
-            var arg1Converted = ToNumber(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
             if (args[2].IsLogical)
                 return XlsxError.IncompatibleValue;
 
-            var arg2Converted = ToNumber(args[2], ctx);
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            OneOf<double, XlsxError> arg2Converted = ToNumber(args[2], ctx);
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
-            if (args[3].TryPickSingleOrMultiValue(out var scalar, out var arg3, ctx))
+            if (args[3].TryPickSingleOrMultiValue(out ScalarValue scalar, out Array arg3, ctx))
             {
                 if (scalar.IsLogical)
                     return XlsxError.IncompatibleValue;
 
-                if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out var error))
+                if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out XlsxError error))
                     return error;
 
                 arg3 = new ScalarArray(number, 1, 1);
@@ -692,18 +692,18 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToText(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<string, XlsxError> arg0Converted = ToText(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
             var decimalSeparator = ctx.Culture.NumberFormat.NumberDecimalSeparator;
-            var arg1Converted = ToText(args.Length > 1 ? args[1] : decimalSeparator, ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<string, XlsxError> arg1Converted = ToText(args.Length > 1 ? args[1] : decimalSeparator, ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
             var groupSeparator = ctx.Culture.NumberFormat.NumberGroupSeparator;
-            var arg2Converted = ToText(args.Length > 2 ? args[2] : groupSeparator, ctx);
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            OneOf<string, XlsxError> arg2Converted = ToText(args.Length > 2 ? args[2] : groupSeparator, ctx);
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
             return f(ctx, arg0, arg1, arg2).ToAnyValue();
@@ -714,24 +714,24 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToText(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<string, XlsxError> arg0Converted = ToText(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToText(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<string, XlsxError> arg1Converted = ToText(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
-            var arg2Converted = ToText(args[2], ctx);
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            OneOf<string, XlsxError> arg2Converted = ToText(args[2], ctx);
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
             double? arg3 = null;
             if (args.Length > 3)
             {
                 // Excel doesn't accept logical, be more permissive.
-                var arg3Converted = ToNumber(args[3], ctx);
-                if (!arg3Converted.TryPickT0(out var arg3Number, out var err3))
+                OneOf<double, XlsxError> arg3Converted = ToNumber(args[3], ctx);
+                if (!arg3Converted.TryPickT0(out var arg3Number, out XlsxError err3))
                     return err3;
 
                 arg3 = arg3Number;
@@ -748,7 +748,7 @@ internal static class SignatureAdapter
             // This can skip blank values, because blank doesn't increase nominator
             // and doesn't change denominator due to 0! = 1
             var scalarCollections = new List<IEnumerable<ScalarValue>>(args.Length);
-            foreach (var arg in args)
+            foreach (AnyValue arg in args)
                 scalarCollections.Add(GetNonBlankScalars(arg, ctx));
 
             return f(ctx, scalarCollections).ToAnyValue();
@@ -756,14 +756,14 @@ internal static class SignatureAdapter
 
         static IEnumerable<ScalarValue> GetNonBlankScalars(AnyValue value, CalcContext ctx)
         {
-            if (value.TryPickScalar(out var scalar, out var collection))
+            if (value.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> collection))
             {
                 if (!scalar.IsBlank)
                     yield return scalar;
             }
-            else if (collection.TryPickT0(out var array, out var reference))
+            else if (collection.TryPickT0(out Array array, out Reference reference))
             {
-                foreach (var element in array)
+                foreach (ScalarValue element in array)
                 {
                     if (!element.IsBlank)
                         yield return element;
@@ -771,7 +771,7 @@ internal static class SignatureAdapter
             }
             else
             {
-                foreach (var element in ctx.GetNonBlankValues(reference))
+                foreach (ScalarValue element in ctx.GetNonBlankValues(reference))
                 {
                     if (!element.IsBlank)
                         yield return element;
@@ -795,7 +795,7 @@ internal static class SignatureAdapter
             var areas = new Array[args.Length];
             for (var i = 0; i < args.Length; ++i)
             {
-                areas[i] = args[i].TryPickSingleOrMultiValue(out var scalar, out var array, ctx)
+                areas[i] = args[i].TryPickSingleOrMultiValue(out ScalarValue scalar, out Array array, ctx)
                     ? new ScalarArray(scalar, 1, 1)
                     : array;
             }
@@ -808,18 +808,18 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToScalarValue(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<ScalarValue, XlsxError> arg0Converted = ToScalarValue(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out ScalarValue arg0, out XlsxError err0))
                 return err0;
 
-            var arg1 = args[1];
+            AnyValue arg1 = args[1];
 
-            var arg2Converted = ToNumber(args[2], ctx);
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            OneOf<double, XlsxError> arg2Converted = ToNumber(args[2], ctx);
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
-            var arg3Converted = args.Length >= 4 ? CoerceToLogical(args[3], ctx) : defaultValue0;
-            if (!arg3Converted.TryPickT0(out var arg3, out var err3))
+            OneOf<bool, XlsxError> arg3Converted = args.Length >= 4 ? CoerceToLogical(args[3], ctx) : defaultValue0;
+            if (!arg3Converted.TryPickT0(out var arg3, out XlsxError err3))
                 return err3;
 
             return f(ctx, arg0, arg1, arg2, arg3);
@@ -830,16 +830,16 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = args.Length > 1 ? ToNumber(args[1], ctx) : defaultValue1;
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = args.Length > 1 ? ToNumber(args[1], ctx) : defaultValue1;
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
-            var arg2Converted = args.Length > 2 ? ToNumber(args[2], ctx) : defaultValue2;
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            OneOf<double, XlsxError> arg2Converted = args.Length > 2 ? ToNumber(args[2], ctx) : defaultValue2;
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
             return f(arg0, arg1, arg2).ToAnyValue();
@@ -850,17 +850,17 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = args.Length > 1 ? ToNumber(args[1], ctx) : defaultValue1;
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = args.Length > 1 ? ToNumber(args[1], ctx) : defaultValue1;
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
             // AnyValue to bool has different semantic than AnyValue to number, e.g. "0" is not valid for bool coercion
-            var arg2Converted = args.Length > 2 ? args[2] : defaultValue2;
-            if (!CoerceToLogical(arg2Converted, ctx).TryPickT0(out var arg2, out var err2))
+            AnyValue arg2Converted = args.Length > 2 ? args[2] : defaultValue2;
+            if (!CoerceToLogical(arg2Converted, ctx).TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
             return f(ctx, arg0, arg1, arg2).ToAnyValue();
@@ -871,23 +871,23 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToNumber(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
-            var arg2Converted = ToNumber(args[2], ctx);
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            OneOf<double, XlsxError> arg2Converted = ToNumber(args[2], ctx);
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
             var arg3Optional = defaultValue0;
             if (args.Length >= 4)
             {
-                var arg3Converted = ToNumber(args[3], ctx);
-                if (!arg3Converted.TryPickT0(out var arg3, out var err3))
+                OneOf<double, XlsxError> arg3Converted = ToNumber(args[3], ctx);
+                if (!arg3Converted.TryPickT0(out var arg3, out XlsxError err3))
                     return err3;
 
                 arg3Optional = arg3;
@@ -896,8 +896,8 @@ internal static class SignatureAdapter
             var arg4Optional = defaultValue1;
             if (args.Length >= 5)
             {
-                var arg4Converted = ToNumber(args[4], ctx);
-                if (!arg4Converted.TryPickT0(out var arg4, out var err4))
+                OneOf<double, XlsxError> arg4Converted = ToNumber(args[4], ctx);
+                if (!arg4Converted.TryPickT0(out var arg4, out XlsxError err4))
                     return err4;
 
                 arg4Optional = arg4;
@@ -911,27 +911,27 @@ internal static class SignatureAdapter
     {
         return (ctx, args) =>
         {
-            var arg0Converted = ToNumber(args[0], ctx);
-            if (!arg0Converted.TryPickT0(out var arg0, out var err0))
+            OneOf<double, XlsxError> arg0Converted = ToNumber(args[0], ctx);
+            if (!arg0Converted.TryPickT0(out var arg0, out XlsxError err0))
                 return err0;
 
-            var arg1Converted = ToNumber(args[1], ctx);
-            if (!arg1Converted.TryPickT0(out var arg1, out var err1))
+            OneOf<double, XlsxError> arg1Converted = ToNumber(args[1], ctx);
+            if (!arg1Converted.TryPickT0(out var arg1, out XlsxError err1))
                 return err1;
 
-            var arg2Converted = ToNumber(args[2], ctx);
-            if (!arg2Converted.TryPickT0(out var arg2, out var err2))
+            OneOf<double, XlsxError> arg2Converted = ToNumber(args[2], ctx);
+            if (!arg2Converted.TryPickT0(out var arg2, out XlsxError err2))
                 return err2;
 
-            var arg3Converted = ToNumber(args[3], ctx);
-            if (!arg3Converted.TryPickT0(out var arg3, out var err3))
+            OneOf<double, XlsxError> arg3Converted = ToNumber(args[3], ctx);
+            if (!arg3Converted.TryPickT0(out var arg3, out XlsxError err3))
                 return err3;
 
             var arg4Optional = defaultValue0;
             if (args.Length >= 5)
             {
-                var arg4Converted = ToNumber(args[4], ctx);
-                if (!arg4Converted.TryPickT0(out var arg4, out var err4))
+                OneOf<double, XlsxError> arg4Converted = ToNumber(args[4], ctx);
+                if (!arg4Converted.TryPickT0(out var arg4, out XlsxError err4))
                     return err4;
 
                 arg4Optional = arg4;
@@ -940,8 +940,8 @@ internal static class SignatureAdapter
             var arg5Optional = defaultValue1;
             if (args.Length >= 6)
             {
-                var arg5Converted = ToNumber(args[5], ctx);
-                if (!arg5Converted.TryPickT0(out var arg5, out var err5))
+                OneOf<double, XlsxError> arg5Converted = ToNumber(args[5], ctx);
+                if (!arg5Converted.TryPickT0(out var arg5, out XlsxError err5))
                     return err5;
 
                 arg5Optional = arg5;
@@ -957,14 +957,14 @@ internal static class SignatureAdapter
     // Each method is named ToSomething and it converts an argument into a desired type (e.g. for ToSomething it should be type Something).
     // Return value is always OneOf<Something, Error>, if there is an error, return it as an error.
 
-    private static OneOf<Boolean, XlsxError> CoerceToLogical(in AnyValue value, CalcContext ctx)
+    private static OneOf<bool, XlsxError> CoerceToLogical(in AnyValue value, CalcContext ctx)
     {
-        if (!ToScalarValue(in value, ctx).TryPickT0(out var scalar, out var scalarError))
+        if (!ToScalarValue(in value, ctx).TryPickT0(out ScalarValue scalar, out XlsxError scalarError))
             return scalarError;
 
         // LibreOffice does accept text, tries to parse it as a number and coerces the number
         // to bool. Excel does not accept number in text argument.
-        if (!scalar.TryCoerceLogicalOrBlankOrNumberOrText(out var logical, out var coercionError))
+        if (!scalar.TryCoerceLogicalOrBlankOrNumberOrText(out var logical, out XlsxError coercionError))
             return coercionError;
 
         return logical;
@@ -972,14 +972,14 @@ internal static class SignatureAdapter
 
     private static OneOf<double, XlsxError> ToNumber(in AnyValue value, CalcContext ctx)
     {
-        if (value.TryPickScalar(out var scalar, out var collection))
+        if (value.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> collection))
             return scalar.ToNumber(ctx.Culture);
 
         // When user specifies array as an argument in an array formula for a scalar function, use [0,0]
-        if (collection.TryPickT0(out var array, out var reference))
+        if (collection.TryPickT0(out Array array, out Reference reference))
             return array[0, 0].ToNumber(ctx.Culture);
 
-        if (reference.TryGetSingleCellValue(out var scalarValue, ctx))
+        if (reference.TryGetSingleCellValue(out ScalarValue scalarValue, ctx))
             return scalarValue.ToNumber(ctx.Culture);
 
         throw new NotImplementedException("Array formulas not implemented.");
@@ -987,13 +987,13 @@ internal static class SignatureAdapter
 
     private static OneOf<string, XlsxError> ToText(in AnyValue value, CalcContext ctx)
     {
-        if (value.TryPickScalar(out var scalar, out var collection))
+        if (value.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> collection))
             return scalar.ToText(ctx.Culture);
 
-        if (collection.TryPickT0(out _, out var reference))
+        if (collection.TryPickT0(out _, out Reference reference))
             throw new NotImplementedException("Array formulas not implemented.");
 
-        if (reference.TryGetSingleCellValue(out var scalarValue, ctx))
+        if (reference.TryGetSingleCellValue(out ScalarValue scalarValue, ctx))
             return scalarValue.ToText(ctx.Culture);
 
         throw new NotImplementedException("Array formulas not implemented.");
@@ -1001,13 +1001,13 @@ internal static class SignatureAdapter
 
     private static OneOf<ScalarValue, XlsxError> ToScalarValue(in AnyValue value, CalcContext ctx)
     {
-        if (value.TryPickScalar(out var scalar, out var collection))
+        if (value.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> collection))
             return scalar;
 
-        if (collection.TryPickT0(out var array, out var reference))
+        if (collection.TryPickT0(out Array array, out Reference reference))
             return array[0, 0];
 
-        if (reference.TryGetSingleCellValue(out var referenceScalar, ctx))
+        if (reference.TryGetSingleCellValue(out ScalarValue referenceScalar, ctx))
             return referenceScalar;
 
         return OneOf<ScalarValue, XlsxError>.FromT1(XlsxError.IncompatibleValue);
@@ -1020,15 +1020,15 @@ internal static class SignatureAdapter
         for (var i = 0; i < pairCount; ++i)
         {
             var rangeArgIndex = 2 * i;
-            var range = args[rangeArgIndex];
+            AnyValue range = args[rangeArgIndex];
 
             // Excel grammar requires even number of arguments. We can't
             // do that, so use blank for missing pair value.
             var criteriaArgIndex = rangeArgIndex + 1;
-            var criteriaArgConverted = criteriaArgIndex < args.Length
+            OneOf<ScalarValue, XlsxError> criteriaArgConverted = criteriaArgIndex < args.Length
                 ? ToScalarValue(args[criteriaArgIndex], ctx)
                 : ScalarValue.Blank;
-            if (!criteriaArgConverted.TryPickT0(out var criteria, out var criteriaError))
+            if (!criteriaArgConverted.TryPickT0(out ScalarValue criteria, out XlsxError criteriaError))
                 return criteriaError;
 
             allCriteria.Add((range, criteria));

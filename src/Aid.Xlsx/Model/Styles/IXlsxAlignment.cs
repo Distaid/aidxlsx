@@ -78,7 +78,7 @@ public interface IXlsxAlignment : IEquatable<IXlsxAlignment>
     ///     is either <see cref="XlsxAlignmentHorizontalValues.Left"/>, <see cref="XlsxAlignmentHorizontalValues.Right"/>
     ///     or <see cref="XlsxAlignmentHorizontalValues.Distributed"/>.
     /// </exception>
-    Int32 Indent { get; set; }
+    int Indent { get; set; }
 
     /// <summary>
     /// Gets or sets whether the cell's last line is justified or not.
@@ -87,7 +87,7 @@ public interface IXlsxAlignment : IEquatable<IXlsxAlignment>
     /// The value changes the behavior of <see cref="XlsxAlignmentHorizontalValues.Distributed"/>
     /// alignment. Name of the property doesn't match actual behavior.
     /// </value>
-    Boolean JustifyLastLine { get; set; }
+    bool JustifyLastLine { get; set; }
 
     /// <summary>
     /// Gets or sets the cell's reading order.
@@ -105,7 +105,7 @@ public interface IXlsxAlignment : IEquatable<IXlsxAlignment>
     /// The value is used only in differential formatting. It determines an additional indent
     /// to add to cells exiting <see cref="Indent"/>.
     /// </value>
-    Int32 RelativeIndent { get; set; }
+    int RelativeIndent { get; set; }
 
     /// <summary>
     /// Gets or sets whether the cell's font size should decrease to fit the contents.
@@ -115,7 +115,7 @@ public interface IXlsxAlignment : IEquatable<IXlsxAlignment>
     /// implicitly through some <see cref="XlsxAlignmentHorizontalValues"/> alignment (e.g.
     /// <see cref="XlsxAlignmentHorizontalValues.Distributed"/>).
     /// </remarks>
-    Boolean ShrinkToFit { get; set; }
+    bool ShrinkToFit { get; set; }
 
     /// <summary>
     /// Gets or sets the cell's text rotation in degrees.
@@ -125,12 +125,12 @@ public interface IXlsxAlignment : IEquatable<IXlsxAlignment>
     /// counterclockwise) and 255 for vertical layout of a text.
     /// </value>
     /// <exception cref="ArgumentOutOfRangeException">When setting the rotation to a value outside of [-90,90] or 255.</exception>
-    Int32 TextRotation { get; set; }
+    int TextRotation { get; set; }
 
     /// <summary>
     /// Gets or sets whether the cell's text should wrap if it doesn't fit.
     /// </summary>
-    Boolean WrapText { get; set; }
+    bool WrapText { get; set; }
 
     /// <summary>
     /// Gets or sets whether the cell's text should be displayed from top to bottom
@@ -139,7 +139,7 @@ public interface IXlsxAlignment : IEquatable<IXlsxAlignment>
     /// <remarks>
     /// The setter has same effect as as <c>alignment.TextRotation = topToBottom ? 255 : 0</c>.
     /// </remarks>
-    Boolean TopToBottom { get; set; }
+    bool TopToBottom { get; set; }
 
     /// <summary>
     /// Sets the cell's horizontal alignment.
@@ -157,7 +157,7 @@ public interface IXlsxAlignment : IEquatable<IXlsxAlignment>
     /// Sets the cell's text indentation.
     /// </summary>
     /// <inheritdoc cref="Indent"/>
-    IXlsxStyle SetIndent(Int32 value);
+    IXlsxStyle SetIndent(int value);
 
     /// <summary>
     /// Changes mode of <see cref="XlsxAlignmentHorizontalValues.Distributed"/> alignment.
@@ -169,7 +169,7 @@ public interface IXlsxAlignment : IEquatable<IXlsxAlignment>
     /// Changes mode of <see cref="XlsxAlignmentHorizontalValues.Distributed"/> alignment.
     /// </summary>
     /// <inheritdoc cref="JustifyLastLine"/>
-    IXlsxStyle SetJustifyLastLine(Boolean value);
+    IXlsxStyle SetJustifyLastLine(bool value);
 
     /// <summary>
     /// Sets the cell's reading order.
@@ -177,7 +177,7 @@ public interface IXlsxAlignment : IEquatable<IXlsxAlignment>
     /// <inheritdoc cref="ReadingOrder"/>
     IXlsxStyle SetReadingOrder(XlsxAlignmentReadingOrderValues value);
 
-    IXlsxStyle SetRelativeIndent(Int32 value);
+    IXlsxStyle SetRelativeIndent(int value);
 
     /// <summary>
     /// Sets whether the cell's font size should decrease to fit the contents.
@@ -189,13 +189,13 @@ public interface IXlsxAlignment : IEquatable<IXlsxAlignment>
     /// Sets whether the cell's font size should decrease to fit the contents.
     /// </summary>
     /// <inheritdoc cref="ShrinkToFit"/>
-    IXlsxStyle SetShrinkToFit(Boolean value);
+    IXlsxStyle SetShrinkToFit(bool value);
 
     /// <summary>
     /// Sets the cell's text rotation in degrees.
     /// </summary>
     /// <inheritdoc cref="TextRotation"/>
-    IXlsxStyle SetTextRotation(Int32 value);
+    IXlsxStyle SetTextRotation(int value);
 
     /// <summary>
     /// Sets whether the cell's text should wrap if it doesn't fit.
@@ -207,7 +207,7 @@ public interface IXlsxAlignment : IEquatable<IXlsxAlignment>
     /// Sets whether the cell's text should wrap if it doesn't fit.
     /// </summary>
     /// <inheritdoc cref="WrapText"/>
-    IXlsxStyle SetWrapText(Boolean value);
+    IXlsxStyle SetWrapText(bool value);
 
     /// <summary>
     /// Sets whether the cell's text should be displayed from top to bottom (as opposed to
@@ -221,5 +221,5 @@ public interface IXlsxAlignment : IEquatable<IXlsxAlignment>
     /// the normal left to right).
     /// </summary>
     /// <inheritdoc cref="TopToBottom"/>
-    IXlsxStyle SetTopToBottom(Boolean value);
+    IXlsxStyle SetTopToBottom(bool value);
 }

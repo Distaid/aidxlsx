@@ -46,7 +46,7 @@ public interface IXlsxHFItem : IXlsxWithRichString
     /// Gets the text of the specified header/footer occurrence.
     /// </summary>
     /// <param name="occurrence">The occurrence.</param>
-    String GetText(XlsxHFOccurrence occurrence);
+    string GetText(XlsxHFOccurrence occurrence);
 
     /// <summary>
     /// Adds the given predefined text to this header/footer item.
@@ -59,7 +59,7 @@ public interface IXlsxHFItem : IXlsxWithRichString
     /// </summary>
     /// <param name="text">The text to add to this header/footer item.</param>
     /// <param name="occurrence">The occurrence for the text.</param>
-    IXlsxRichString AddText(String text, XlsxHFOccurrence occurrence);
+    IXlsxRichString AddText(string text, XlsxHFOccurrence occurrence);
 
     /// <summary>
     /// Adds the given predefined text to this header/footer item.
@@ -72,5 +72,5 @@ public interface IXlsxHFItem : IXlsxWithRichString
     /// <param name="occurrence">The occurrence to clear.</param>
     void Clear(XlsxHFOccurrence occurrence = XlsxHFOccurrence.AllPages);
 
-    IXlsxRichString AddImage(String imagePath, XlsxHFOccurrence occurrence = XlsxHFOccurrence.AllPages);
+    IXlsxRichString AddImage(string imagePath, XlsxHFOccurrence occurrence = XlsxHFOccurrence.AllPages);
 }

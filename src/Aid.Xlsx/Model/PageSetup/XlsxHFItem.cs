@@ -6,32 +6,29 @@ using Aid.Xlsx.Model.RichText;
 
 namespace Aid.Xlsx.Model.PageSetup;
 
-internal class XlsxHFItem : IXlsxHFItem
+internal class XlsxHFItem(XlsxHeaderFooter headerFooter) : IXlsxHFItem
 {
-    internal readonly XlsxHeaderFooter HeaderFooter;
-    public XlsxHFItem(XlsxHeaderFooter headerFooter)
-    {
-        HeaderFooter = headerFooter;
-    }
+    internal readonly XlsxHeaderFooter HeaderFooter = headerFooter;
+
     public XlsxHFItem(XlsxHFItem defaultHFItem, XlsxHeaderFooter headerFooter)
         : this(headerFooter)
     {
         defaultHFItem.texts.ForEach(kp => texts.Add(kp.Key, kp.Value));
     }
-    private readonly Dictionary<XlsxHFOccurrence, List<XlsxHFText>> texts = new Dictionary<XlsxHFOccurrence, List<XlsxHFText>>();
-    public String GetText(XlsxHFOccurrence occurrence)
+    private readonly Dictionary<XlsxHFOccurrence, List<XlsxHFText>> texts = [];
+    public string GetText(XlsxHFOccurrence occurrence)
     {
         var sb = new StringBuilder();
         if (texts.TryGetValue(occurrence, out List<XlsxHFText> hfTexts))
         {
-            foreach (var hfText in hfTexts)
+            foreach (XlsxHFText hfText in hfTexts)
                 sb.Append(hfText.GetHFText(sb.ToString()));
         }
 
         return sb.ToString();
     }
 
-    public IXlsxRichString AddText(String text)
+    public IXlsxRichString AddText(string text)
     {
         return AddText(text, XlsxHFOccurrence.AllPages);
     }
@@ -40,7 +37,7 @@ internal class XlsxHFItem : IXlsxHFItem
         return AddText(predefinedText, XlsxHFOccurrence.AllPages);
     }
 
-    public IXlsxRichString AddText(String text, XlsxHFOccurrence occurrence)
+    public IXlsxRichString AddText(string text, XlsxHFOccurrence occurrence)
     {
         // TODO Styles: This doesn't update source when API object changes
         var richText = new XlsxRichString(text, HeaderFooter.Worksheet.GetFormat().Font, this, HeaderFooter.Worksheet.Workbook.Styles, null);
@@ -65,7 +62,7 @@ internal class XlsxHFItem : IXlsxHFItem
         return AddText(Environment.NewLine);
     }
 
-    public IXlsxRichString AddImage(String imagePath, XlsxHFOccurrence occurrence = XlsxHFOccurrence.AllPages)
+    public IXlsxRichString AddImage(string imagePath, XlsxHFOccurrence occurrence = XlsxHFOccurrence.AllPages)
     {
         throw new NotImplementedException();
     }
@@ -75,26 +72,25 @@ internal class XlsxHFItem : IXlsxHFItem
         if (texts.TryGetValue(occurrence, out List<XlsxHFText> hfTexts))
             hfTexts.Add(hfText);
         else
-            texts.Add(occurrence, new List<XlsxHFText> { hfText });
+            texts.Add(occurrence, [hfText]);
 
         this.HeaderFooter.Changed = true;
     }
 
     public IXlsxRichString AddText(XlsxHFPredefinedText predefinedText, XlsxHFOccurrence occurrence)
     {
-        String hfText;
-        switch (predefinedText)
+        var hfText = predefinedText switch
         {
-            case XlsxHFPredefinedText.PageNumber: hfText = "&P"; break;
-            case XlsxHFPredefinedText.NumberOfPages: hfText = "&N"; break;
-            case XlsxHFPredefinedText.Date: hfText = "&D"; break;
-            case XlsxHFPredefinedText.Time: hfText = "&T"; break;
-            case XlsxHFPredefinedText.Path: hfText = "&Z"; break;
-            case XlsxHFPredefinedText.File: hfText = "&F"; break;
-            case XlsxHFPredefinedText.SheetName: hfText = "&A"; break;
-            case XlsxHFPredefinedText.FullPath: hfText = "&Z&F"; break;
-            default: throw new NotImplementedException();
-        }
+            XlsxHFPredefinedText.PageNumber => "&P",
+            XlsxHFPredefinedText.NumberOfPages => "&N",
+            XlsxHFPredefinedText.Date => "&D",
+            XlsxHFPredefinedText.Time => "&T",
+            XlsxHFPredefinedText.Path => "&Z",
+            XlsxHFPredefinedText.File => "&F",
+            XlsxHFPredefinedText.SheetName => "&A",
+            XlsxHFPredefinedText.FullPath => "&Z&F",
+            _ => throw new NotImplementedException(),
+        };
         return AddText(hfText, occurrence);
     }
 
@@ -114,7 +110,6 @@ internal class XlsxHFItem : IXlsxHFItem
 
     private void ClearOccurrence(XlsxHFOccurrence occurrence)
     {
-        if (texts.ContainsKey(occurrence))
-            texts.Remove(occurrence);
+        texts.Remove(occurrence);
     }
 }

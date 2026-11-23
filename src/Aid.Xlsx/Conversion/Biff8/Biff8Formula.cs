@@ -28,7 +28,7 @@ internal static class Biff8Formula
             {
                 if (expressions.Count < 2 || expressions[^1].Text.Length == 0 || expressions[^2].Text.Length == 0)
                     return null;
-                var (separator, precedence) = token switch
+                (string? separator, int precedence) = token switch
                 {
                     0x03 => ("+", 3),
                     0x04 => ("-", 3),
@@ -60,7 +60,7 @@ internal static class Biff8Formula
                 case 0x15: // Explicit parentheses
                     if (expressions.Count == 0 || expressions[^1].Text.Length == 0)
                         return null;
-                    var operand = expressions[^1];
+                    Expression operand = expressions[^1];
                     precedenceOfExpression = token switch { 0x14 => 6, 0x15 => int.MaxValue, _ => 7 };
                     text = token switch
                     {
@@ -141,7 +141,7 @@ internal static class Biff8Formula
                 case 0x21: // Fixed-arity function
                     if (tokens.Length < 2)
                         return null;
-                    var (function, arguments) = Function(ReadU16(tokens));
+                    (string? function, int arguments) = Function(ReadU16(tokens));
                     text = arguments >= 0 ? ApplyFunction(expressions, function, arguments) : null;
                     tokens = tokens[2..];
                     break;
@@ -211,7 +211,7 @@ internal static class Biff8Formula
         var byteCount = length * width;
         if (tokens.Length < 2 + byteCount)
             return null;
-        var encoded = tokens.Slice(2, byteCount);
+        ReadOnlySpan<byte> encoded = tokens.Slice(2, byteCount);
         var text = width == 1 ? Encoding.Latin1.GetString(encoded) : Encoding.Unicode.GetString(encoded);
         tokens = tokens[(2 + byteCount)..];
         try
@@ -241,7 +241,7 @@ internal static class Biff8Formula
         if (name is null || count > expressions.Count || count > 30)
             return null;
         var start = expressions.Count - count;
-        var formula = new StringBuilder(name).Append('(');
+        StringBuilder formula = new StringBuilder(name).Append('(');
         for (var index = start; index < expressions.Count; index++)
         {
             if (index != start)

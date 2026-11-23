@@ -26,7 +26,7 @@ public interface IXlsxRangeAddress
     /// <value>
     /// 	<c>true</c> if this instance is valid; otherwise, <c>false</c>.
     /// </value>
-    Boolean IsValid { get; }
+    bool IsValid { get; }
 
     /// <summary>
     /// Gets or sets the last address in the range.
@@ -52,7 +52,7 @@ public interface IXlsxRangeAddress
     /// <returns>Range of the address or null, if the range is not a valid address.</returns>
     IXlsxRange? AsRange();
 
-    Boolean Contains(IXlsxAddress address);
+    bool Contains(IXlsxAddress address);
 
     /// <summary>
     /// Returns the intersection of this range address with another range address on the same worksheet.
@@ -61,7 +61,7 @@ public interface IXlsxRangeAddress
     /// <returns>The intersection's range address</returns>
     IXlsxRangeAddress Intersection(IXlsxRangeAddress otherRangeAddress);
 
-    Boolean Intersects(IXlsxRangeAddress otherAddress);
+    bool Intersects(IXlsxRangeAddress otherAddress);
 
     /// <summary>
     /// Determines whether range address spans the entire column.
@@ -69,7 +69,7 @@ public interface IXlsxRangeAddress
     /// <returns>
     ///   <c>true</c> if is entire column; otherwise, <c>false</c>.
     /// </returns>
-    Boolean IsEntireColumn();
+    bool IsEntireColumn();
 
     /// <summary>
     /// Determines whether range address spans the entire row.
@@ -77,7 +77,7 @@ public interface IXlsxRangeAddress
     /// <returns>
     ///   <c>true</c> if is entire row; otherwise, <c>false</c>.
     /// </returns>
-    Boolean IsEntireRow();
+    bool IsEntireRow();
 
     /// <summary>
     /// Determines whether the range address spans the entire worksheet.
@@ -85,7 +85,7 @@ public interface IXlsxRangeAddress
     /// <returns>
     ///   <c>true</c> if is entire sheet; otherwise, <c>false</c>.
     /// </returns>
-    Boolean IsEntireSheet();
+    bool IsEntireSheet();
 
     /// <summary>
     /// Returns a range address so that its offset from the target base address is equal to the offset of the current range address to the source base address.
@@ -96,17 +96,17 @@ public interface IXlsxRangeAddress
     /// <returns>The relative range</returns>
     IXlsxRangeAddress Relative(IXlsxRangeAddress sourceRangeAddress, IXlsxRangeAddress targetRangeAddress);
 
-    String ToString(XlsxReferenceStyle referenceStyle);
+    string ToString(XlsxReferenceStyle referenceStyle);
 
-    String ToString(XlsxReferenceStyle referenceStyle, Boolean includeSheet);
+    string ToString(XlsxReferenceStyle referenceStyle, bool includeSheet);
 
-    String ToStringFixed();
+    string ToStringFixed();
 
-    String ToStringFixed(XlsxReferenceStyle referenceStyle);
+    string ToStringFixed(XlsxReferenceStyle referenceStyle);
 
-    String ToStringFixed(XlsxReferenceStyle referenceStyle, Boolean includeSheet);
+    string ToStringFixed(XlsxReferenceStyle referenceStyle, bool includeSheet);
 
-    String ToStringRelative();
+    string ToStringRelative();
 
-    String ToStringRelative(Boolean includeSheet);
+    string ToStringRelative(bool includeSheet);
 }

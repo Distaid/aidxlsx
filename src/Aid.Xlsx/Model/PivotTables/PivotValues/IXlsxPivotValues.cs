@@ -17,7 +17,7 @@ public interface IXlsxPivotValues : IEnumerable<IXlsxPivotValue>
     /// <param name="sourceName">The <see cref="IXlsxPivotField.SourceName"/> that is used as a
     ///     data. Multiple data fields can use same source (e.g. sum and count).</param>
     /// <returns>Newly added field.</returns>
-    IXlsxPivotValue Add(String sourceName);
+    IXlsxPivotValue Add(string sourceName);
 
     /// <summary>
     /// Add a new value field to the pivot table. If addition would cause, the
@@ -28,21 +28,21 @@ public interface IXlsxPivotValues : IEnumerable<IXlsxPivotValue>
     ///     data. Multiple data fields can use same source (e.g. sum and count).</param>
     /// <param name="customName">The added data field <see cref="IXlsxPivotField.CustomName"/>.</param>
     /// <returns>Newly added field.</returns>
-    IXlsxPivotValue Add(String sourceName, String customName);
+    IXlsxPivotValue Add(string sourceName, string customName);
 
     void Clear();
 
-    Boolean Contains(String customName);
+    bool Contains(string customName);
 
-    Boolean Contains(IXlsxPivotValue pivotValue);
+    bool Contains(IXlsxPivotValue pivotValue);
 
-    IXlsxPivotValue Get(String customName);
+    IXlsxPivotValue Get(string customName);
 
-    IXlsxPivotValue Get(Int32 index);
+    IXlsxPivotValue Get(int index);
 
-    Int32 IndexOf(String customName);
+    int IndexOf(string customName);
 
-    Int32 IndexOf(IXlsxPivotValue pivotValue);
+    int IndexOf(IXlsxPivotValue pivotValue);
 
-    void Remove(String customName);
+    void Remove(string customName);
 }

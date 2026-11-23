@@ -19,7 +19,7 @@ namespace Aid.Xlsx.Model.Grid.Cells;
 /// </list>
 /// </summary>
 [DebuggerDisplay("{Type} {_text != null ? (object)_text : (object)_value}")]
-public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Blank>, IEquatable<Boolean>, IEquatable<Double>, IEquatable<String>, IEquatable<XlsxError>, IEquatable<DateTime>, IEquatable<TimeSpan>, IEquatable<int>
+public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Blank>, IEquatable<bool>, IEquatable<double>, IEquatable<string>, IEquatable<XlsxError>, IEquatable<DateTime>, IEquatable<TimeSpan>, IEquatable<int>
 {
     private readonly double _value;
     private readonly string _text;
@@ -37,7 +37,7 @@ public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Bla
 
     private XlsxCellValue(double number) : this()
     {
-        if (Double.IsNaN(number) || Double.IsInfinity(number))
+        if (double.IsNaN(number) || double.IsInfinity(number))
             throw new ArgumentException("Value can't be NaN or infinity.", nameof(number));
 
         Type = XlsxDataType.Number;
@@ -46,8 +46,7 @@ public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Bla
 
     private XlsxCellValue(string text) : this()
     {
-        if (text is null)
-            throw new ArgumentNullException(nameof(text));
+        ArgumentNullException.ThrowIfNull(text);
 
         if (text.Length > 32767)
             throw new ArgumentOutOfRangeException(nameof(text), "Cells can hold a maximum of 32,767 characters.");
@@ -79,7 +78,7 @@ public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Bla
 
     private XlsxCellValue(XlsxDataType type, double value) : this()
     {
-        if (Double.IsNaN(value) || Double.IsInfinity(value))
+        if (double.IsNaN(value) || double.IsInfinity(value))
             throw new ArgumentException("Value can't be NaN or infinity.", nameof(value));
         Type = type;
         _value = value;
@@ -227,19 +226,19 @@ public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Bla
         {
             null => Blank.Value,
             Blank blankValue => blankValue,
-            Boolean logical => logical,
-            SByte number => number,
-            Byte number => number,
-            Int16 number => number,
-            UInt16 number => number,
-            Int32 number => number,
-            UInt32 number => number,
-            Int64 number => number,
-            UInt64 number => number,
-            Single number => number,
-            Double number => number,
-            Decimal number => number,
-            String text => text,
+            bool logical => logical,
+            sbyte number => number,
+            byte number => number,
+            short number => number,
+            ushort number => number,
+            int number => number,
+            uint number => number,
+            long number => number,
+            ulong number => number,
+            float number => number,
+            double number => number,
+            decimal number => number,
+            string text => text,
             XlsxError error => error,
             DateTime date => date,
             DateTimeOffset dateOfs => dateOfs.DateTime,
@@ -263,7 +262,7 @@ public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Bla
         // should deal with any weird formats.
         if (text is null)
             return Blank.Value;
-        if (text == String.Empty)
+        if (text == string.Empty)
             return Blank.Value;
         if (StringComparer.OrdinalIgnoreCase.Equals("TRUE", text))
             return true;
@@ -271,7 +270,7 @@ public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Bla
             return false;
         if (ScalarValue.TextToNumber(text, culture).TryPickT0(out var number, out _))
             return number;
-        if (XlsxErrorParser.TryParseError(text, out var error))
+        if (XlsxErrorParser.TryParseError(text, out XlsxError error))
             return error;
 
         return text;
@@ -281,13 +280,13 @@ public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Bla
     public static explicit operator Blank(XlsxCellValue value) => value.GetBlank();
 
     /// <inheritdoc cref="GetBoolean"/>
-    public static explicit operator Boolean(XlsxCellValue value) => value.GetBoolean();
+    public static explicit operator bool(XlsxCellValue value) => value.GetBoolean();
 
     /// <inheritdoc cref="GetNumber"/>
-    public static explicit operator Double(XlsxCellValue value) => value.GetNumber();
+    public static explicit operator double(XlsxCellValue value) => value.GetNumber();
 
     /// <inheritdoc cref="GetText"/>
-    public static explicit operator String(XlsxCellValue value) => value.GetText();
+    public static explicit operator string(XlsxCellValue value) => value.GetText();
 
     /// <inheritdoc cref="GetError"/>
     public static explicit operator XlsxError(XlsxCellValue value) => value.GetError();
@@ -308,19 +307,19 @@ public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Bla
     /// If the value is of type <see cref="XlsxDataType.Boolean"/>,
     /// return logical, otherwise throw <see cref="InvalidCastException"/>.
     /// </summary>
-    public Boolean GetBoolean() => IsBoolean ? _value != 0d : throw new InvalidCastException();
+    public bool GetBoolean() => IsBoolean ? _value != 0d : throw new InvalidCastException();
 
     /// <summary>
     /// If the value is of type <see cref="XlsxDataType.Number"/>,
     /// return number, otherwise throw <see cref="InvalidCastException"/>.
     /// </summary>
-    public Double GetNumber() => IsNumber ? _value : throw new InvalidCastException();
+    public double GetNumber() => IsNumber ? _value : throw new InvalidCastException();
 
     /// <summary>
     /// If the value is of type <see cref="XlsxDataType.Text"/>,
     /// return text, otherwise throw <see cref="InvalidCastException"/>.
     /// </summary>
-    public String GetText() => IsText ? _text : throw new InvalidCastException();
+    public string GetText() => IsText ? _text : throw new InvalidCastException();
 
     /// <summary>
     /// If the value is of type <see cref="XlsxDataType.Error"/>,
@@ -358,7 +357,7 @@ public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Bla
         throw new InvalidCastException("Value is not a number.");
     }
 
-    internal Object ToObject()
+    internal object ToObject()
     {
         return Type switch
         {
@@ -507,7 +506,7 @@ public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Bla
     ///   <c>IF</c> or <c>AND</c>).</item>
     /// </list>
     /// </summary>
-    public bool TryConvert(out Boolean value)
+    public bool TryConvert(out bool value)
     {
         switch (Type)
         {
@@ -517,10 +516,10 @@ public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Bla
             case XlsxDataType.Number:
                 value = GetNumber() != 0;
                 return true;
-            case XlsxDataType.Text when String.Equals(GetText(), "TRUE", StringComparison.OrdinalIgnoreCase):
+            case XlsxDataType.Text when string.Equals(GetText(), "TRUE", StringComparison.OrdinalIgnoreCase):
                 value = true;
                 return true;
-            case XlsxDataType.Text when String.Equals(GetText(), "FALSE", StringComparison.OrdinalIgnoreCase):
+            case XlsxDataType.Text when string.Equals(GetText(), "FALSE", StringComparison.OrdinalIgnoreCase):
                 value = false;
                 return true;
         }
@@ -542,7 +541,7 @@ public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Bla
     /// <remarks>Note that the coercion is current culture specific (e.g. decimal separators can differ).</remarks>
     /// <param name="value">The converted value. Result is never <c>infinity</c> or <c>NaN</c>.</param>
     /// <param name="culture">The culture used to convert the value for texts.</param>
-    public bool TryConvert(out Double value, CultureInfo culture)
+    public bool TryConvert(out double value, CultureInfo culture)
     {
         switch (Type)
         {
@@ -556,7 +555,7 @@ public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Bla
                 return true;
             case XlsxDataType.Text:
                 {
-                    var coercionResult = ScalarValue.TextToNumber(GetText(), culture);
+                    OneOf<double, XlsxError> coercionResult = ScalarValue.TextToNumber(GetText(), culture);
                     if (coercionResult.TryPickT0(out var number, out _))
                     {
                         value = number;
@@ -621,7 +620,7 @@ public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Bla
             return true;
         }
 
-        if (IsText && TimeSpanParser.TryParseTime(GetText(), culture, out var ts))
+        if (IsText && TimeSpanParser.TryParseTime(GetText(), culture, out TimeSpan ts))
         {
             value = ts;
             return true;

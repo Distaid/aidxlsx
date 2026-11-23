@@ -6,22 +6,18 @@ using Aid.Xlsx.Model.Styles.Colors;
 
 namespace Aid.Xlsx.Model.ConditionalFormats;
 
-internal class XlsxCFColorScaleMin : IXlsxCFColorScaleMin
+internal class XlsxCFColorScaleMin(XlsxConditionalFormat conditionalFormat) : IXlsxCFColorScaleMin
 {
-    private readonly XlsxConditionalFormat _conditionalFormat;
-    public XlsxCFColorScaleMin(XlsxConditionalFormat conditionalFormat)
-    {
-        _conditionalFormat = conditionalFormat;
-    }
+    private readonly XlsxConditionalFormat _conditionalFormat = conditionalFormat;
 
-    public IXlsxCFColorScaleMid Minimum(XlsxCFContentType type, String value, XlsxColor color)
+    public IXlsxCFColorScaleMid Minimum(XlsxCFContentType type, string value, XlsxColor color)
     {
         _conditionalFormat.Values.Initialize(new XlsxFormula { Value = value });
         _conditionalFormat.Colors.Initialize(color);
         _conditionalFormat.ContentTypes.Initialize(type);
         return new XlsxCFColorScaleMid(_conditionalFormat);
     }
-    public IXlsxCFColorScaleMid Minimum(XlsxCFContentType type, Double value, XlsxColor color)
+    public IXlsxCFColorScaleMid Minimum(XlsxCFContentType type, double value, XlsxColor color)
     {
         return Minimum(type, value.ToInvariantString(), color);
     }

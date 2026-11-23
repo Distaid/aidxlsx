@@ -21,50 +21,50 @@ namespace Aid.Xlsx.Model.Workbooks;
 
 public interface IXlsxWorkbook : IXlsxProtectable<IXlsxWorkbookProtection, XlsxWorkbookProtectionElements>, IDisposable
 {
-    String Author { get; set; }
+    string Author { get; set; }
 
     /// <summary>
     ///   Gets or sets the workbook's calculation mode.
     /// </summary>
     XlsxCalculateMode CalculateMode { get; set; }
 
-    Boolean CalculationOnSave { get; set; }
+    bool CalculationOnSave { get; set; }
 
     /// <summary>
     ///   Gets or sets the default column width for the workbook.
     ///   <para>All new worksheets will use this column width.</para>
     /// </summary>
-    Double ColumnWidth { get; set; }
+    double ColumnWidth { get; set; }
 
     IXlsxCustomProperties CustomProperties { get; }
 
-    Boolean DefaultRightToLeft { get; }
+    bool DefaultRightToLeft { get; }
 
-    Boolean DefaultShowFormulas { get; }
+    bool DefaultShowFormulas { get; }
 
-    Boolean DefaultShowGridLines { get; }
+    bool DefaultShowGridLines { get; }
 
-    Boolean DefaultShowOutlineSymbols { get; }
+    bool DefaultShowOutlineSymbols { get; }
 
-    Boolean DefaultShowRowColHeaders { get; }
+    bool DefaultShowRowColHeaders { get; }
 
-    Boolean DefaultShowRuler { get; }
+    bool DefaultShowRuler { get; }
 
-    Boolean DefaultShowWhiteSpace { get; }
+    bool DefaultShowWhiteSpace { get; }
 
-    Boolean DefaultShowZeros { get; }
+    bool DefaultShowZeros { get; }
 
     IXlsxFileSharing FileSharing { get; }
 
-    Boolean ForceFullCalculation { get; set; }
+    bool ForceFullCalculation { get; set; }
 
-    Boolean FullCalculationOnLoad { get; set; }
+    bool FullCalculationOnLoad { get; set; }
 
-    Boolean FullPrecision { get; set; }
+    bool FullPrecision { get; set; }
 
-    Boolean LockStructure { get; set; }
+    bool LockStructure { get; set; }
 
-    Boolean LockWindows { get; set; }
+    bool LockWindows { get; set; }
 
     [Obsolete($"Use {nameof(DefinedNames)} instead.")]
     IXlsxDefinedNames NamedRanges { get; }
@@ -102,27 +102,27 @@ public interface IXlsxWorkbook : IXlsxProtectable<IXlsxWorkbookProtection, XlsxW
     /// </summary>
     XlsxReferenceStyle ReferenceStyle { get; set; }
 
-    Boolean RightToLeft { get; set; }
+    bool RightToLeft { get; set; }
 
     /// <summary>
     ///   Gets or sets the default row height for the workbook.
     ///   <para>All new worksheets will use this row height.</para>
     /// </summary>
-    Double RowHeight { get; set; }
+    double RowHeight { get; set; }
 
-    Boolean ShowFormulas { get; set; }
+    bool ShowFormulas { get; set; }
 
-    Boolean ShowGridLines { get; set; }
+    bool ShowGridLines { get; set; }
 
-    Boolean ShowOutlineSymbols { get; set; }
+    bool ShowOutlineSymbols { get; set; }
 
-    Boolean ShowRowColHeaders { get; set; }
+    bool ShowRowColHeaders { get; set; }
 
-    Boolean ShowRuler { get; set; }
+    bool ShowRuler { get; set; }
 
-    Boolean ShowWhiteSpace { get; set; }
+    bool ShowWhiteSpace { get; set; }
 
-    Boolean ShowZeros { get; set; }
+    bool ShowZeros { get; set; }
 
     /// <summary>
     /// Gets or sets the default format of the workbook. All cells that don't have specified format, either
@@ -135,7 +135,7 @@ public interface IXlsxWorkbook : IXlsxProtectable<IXlsxWorkbookProtection, XlsxW
     /// </summary>
     IXlsxTheme Theme { get; }
 
-    Boolean Use1904DateSystem { get; set; }
+    bool Use1904DateSystem { get; set; }
 
     /// <summary>
     ///   Gets an object to manipulate the worksheets.
@@ -144,11 +144,11 @@ public interface IXlsxWorkbook : IXlsxProtectable<IXlsxWorkbookProtection, XlsxW
 
     IXlsxWorksheet AddWorksheet();
 
-    IXlsxWorksheet AddWorksheet(Int32 position);
+    IXlsxWorksheet AddWorksheet(int position);
 
-    IXlsxWorksheet AddWorksheet(String sheetName);
+    IXlsxWorksheet AddWorksheet(string sheetName);
 
-    IXlsxWorksheet AddWorksheet(String sheetName, Int32 position);
+    IXlsxWorksheet AddWorksheet(string sheetName, int position);
 
     void AddWorksheet(DataSet dataSet);
 
@@ -169,7 +169,7 @@ public interface IXlsxWorkbook : IXlsxProtectable<IXlsxWorkbookProtection, XlsxW
     /// <param name="dataTable">dataTable to insert as Excel Table</param>
     /// <param name="sheetName">Worksheet and Excel Table name</param>
     /// <returns>Inserted Worksheet</returns>
-    IXlsxWorksheet AddWorksheet(DataTable dataTable, String sheetName);
+    IXlsxWorksheet AddWorksheet(DataTable dataTable, string sheetName);
 
     /// <summary>
     /// Add a worksheet with a table at Cell(row:1, column:1).
@@ -178,13 +178,13 @@ public interface IXlsxWorkbook : IXlsxProtectable<IXlsxWorkbookProtection, XlsxW
     /// <param name="sheetName">Worksheet name</param>
     /// <param name="tableName">Excel Table name</param>
     /// <returns>Inserted Worksheet</returns>
-    IXlsxWorksheet AddWorksheet(DataTable dataTable, String sheetName, String tableName);
+    IXlsxWorksheet AddWorksheet(DataTable dataTable, string sheetName, string tableName);
 
-    IXlsxCell Cell(String namedCell);
+    IXlsxCell Cell(string namedCell);
 
-    IXlsxCells Cells(String namedCells);
+    IXlsxCells Cells(string namedCells);
 
-    IXlsxCustomProperty CustomProperty(String name);
+    IXlsxCustomProperty CustomProperty(string name);
 
     /// <summary>
     /// Evaluate a formula expression.
@@ -193,17 +193,17 @@ public interface IXlsxWorkbook : IXlsxProtectable<IXlsxWorkbookProtection, XlsxW
     /// <exception cref="MissingContextException">
     /// If the expression contains a function that requires a context (e.g. current cell or worksheet).
     /// </exception>
-    XlsxCellValue Evaluate(String expression);
+    XlsxCellValue Evaluate(string expression);
 
-    IXlsxCells FindCells(Func<IXlsxCell, Boolean> predicate);
+    IXlsxCells FindCells(Func<IXlsxCell, bool> predicate);
 
-    IXlsxColumns FindColumns(Func<IXlsxColumn, Boolean> predicate);
+    IXlsxColumns FindColumns(Func<IXlsxColumn, bool> predicate);
 
-    IXlsxRows FindRows(Func<IXlsxRow, Boolean> predicate);
+    IXlsxRows FindRows(Func<IXlsxRow, bool> predicate);
 
 #nullable enable
     [Obsolete($"Use {nameof(DefinedName)} instead.")]
-    IXlsxDefinedName? NamedRange(String name);
+    IXlsxDefinedName? NamedRange(string name);
 
     /// <summary>
     /// Try to find a defined name. If <paramref name="name"/> specifies a sheet, try to find
@@ -224,14 +224,14 @@ public interface IXlsxWorkbook : IXlsxProtectable<IXlsxWorkbookProtection, XlsxW
     /// <param name="name">Name of requested name, either plain name (e.g. <c>Name</c>) or with
     /// sheet specified (e.g. <c>Sheet!Name</c>).</param>
     /// <returns>Found name or null.</returns>
-    IXlsxDefinedName? DefinedName(String name);
+    IXlsxDefinedName? DefinedName(string name);
 #nullable disable
 
-    IXlsxRange Range(String range);
+    IXlsxRange Range(string range);
 
-    IXlsxRange RangeFromFullAddress(String rangeAddress, out IXlsxWorksheet ws);
+    IXlsxRange RangeFromFullAddress(string rangeAddress, out IXlsxWorksheet ws);
 
-    IXlsxRanges Ranges(String ranges);
+    IXlsxRanges Ranges(string ranges);
 
     /// <summary>
     /// Force recalculation of all cell formulas.
@@ -246,21 +246,21 @@ public interface IXlsxWorkbook : IXlsxProtectable<IXlsxWorkbookProtection, XlsxW
     /// <summary>
     ///   Saves the current workbook and optionally performs validation
     /// </summary>
-    void Save(Boolean validate, Boolean evaluateFormulae = false);
+    void Save(bool validate, bool evaluateFormulae = false);
 
     void Save(SaveOptions options);
 
     /// <summary>
     ///   Saves the current workbook to a file.
     /// </summary>
-    void SaveAs(String file);
+    void SaveAs(string file);
 
     /// <summary>
     ///   Saves the current workbook to a file and optionally validates it.
     /// </summary>
-    void SaveAs(String file, Boolean validate, Boolean evaluateFormulae = false);
+    void SaveAs(string file, bool validate, bool evaluateFormulae = false);
 
-    void SaveAs(String file, SaveOptions options);
+    void SaveAs(string file, SaveOptions options);
 
     /// <summary>
     ///   Saves the current workbook to a stream.
@@ -270,7 +270,7 @@ public interface IXlsxWorkbook : IXlsxProtectable<IXlsxWorkbookProtection, XlsxW
     /// <summary>
     ///   Saves the current workbook to a stream and optionally validates it.
     /// </summary>
-    void SaveAs(Stream stream, Boolean validate, Boolean evaluateFormulae = false);
+    void SaveAs(Stream stream, bool validate, bool evaluateFormulae = false);
 
     void SaveAs(Stream stream, SaveOptions options);
 
@@ -280,15 +280,15 @@ public interface IXlsxWorkbook : IXlsxProtectable<IXlsxWorkbookProtection, XlsxW
     /// <param name="searchText">The search text.</param>
     /// <param name="compareOptions">The compare options.</param>
     /// <param name="searchFormulae">if set to <c>true</c> search formulae instead of cell values.</param>
-    IEnumerable<IXlsxCell> Search(String searchText, CompareOptions compareOptions = CompareOptions.Ordinal, Boolean searchFormulae = false);
+    IEnumerable<IXlsxCell> Search(string searchText, CompareOptions compareOptions = CompareOptions.Ordinal, bool searchFormulae = false);
 
-    XlsxWorkbook SetLockStructure(Boolean value);
+    XlsxWorkbook SetLockStructure(bool value);
 
-    XlsxWorkbook SetLockWindows(Boolean value);
+    XlsxWorkbook SetLockWindows(bool value);
 
     XlsxWorkbook SetUse1904DateSystem();
 
-    XlsxWorkbook SetUse1904DateSystem(Boolean value);
+    XlsxWorkbook SetUse1904DateSystem(bool value);
 
     /// <summary>
     /// Gets the Excel table of the given name
@@ -297,11 +297,11 @@ public interface IXlsxWorkbook : IXlsxProtectable<IXlsxWorkbookProtection, XlsxW
     /// <param name="comparisonType">One of the enumeration values that specifies how the strings will be compared.</param>
     /// <returns>The table with given name</returns>
     /// <exception cref="ArgumentOutOfRangeException">If no tables with this name could be found in the workbook.</exception>
-    IXlsxTable Table(String tableName, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase);
+    IXlsxTable Table(string tableName, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase);
 
-    Boolean TryGetWorksheet(String name, out IXlsxWorksheet worksheet);
+    bool TryGetWorksheet(string name, out IXlsxWorksheet worksheet);
 
-    IXlsxWorksheet Worksheet(String name);
+    IXlsxWorksheet Worksheet(string name);
 
-    IXlsxWorksheet Worksheet(Int32 position);
+    IXlsxWorksheet Worksheet(int position);
 }

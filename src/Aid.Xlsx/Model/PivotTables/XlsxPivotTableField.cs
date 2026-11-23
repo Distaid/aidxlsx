@@ -14,17 +14,10 @@ namespace Aid.Xlsx.Model.PivotTables;
 /// <remarks>
 /// See <em>[OI-29500] 18.10.1.69 pivotField(PivotTable Field)</em> for details.
 /// </remarks>
-internal class XlsxPivotTableField
+internal class XlsxPivotTableField(XlsxPivotTable pivotTable)
 {
-    private readonly XlsxPivotTable _pivotTable;
-    private readonly List<XlsxPivotFieldItem> _items = new();
-
-    public XlsxPivotTableField(XlsxPivotTable pivotTable)
-    {
-        _pivotTable = pivotTable;
-        ShowAll = false; // The XML default value is true, but Excel always has false, so let's follow Excel.
-        Subtotals = new HashSet<XlsxSubtotalFunction> { XlsxSubtotalFunction.Automatic };
-    }
+    private readonly XlsxPivotTable _pivotTable = pivotTable;
+    private readonly List<XlsxPivotFieldItem> _items = [];
 
     internal XlsxPivotTable PivotTable => _pivotTable;
 
@@ -118,7 +111,7 @@ internal class XlsxPivotTableField
     /// <summary>
     /// A flag that indicates whether to show all items for this field.
     /// </summary>
-    internal bool ShowAll { get; set; } = true;
+    internal bool ShowAll { get; set; } = false; // The XML default value is true, but Excel always has false, so let's follow Excel.
 
     /// <summary>
     /// Insert empty row below every item if the field is row/column axis. The last field in axis
@@ -166,7 +159,7 @@ internal class XlsxPivotTableField
     /// The subtotal items must be kept at the end of the <see cref="_items"/>, otherwise Excel will try to repair
     /// workbook.
     /// </remarks>
-    internal HashSet<XlsxSubtotalFunction> Subtotals { get; init; }
+    internal HashSet<XlsxSubtotalFunction> Subtotals { get; init; } = [XlsxSubtotalFunction.Automatic];
 
     internal bool ShowPropCell { get; init; } = false;
 
@@ -209,14 +202,14 @@ internal class XlsxPivotTableField
     internal void AddSubtotal(XlsxSubtotalFunction value)
     {
         Subtotals.Add(value);
-        var subtotalItemType = GetItemTypeForSubtotal(value); ;
+        XlsxPivotItemType subtotalItemType = GetItemTypeForSubtotal(value); ;
         _items.Add(new XlsxPivotFieldItem(this, null) { ItemType = subtotalItemType });
     }
 
     internal void RemoveSubtotal(XlsxSubtotalFunction value)
     {
         Subtotals.Remove(value);
-        var subtotalItemType = GetItemTypeForSubtotal(value);
+        XlsxPivotItemType subtotalItemType = GetItemTypeForSubtotal(value);
         _items.RemoveAll(item => item.ItemType == subtotalItemType);
     }
 
@@ -246,13 +239,13 @@ internal class XlsxPivotTableField
     internal XlsxPivotFieldItem GetOrAddItem(XlsxCellValue value)
     {
         var index = _pivotTable.GetFieldIndex(this);
-        var cache = _pivotTable.PivotCache;
-        var cacheValues = cache.GetFieldValues(index);
+        XlsxPivotCache cache = _pivotTable.PivotCache;
+        XlsxPivotCacheValues cacheValues = cache.GetFieldValues(index);
         var sharedItemIndex = cacheValues.GetOrAddSharedItem(value);
 
         // Excel tries to repair workbook, when there are duplicates in pivotFields.Items
         // therefore add only if necessary
-        var existingItem = _items.FirstOrDefault(x => x.ItemIndex == sharedItemIndex);
+        XlsxPivotFieldItem? existingItem = _items.FirstOrDefault(x => x.ItemIndex == sharedItemIndex);
         if (existingItem is not null)
             return existingItem;
 
@@ -277,7 +270,7 @@ internal class XlsxPivotTableField
     internal List<XlsxPivotFieldItem> GetAllItems(Predicate<XlsxCellValue> predicate)
     {
         var fieldIndex = _pivotTable.GetFieldIndex(this);
-        var sharedItems = _pivotTable.PivotCache.GetFieldSharedItems(fieldIndex);
+        XlsxPivotCacheSharedItems sharedItems = _pivotTable.PivotCache.GetFieldSharedItems(fieldIndex);
 
         var pivotFieldItems = Items
             .WhereNotNull(fieldItem => fieldItem.ItemIndex)
@@ -286,7 +279,7 @@ internal class XlsxPivotTableField
         var filteredItems = new List<XlsxPivotFieldItem>();
         for (uint sharedItemIndex = 0; sharedItemIndex < sharedItems.Count; ++sharedItemIndex)
         {
-            var sharedItemValue = sharedItems[sharedItemIndex];
+            XlsxCellValue sharedItemValue = sharedItems[sharedItemIndex];
             if (!predicate(sharedItemValue))
                 continue;
 
@@ -309,7 +302,7 @@ internal class XlsxPivotTableField
 
     private static XlsxPivotItemType GetItemTypeForSubtotal(XlsxSubtotalFunction value)
     {
-        var subtotalItemType = value switch
+        XlsxPivotItemType subtotalItemType = value switch
         {
             XlsxSubtotalFunction.Automatic => XlsxPivotItemType.Default,
             XlsxSubtotalFunction.Sum => XlsxPivotItemType.Sum,

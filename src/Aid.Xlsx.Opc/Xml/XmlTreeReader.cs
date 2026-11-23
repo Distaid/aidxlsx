@@ -91,7 +91,7 @@ public sealed class XmlTreeReader : IDisposable
     /// </summary>
     private bool _inLookup;
 
-    private readonly List<string> _context = new();
+    private readonly List<string> _context = [];
 
     public XmlTreeReader(Stream stream, IEnumMapper enumMapper, bool strictAttributeParsing)
         : this(XmlReader.Create(stream, Settings), enumMapper, strictAttributeParsing, leaveOpen: false)
@@ -402,7 +402,7 @@ public sealed class XmlTreeReader : IDisposable
             return null;
         }
 
-        if (!_enumMapper.TryGetEnum<TEnum>(enumString, out var enumValue))
+        if (!_enumMapper.TryGetEnum<TEnum>(enumString, out TEnum enumValue))
         {
             if (StrictAttributeParsing)
                 ThrowAttributeFormatException(attributeName, enumString);

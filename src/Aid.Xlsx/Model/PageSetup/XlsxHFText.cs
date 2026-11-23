@@ -9,21 +9,15 @@ using Aid.Xlsx.Model.Styles.Colors;
 
 namespace Aid.Xlsx.Model.PageSetup;
 
-internal class XlsxHFText
+internal class XlsxHFText(XlsxRichString richText, XlsxHFItem hfItem)
 {
-    private readonly XlsxHFItem _hfItem;
+    private readonly XlsxHFItem _hfItem = hfItem;
 
-    public XlsxHFText(XlsxRichString richText, XlsxHFItem hfItem)
+    public XlsxRichString RichText { get; private set; } = richText;
+
+    public string GetHFText(string prevText)
     {
-        RichText = richText;
-        _hfItem = hfItem;
-    }
-
-    public XlsxRichString RichText { get; private set; }
-
-    public String GetHFText(String prevText)
-    {
-        var wsFont = _hfItem.HeaderFooter.Worksheet.Style.Font;
+        IXlsxFont wsFont = _hfItem.HeaderFooter.Worksheet.Style.Font;
 
         var isRichText = RichText.FontName != null && RichText.FontName != wsFont.FontName
                          || RichText.Bold != wsFont.Bold
@@ -37,7 +31,7 @@ internal class XlsxHFText
         if (!isRichText)
             return RichText.Text;
 
-        StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
 
         if (RichText.FontName != null && RichText.FontName != wsFont.FontName)
             sb.Append("&\"" + RichText.FontName);
@@ -78,10 +72,10 @@ internal class XlsxHFText
         var lastColorPosition = prevText.LastIndexOf("&K");
 
         if (
-            (lastColorPosition >= 0 && !RichText.FontColor.Equals(XlsxColor.FromHtml("#" + prevText.Substring(lastColorPosition + 2, 6))))
+            (lastColorPosition >= 0 && !RichText.FontColor.Equals(XlsxColor.FromHtml(string.Concat("#", prevText.AsSpan(lastColorPosition + 2, 6)))))
             || (lastColorPosition == -1 && !RichText.FontColor.Equals(wsFont.FontColor))
             )
-            sb.Append("&K" + RichText.FontColor.Color.ToHex().Substring(2));
+            sb.Append("&K" + RichText.FontColor.Color.ToHex()[2..]);
 
         sb.Append(RichText.Text);
 

@@ -14,7 +14,7 @@ internal static class XlsxErrorExtensions
             XlsxError.NoValueAvailable => "#N/A",
             XlsxError.NullValue => "#NULL!",
             XlsxError.NumberInvalid => "#NUM!",
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new ArgumentOutOfRangeException(nameof(error), error, "Unknown error value.")
         };
 }
 
@@ -31,6 +31,6 @@ internal static class XlsxErrorParser
         ["#NUM!"] = XlsxError.NumberInvalid
     };
 
-    public static bool TryParseError(String input, out XlsxError error)
+    public static bool TryParseError(string input, out XlsxError error)
         => ErrorMap.TryGetValue(input.Trim(), out error);
 }

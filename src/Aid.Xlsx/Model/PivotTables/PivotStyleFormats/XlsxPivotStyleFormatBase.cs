@@ -8,14 +8,9 @@ namespace Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 /// exposing API so user can define an area and then create the desired area (from what user
 /// specified) through <see cref="GetCurrentArea"/> method.
 /// </summary>
-internal abstract class XlsxPivotStyleFormatBase : IXlsxPivotStyleFormat
+internal abstract class XlsxPivotStyleFormatBase(XlsxPivotTable pivotTable) : IXlsxPivotStyleFormat
 {
-    protected readonly XlsxPivotTable PivotTable;
-
-    protected XlsxPivotStyleFormatBase(XlsxPivotTable pivotTable)
-    {
-        PivotTable = pivotTable;
-    }
+    protected readonly XlsxPivotTable PivotTable = pivotTable;
 
     #region IXlsxPivotStyleFormat members
 
@@ -30,7 +25,7 @@ internal abstract class XlsxPivotStyleFormatBase : IXlsxPivotStyleFormat
     #endregion IXlsxPivotStyleFormat members
 
     // TODO Styles: Ensure that each pivot area is there only once in a pivot table. Ensure it on load and during modifications.
-    internal XlsxDxFormat Format => new XlsxDxFormat(PivotTable.Worksheet.Workbook.Styles, GetFormats().First());
+    internal XlsxDxFormat Format => new(PivotTable.Worksheet.Workbook.Styles, GetFormats().First());
 
     internal abstract XlsxPivotArea GetCurrentArea();
 
@@ -39,7 +34,7 @@ internal abstract class XlsxPivotStyleFormatBase : IXlsxPivotStyleFormat
     private IEnumerable<XlsxPivotFormat> GetFormats()
     {
         var exists = false;
-        foreach (var format in PivotTable.Formats)
+        foreach (XlsxPivotFormat? format in PivotTable.Formats)
         {
             if (format.Action == XlsxPivotFormatAction.Formatting && Filter(format.PivotArea))
             {

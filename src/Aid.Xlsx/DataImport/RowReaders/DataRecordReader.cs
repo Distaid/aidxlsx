@@ -13,9 +13,9 @@ internal class DataRecordReader : IInsertDataReader
 
     public DataRecordReader(IEnumerable<IDataRecord> data)
     {
-        if (data == null) throw new ArgumentNullException(nameof(data));
+        ArgumentNullException.ThrowIfNull(data);
 
-        _inMemoryData = ReadToEnd(data).ToArray();
+        _inMemoryData = [.. ReadToEnd(data)];
     }
 
     public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
@@ -44,7 +44,7 @@ internal class DataRecordReader : IInsertDataReader
 
     private IEnumerable<IEnumerable<XlsxCellValue>> ReadToEnd(IEnumerable<IDataRecord> data)
     {
-        foreach (var dataRecord in data)
+        foreach (IDataRecord dataRecord in data)
         {
             yield return ToEnumerable(dataRecord).ToArray();
         }

@@ -44,7 +44,7 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
 
     public List<SheetArea>? Visit(DependenciesContext context, UnaryNode node)
     {
-        var sheetAreas = node.Expression.Accept(context, this);
+        List<SheetArea>? sheetAreas = node.Expression.Accept(context, this);
 
         // If the operand of unary node is not a reference -> end immediately,
         // operator can't modify non-reference into a reference.
@@ -73,8 +73,8 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
     public List<SheetArea>? Visit(DependenciesContext context, BinaryNode node)
     {
         // Only range operations transform ranges
-        var leftAreas = node.LeftExpression.Accept(context, this);
-        var rightAreas = node.RightExpression.Accept(context, this);
+        List<SheetArea>? leftAreas = node.LeftExpression.Accept(context, this);
+        List<SheetArea>? rightAreas = node.RightExpression.Accept(context, this);
 
         // Reference operation only makes sense, if both sides are references.
         // Otherwise reference operation results into an error.
@@ -95,20 +95,20 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
                 // situation where there are multiple sheets for both operands,
                 // e.g. `IF(G4,Sheet1!A1,Sheet2!A2):IF(H3,Sheet2!C4,Sheet1!C5)`
                 // that creates a valid range.
-                var sheetGroups = leftAreas.Concat(rightAreas)
+                IEnumerable<IGrouping<string, SheetArea>> sheetGroups = leftAreas.Concat(rightAreas)
                     .GroupBy(area => area.Name, XlsxHelper.SheetComparer);
 
                 // There is no simple way to go through all paths, so try to find
                 // largest possible ranges that could be the result. For normal
                 // operands(A1:B2:C3), it will work fine and for freaks, it will
                 // find largest possible range that is a superset of actual result.
-                foreach (var sheetGroup in sheetGroups)
+                foreach (IGrouping<string, SheetArea> sheetGroup in sheetGroups)
                 {
                     var sheetAreas = sheetGroup.ToList();
                     if (sheetAreas.Count == 1)
                         continue;
 
-                    var rangeArea = sheetAreas[0].Area;
+                    Area rangeArea = sheetAreas[0].Area;
                     for (var i = 1; i < sheetAreas.Count; ++i)
                         rangeArea = rangeArea.Range(sheetAreas[i].Area);
 
@@ -126,15 +126,15 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
                 // areas. We make a special case for the most frequent case.
                 if (leftAreas.Count == 1 && rightAreas.Count == 1)
                 {
-                    var leftArea = leftAreas[0];
-                    var rightArea = rightAreas[0];
-                    var intersection = leftArea.Intersect(rightArea);
+                    SheetArea leftArea = leftAreas[0];
+                    SheetArea rightArea = rightAreas[0];
+                    SheetArea? intersection = leftArea.Intersect(rightArea);
 
                     // Propagate only the intersection, not operands. Even if operands
                     // change, it doesn't affect the formula, because cells outside
                     // intersection are never used.
                     if (intersection is not null)
-                        return new List<SheetArea> { intersection.Value };
+                        return [intersection.Value];
 
                     return null;
                 }
@@ -171,14 +171,14 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
         if (XlsxHelper.FunctionComparer.Equals(node.Name, "IF"))
         {
             // Tested value is not propagated, it's evaluated as an argument
-            var testReference = node.Parameters[0].Accept(context, this);
+            List<SheetArea>? testReference = node.Parameters[0].Accept(context, this);
             if (testReference is not null)
                 context.AddAreas(testReference);
 
             // If argument is reference and test is evaluated to TRUE,
             // the reference is returned => propagate.
-            var valueIfTrueReference = node.Parameters[1].Accept(context, this);
-            var valueIfFalseReference = node.Parameters.Count == 3
+            List<SheetArea>? valueIfTrueReference = node.Parameters[1].Accept(context, this);
+            List<SheetArea>? valueIfFalseReference = node.Parameters.Count == 3
                 ? node.Parameters[2].Accept(context, this)
                 : null;
 
@@ -196,7 +196,7 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
             // Add argument references, INDEX can have 2 or 3 arguments
             for (var i = 1; i < node.Parameters.Count; ++i)
             {
-                var argReference = node.Parameters[i].Accept(context, this);
+                List<SheetArea>? argReference = node.Parameters[i].Accept(context, this);
                 if (argReference is not null)
                     context.AddAreas(argReference);
             }
@@ -204,14 +204,14 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
             // If INDEX function indexes into an area, it returns reference,
             // not a value. Either way, return whole reference that is indexed,
             // even though it's larger than actual function result.
-            var arrayReference = node.Parameters[0].Accept(context, this);
+            List<SheetArea>? arrayReference = node.Parameters[0].Accept(context, this);
             return arrayReference;
         }
 
         if (XlsxHelper.FunctionComparer.Equals(node.Name, "CHOOSE"))
         {
             // Index argument is used to select value, so don't propagate
-            var indexReference = node.Parameters[0].Accept(context, this);
+            List<SheetArea>? indexReference = node.Parameters[0].Accept(context, this);
             if (indexReference is not null)
                 context.AddAreas(indexReference);
 
@@ -220,7 +220,7 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
             List<SheetArea>? parametersReference = null;
             for (var i = 1; i < node.Parameters.Count; ++i)
             {
-                var parameterReference = node.Parameters[i].Accept(context, this);
+                List<SheetArea>? parameterReference = node.Parameters[i].Accept(context, this);
                 if (parameterReference is null)
                     continue;
 
@@ -234,9 +234,9 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
         }
 
         // All other functions can have references as arguments, but not as an output value.
-        foreach (var parameterNode in node.Parameters)
+        foreach (ValueNode parameterNode in node.Parameters)
         {
-            var paramReference = parameterNode.Accept(context, this);
+            List<SheetArea>? paramReference = parameterNode.Accept(context, this);
             if (paramReference is not null)
                 context.AddAreas(paramReference);
         }
@@ -251,7 +251,7 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
 
     public List<SheetArea>? Visit(DependenciesContext context, ReferenceNode node)
     {
-        var prefix = node.Prefix;
+        PrefixNode? prefix = node.Prefix;
         string sheetName;
         if (prefix is not null)
         {
@@ -271,9 +271,9 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
             sheetName = context.FormulaArea.Name;
         }
 
-        var anchor = context.FormulaArea.Area.FirstPoint;
+        Point anchor = context.FormulaArea.Area.FirstPoint;
         var sheetRange = node.ReferenceArea.ToArea(anchor);
-        return new List<SheetArea> { new(sheetName, sheetRange) };
+        return [new(sheetName, sheetRange)];
     }
 
     public List<SheetArea>? Visit(DependenciesContext context, NameNode node)
@@ -282,7 +282,7 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
         if (node.Prefix?.File is not null)
             return null;
 
-        var name = node.Prefix?.Sheet is { } sheetName
+        XlsxName name = node.Prefix?.Sheet is { } sheetName
             ? new XlsxName(sheetName, node.Name)
             : new XlsxName(node.Name);
         context.AddName(name);
@@ -290,13 +290,13 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
         // First, try to interpret name as a sheet scoped name.
         sheetName = node.Prefix?.Sheet ?? context.FormulaArea.Name;
         if (context.Workbook.TryGetWorksheet(sheetName, out XlsxWorksheet sheet) &&
-            sheet.DefinedNames.TryGetScopedValue(node.Name, out var sheetDefinedName))
+            sheet.DefinedNames.TryGetScopedValue(node.Name, out XlsxDefinedName? sheetDefinedName))
         {
             return VisitName(sheetDefinedName);
         }
 
         // Name is not a sheet scoped one, try workbook scoped one
-        if (context.Workbook.DefinedNamesInternal.TryGetScopedValue(node.Name, out var bookNamedRange))
+        if (context.Workbook.DefinedNamesInternal.TryGetScopedValue(node.Name, out XlsxDefinedName? bookNamedRange))
         {
             return VisitName(bookNamedRange!);
         }
@@ -308,8 +308,8 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
         {
             // The named range is stored as A1 and thus parsed as A1, but should be interpreted as R1C1
             var namedFormula = definedName.RefersTo;
-            var ast = context.Workbook.CalcEngine.Parse(namedFormula);
-            var nameReferences = ast.AstRoot.Accept(context, this);
+            Formula ast = context.Workbook.CalcEngine.Parse(namedFormula);
+            List<SheetArea>? nameReferences = ast.AstRoot.Accept(context, this);
 
             // If the formula returned a reference, propagate it, rather
             // than add to the context (required for `A1:name` ).

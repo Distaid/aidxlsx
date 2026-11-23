@@ -8,25 +8,19 @@ internal abstract class XlsxRepositoryBase : IXlsxRepository
     public abstract void Clear();
 }
 
-internal abstract class XlsxRepositoryBase<Tkey, Tvalue> : XlsxRepositoryBase, IXlsxRepository<Tkey, Tvalue>
+internal abstract class XlsxRepositoryBase<Tkey, Tvalue>(Func<Tkey, Tvalue> createNew, IEqualityComparer<Tkey> comparer) : XlsxRepositoryBase, IXlsxRepository<Tkey, Tvalue>
     where Tkey : struct, IEquatable<Tkey>
     where Tvalue : class
 {
     const int CONCURRENCY_LEVEL = 4;
     const int INITIAL_CAPACITY = 1000;
 
-    private readonly ConcurrentDictionary<Tkey, WeakReference> _storage;
-    private readonly Func<Tkey, Tvalue> _createNew;
+    private readonly ConcurrentDictionary<Tkey, WeakReference> _storage = new(CONCURRENCY_LEVEL, INITIAL_CAPACITY, comparer);
+    private readonly Func<Tkey, Tvalue> _createNew = createNew;
 
     protected XlsxRepositoryBase(Func<Tkey, Tvalue> createNew)
         : this(createNew, EqualityComparer<Tkey>.Default)
     {
-    }
-
-    protected XlsxRepositoryBase(Func<Tkey, Tvalue> createNew, IEqualityComparer<Tkey> comparer)
-    {
-        _storage = new ConcurrentDictionary<Tkey, WeakReference>(CONCURRENCY_LEVEL, INITIAL_CAPACITY, comparer);
-        _createNew = createNew;
     }
 
     /// <summary>
@@ -82,7 +76,7 @@ internal abstract class XlsxRepositoryBase<Tkey, Tvalue> : XlsxRepositoryBase, I
         }
 
         _storage.TryRemove(key, out _);
-        var value = _createNew(key);
+        Tvalue value = _createNew(key);
         return Store(ref key, value)!;
     }
 

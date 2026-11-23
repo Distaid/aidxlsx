@@ -6,7 +6,7 @@ namespace Aid.Xlsx.Model.Styles.Colors;
 
 public partial class XlsxColor
 {
-    private static readonly XlsxColorRepository Repository = new XlsxColorRepository(key => new XlsxColor(key));
+    private static readonly XlsxColorRepository Repository = new(key => new XlsxColor(key));
 
     /// <summary>
     /// System foreground color. Depends on system settings, but there is no platform-agnostic way to resolve it.
@@ -23,7 +23,7 @@ public partial class XlsxColor
     /// entry, but we have no way to get them. Win10 doesn't even have a tool, use Classic Color Panel. We will use the default
     /// values that are default on Windows.
     /// </summary>
-    private static readonly Lazy<Dictionary<String, XlsxColor>> VmlPaletteColors = new(() => new Dictionary<String, XlsxColor>(StringComparer.OrdinalIgnoreCase)
+    private static readonly Lazy<Dictionary<string, XlsxColor>> VmlPaletteColors = new(() => new Dictionary<string, XlsxColor>(StringComparer.OrdinalIgnoreCase)
     {
         { "ButtonFace", FromRgb(0xF0F0F0) },
         { "WindowText", SystemForeground },
@@ -81,7 +81,7 @@ public partial class XlsxColor
     /// <summary>
     /// Default indexed colors from ISO-29500:18.8.27. If a workbook doesn't have a specific colors, these are used.
     /// </summary>
-    private static readonly Lazy<Dictionary<Int32, XlsxColor>> IndexedColorsLazy = new(() => new Dictionary<int, XlsxColor>
+    private static readonly Lazy<Dictionary<int, XlsxColor>> IndexedColorsLazy = new(() => new Dictionary<int, XlsxColor>
     {
         {  0, FromArgb(0xFF000000) },
         {  1, FromArgb(0xFFFFFFFF) },
@@ -154,7 +154,7 @@ public partial class XlsxColor
     /// <summary>
     /// Default indexed colors per ISO-298500 indexedColors. All values are either RGB or named.
     /// </summary>
-    public static Dictionary<Int32, XlsxColor> IndexedColors => IndexedColorsLazy.Value;
+    public static Dictionary<int, XlsxColor> IndexedColors => IndexedColorsLazy.Value;
 
     internal static XlsxColor FromKey(ref XlsxColorKey key)
     {
@@ -171,22 +171,22 @@ public partial class XlsxColor
         return FromKey(ref key);
     }
 
-    public static XlsxColor FromArgb(Int32 argb)
+    public static XlsxColor FromArgb(int argb)
     {
         return FromColor(Color.FromArgb(argb));
     }
 
-    internal static XlsxColor FromArgb(UInt32 argb)
+    internal static XlsxColor FromArgb(uint argb)
     {
         return FromColor(Color.FromArgb(unchecked((int)argb)));
     }
 
-    public static XlsxColor FromArgb(Int32 r, Int32 g, Int32 b)
+    public static XlsxColor FromArgb(int r, int g, int b)
     {
         return FromColor(Color.FromArgb(r, g, b));
     }
 
-    public static XlsxColor FromArgb(Int32 a, Int32 r, Int32 g, Int32 b)
+    public static XlsxColor FromArgb(int a, int r, int g, int b)
     {
         return FromColor(Color.FromArgb(a, r, g, b));
     }
@@ -194,7 +194,7 @@ public partial class XlsxColor
     /// <summary>
     /// Create a color from RBG hexa number. Alpha will be always set to full opacity.
     /// </summary>
-    internal static XlsxColor FromRgb(Int32 rgb)
+    internal static XlsxColor FromRgb(int rgb)
     {
         unchecked
         {
@@ -208,12 +208,12 @@ public partial class XlsxColor
     /// </summary>
     /// <param name="hexColorRgb">A 6 character long hexadecimal number.</param>
     /// <returns>Parsed color with full opacity.</returns>
-    internal static XlsxColor FromHexRgb(String hexColorRgb)
+    internal static XlsxColor FromHexRgb(string hexColorRgb)
     {
         return FromColor(ColorStringParser.ParseFromRgb6(hexColorRgb));
     }
 
-    public static XlsxColor FromName(String name)
+    public static XlsxColor FromName(string name)
     {
         return FromColor(Color.FromName(name));
     }
@@ -222,12 +222,12 @@ public partial class XlsxColor
     /// Creates a color from hexadecimal RGB or ARGB, with an optional leading <c>#</c>.
     /// </summary>
     /// <param name="htmlColor">Three or six hexadecimal RGB digits, or eight hexadecimal ARGB digits.</param>
-    public static XlsxColor FromHtml(String htmlColor)
+    public static XlsxColor FromHtml(string htmlColor)
     {
         return FromColor(ColorStringParser.ParseFromHtml(htmlColor));
     }
 
-    public static XlsxColor FromIndex(Int32 index)
+    public static XlsxColor FromIndex(int index)
     {
         var key = new XlsxColorKey
         {
@@ -247,7 +247,7 @@ public partial class XlsxColor
         return FromKey(ref key);
     }
 
-    public static XlsxColor FromTheme(XlsxThemeColor themeColor, Double themeTint)
+    public static XlsxColor FromTheme(XlsxThemeColor themeColor, double themeTint)
     {
         var key = new XlsxColorKey
         {
@@ -261,18 +261,18 @@ public partial class XlsxColor
     /// <summary>
     /// Parse VML ST_ColorType type from ECMA-376, Part 4 §20.1.2.3.
     /// </summary>
-    internal static XlsxColor FromVmlColor(String vmlColor)
+    internal static XlsxColor FromVmlColor(string vmlColor)
     {
         // Check if VML color is a hexadecimal RGB color.
-        var rgbColorText = vmlColor.AsSpan().Trim();
-        if (rgbColorText.StartsWith("#".AsSpan()) && ColorStringParser.TryParseRgb6(rgbColorText[1..], out var rgbColor))
+        ReadOnlySpan<char> rgbColorText = vmlColor.AsSpan().Trim();
+        if (rgbColorText.StartsWith("#".AsSpan()) && ColorStringParser.TryParseRgb6(rgbColorText[1..], out Color rgbColor))
         {
             return FromColor(rgbColor);
         }
 
         // Check if VML color is a VML named color.
         var namedColorText = vmlColor.Trim();
-        if (VmlNamedColors.Value.TryGetValue(namedColorText, out var namedColor))
+        if (VmlNamedColors.Value.TryGetValue(namedColorText, out XlsxColor? namedColor))
         {
             return namedColor;
         }
@@ -282,7 +282,7 @@ public partial class XlsxColor
         // because VML is used pretty much only for unusual features like notes, form controls ect. Strip the
         // palette index if found, it is a legacy feature from times of 256 colors. E.g., "Menu [80]" => "Menu"
         var paletteColorName = vmlColor.Split('[')[0].Trim();
-        if (VmlPaletteColors.Value.TryGetValue(paletteColorName, out var paletteColor))
+        if (VmlPaletteColors.Value.TryGetValue(paletteColorName, out XlsxColor? paletteColor))
         {
             return paletteColor;
         }

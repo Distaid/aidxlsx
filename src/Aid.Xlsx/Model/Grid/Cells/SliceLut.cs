@@ -51,14 +51,14 @@ internal partial class Slice<TElement>
         /// <returns>Reference to an element at index, if the element is used, otherwise <see cref="DefaultValue"/>.</returns>
         internal ref readonly T Get(int index)
         {
-            var (topIdx, bottomIdx) = SplitIndex(index);
+            (int topIdx, int bottomIdx) = SplitIndex(index);
             if (topIdx >= _buckets.Length)
                 return ref DefaultValue;
 
             if (!IsUsed(topIdx, bottomIdx))
                 return ref DefaultValue;
 
-            var nodes = _buckets[topIdx].Nodes;
+            T[] nodes = _buckets[topIdx].Nodes;
             return ref nodes[bottomIdx];
         }
 
@@ -67,7 +67,7 @@ internal partial class Slice<TElement>
         /// </summary>
         internal bool IsUsed(int index)
         {
-            var (topIdx, bottomIdx) = SplitIndex(index);
+            (int topIdx, int bottomIdx) = SplitIndex(index);
             if (topIdx >= _buckets.Length)
                 return false;
 
@@ -80,7 +80,7 @@ internal partial class Slice<TElement>
         /// </summary>
         internal void Set(int index, T value)
         {
-            var (topIdx, bottomIdx) = SplitIndex(index);
+            (int topIdx, int bottomIdx) = SplitIndex(index);
 
             SetValue(value, topIdx, bottomIdx);
 
@@ -109,7 +109,7 @@ internal partial class Slice<TElement>
                 Array.Resize(ref _buckets, topSize);
             }
 
-            var bucket = _buckets[topIdx];
+            LutBucket bucket = _buckets[topIdx];
             var bottomBucketExists = bucket.Nodes is not null;
             if (!bottomBucketExists)
             {
@@ -130,7 +130,7 @@ internal partial class Slice<TElement>
                         bottomSize *= 2;
                     } while (bottomIdx >= bottomSize);
 
-                    var bucketNodes = bucket.Nodes;
+                    T[] bucketNodes = bucket.Nodes;
                     Array.Resize(ref bucketNodes, bottomSize);
                     _buckets[topIdx] = bucket = new LutBucket(bucketNodes, bucket.Bitmap);
                 }
@@ -239,7 +239,7 @@ internal partial class Slice<TElement>
             /// <summary>
             /// Index of current element in the LUT. Only valid, if enumerator is valid.
             /// </summary>
-            public int Index => _idx;
+            public readonly int Index => _idx;
 
             public bool MoveNext()
             {
@@ -251,10 +251,10 @@ internal partial class Slice<TElement>
                 return true;
             }
 
-            private int GetNextUsedIndexAtOrLater(int index)
+            private readonly int GetNextUsedIndexAtOrLater(int index)
             {
-                var buckets = _lut._buckets;
-                var (topIdx, bottomIdx) = SplitIndex(index);
+                LutBucket[] buckets = _lut._buckets;
+                (int topIdx, int bottomIdx) = SplitIndex(index);
 
                 while (topIdx < buckets.Length)
                 {
@@ -288,9 +288,9 @@ internal partial class Slice<TElement>
                 _startIdx = startIdx;
             }
 
-            public ref T Current => ref _lut._buckets[_idx >> BottomLutBits].Nodes[_idx & BottomLutMask];
+            public readonly ref T Current => ref _lut._buckets[_idx >> BottomLutBits].Nodes[_idx & BottomLutMask];
 
-            public int Index => _idx;
+            public readonly int Index => _idx;
 
             public bool MoveNext()
             {
@@ -302,10 +302,10 @@ internal partial class Slice<TElement>
                 return true;
             }
 
-            private int GetPrevIndexAtOrBefore(int index)
+            private readonly int GetPrevIndexAtOrBefore(int index)
             {
-                var buckets = _lut._buckets;
-                var (topIdx, bottomIdx) = SplitIndex(index);
+                LutBucket[] buckets = _lut._buckets;
+                (int topIdx, int bottomIdx) = SplitIndex(index);
                 if (topIdx >= buckets.Length)
                 {
                     topIdx = buckets.Length - 1;

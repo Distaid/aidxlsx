@@ -32,7 +32,7 @@ public class MceXmlReader : IXmlReader
     private readonly Tracker<string> _ignorable = new(ReferenceEqualityComparer.Instance, static (state, ns) => state.ContainsKey(ns));
     private readonly Tracker<NamePair> _processContent = new(EqualityComparer<NamePair>.Default, static (state, pair) =>
     {
-        foreach (var namePair in state.Keys)
+        foreach (NamePair namePair in state.Keys)
         {
             if (namePair.Matches(pair))
                 return true;
@@ -74,7 +74,7 @@ public class MceXmlReader : IXmlReader
         const string mceNs = "http://schemas.openxmlformats.org/markup-compatibility/2006";
 
         _reader = reader;
-        var nameTable = _reader.NameTable ?? throw new ArgumentException("XmlReader must use name table.");
+        XmlNameTable nameTable = _reader.NameTable ?? throw new ArgumentException("XmlReader must use name table.");
         _mce = nameTable.Add(mceNs);
         _alternateContent = XmlName.Atomize("AlternateContent", mceNs, nameTable);
         _choice = XmlName.Atomize("Choice", mceNs, nameTable);
@@ -192,6 +192,8 @@ public class MceXmlReader : IXmlReader
     {
         if (!_leaveOpen)
             _reader.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private bool IsIgnored()
@@ -330,10 +332,7 @@ public class MceXmlReader : IXmlReader
         var prefixes = requires.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         foreach (var prefix in prefixes)
         {
-            var namespaceUri = _reader.LookupNamespace(prefix);
-            if (namespaceUri is null)
-                throw MceThrowHelper.NamespacePrefixNotFound(_attRequires.LocalName, prefix, _reader);
-
+            var namespaceUri = _reader.LookupNamespace(prefix) ?? throw MceThrowHelper.NamespacePrefixNotFound(_attRequires.LocalName, prefix, _reader);
             if (!_appConfig.Contains(namespaceUri))
                 return false;
         }
@@ -559,7 +558,7 @@ public class MceXmlReader : IXmlReader
         internal Tracker(IEqualityComparer<T> comparer, Func<Dictionary<T, int>, T, bool> matches)
         {
             _state = new Dictionary<T, int>(comparer);
-            _usedDepths = new HashSet<int>();
+            _usedDepths = [];
             _matches = matches;
         }
 
@@ -586,13 +585,13 @@ public class MceXmlReader : IXmlReader
                 return;
 
             var itemsToRemove = new List<T>();
-            foreach (var (item, depth) in _state)
+            foreach ((T? item, int depth) in _state)
             {
                 if (depthToClear == depth)
                     itemsToRemove.Add(item);
             }
 
-            foreach (var item in itemsToRemove)
+            foreach (T item in itemsToRemove)
                 _state.Remove(item);
         }
     }

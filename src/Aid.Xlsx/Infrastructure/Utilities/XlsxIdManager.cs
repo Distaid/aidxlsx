@@ -6,10 +6,10 @@ namespace Aid.Xlsx.Infrastructure.Utilities;
 
 internal class XlsxIdManager
 {
-    private HashSet<Int32> _hash = new HashSet<Int32>();
+    private readonly HashSet<int> _hash = [];
 
 
-    public Int32 GetNext()
+    public int GetNext()
     {
         if (_hash.Count == 0)
         {
@@ -17,22 +17,21 @@ internal class XlsxIdManager
             return 1;
         }
 
-        Int32 id = 1;
+        int id = 1;
         while (true)
         {
-            if (!_hash.Contains(id))
+            if (_hash.Add(id))
             {
-                _hash.Add(id);
                 return id;
             }
             id++;
         }
     }
-    public void Add(Int32 value)
+    public void Add(int value)
     {
         _hash.Add(value);
     }
-    public void Add(IEnumerable<Int32> values)
+    public void Add(IEnumerable<int> values)
     {
         values.ForEach(v => _hash.Add(v));
     }

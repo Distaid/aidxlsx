@@ -7,7 +7,7 @@ namespace Aid.Xlsx.Model.Styles;
 /// </summary>
 internal class XlsxPivotTableStyle
 {
-    private readonly Dictionary<XlsxPivotStyleRegionValues, XlsxDxfValue> _regionFormats = new();
+    private readonly Dictionary<XlsxPivotStyleRegionValues, XlsxDxfValue> _regionFormats = [];
 
     public XlsxPivotTableStyle(string name)
     {

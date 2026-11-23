@@ -13,42 +13,42 @@ internal static class WorkbookPropertiesParts
 
     internal static void Read(OpcPackage package, XlsxWorkbook workbook)
     {
-        using (var core = GetPart(package, CoreRelationship)?.OpenRead())
+        using (Stream? core = GetPart(package, CoreRelationship)?.OpenRead())
             if (core is not null)
                 CorePropertiesXml.Read(core, workbook.Properties);
 
-        using (var extended = GetPart(package, ExtendedRelationship)?.OpenRead())
+        using (Stream? extended = GetPart(package, ExtendedRelationship)?.OpenRead())
             if (extended is not null)
                 ExtendedPropertiesXml.Read(extended, workbook);
 
-        using (var custom = GetPart(package, CustomRelationship)?.OpenRead())
-            if (custom is not null)
-                CustomPropertiesXml.Read(custom, workbook.CustomProperties);
+        using Stream? custom = GetPart(package, CustomRelationship)?.OpenRead();
+        if (custom is not null)
+            CustomPropertiesXml.Read(custom, workbook.CustomProperties);
     }
 
     internal static bool HasExtendedProperties(OpcPackage package) => GetPart(package, ExtendedRelationship) is not null;
 
     internal static void Write(OpcPackage package, XlsxWorkbook workbook, string? newExtendedRelationshipId)
     {
-        var corePart = GetPart(package, CoreRelationship);
+        OpcPart? corePart = GetPart(package, CoreRelationship);
         XDocument core;
-        using (var existing = corePart?.OpenRead())
+        using (Stream? existing = corePart?.OpenRead())
             core = CorePropertiesXml.Update(existing, workbook.Properties);
         corePart ??= AddPart(package, CoreRelationship, "/package/services/metadata/core-properties/core.psmdcp",
             "application/vnd.openxmlformats-package.core-properties+xml");
         ReplaceXml(corePart, core);
 
-        var extendedPart = GetPart(package, ExtendedRelationship);
+        OpcPart? extendedPart = GetPart(package, ExtendedRelationship);
         XDocument extended;
-        using (var existing = extendedPart?.OpenRead())
+        using (Stream? existing = extendedPart?.OpenRead())
             extended = ExtendedPropertiesXml.Update(existing, workbook);
         extendedPart ??= AddPart(package, ExtendedRelationship, "/docProps/app.xml",
             "application/vnd.openxmlformats-officedocument.extended-properties+xml", newExtendedRelationshipId);
         ReplaceXml(extendedPart, extended);
 
-        var customPart = GetPart(package, CustomRelationship);
+        OpcPart? customPart = GetPart(package, CustomRelationship);
         XDocument? custom;
-        using (var existing = customPart?.OpenRead())
+        using (Stream? existing = customPart?.OpenRead())
             custom = CustomPropertiesXml.Update(existing, workbook.CustomProperties);
         if (custom is not null)
         {
@@ -65,7 +65,7 @@ internal static class WorkbookPropertiesParts
     private static OpcPart? GetPart(OpcPackage package, string type)
     {
         var partName = package.Relationships.FirstOrDefault(rel => rel.Type == type && !rel.IsExternal)?.TargetPartName;
-        return partName is not null && package.TryGetPart(partName, out var part) ? part : null;
+        return partName is not null && package.TryGetPart(partName, out OpcPart? part) ? part : null;
     }
 
     private static OpcPart AddPart(OpcPackage package, string relationType, string defaultName, string contentType,
@@ -75,7 +75,7 @@ internal static class WorkbookPropertiesParts
         for (var suffix = 2; package.Parts.ContainsKey(name); suffix++)
             name = defaultName.Insert(defaultName.LastIndexOf('.'), suffix.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
-        var relationship = package.Relationships.FirstOrDefault(rel => rel.Type == relationType && !rel.IsExternal);
+        OpcRelationship? relationship = package.Relationships.FirstOrDefault(rel => rel.Type == relationType && !rel.IsExternal);
         var id = relationship?.Id;
         if (id is null)
         {
@@ -94,7 +94,7 @@ internal static class WorkbookPropertiesParts
             package.Relationships.Remove(id);
         }
 
-        var part = package.AddPart(name, contentType);
+        OpcPart part = package.AddPart(name, contentType);
         package.Relationships.Add(id, relationType, name[1..]);
         return part;
     }

@@ -27,8 +27,8 @@ internal class XlsxDxfFillFormat : IXlsxFill
         get => Resolve(static fill => fill.Pattern?.BackgroundColor, _default.BackgroundColor);
         set => Modify(static (fill, bgColor) =>
         {
-            var currentPattern = fill.Pattern ?? _default;
-            var newPattern = currentPattern.WithModifiedBgColor(bgColor);
+            XlsxPatternFill currentPattern = fill.Pattern ?? _default;
+            XlsxPatternFill newPattern = currentPattern.WithModifiedBgColor(bgColor);
             return new XlsxDifferentialFillValue(newPattern);
         }, value);
     }
@@ -38,7 +38,7 @@ internal class XlsxDxfFillFormat : IXlsxFill
         get => Resolve(static fill => fill.Pattern?.PatternColor, _default.PatternColor);
         set => Modify(static (fill, patternColor) =>
         {
-            var pattern = fill.Pattern ?? _default;
+            XlsxPatternFill pattern = fill.Pattern ?? _default;
             return new XlsxDifferentialFillValue(pattern with { PatternColor = patternColor });
         }, value);
     }
@@ -48,8 +48,8 @@ internal class XlsxDxfFillFormat : IXlsxFill
         get => Resolve(static fill => fill.Pattern?.PatternType, _default.PatternType);
         set => Modify(static (fill, patternType) =>
         {
-            var pattern = fill.Pattern ?? _default;
-            var newPattern = pattern.WithModifiedPattern(patternType);
+            XlsxPatternFill pattern = fill.Pattern ?? _default;
+            XlsxPatternFill newPattern = pattern.WithModifiedPattern(patternType);
             return new XlsxDifferentialFillValue(newPattern);
         }, value);
     }

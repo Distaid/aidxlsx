@@ -3,27 +3,22 @@ namespace Aid.Xlsx.Formulas.References.Transforms;
 /// <summary>
 /// A range of a symbol in formula text.
 /// </summary>
-public readonly struct SymbolRange
+/// <remarks>
+/// Create a substring of a symbol.
+/// </remarks>
+public readonly struct SymbolRange(int startIndex, int endIndex)
 {
-    /// <summary>
-    /// Create a substring of a symbol.
-    /// </summary>
-    public SymbolRange(int startIndex, int endIndex)
-    {
-        Start = startIndex;
-        End = endIndex;
-    }
 
     /// <summary>
     /// Start index of symbol in formula text.
     /// </summary>
-    public int Start { get; }
+    public int Start { get; } = startIndex;
 
     /// <summary>
     /// End index of symbol in formula text. Can be outside of text bounds, if symbol ends at the
     /// last char of formula.
     /// </summary>
-    public int End { get; }
+    public int End { get; } = endIndex;
 
     /// <summary>
     /// Length of a symbol.

@@ -4,20 +4,15 @@ using Aid.Xlsx.Model.Workbooks;
 
 namespace Aid.Xlsx.Model.CustomProperties;
 
-internal class XlsxCustomProperty : IXlsxCustomProperty
+internal class XlsxCustomProperty(XlsxWorkbook workbook) : IXlsxCustomProperty
 {
-    private readonly XlsxWorkbook _workbook;
+    private readonly XlsxWorkbook _workbook = workbook;
 
-    private String name;
-
-    public XlsxCustomProperty(XlsxWorkbook workbook)
-    {
-        _workbook = workbook;
-    }
+    private string name;
 
     #region IXlsxCustomProperty Members
 
-    public String Name
+    public string Name
     {
         get { return name; }
         set
@@ -26,7 +21,7 @@ internal class XlsxCustomProperty : IXlsxCustomProperty
 
             if (_workbook.CustomProperties.Any(t => t.Name == value))
                 throw new ArgumentException(
-                    String.Format("This workbook already contains a custom property named '{0}'", value));
+                    string.Format("This workbook already contains a custom property named '{0}'", value));
 
             name = value;
         }
@@ -39,17 +34,16 @@ internal class XlsxCustomProperty : IXlsxCustomProperty
             if (Value is DateTime)
                 return XlsxCustomPropertyType.Date;
 
-            if (Value is Boolean)
+            if (Value is bool)
                 return XlsxCustomPropertyType.Boolean;
-
-            if (Double.TryParse(Value.ToString(), out Double dTest))
+            if (double.TryParse(Value.ToString(), out _))
                 return XlsxCustomPropertyType.Number;
 
             return XlsxCustomPropertyType.Text;
         }
     }
 
-    public Object Value { get; set; }
+    public object Value { get; set; }
 
     public T GetValue<T>()
     {

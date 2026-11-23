@@ -209,7 +209,7 @@ internal sealed partial class XlsxBorderCellFormat : IXlsxBorder
         if (other is null)
             return false;
 
-        var thisBorder = _parent.Resolve(static x => x.Border);
+        XlsxBorderFormatValue thisBorder = _parent.Resolve(static x => x.Border);
         var otherLeft = new XlsxBorderLine(other.LeftBorderColor, other.LeftBorder);
         if (!IsSameLine(thisBorder.Left, otherLeft))
             return false;
@@ -227,13 +227,13 @@ internal sealed partial class XlsxBorderCellFormat : IXlsxBorder
             return false;
 
         // Check diagonals. If the diagonal flag is not set, the diagonal is not displayed. Normalize them to take into the account the direction flag
-        var thisDiagonalUp = MakeThisDiagonal(thisBorder.Diagonal, thisBorder.DiagonalUp);
-        var otherDiagonalUp = MakeOtherDiagonal(other, other.DiagonalUp);
+        XlsxBorderLine thisDiagonalUp = MakeThisDiagonal(thisBorder.Diagonal, thisBorder.DiagonalUp);
+        XlsxBorderLine otherDiagonalUp = MakeOtherDiagonal(other, other.DiagonalUp);
         if (!IsSameLine(thisDiagonalUp, otherDiagonalUp))
             return false;
 
-        var thisDiagonalDown = MakeThisDiagonal(thisBorder.Diagonal, thisBorder.DiagonalDown);
-        var otherDiagonalDown = MakeOtherDiagonal(other, other.DiagonalDown);
+        XlsxBorderLine thisDiagonalDown = MakeThisDiagonal(thisBorder.Diagonal, thisBorder.DiagonalDown);
+        XlsxBorderLine otherDiagonalDown = MakeOtherDiagonal(other, other.DiagonalDown);
         if (!IsSameLine(thisDiagonalDown, otherDiagonalDown))
             return false;
 

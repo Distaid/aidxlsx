@@ -29,16 +29,16 @@ internal class XlsxPivotStyleFormats : IXlsxPivotStyleFormats
 
     public IEnumerator<IXlsxPivotStyleFormat> GetEnumerator()
     {
-        var elements = new[]
-        {
+        XlsxPivotStyleFormatElement[] elements =
+        [
             XlsxPivotStyleFormatElement.Label,
             XlsxPivotStyleFormatElement.Data,
             XlsxPivotStyleFormatElement.All,
-        };
+        ];
 
-        foreach (var element in elements)
+        foreach (XlsxPivotStyleFormatElement element in elements)
         {
-            foreach (var format in _pivotTable.Formats)
+            foreach (XlsxPivotFormat? format in _pivotTable.Formats)
             {
                 if (AreaBelongsToGrandTotal(format.PivotArea, element))
                 {

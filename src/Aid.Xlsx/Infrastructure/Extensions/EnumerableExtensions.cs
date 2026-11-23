@@ -17,9 +17,9 @@ internal static class EnumerableExtensions
     {
         return GetGenericArgument(source.GetType());
 
-        Type? GetGenericArgument(Type collectionType)
+        static Type? GetGenericArgument(Type collectionType)
         {
-            var ienumerable = collectionType.GetInterfaces()
+            Type? ienumerable = collectionType.GetInterfaces()
                 .SingleOrDefault(i => i.GetGenericArguments().Length == 1 &&
                                       i.Name == "IEnumerable`1");
 
@@ -32,7 +32,7 @@ internal static class EnumerableExtensions
     /// </summary>
     public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> source)
     {
-        using var enumerator = source.GetEnumerator();
+        using IEnumerator<T> enumerator = source.GetEnumerator();
         if (!enumerator.MoveNext())
             yield break;
 
@@ -44,10 +44,10 @@ internal static class EnumerableExtensions
         }
     }
 
-    public static Boolean HasDuplicates<T>(this IEnumerable<T> source)
+    public static bool HasDuplicates<T>(this IEnumerable<T> source)
     {
-        HashSet<T> distinctItems = new HashSet<T>();
-        foreach (var item in source)
+        var distinctItems = new HashSet<T>();
+        foreach (T? item in source)
         {
             if (!distinctItems.Add(item))
             {

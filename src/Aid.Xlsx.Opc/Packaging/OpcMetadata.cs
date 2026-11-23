@@ -56,10 +56,10 @@ internal static class OpcMetadata
 
     internal static void WriteContentTypes(Stream stream, Dictionary<string, string> defaults, Dictionary<string, string> overrides)
     {
-        using var writer = CreateWriter(stream);
+        using XmlWriter writer = CreateWriter(stream);
         writer.WriteStartDocument();
         writer.WriteStartElement("Types", ContentTypesNamespace);
-        foreach (var (extension, contentType) in defaults.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+        foreach ((string? extension, string? contentType) in defaults.OrderBy(pair => pair.Key, StringComparer.Ordinal))
         {
             writer.WriteStartElement("Default", ContentTypesNamespace);
             writer.WriteAttributeString("Extension", extension);
@@ -67,7 +67,7 @@ internal static class OpcMetadata
             writer.WriteEndElement();
         }
 
-        foreach (var (partName, contentType) in overrides.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+        foreach ((string? partName, string? contentType) in overrides.OrderBy(pair => pair.Key, StringComparer.Ordinal))
         {
             writer.WriteStartElement("Override", ContentTypesNamespace);
             writer.WriteAttributeString("PartName", partName);
@@ -80,10 +80,10 @@ internal static class OpcMetadata
 
     internal static void WriteRelationships(Stream stream, OpcRelationshipCollection relationships)
     {
-        using var writer = CreateWriter(stream);
+        using XmlWriter writer = CreateWriter(stream);
         writer.WriteStartDocument();
         writer.WriteStartElement("Relationships", RelationshipsNamespace);
-        foreach (var relationship in relationships.OrderBy(relationship => relationship.Id, StringComparer.Ordinal))
+        foreach (OpcRelationship? relationship in relationships.OrderBy(relationship => relationship.Id, StringComparer.Ordinal))
         {
             writer.WriteStartElement("Relationship", RelationshipsNamespace);
             writer.WriteAttributeString("Id", relationship.Id);
@@ -107,7 +107,7 @@ internal static class OpcMetadata
     {
         try
         {
-            using var stream = entry.Open();
+            using Stream stream = entry.Open();
             using var reader = XmlReader.Create(stream, new XmlReaderSettings
             {
                 DtdProcessing = DtdProcessing.Prohibit,

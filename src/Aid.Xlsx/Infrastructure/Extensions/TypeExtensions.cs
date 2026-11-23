@@ -35,7 +35,7 @@ internal static class TypeExtensions
         public bool IsSimpleType()
         {
             return type.IsPrimitive
-                   || type == typeof(String)
+                   || type == typeof(string)
                    || type == typeof(DateTime)
                    || type == typeof(TimeSpan)
                    || type.IsNumber();

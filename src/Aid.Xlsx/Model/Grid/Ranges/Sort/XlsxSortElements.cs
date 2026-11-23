@@ -6,20 +6,20 @@ namespace Aid.Xlsx.Model.Grid.Ranges.Sort;
 
 internal class XlsxSortElements : IXlsxSortElements
 {
-    List<IXlsxSortElement> elements = new List<IXlsxSortElement>();
-    public void Add(Int32 elementNumber)
+    readonly List<IXlsxSortElement> elements = [];
+    public void Add(int elementNumber)
     {
         Add(elementNumber, XlsxSortOrder.Ascending);
     }
-    public void Add(Int32 elementNumber, XlsxSortOrder sortOrder)
+    public void Add(int elementNumber, XlsxSortOrder sortOrder)
     {
         Add(elementNumber, sortOrder, true);
     }
-    public void Add(Int32 elementNumber, XlsxSortOrder sortOrder, Boolean ignoreBlanks)
+    public void Add(int elementNumber, XlsxSortOrder sortOrder, bool ignoreBlanks)
     {
         Add(elementNumber, sortOrder, ignoreBlanks, false);
     }
-    public void Add(Int32 elementNumber, XlsxSortOrder sortOrder, Boolean ignoreBlanks, Boolean matchCase)
+    public void Add(int elementNumber, XlsxSortOrder sortOrder, bool ignoreBlanks, bool matchCase)
     {
         elements.Add(new XlsxSortElement(
             elementNumber,
@@ -28,19 +28,19 @@ internal class XlsxSortElements : IXlsxSortElements
             matchCase));
     }
 
-    public void Add(String elementNumber)
+    public void Add(string elementNumber)
     {
         Add(elementNumber, XlsxSortOrder.Ascending);
     }
-    public void Add(String elementNumber, XlsxSortOrder sortOrder)
+    public void Add(string elementNumber, XlsxSortOrder sortOrder)
     {
         Add(elementNumber, sortOrder, true);
     }
-    public void Add(String elementNumber, XlsxSortOrder sortOrder, Boolean ignoreBlanks)
+    public void Add(string elementNumber, XlsxSortOrder sortOrder, bool ignoreBlanks)
     {
         Add(elementNumber, sortOrder, ignoreBlanks, false);
     }
-    public void Add(String elementNumber, XlsxSortOrder sortOrder, Boolean ignoreBlanks, Boolean matchCase)
+    public void Add(string elementNumber, XlsxSortOrder sortOrder, bool ignoreBlanks, bool matchCase)
     {
         elements.Add(new XlsxSortElement(
             XlsxHelper.GetColumnNumberFromLetter(elementNumber),
@@ -64,7 +64,7 @@ internal class XlsxSortElements : IXlsxSortElements
         elements.Clear();
     }
 
-    public void Remove(Int32 elementNumber)
+    public void Remove(int elementNumber)
     {
         elements.RemoveAt(elementNumber - 1);
     }

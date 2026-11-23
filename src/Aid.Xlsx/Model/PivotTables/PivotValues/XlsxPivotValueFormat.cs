@@ -4,16 +4,11 @@ using Aid.Xlsx.Model.Styles.Formatting;
 
 namespace Aid.Xlsx.Model.PivotTables.PivotValues;
 
-internal class XlsxPivotValueFormat : IXlsxPivotValueFormat
+internal class XlsxPivotValueFormat(XlsxPivotDataField pivotValue) : IXlsxPivotValueFormat
 {
-    private readonly XlsxPivotDataField _pivotValue;
+    private readonly XlsxPivotDataField _pivotValue = pivotValue;
 
-    public XlsxPivotValueFormat(XlsxPivotDataField pivotValue)
-    {
-        _pivotValue = pivotValue;
-    }
-
-    public Int32 NumberFormatId
+    public int NumberFormatId
     {
         get
         {
@@ -28,14 +23,14 @@ internal class XlsxPivotValueFormat : IXlsxPivotValueFormat
 
         set
         {
-            if (!XlsxPredefinedFormat.FormatCodes.TryGetValue(value, out var format))
-                throw new ArgumentOutOfRangeException($"Only predefined format is permitted. Use nested enums/members of {nameof(XlsxPredefinedFormat)}.");
+            if (!XlsxPredefinedFormat.FormatCodes.TryGetValue(value, out XlsxNumberFormat format))
+                throw new ArgumentOutOfRangeException(nameof(value), value, $"Only predefined format is permitted. Use nested enums/members of {nameof(XlsxPredefinedFormat)}.");
 
             _pivotValue.NumberFormatValue = format;
         }
     }
 
-    public String Format
+    public string Format
     {
         get => _pivotValue.NumberFormatValue ?? string.Empty;
         set
@@ -44,13 +39,13 @@ internal class XlsxPivotValueFormat : IXlsxPivotValueFormat
         }
     }
 
-    public IXlsxPivotValue SetNumberFormatId(Int32 value)
+    public IXlsxPivotValue SetNumberFormatId(int value)
     {
         NumberFormatId = value;
         return _pivotValue;
     }
 
-    public IXlsxPivotValue SetFormat(String value)
+    public IXlsxPivotValue SetFormat(string value)
     {
         Format = value;
         return _pivotValue;

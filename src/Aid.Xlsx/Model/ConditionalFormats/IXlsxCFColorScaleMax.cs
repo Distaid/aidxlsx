@@ -6,7 +6,7 @@ namespace Aid.Xlsx.Model.ConditionalFormats;
 
 public interface IXlsxCFColorScaleMax
 {
-    void Maximum(XlsxCFContentType type, String value, XlsxColor color);
-    void Maximum(XlsxCFContentType type, Double value, XlsxColor color);
+    void Maximum(XlsxCFContentType type, string value, XlsxColor color);
+    void Maximum(XlsxCFContentType type, double value, XlsxColor color);
     void HighestValue(XlsxColor color);
 }

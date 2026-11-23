@@ -35,13 +35,13 @@ internal static class OoxmlSchema
 
         using var client = new HttpClient();
         using var request = new HttpRequestMessage(HttpMethod.Get, ArchiveUrl);
-        using var response = client.Send(request);
+        using HttpResponseMessage response = client.Send(request);
         response.EnsureSuccessStatusCode();
-        using var source = response.Content.ReadAsStream();
+        using Stream source = response.Content.ReadAsStream();
         using var archive = new ZipArchive(source, ZipArchiveMode.Read);
-        using var schemaArchiveStream = OpenEntry(archive, "OfficeOpenXML-XMLSchema-Transitional.zip");
+        using Stream schemaArchiveStream = OpenEntry(archive, "OfficeOpenXML-XMLSchema-Transitional.zip");
         using var schemaArchive = new ZipArchive(schemaArchiveStream, ZipArchiveMode.Read);
-        using var schema = OpenEntry(schemaArchive, SchemaFile);
+        using Stream schema = OpenEntry(schemaArchive, SchemaFile);
         using var buffer = new MemoryStream();
         schema.CopyTo(buffer);
         var bytes = buffer.ToArray();

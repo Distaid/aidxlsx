@@ -43,11 +43,11 @@ public abstract class ComplexType : IParslet
         code.CloseBrace();
         code.EndLine();
 
-        foreach (var oneOfAttribute in Attributes)
+        foreach (OneOf<AttributeElement, AttributeGroupReference> oneOfAttribute in Attributes)
         {
-            if (oneOfAttribute.TryPickT1(out var attribute, out var attributeGroup))
+            if (oneOfAttribute.TryPickT1(out AttributeElement? attribute, out AttributeGroupReference? attributeGroup))
             {
-                var attributeVariable = attribute.Generate(code);
+                Variable attributeVariable = attribute.Generate(code);
                 attributeVariables.Add(attributeVariable);
             }
             else
@@ -73,7 +73,7 @@ public abstract class ComplexType : IParslet
         code.WriteIndent().AppendCallPreHook(Name, attributeVariables).Append(";").EndLine();
         code.EndLine();
 
-        var elementVariables = GenerateParseMethod(code);
+        List<Variable> elementVariables = GenerateParseMethod(code);
         List<Variable> dataVariables = [.. elementVariables, .. attributeVariables];
 
         code.AddLine("_reader.Close(elementName, ns);");

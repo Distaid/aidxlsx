@@ -54,7 +54,7 @@ internal readonly record struct XlsxNumberFormat : IEquatable<string>
 
         if (!string.IsNullOrWhiteSpace(_format))
         {
-            var dataType = GetDataTypeFromFormat();
+            XlsxDataType? dataType = GetDataTypeFromFormat();
             return dataType ?? XlsxDataType.Number;
         }
 

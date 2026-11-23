@@ -7,11 +7,11 @@ namespace Aid.Xlsx.Model.Drawings;
 public enum XlsxDrawingAnchor { MoveAndSizeWithCells, MoveWithCells, Absolute }
 public interface IXlsxDrawing<T>
 {
-    Int32 ShapeId { get; }
+    int ShapeId { get; }
 
-    Boolean Visible { get; set; }
+    bool Visible { get; set; }
     T SetVisible();
-    T SetVisible(Boolean hidden);
+    T SetVisible(bool hidden);
 
     ////String Name { get; set; }
     ////T SetName(String name);
@@ -21,8 +21,8 @@ public interface IXlsxDrawing<T>
 
     IXlsxDrawingPosition Position { get; }
 
-    Int32 ZOrder { get; set; }
-    T SetZOrder(Int32 zOrder);
+    int ZOrder { get; set; }
+    T SetZOrder(int zOrder);
 
     //Boolean HorizontalFlip { get; set; }
     //T SetHorizontalFlip();

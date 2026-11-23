@@ -13,21 +13,21 @@ internal sealed partial class WorksheetXml
     internal void UpdateColumns(XlsxWorksheet sheet, XlsxWorkbook.SaveContext context)
     {
         var worksheetStyle = context.GetStyleId(sheet.FormatValue);
-        var model = sheet.Internals.ColumnsCollection;
+        XlsxColumnsCollection model = sheet.Internals.ColumnsCollection;
         if (sheet.Internals.CellsCollection.IsEmpty && model.Count == 0 && worksheetStyle == 0)
         {
             Replace("cols", []);
             return;
         }
 
-        var columns = GetOrAdd("cols");
+        XElement columns = GetOrAdd("cols");
         var existing = columns.Elements(Main + "col").ToDictionary(column => (int)column.Attribute("min")!);
         var lastModelColumn = model.Count == 0 ? 0 : model.Keys.Max();
         var width = ColumnWidth(sheet.ColumnWidth);
         for (var index = 1; index <= lastModelColumn; index++)
         {
-            var old = existing.GetValueOrDefault(index);
-            var column = old is null ? new XElement(Main + "col") : new XElement(old);
+            XElement? old = existing.GetValueOrDefault(index);
+            XElement column = old is null ? new XElement(Main + "col") : new XElement(old);
             if (old is not null)
             {
                 if ((int)old.Attribute("max")! > index)
@@ -41,7 +41,7 @@ internal sealed partial class WorksheetXml
                 }
             }
 
-            model.TryGetValue(index, out var value);
+            model.TryGetValue(index, out XlsxColumn? value);
             column.SetAttributeValue("min", index);
             column.SetAttributeValue("max", index);
             column.SetAttributeValue("style", value?.FormatValue is { } format ? context.GetStyleId(format) : worksheetStyle);
@@ -55,7 +55,7 @@ internal sealed partial class WorksheetXml
         }
 
         var lastColumn = lastModelColumn;
-        foreach (var column in existing.Where(pair => pair.Key > lastModelColumn).Select(pair => pair.Value))
+        foreach (XElement? column in existing.Where(pair => pair.Key > lastModelColumn).Select(pair => pair.Value))
         {
             column.SetAttributeValue("style", worksheetStyle);
             column.SetAttributeValue("width", width);
@@ -70,10 +70,10 @@ internal sealed partial class WorksheetXml
         }
 
         // Compress adjacent equal column definitions while keeping additional attributes from the original part.
-        var ordered = columns.Elements(Main + "col").OrderBy(column => (int)column.Attribute("min")!).ToArray();
+        XElement[] ordered = [.. columns.Elements(Main + "col").OrderBy(column => (int)column.Attribute("min")!)];
         ordered.Remove();
         XElement? previous = null;
-        foreach (var column in ordered)
+        foreach (XElement? column in ordered)
         {
             if (previous is not null && (int)previous.Attribute("max")! + 1 == (int)column.Attribute("min")! && ColumnsEqual(previous, column))
             {
@@ -106,14 +106,14 @@ internal sealed partial class WorksheetXml
 
     internal void UpdatePrintSettings(XlsxWorksheet sheet)
     {
-        var setup = sheet.PageSetup;
-        var printOptions = GetOrAdd("printOptions");
+        IXlsxPageSetup setup = sheet.PageSetup;
+        XElement printOptions = GetOrAdd("printOptions");
         Flag(printOptions, "horizontalCentered", setup.CenterHorizontally);
         Flag(printOptions, "verticalCentered", setup.CenterVertically);
         Flag(printOptions, "headings", setup.ShowRowAndColumnHeadings);
         Flag(printOptions, "gridLines", setup.ShowGridlines);
 
-        var margins = GetOrAdd("pageMargins");
+        XElement margins = GetOrAdd("pageMargins");
         margins.SetAttributeValue("left", setup.Margins.Left);
         margins.SetAttributeValue("right", setup.Margins.Right);
         margins.SetAttributeValue("top", setup.Margins.Top);
@@ -121,7 +121,7 @@ internal sealed partial class WorksheetXml
         margins.SetAttributeValue("header", setup.Margins.Header);
         margins.SetAttributeValue("footer", setup.Margins.Footer);
 
-        var page = GetOrAdd("pageSetup");
+        XElement page = GetOrAdd("pageSetup");
         page.SetAttributeValue("orientation", setup.PageOrientation switch
         {
             XlsxPageOrientation.Default => "default",
@@ -175,7 +175,7 @@ internal sealed partial class WorksheetXml
         if ((uint?)page.Attribute("copies") is 0)
             page.SetAttributeValue("copies", null);
 
-        var headerFooter = GetOrAdd("headerFooter");
+        XElement headerFooter = GetOrAdd("headerFooter");
         if (((XlsxHeaderFooter)setup.Header).Changed || ((XlsxHeaderFooter)setup.Footer).Changed)
         {
             headerFooter.RemoveNodes();
@@ -208,9 +208,9 @@ internal sealed partial class WorksheetXml
             return;
         }
 
-        var element = GetOrAdd(name);
+        XElement element = GetOrAdd(name);
         var ids = new HashSet<int>();
-        foreach (var existing in element.Elements(Main + "brk").ToArray())
+        foreach (XElement? existing in element.Elements(Main + "brk").ToArray())
         {
             if ((int?)existing.Attribute("id") is { } id && breaks.Contains(id))
                 ids.Add(id);

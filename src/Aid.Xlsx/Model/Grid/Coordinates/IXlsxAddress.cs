@@ -11,29 +11,29 @@ namespace Aid.Xlsx.Model.Grid.Coordinates;
 /// </summary>
 public interface IXlsxAddress : IEqualityComparer<IXlsxAddress>, IEquatable<IXlsxAddress>
 {
-    String ColumnLetter { get; }
-    Int32 ColumnNumber { get; }
-    Boolean FixedColumn { get; }
-    Boolean FixedRow { get; }
-    Int32 RowNumber { get; }
-    String UniqueId { get; }
+    string ColumnLetter { get; }
+    int ColumnNumber { get; }
+    bool FixedColumn { get; }
+    bool FixedRow { get; }
+    int RowNumber { get; }
+    string UniqueId { get; }
 
     /// <summary>
     /// Worksheet of the reference. Value is null for address without a worksheet.
     /// </summary>
     IXlsxWorksheet Worksheet { get; }
 
-    String ToString(XlsxReferenceStyle referenceStyle);
+    string ToString(XlsxReferenceStyle referenceStyle);
 
-    String ToString(XlsxReferenceStyle referenceStyle, Boolean includeSheet);
+    string ToString(XlsxReferenceStyle referenceStyle, bool includeSheet);
 
-    String ToStringFixed();
+    string ToStringFixed();
 
-    String ToStringFixed(XlsxReferenceStyle referenceStyle);
+    string ToStringFixed(XlsxReferenceStyle referenceStyle);
 
-    String ToStringFixed(XlsxReferenceStyle referenceStyle, Boolean includeSheet);
+    string ToStringFixed(XlsxReferenceStyle referenceStyle, bool includeSheet);
 
-    String ToStringRelative();
+    string ToStringRelative();
 
-    String ToStringRelative(Boolean includeSheet);
+    string ToStringRelative(bool includeSheet);
 }

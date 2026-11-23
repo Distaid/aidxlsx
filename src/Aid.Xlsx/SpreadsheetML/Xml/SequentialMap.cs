@@ -2,28 +2,23 @@ using Aid.Xlsx.Infrastructure.Utilities;
 
 namespace Aid.Xlsx.SpreadsheetML.Xml;
 
-internal class SequentialMap<TKey, T>
+internal class SequentialMap<TKey, T>(IReadOnlyBiDictionary<TKey, T> fullMap)
     where TKey : struct
 {
     /// <summary>
     /// The index is the one that is used to save the <typeparamref name="T"/> while value is an index to the <c>_fullMap</c>.
     /// </summary>
-    private readonly Dictionary<int, TKey> _savedIdToActualId = new();
+    private readonly Dictionary<int, TKey> _savedIdToActualId = [];
 
-    private readonly Dictionary<TKey, int> _actualIdToSavedId = new();
+    private readonly Dictionary<TKey, int> _actualIdToSavedId = [];
 
-    private readonly IReadOnlyBiDictionary<TKey, T> _fullMap;
+    private readonly IReadOnlyBiDictionary<TKey, T> _fullMap = fullMap;
 
     /// <summary>
     /// A table that will be saved to file. Contains used and necessary entries along with
     /// the id under which the entry can be retrieved.
     /// </summary>
     private List<(int SaveId, T Actual)>? _saveTable;
-
-    public SequentialMap(IReadOnlyBiDictionary<TKey, T> fullMap)
-    {
-        _fullMap = fullMap;
-    }
 
     /// <summary>
     /// How many entries to save are in the map.
@@ -35,9 +30,9 @@ internal class SequentialMap<TKey, T>
         var map = new SequentialMap<TKey, T>(allValuesMap);
         if (firstValues is not null)
         {
-            foreach (var (firstValue, savedId) in firstValues)
+            foreach ((T? firstValue, int savedId) in firstValues)
             {
-                var actualId = allValuesMap[firstValue];
+                TKey actualId = allValuesMap[firstValue];
                 map.Add(actualId, savedId);
             }
         }
@@ -46,7 +41,7 @@ internal class SequentialMap<TKey, T>
         // formats start at 164 and the 0-164 is reserved for predefined formats.
         // Number formats is the only table that can have gaps in the ids.
         var usedSaveId = Math.Max(map.Count, usedStart);
-        foreach (var (actualId, value) in allValuesMap)
+        foreach ((TKey actualId, T? value) in allValuesMap)
         {
             if (firstValues is not null && firstValues.ContainsKey(value))
                 continue;
@@ -75,10 +70,9 @@ internal class SequentialMap<TKey, T>
 
     public void Sort()
     {
-        _saveTable = _savedIdToActualId
+        _saveTable = [.. _savedIdToActualId
             .Select(x => (x.Key, _fullMap[x.Value]))
-            .OrderBy(x => x.Item1)
-            .ToList();
+            .OrderBy(x => x.Key)];
     }
 
     public IEnumerable<(int SaveId, T Actual)> GetActual()
@@ -88,7 +82,7 @@ internal class SequentialMap<TKey, T>
 
     public int GetSavedId(T item)
     {
-        var actualId = _fullMap[item];
+        TKey actualId = _fullMap[item];
         return GetSavedId(actualId);
     }
 

@@ -6,9 +6,9 @@ namespace Aid.Xlsx.DataImport.Attributes;
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 public class XlsxColumnAttribute : Attribute
 {
-    public String? Header { get; set; }
-    public Boolean Ignore { get; set; }
-    public Int32 Order { get; set; }
+    public string? Header { get; set; }
+    public bool Ignore { get; set; }
+    public int Order { get; set; }
 
     /// <summary>Excel number format applied by the generated mapper to data cells in this column.</summary>
     public string? Format { get; set; }
@@ -19,23 +19,23 @@ public class XlsxColumnAttribute : Attribute
         return mi.GetAttributes<XlsxColumnAttribute>().First();
     }
 
-    internal static String? GetHeader(MemberInfo mi)
+    internal static string? GetHeader(MemberInfo mi)
     {
-        var attribute = GetXLColumnAttribute(mi);
+        XlsxColumnAttribute? attribute = GetXLColumnAttribute(mi);
         if (attribute == null) return null;
-        return String.IsNullOrWhiteSpace(attribute.Header) ? null : attribute.Header;
+        return string.IsNullOrWhiteSpace(attribute.Header) ? null : attribute.Header;
     }
 
-    internal static Int32 GetOrder(MemberInfo mi)
+    internal static int GetOrder(MemberInfo mi)
     {
-        var attribute = GetXLColumnAttribute(mi);
-        if (attribute == null) return Int32.MaxValue;
+        XlsxColumnAttribute? attribute = GetXLColumnAttribute(mi);
+        if (attribute == null) return int.MaxValue;
         return attribute.Order;
     }
 
-    internal static Boolean IgnoreMember(MemberInfo mi)
+    internal static bool IgnoreMember(MemberInfo mi)
     {
-        var attribute = GetXLColumnAttribute(mi);
+        XlsxColumnAttribute? attribute = GetXLColumnAttribute(mi);
         if (attribute == null) return false;
         return attribute.Ignore;
     }

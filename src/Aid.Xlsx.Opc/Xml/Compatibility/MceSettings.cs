@@ -11,7 +11,7 @@ public class MceSettings
     /// <summary>
     /// A set of namespaces understood by the consuming application.
     /// </summary>
-    public IReadOnlyCollection<string> ApplicationConfiguration { get; init; } = Array.Empty<string>();
+    public IReadOnlyCollection<string> ApplicationConfiguration { get; init; } = [];
 
     /// <summary>
     /// A local name for application-defined extension element.

@@ -271,7 +271,7 @@ internal partial class RstReader
 
     private (string Text, XlsxDifferentialFontValue Font) OnREltParsed(XlsxDifferentialFontValue? runProperties, string runText)
     {
-        var runFont = runProperties ?? XlsxDifferentialFontValue.Empty;
+        XlsxDifferentialFontValue runFont = runProperties ?? XlsxDifferentialFontValue.Empty;
         ResetFontState();
         return (runText, runFont);
     }
@@ -284,7 +284,7 @@ internal partial class RstReader
 
     private PhoneticProperties OnPhoneticPrParsed(uint fontId, XlsxPhoneticType type, XlsxPhoneticAlignment alignment)
     {
-        var phoneticFont = _styles.Fonts[checked((int)fontId)];
+        XlsxFontFormatValue phoneticFont = _styles.Fonts[checked((int)fontId)];
         return new PhoneticProperties(phoneticFont, type, alignment);
     }
 
@@ -303,8 +303,8 @@ internal partial class RstReader
     {
         var richTextLength = richRuns.Sum(x => x.Text.Length);
         var sb = new StringBuilder(richTextLength);
-        foreach (var richRun in richRuns)
-            sb.Append(richRun.Text);
+        foreach ((string? Text, XlsxDifferentialFontValue? Font) in richRuns)
+            sb.Append(Text);
 
         var richText = sb.ToString();
 
@@ -314,37 +314,37 @@ internal partial class RstReader
         var prevStartIndex = richTextLength;
         for (var i = phoneticRunDtos.Count - 1; i >= 0; --i)
         {
-            var phoneticRun = phoneticRunDtos[i];
+            (string? Text, int StartIndex, int EndIndex) = phoneticRunDtos[i];
 
             // Each run must have a text
-            if (string.IsNullOrEmpty(phoneticRun.Text))
+            if (string.IsNullOrEmpty(Text))
             {
                 phoneticRunDtos.RemoveAt(i);
                 continue;
             }
 
             // Start index must be less than the end index
-            if (phoneticRun.EndIndex < phoneticRun.StartIndex)
+            if (EndIndex < StartIndex)
             {
                 phoneticRunDtos.RemoveAt(i);
                 continue;
             }
 
             // Omit phonetic runs of length 0
-            if (phoneticRun.EndIndex == phoneticRun.StartIndex)
+            if (EndIndex == StartIndex)
             {
                 phoneticRunDtos.RemoveAt(i);
                 continue;
             }
 
             // Omit phonetic runs that overlap with the next one
-            if (phoneticRun.EndIndex > prevStartIndex)
+            if (EndIndex > prevStartIndex)
             {
                 phoneticRunDtos.RemoveAt(i);
                 continue;
             }
 
-            prevStartIndex = phoneticRun.StartIndex;
+            prevStartIndex = StartIndex;
         }
 
         var runs = new RichTextRun[richRuns.Count];
@@ -356,7 +356,7 @@ internal partial class RstReader
             startIndex += runLength;
         }
 
-        var phoneticRuns = phoneticRunDtos.Select(x => new PhoneticRun(x.Text, x.StartIndex, x.EndIndex)).ToArray();
+        PhoneticRun[] phoneticRuns = [.. phoneticRunDtos.Select(x => new PhoneticRun(x.Text, x.StartIndex, x.EndIndex))];
         return new XlsxImmutableRichText(richText, runs, phoneticRuns, phoneticProps);
     }
 }

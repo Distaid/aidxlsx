@@ -52,7 +52,7 @@ internal class XlsxCalculationChain
     /// cause cycles due to dependencies, but that is manifested by
     /// constantly switching the links in a loop.</para>
     /// </summary>
-    private readonly Dictionary<SheetPoint, Link> _nodeMap = new();
+    private readonly Dictionary<SheetPoint, Link> _nodeMap = [];
 
     private SheetPoint? _current;
 
@@ -80,10 +80,10 @@ internal class XlsxCalculationChain
     internal static XlsxCalculationChain CreateFrom(XlsxWorkbook wb)
     {
         var chain = new XlsxCalculationChain();
-        foreach (var sheet in wb.WorksheetsInternal)
+        foreach (XlsxWorksheet sheet in wb.WorksheetsInternal)
         {
-            var formulaSlice = sheet.Internals.CellsCollection.FormulaSlice;
-            using var e = formulaSlice.GetForwardEnumerator(Area.Full);
+            FormulaSlice formulaSlice = sheet.Internals.CellsCollection.FormulaSlice;
+            using Slice<XlsxCellFormula>.Enumerator e = formulaSlice.GetForwardEnumerator(Area.Full);
             while (e.MoveNext())
                 chain.AddLast(new SheetPoint(sheet.Name, e.Point));
         }
@@ -114,7 +114,7 @@ internal class XlsxCalculationChain
     /// </summary>
     internal void AppendArea(SheetArea area)
     {
-        foreach (var point in area)
+        foreach (SheetPoint point in area)
             AddLast(point);
     }
 
@@ -152,10 +152,10 @@ internal class XlsxCalculationChain
     {
         _nodeMap.Add(point, new Link(prev, next, lastPosition));
 
-        var prevLink = _nodeMap[prev];
+        Link prevLink = _nodeMap[prev];
         _nodeMap[prev] = new Link(prevLink.Previous, point, prevLink.LastPosition);
 
-        var nextLink = _nodeMap[next];
+        Link nextLink = _nodeMap[next];
         _nodeMap[next] = new Link(point, nextLink.Next, nextLink.LastPosition);
     }
 
@@ -170,8 +170,8 @@ internal class XlsxCalculationChain
     /// <param name="lastPosition">The last position of the point in the chain.</param>
     internal void AddAfter(SheetPoint anchor, SheetPoint point, int lastPosition)
     {
-        var prevLink = _nodeMap[anchor];
-        var next = prevLink.Next;
+        Link prevLink = _nodeMap[anchor];
+        SheetPoint next = prevLink.Next;
         Insert(point, lastPosition, anchor, next);
 
         if (anchor == _tail!.Value)
@@ -186,7 +186,7 @@ internal class XlsxCalculationChain
     /// <exception cref="InvalidOperationException">Point is not a part of the chain.</exception>
     internal int Remove(SheetPoint point)
     {
-        if (!_nodeMap.TryGetValue(point, out var pointLink))
+        if (!_nodeMap.TryGetValue(point, out Link pointLink))
             throw PointNotInChain(point);
 
         // Point is in the chain and there is exactly one link -> clear all.
@@ -202,11 +202,11 @@ internal class XlsxCalculationChain
         if (point == _tail!.Value)
             _tail = pointLink.Previous;
 
-        var prevLink = _nodeMap[pointLink.Previous];
+        Link prevLink = _nodeMap[pointLink.Previous];
         Debug.Assert(prevLink.Next == point);
         _nodeMap[pointLink.Previous] = new Link(prevLink.Previous, pointLink.Next, prevLink.LastPosition);
 
-        var nextLink = _nodeMap[pointLink.Next];
+        Link nextLink = _nodeMap[pointLink.Next];
         Debug.Assert(nextLink.Previous == point);
         _nodeMap[pointLink.Next] = new Link(pointLink.Previous, nextLink.Next, nextLink.LastPosition);
 
@@ -232,10 +232,10 @@ internal class XlsxCalculationChain
         if (_head is null)
             yield break;
 
-        var current = _head.Value;
+        SheetPoint current = _head.Value;
         do
         {
-            var link = _nodeMap[current];
+            Link link = _nodeMap[current];
             yield return new ValueTuple<SheetPoint, int>(current, link.LastPosition);
             current = link.Next;
         } while (current != _head.Value);
@@ -246,8 +246,8 @@ internal class XlsxCalculationChain
         if (_current is null)
             return;
 
-        var point = _current.Value;
-        var link = _nodeMap[point];
+        SheetPoint point = _current.Value;
+        Link link = _nodeMap[point];
         while (link.LastPosition != 0)
         {
             _nodeMap[point] = new Link(link.Previous, link.Next, 0);
@@ -281,8 +281,8 @@ internal class XlsxCalculationChain
         }
 
         // Subsequent move
-        var currentPoint = _current.Value;
-        if (!_nodeMap.TryGetValue(currentPoint, out var currentLink))
+        SheetPoint currentPoint = _current.Value;
+        if (!_nodeMap.TryGetValue(currentPoint, out Link currentLink))
             throw PointNotInChain(currentPoint);
 
         // Clear up the last position, the current point is being moved to done
@@ -290,7 +290,7 @@ internal class XlsxCalculationChain
         if (currentLink.LastPosition != 0)
             _nodeMap[currentPoint] = new Link(currentLink.Previous, currentLink.Next, 0);
 
-        var nextPoint = currentLink.Next;
+        SheetPoint nextPoint = currentLink.Next;
         Debug.Assert(_nodeMap[nextPoint].Previous == currentPoint);
         if (nextPoint == _head!.Value)
         {
@@ -319,7 +319,7 @@ internal class XlsxCalculationChain
         if (_current is null)
             throw new InvalidOperationException("Enumerator not at a link.");
 
-        var currentPoint = _current.Value;
+        SheetPoint currentPoint = _current.Value;
 
         // If we are not moving anything, adding and removing doesn't
         // change chain, plus we avoid problems with moving in a
@@ -341,11 +341,11 @@ internal class XlsxCalculationChain
         else
         {
             // Current is not a head = move a link after prev of current.
-            var anchor = _nodeMap[currentPoint].Previous;
+            SheetPoint anchor = _nodeMap[currentPoint].Previous;
             AddAfter(anchor, pointToMove, pointToMoveLastPosition);
         }
 
-        var shiftedLink = _nodeMap[currentPoint];
+        Link shiftedLink = _nodeMap[currentPoint];
         _nodeMap[currentPoint] = new Link(shiftedLink.Previous, shiftedLink.Next, _currentPosition);
 
         IsCurrentInCycle = _currentPosition == pointToMoveLastPosition;
@@ -359,11 +359,11 @@ internal class XlsxCalculationChain
         return exception;
     }
 
-    private readonly struct Link
+    private readonly struct Link(SheetPoint previous, SheetPoint next, int lastPosition)
     {
-        internal readonly SheetPoint Previous;
+        internal readonly SheetPoint Previous = previous;
 
-        internal readonly SheetPoint Next;
+        internal readonly SheetPoint Next = next;
 
         /// <summary>
         /// <para>
@@ -393,13 +393,6 @@ internal class XlsxCalculationChain
         /// </para>
         /// </summary>
         /// <remarks>Used for cycle detection.</remarks>
-        internal readonly int LastPosition;
-
-        public Link(SheetPoint previous, SheetPoint next, int lastPosition)
-        {
-            Previous = previous;
-            Next = next;
-            LastPosition = lastPosition;
-        }
+        internal readonly int LastPosition = lastPosition;
     }
 }

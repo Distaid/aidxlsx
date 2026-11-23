@@ -9,8 +9,8 @@ namespace Aid.Xlsx.Calculation;
 /// </summary>
 internal class FormulaDependencies
 {
-    private readonly HashSet<SheetArea> _areas = new();
-    private readonly HashSet<XlsxName> _names = new();
+    private readonly HashSet<SheetArea> _areas = [];
+    private readonly HashSet<XlsxName> _names = [];
 
     /// <summary>
     /// List of areas the formula depends on. It is likely a superset of accurate
@@ -41,19 +41,19 @@ internal class FormulaDependencies
     {
         // The renaming is done for every formula, so only allocate when needed.
         List<(SheetArea Original, SheetArea Replacement)>? areasToRename = null;
-        foreach (var areaInFormula in _areas)
+        foreach (SheetArea areaInFormula in _areas)
         {
             if (XlsxHelper.SheetComparer.Equals(areaInFormula.Name, oldSheetName))
             {
                 var renamedArea = new SheetArea(newSheetName, areaInFormula.Area);
-                areasToRename ??= new List<(SheetArea Original, SheetArea Replacement)>();
+                areasToRename ??= [];
                 areasToRename.Add((areaInFormula, renamedArea));
             }
         }
 
         if (areasToRename is not null)
         {
-            foreach (var (original, replacement) in areasToRename)
+            foreach ((SheetArea original, SheetArea replacement) in areasToRename)
             {
                 _areas.Remove(original);
                 _areas.Add(replacement);
@@ -61,20 +61,20 @@ internal class FormulaDependencies
         }
 
         List<(XlsxName Original, XlsxName Replacement)>? namesToRename = null;
-        foreach (var nameInFormula in _names)
+        foreach (XlsxName nameInFormula in _names)
         {
             if (nameInFormula.SheetName is not null &&
                 XlsxHelper.SheetComparer.Equals(nameInFormula.SheetName, oldSheetName))
             {
                 var renamedName = new XlsxName(newSheetName, nameInFormula.Name);
-                namesToRename ??= new List<(XlsxName Original, XlsxName Replacement)>();
+                namesToRename ??= [];
                 namesToRename.Add((nameInFormula, renamedName));
             }
         }
 
         if (namesToRename is not null)
         {
-            foreach (var (original, replacement) in namesToRename)
+            foreach ((XlsxName original, XlsxName replacement) in namesToRename)
             {
                 _names.Remove(original);
                 _names.Add(replacement);

@@ -15,8 +15,8 @@ public interface IXlsxTable : IXlsxRange
 {
     IXlsxAutoFilter AutoFilter { get; }
     IXlsxTableRange DataRange { get; }
-    Boolean EmphasizeFirstColumn { get; set; }
-    Boolean EmphasizeLastColumn { get; set; }
+    bool EmphasizeFirstColumn { get; set; }
+    bool EmphasizeLastColumn { get; set; }
     IEnumerable<IXlsxTableField> Fields { get; }
 
     /// <summary>
@@ -24,11 +24,11 @@ public interface IXlsxTable : IXlsxRange
     /// </summary>
     /// <exception cref="ArgumentException">If the new table name is already used by other table in the sheet.</exception>
     string Name { get; set; }
-    Boolean ShowAutoFilter { get; set; }
-    Boolean ShowColumnStripes { get; set; }
-    Boolean ShowHeaderRow { get; set; }
-    Boolean ShowRowStripes { get; set; }
-    Boolean ShowTotalsRow { get; set; }
+    bool ShowAutoFilter { get; set; }
+    bool ShowColumnStripes { get; set; }
+    bool ShowHeaderRow { get; set; }
+    bool ShowRowStripes { get; set; }
+    bool ShowTotalsRow { get; set; }
     XlsxTableTheme Theme { get; set; }
 
     /// <summary>
@@ -58,7 +58,7 @@ public interface IXlsxTable : IXlsxRange
     /// The range of the new rows.
     /// </returns>
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
-    IXlsxRange AppendData(IEnumerable data, Boolean propagateExtraColumns = false);
+    IXlsxRange AppendData(IEnumerable data, bool propagateExtraColumns = false);
 
     /// <summary>
     /// Appends the IEnumerable data elements and returns the range of the new rows.
@@ -70,7 +70,7 @@ public interface IXlsxTable : IXlsxRange
     /// The range of the new rows.
     /// </returns>
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
-    IXlsxRange AppendData(IEnumerable data, Boolean transpose, Boolean propagateExtraColumns = false);
+    IXlsxRange AppendData(IEnumerable data, bool transpose, bool propagateExtraColumns = false);
 
     /// <summary>
     /// Appends the data of a data table and returns the range of the new rows.
@@ -80,7 +80,7 @@ public interface IXlsxTable : IXlsxRange
     /// <returns>
     /// The range of the new rows.
     /// </returns>
-    IXlsxRange AppendData(DataTable dataTable, Boolean propagateExtraColumns = false);
+    IXlsxRange AppendData(DataTable dataTable, bool propagateExtraColumns = false);
 
     /// <summary>
     /// Appends the IEnumerable data elements and returns the range of the new rows.
@@ -92,7 +92,7 @@ public interface IXlsxTable : IXlsxRange
     /// The range of the new rows.
     /// </returns>
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
-    IXlsxRange AppendData<T>(IEnumerable<T> data, Boolean propagateExtraColumns = false);
+    IXlsxRange AppendData<T>(IEnumerable<T> data, bool propagateExtraColumns = false);
 
     /// <summary>
     /// Replaces the IEnumerable data elements and returns the table's data range.
@@ -103,7 +103,7 @@ public interface IXlsxTable : IXlsxRange
     /// The table's data range.
     /// </returns>
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
-    IXlsxRange ReplaceData(IEnumerable data, Boolean propagateExtraColumns = false);
+    IXlsxRange ReplaceData(IEnumerable data, bool propagateExtraColumns = false);
 
     /// <summary>
     /// Replaces the IEnumerable data elements and returns the table's data range.
@@ -115,7 +115,7 @@ public interface IXlsxTable : IXlsxRange
     /// The table's data range.
     /// </returns>
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
-    IXlsxRange ReplaceData(IEnumerable data, Boolean transpose, Boolean propagateExtraColumns = false);
+    IXlsxRange ReplaceData(IEnumerable data, bool transpose, bool propagateExtraColumns = false);
 
     /// <summary>
     /// Replaces the data from the records of a data table and returns the table's data range.
@@ -125,7 +125,7 @@ public interface IXlsxTable : IXlsxRange
     /// <returns>
     /// The table's data range.
     /// </returns>
-    IXlsxRange ReplaceData(DataTable dataTable, Boolean propagateExtraColumns = false);
+    IXlsxRange ReplaceData(DataTable dataTable, bool propagateExtraColumns = false);
 
     /// <summary>
     /// Replaces the IEnumerable data elements as a table and the table's data range.
@@ -137,7 +137,7 @@ public interface IXlsxTable : IXlsxRange
     /// The table's data range.
     /// </returns>
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
-    IXlsxRange ReplaceData<T>(IEnumerable<T> data, Boolean propagateExtraColumns = false);
+    IXlsxRange ReplaceData<T>(IEnumerable<T> data, bool propagateExtraColumns = false);
 
     /// <summary>
     /// Resizes the table to the specified range address.
@@ -191,31 +191,31 @@ public interface IXlsxTable : IXlsxRange
 
     IXlsxTable SetEmphasizeFirstColumn();
 
-    IXlsxTable SetEmphasizeFirstColumn(Boolean value);
+    IXlsxTable SetEmphasizeFirstColumn(bool value);
 
     IXlsxTable SetEmphasizeLastColumn();
 
-    IXlsxTable SetEmphasizeLastColumn(Boolean value);
+    IXlsxTable SetEmphasizeLastColumn(bool value);
 
     IXlsxTable SetShowAutoFilter();
 
-    IXlsxTable SetShowAutoFilter(Boolean value);
+    IXlsxTable SetShowAutoFilter(bool value);
 
     IXlsxTable SetShowColumnStripes();
 
-    IXlsxTable SetShowColumnStripes(Boolean value);
+    IXlsxTable SetShowColumnStripes(bool value);
 
     IXlsxTable SetShowHeaderRow();
 
-    IXlsxTable SetShowHeaderRow(Boolean value);
+    IXlsxTable SetShowHeaderRow(bool value);
 
     IXlsxTable SetShowRowStripes();
 
-    IXlsxTable SetShowRowStripes(Boolean value);
+    IXlsxTable SetShowRowStripes(bool value);
 
     IXlsxTable SetShowTotalsRow();
 
-    IXlsxTable SetShowTotalsRow(Boolean value);
+    IXlsxTable SetShowTotalsRow(bool value);
 
     IXlsxRangeRow TotalsRow();
 

@@ -11,11 +11,11 @@ public interface IXlsxSparklineHorizontalAxis
 
     XlsxColor Color { get; set; }
 
-    Boolean DateAxis { get; }
+    bool DateAxis { get; }
 
-    Boolean IsVisible { get; set; }
+    bool IsVisible { get; set; }
 
-    Boolean RightToLeft { get; set; }
+    bool RightToLeft { get; set; }
 
     #endregion Public Properties
 
@@ -23,9 +23,9 @@ public interface IXlsxSparklineHorizontalAxis
 
     IXlsxSparklineHorizontalAxis SetColor(XlsxColor value);
 
-    IXlsxSparklineHorizontalAxis SetRightToLeft(Boolean value);
+    IXlsxSparklineHorizontalAxis SetRightToLeft(bool value);
 
-    IXlsxSparklineHorizontalAxis SetVisible(Boolean value);
+    IXlsxSparklineHorizontalAxis SetVisible(bool value);
 
     #endregion Public Methods
 }

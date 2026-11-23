@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
+using System.Collections.Immutable;
 
 namespace Aid.Xlsx.Generators.TableMapping;
 
@@ -21,7 +22,7 @@ public sealed class TableMapperGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var rows = context.SyntaxProvider.ForAttributeWithMetadataName(Attributes + "XlsxTableAttribute",
+        IncrementalValuesProvider<(INamedTypeSymbol Type, AttributeData Attribute)> rows = context.SyntaxProvider.ForAttributeWithMetadataName(Attributes + "XlsxTableAttribute",
             static (node, _) => node is TypeDeclarationSyntax,
             static (syntax, _) => (Type: (INamedTypeSymbol)syntax.TargetSymbol, Attribute: syntax.Attributes[0]));
 
@@ -40,15 +41,15 @@ public sealed class TableMapperGenerator : IIncrementalGenerator
         var members = new List<Column>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var invalid = false;
-        for (var current = type; current is not null && current.SpecialType != SpecialType.System_Object; current = current.BaseType)
+        for (INamedTypeSymbol? current = type; current is not null && current.SpecialType != SpecialType.System_Object; current = current.BaseType)
         {
-            foreach (var member in current.GetMembers())
+            foreach (ISymbol member in current.GetMembers())
             {
                 if (member is not (IFieldSymbol or IPropertySymbol) || member is IFieldSymbol { IsImplicitlyDeclared: true })
                     continue;
 
-                var attributes = member.GetAttributes();
-                var column = attributes.FirstOrDefault(x => x.AttributeClass?.ToDisplayString() == ColumnAttribute);
+                ImmutableArray<AttributeData> attributes = member.GetAttributes();
+                AttributeData? column = attributes.FirstOrDefault(x => x.AttributeClass?.ToDisplayString() == ColumnAttribute);
                 var settings = column?.NamedArguments.ToDictionary(x => x.Key, x => x.Value.Value, StringComparer.Ordinal);
                 var isPublic = member.DeclaredAccessibility == Accessibility.Public;
                 if ((!isPublic && column is null) || !seen.Add(member.Name))
@@ -57,7 +58,7 @@ public sealed class TableMapperGenerator : IIncrementalGenerator
                     || GetSetting(settings, "Ignore") is true)
                     continue;
 
-                var memberType = member switch
+                ITypeSymbol? memberType = member switch
                 {
                     IFieldSymbol field when isPublic && !field.IsStatic && !field.IsFixedSizeBuffer => field.Type,
                     IPropertySymbol { GetMethod.DeclaredAccessibility: Accessibility.Public, IsIndexer: false } property
@@ -99,9 +100,9 @@ public sealed class TableMapperGenerator : IIncrementalGenerator
 
         var headers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var orders = new HashSet<int>();
-        foreach (var member in members)
+        foreach (Column member in members)
         {
-            var location = member.Symbol.Locations.FirstOrDefault();
+            Location? location = member.Symbol.Locations.FirstOrDefault();
             if (!headers.Add(member.Header))
             {
                 context.ReportDiagnostic(Diagnostic.Create(DuplicateColumn, location, typeName, "header", member.Header));
@@ -116,7 +117,7 @@ public sealed class TableMapperGenerator : IIncrementalGenerator
         if (invalid)
             return;
 
-        var sorted = members.OrderBy(x => x.Order ?? int.MaxValue).ToArray();
+        Column[] sorted = [.. members.OrderBy(x => x.Order ?? int.MaxValue)];
         var tableName = attribute.ConstructorArguments.FirstOrDefault().Value as string;
         using var hash = SHA256.Create();
         var identifier = "TableMapper_" + BitConverter.ToString(hash.ComputeHash(Encoding.UTF8.GetBytes(typeName))).Replace("-", "");
@@ -148,7 +149,7 @@ public sealed class TableMapperGenerator : IIncrementalGenerator
 
     private static bool IsAccessible(INamedTypeSymbol type)
     {
-        for (var current = type; current is not null; current = current.ContainingType)
+        for (INamedTypeSymbol? current = type; current is not null; current = current.ContainingType)
         {
             if (current.Arity != 0 || current.IsFileLocal || current.DeclaredAccessibility is not
                 (Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal))

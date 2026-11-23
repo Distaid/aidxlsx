@@ -10,16 +10,11 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Ranges;
 
-internal class XlsxRangeColumn : XlsxRangeBase, IXlsxRangeColumn
+/// <summary>
+/// The direct constructor should only be used in <see cref="XlsxWorksheet.RangeFactory"/>.
+/// </summary>
+internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(rangeAddress), IXlsxRangeColumn
 {
-    /// <summary>
-    /// The direct constructor should only be used in <see cref="XlsxWorksheet.RangeFactory"/>.
-    /// </summary>
-    public XlsxRangeColumn(XlsxRangeAddress rangeAddress)
-        : base(rangeAddress)
-    {
-    }
-
     internal override XlsxCellFormat Format => XlsxCellFormat.ForRange(Worksheet, RangeAddress);
 
     #region IXlsxRangeColumn Members
@@ -50,7 +45,7 @@ internal class XlsxRangeColumn : XlsxRangeBase, IXlsxRangeColumn
         Delete(true);
     }
 
-    internal void Delete(Boolean deleteTableField)
+    internal void Delete(bool deleteTableField)
     {
         if (deleteTableField && IsTableColumn())
         {
@@ -61,7 +56,7 @@ internal class XlsxRangeColumn : XlsxRangeBase, IXlsxRangeColumn
             if (!table.FieldNames.ContainsKey(firstCellValue))
                 throw new InvalidOperationException($"Field {firstCellValue} not found.");
 
-            var field = table.Fields.Cast<XlsxTableField>().Single(f => f.Name == firstCellValue);
+            XlsxTableField field = table.Fields.Cast<XlsxTableField>().Single(f => f.Name == firstCellValue);
             field.Delete(false);
         }
 
@@ -93,7 +88,7 @@ internal class XlsxRangeColumn : XlsxRangeBase, IXlsxRangeColumn
         return RangeAddress.LastAddress.RowNumber - RangeAddress.FirstAddress.RowNumber + 1;
     }
 
-    public IXlsxRangeColumn Sort(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true)
+    public IXlsxRangeColumn Sort(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true)
     {
         base.Sort(1, sortOrder, matchCase, ignoreBlanks);
         return this;
@@ -230,8 +225,8 @@ internal class XlsxRangeColumn : XlsxRangeBase, IXlsxRangeColumn
     {
         foreach (IXlsxSortElement e in rowsToSort)
         {
-            var thisCell = Cell(e.ElementNumber);
-            var otherCell = otherColumn.Cell(e.ElementNumber);
+            XlsxCell thisCell = Cell(e.ElementNumber);
+            XlsxCell otherCell = otherColumn.Cell(e.ElementNumber);
             int comparison;
             bool thisCellIsBlank = thisCell.IsEmpty();
             bool otherCellIsBlank = otherCell.IsEmpty();
@@ -259,7 +254,7 @@ internal class XlsxRangeColumn : XlsxRangeBase, IXlsxRangeColumn
                     {
                         comparison = e.MatchCase
                                          ? thisCell.GetText().CompareTo(otherCell.GetText())
-                                         : String.Compare(thisCell.GetText(), otherCell.GetText(), true);
+                                         : string.Compare(thisCell.GetText(), otherCell.GetText(), true);
                     }
                     else if (thisCell.DataType == XlsxDataType.Error)
                         comparison = 0; // Errors are incomparable
@@ -267,7 +262,7 @@ internal class XlsxRangeColumn : XlsxRangeBase, IXlsxRangeColumn
                         comparison = thisCell.CachedValue.GetUnifiedNumber().CompareTo(thisCell.CachedValue.GetUnifiedNumber());
                 }
                 else if (e.MatchCase)
-                    comparison = String.Compare(thisCell.GetString(), otherCell.GetString(), true);
+                    comparison = string.Compare(thisCell.GetString(), otherCell.GetString(), true);
                 else
                     comparison = thisCell.GetString().CompareTo(otherCell.GetString());
             }
@@ -279,9 +274,9 @@ internal class XlsxRangeColumn : XlsxRangeBase, IXlsxRangeColumn
         return 0;
     }
 
-    private XlsxRangeColumn ColumnShift(Int32 columnsToShift)
+    private XlsxRangeColumn ColumnShift(int columnsToShift)
     {
-        Int32 columnNumber = ColumnNumber() + columnsToShift;
+        int columnNumber = ColumnNumber() + columnsToShift;
         return Worksheet.Range(
             RangeAddress.FirstAddress.RowNumber,
             columnNumber,
@@ -296,7 +291,7 @@ internal class XlsxRangeColumn : XlsxRangeBase, IXlsxRangeColumn
         return ColumnLeft();
     }
 
-    IXlsxRangeColumn IXlsxRangeColumn.ColumnLeft(Int32 step)
+    IXlsxRangeColumn IXlsxRangeColumn.ColumnLeft(int step)
     {
         return ColumnLeft(step);
     }
@@ -306,7 +301,7 @@ internal class XlsxRangeColumn : XlsxRangeBase, IXlsxRangeColumn
         return ColumnLeft(1);
     }
 
-    public XlsxRangeColumn ColumnLeft(Int32 step)
+    public XlsxRangeColumn ColumnLeft(int step)
     {
         return ColumnShift(step * -1);
     }
@@ -320,7 +315,7 @@ internal class XlsxRangeColumn : XlsxRangeBase, IXlsxRangeColumn
         return ColumnRight();
     }
 
-    IXlsxRangeColumn IXlsxRangeColumn.ColumnRight(Int32 step)
+    IXlsxRangeColumn IXlsxRangeColumn.ColumnRight(int step)
     {
         return ColumnRight(step);
     }
@@ -330,7 +325,7 @@ internal class XlsxRangeColumn : XlsxRangeBase, IXlsxRangeColumn
         return ColumnRight(1);
     }
 
-    public XlsxRangeColumn ColumnRight(Int32 step)
+    public XlsxRangeColumn ColumnRight(int step)
     {
         return ColumnShift(step);
     }
@@ -384,7 +379,7 @@ internal class XlsxRangeColumn : XlsxRangeBase, IXlsxRangeColumn
 
     internal IXlsxTable Table { get; set; }
 
-    public Boolean IsTableColumn()
+    public bool IsTableColumn()
     {
         return Table != null;
     }

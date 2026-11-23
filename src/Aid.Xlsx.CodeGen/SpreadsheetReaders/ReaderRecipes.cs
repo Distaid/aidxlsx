@@ -14,11 +14,11 @@ internal static class ReaderRecipes
 {
     internal static int Generate(string command, string schemaPath, string target)
     {
-        using var fileStream = File.OpenRead(schemaPath);
+        using FileStream fileStream = File.OpenRead(schemaPath);
         using var reader = new XmlTreeReader(fileStream, new XsdEnumMapper(), true);
         var parser = new XsdSchemaParser();
 
-        var schema = parser.ParseSchema(reader);
+        XsdSchema schema = XsdSchemaParser.ParseSchema(reader);
         switch (command)
         {
             case "styles":
@@ -48,7 +48,7 @@ internal static class ReaderRecipes
 
     private static void GenerateStylesReader(XsdSchema schema, string target)
     {
-        var typeMap = new SchemeTypeMap()
+        SchemeTypeMap typeMap = new SchemeTypeMap()
             .AddPrimitiveTypes()
             .AddSimpleType(new SimpleTypeMapping
             {
@@ -122,7 +122,7 @@ internal static class ReaderRecipes
             .AddComplexTypeMapping("CT_RgbColor", "uint")
             ;
 
-        var stylesReaderGenerator = new ParserGenerator(schema, typeMap, "StylesReader")
+        ParserGenerator stylesReaderGenerator = new ParserGenerator(schema, typeMap, "StylesReader")
             .WithNamespace("Aid.Xlsx.SpreadsheetML.Styles")
             .AddUsing("System.Collections.Generic")
             .AddUsing("Aid.Xlsx.Model.Grid.Coordinates")
@@ -168,10 +168,10 @@ internal static class ReaderRecipes
 
     private static void GenerateCacheRecords(XsdSchema schema, string target)
     {
-        var typeMap = new SchemeTypeMap()
+        SchemeTypeMap typeMap = new SchemeTypeMap()
             .AddPrimitiveTypes();
 
-        var cacheRecordsGenerator = new ParserGenerator(schema, typeMap, "PivotCacheRecordsReader")
+        ParserGenerator cacheRecordsGenerator = new ParserGenerator(schema, typeMap, "PivotCacheRecordsReader")
             .WithNamespace("Aid.Xlsx.SpreadsheetML.Pivots")
             .AddUsing("System.Collections.Generic")
             .AddUsing("Aid.Xlsx.Opc.Xml")
@@ -202,7 +202,7 @@ internal static class ReaderRecipes
     {
         NormalizeChoicesZeroToOne(schema, "CT_RPrElt");
 
-        var typeMap = new SchemeTypeMap()
+        SchemeTypeMap typeMap = new SchemeTypeMap()
             .AddPrimitiveTypes()
             .AddStFontId()
             .AddSimpleTypeEnum("ST_PhoneticType", "XlsxPhoneticType", "fullwidthKatakana", "XlsxPhoneticType.FullWidthKatakana")
@@ -230,7 +230,7 @@ internal static class ReaderRecipes
             .AddParseCall("s:ST_Xstring", "_reader.ParseXString")
             ;
 
-        var rstGenerator = new ParserGenerator(schema, typeMap, "RstReader")
+        ParserGenerator rstGenerator = new ParserGenerator(schema, typeMap, "RstReader")
             .WithNamespace("Aid.Xlsx.SpreadsheetML.Strings")
             .AddUsing("System.Collections.Generic")
             .AddUsing("Aid.Xlsx.Calculation")
@@ -266,7 +266,7 @@ internal static class ReaderRecipes
     private static void GeneratePartialSheetDataReader(XsdSchema schema, string target)
     {
         // Add <row> ac:dyDescent attribute. It's one of few MCE attribute
-        var row = schema.Entries.OfType<ComplexTypeSequence>().Single(x => x.Name == "CT_Row");
+        ComplexTypeSequence row = schema.Entries.OfType<ComplexTypeSequence>().Single(x => x.Name == "CT_Row");
         row.Attributes.Add(new AttributeElement
         {
             Name = "dyDescent",
@@ -276,9 +276,9 @@ internal static class ReaderRecipes
         });
 
         // ST_CellSpans is a list of spans the cell uses in the row, but is unreliable and can be just omitted
-        row.Attributes.RemoveAll(x => x.TryPickT1(out var attr, out _) && attr.Name == "spans");
+        row.Attributes.RemoveAll(x => x.TryPickT1(out AttributeElement? attr, out _) && attr.Name == "spans");
 
-        var typeMap = new SchemeTypeMap()
+        SchemeTypeMap typeMap = new SchemeTypeMap()
             .AddPrimitiveTypes()
             .AddSimpleType(new SimpleTypeMapping
             {
@@ -316,7 +316,7 @@ internal static class ReaderRecipes
             .AddParseCall("CT_Rst", "_rstReader.ParseCtRst")
             ;
 
-        var sheetDataGenerator = new ParserGenerator(schema, typeMap, "SheetDataReader")
+        ParserGenerator sheetDataGenerator = new ParserGenerator(schema, typeMap, "SheetDataReader")
             .WithNamespace("Aid.Xlsx.SpreadsheetML.Worksheets")
             .AddUsing("System.Collections.Generic")
             .AddUsing("Aid.Xlsx.Model.Grid.Coordinates")
@@ -340,9 +340,9 @@ internal static class ReaderRecipes
     /// </summary>
     private static void NormalizeChoicesZeroToOne(XsdSchema schema, ParsletName name)
     {
-        foreach (var choice in schema.Entries.OfType<ComplexTypeChoice>().Where(x => name == x.Name))
+        foreach (ComplexTypeChoice? choice in schema.Entries.OfType<ComplexTypeChoice>().Where(x => name == x.Name))
         {
-            var choiceChildren = choice.Choice.Children;
+            List<IElementGroup> choiceChildren = choice.Choice.Children;
             var exhibitsProblem = choiceChildren.All(x => x is ElementType
             {
                 Occurrences: { ActualMin: 0, ActualMax: 1 }

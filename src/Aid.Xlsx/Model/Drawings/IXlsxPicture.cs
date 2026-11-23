@@ -19,38 +19,38 @@ public interface IXlsxPicture
     /// <summary>
     /// Current width of the picture in pixels.
     /// </summary>
-    Int32 Width { get; set; }
+    int Width { get; set; }
 
     /// <summary>
     /// Current height of the picture in pixels.
     /// </summary>
-    Int32 Height { get; set; }
+    int Height { get; set; }
 
-    Int32 Id { get; }
+    int Id { get; }
 
     MemoryStream ImageStream { get; }
 
-    Int32 Left { get; set; }
+    int Left { get; set; }
 
     /// <summary>
     /// Set the name of a picture.
     /// </summary>
     /// <exception cref="ArgumentException">Name is already used in the sheet, is null or empty.</exception>
-    String Name { get; set; }
+    string Name { get; set; }
 
     /// <summary>
     /// Original height of the picture in pixels.
     /// </summary>
-    Int32 OriginalHeight { get; }
+    int OriginalHeight { get; }
 
     /// <summary>
     /// Original width of the picture in pixels.
     /// </summary>
-    Int32 OriginalWidth { get; }
+    int OriginalWidth { get; }
 
     XlsxPicturePlacement Placement { get; set; }
 
-    Int32 Top { get; set; }
+    int Top { get; set; }
 
     IXlsxCell TopLeftCell { get; }
 
@@ -76,27 +76,27 @@ public interface IXlsxPicture
 
     System.Drawing.Point GetOffset(XlsxMarkerPosition position);
 
-    IXlsxPicture MoveTo(Int32 left, Int32 top);
+    IXlsxPicture MoveTo(int left, int top);
 
     IXlsxPicture MoveTo(IXlsxCell cell);
 
-    IXlsxPicture MoveTo(IXlsxCell cell, Int32 xOffset, Int32 yOffset);
+    IXlsxPicture MoveTo(IXlsxCell cell, int xOffset, int yOffset);
 
     IXlsxPicture MoveTo(IXlsxCell cell, System.Drawing.Point offset);
 
     IXlsxPicture MoveTo(IXlsxCell fromCell, IXlsxCell toCell);
 
-    IXlsxPicture MoveTo(IXlsxCell fromCell, Int32 fromCellXOffset, Int32 fromCellYOffset, IXlsxCell toCell, Int32 toCellXOffset, Int32 toCellYOffset);
+    IXlsxPicture MoveTo(IXlsxCell fromCell, int fromCellXOffset, int fromCellYOffset, IXlsxCell toCell, int toCellXOffset, int toCellYOffset);
 
     IXlsxPicture MoveTo(IXlsxCell fromCell, System.Drawing.Point fromOffset, IXlsxCell toCell, System.Drawing.Point toOffset);
 
-    IXlsxPicture Scale(Double factor, Boolean relativeToOriginal = false);
+    IXlsxPicture Scale(double factor, bool relativeToOriginal = false);
 
-    IXlsxPicture ScaleHeight(Double factor, Boolean relativeToOriginal = false);
+    IXlsxPicture ScaleHeight(double factor, bool relativeToOriginal = false);
 
-    IXlsxPicture ScaleWidth(Double factor, Boolean relativeToOriginal = false);
+    IXlsxPicture ScaleWidth(double factor, bool relativeToOriginal = false);
 
     IXlsxPicture WithPlacement(XlsxPicturePlacement value);
 
-    IXlsxPicture WithSize(Int32 width, Int32 height);
+    IXlsxPicture WithSize(int width, int height);
 }

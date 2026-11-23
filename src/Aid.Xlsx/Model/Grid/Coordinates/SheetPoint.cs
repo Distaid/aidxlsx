@@ -18,8 +18,7 @@ internal readonly struct SheetPoint : IEquatable<SheetPoint>
 
     internal SheetPoint(string sheetName, Point point)
     {
-        if (string.IsNullOrEmpty(sheetName))
-            throw new ArgumentException(nameof(sheetName));
+        ArgumentException.ThrowIfNullOrEmpty(sheetName);
 
         SheetName = sheetName;
         Point = point;

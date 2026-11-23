@@ -6,15 +6,10 @@ using Aid.Xlsx.Model.Workbooks;
 
 namespace Aid.Xlsx.Model.PivotTables;
 
-internal class XlsxPivotCaches : IXlsxPivotCaches, IEnumerable<XlsxPivotCache>
+internal class XlsxPivotCaches(XlsxWorkbook workbook) : IXlsxPivotCaches, IEnumerable<XlsxPivotCache>
 {
-    private readonly XlsxWorkbook _workbook;
-    private readonly List<XlsxPivotCache> _caches = new();
-
-    public XlsxPivotCaches(XlsxWorkbook workbook)
-    {
-        _workbook = workbook;
-    }
+    private readonly XlsxWorkbook _workbook = workbook;
+    private readonly List<XlsxPivotCache> _caches = [];
 
     IXlsxPivotCache IXlsxPivotCaches.Add(IXlsxRange range) => Add(SheetArea.From(range));
 
@@ -28,7 +23,7 @@ internal class XlsxPivotCaches : IXlsxPivotCaches, IEnumerable<XlsxPivotCache>
 
     internal XlsxPivotCache Add(SheetArea area)
     {
-        var source = _workbook.TryGetTable(area, out var table)
+        XlsxPivotSourceReference source = _workbook.TryGetTable(area, out XlsxTable? table)
             ? new XlsxPivotSourceReference(table.Name)
             : new XlsxPivotSourceReference(area);
 
@@ -54,11 +49,11 @@ internal class XlsxPivotCaches : IXlsxPivotCaches, IEnumerable<XlsxPivotCache>
     {
         // This method mimics behavior of Excel.
         // If there is a table for the area and there is a cache for the table, return cache for the table.
-        if (_workbook.TryGetTable(area, out var table))
+        if (_workbook.TryGetTable(area, out XlsxTable? table))
         {
             // Table exists, so try to find it and match with the source reference.
             var tableSource = new XlsxPivotSourceReference(table.Name);
-            foreach (var cache in _caches)
+            foreach (XlsxPivotCache cache in _caches)
             {
                 if (cache.Source.Equals(tableSource))
                     return cache;
@@ -67,7 +62,7 @@ internal class XlsxPivotCaches : IXlsxPivotCaches, IEnumerable<XlsxPivotCache>
 
         // Try to find a cache with area source.
         var areaSource = new XlsxPivotSourceReference(area);
-        foreach (var cache in _caches)
+        foreach (XlsxPivotCache cache in _caches)
         {
             if (cache.Source.Equals(areaSource))
                 return cache;

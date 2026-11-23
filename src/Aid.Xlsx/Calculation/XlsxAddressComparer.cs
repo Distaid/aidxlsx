@@ -4,14 +4,9 @@ using Aid.Xlsx.Model.Grid.Coordinates;
 
 namespace Aid.Xlsx.Calculation;
 
-internal class XlsxAddressComparer : IEqualityComparer<IXlsxAddress>
+internal class XlsxAddressComparer(bool ignoreFixed) : IEqualityComparer<IXlsxAddress>
 {
-    private readonly bool _ignoreFixed;
-
-    public XlsxAddressComparer(bool ignoreFixed)
-    {
-        _ignoreFixed = ignoreFixed;
-    }
+    private readonly bool _ignoreFixed = ignoreFixed;
 
     public bool Equals(IXlsxAddress x, IXlsxAddress y)
     {
@@ -31,8 +26,8 @@ internal class XlsxAddressComparer : IEqualityComparer<IXlsxAddress>
             WorksheetName = obj.Worksheet.Name.ToUpperInvariant(),
             obj.ColumnNumber,
             obj.RowNumber,
-            FixedColumn = (_ignoreFixed ? false : obj.FixedColumn),
-            FixedRow = (_ignoreFixed ? false : obj.FixedRow)
+            FixedColumn = (!_ignoreFixed && obj.FixedColumn),
+            FixedRow = (!_ignoreFixed && obj.FixedRow)
         }.GetHashCode();
     }
 }

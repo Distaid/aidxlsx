@@ -14,8 +14,8 @@ public class SaveOptions
 #endif
     }
 
-    public Boolean ConsolidateConditionalFormatRanges { get; set; } = true;
-    public Boolean ConsolidateDataValidationRanges { get; set; } = true;
+    public bool ConsolidateConditionalFormatRanges { get; set; } = true;
+    public bool ConsolidateDataValidationRanges { get; set; } = true;
 
     /// <summary>
     /// Evaluate a cells with a formula and save the calculated value along with the formula.
@@ -29,7 +29,7 @@ public class SaveOptions
     /// </item>
     /// </list>
     /// </summary>
-    public Boolean EvaluateFormulasBeforeSaving { get; set; } = false;
+    public bool EvaluateFormulasBeforeSaving { get; set; } = false;
 
     // Used when converting formulas that already have a cache in the source workbook.
     internal bool PreserveFormulaCache { get; init; }
@@ -37,12 +37,12 @@ public class SaveOptions
     /// <summary>
     /// Gets or sets the filter privacy flag. Set to null to leave the current property in saved workbook unchanged
     /// </summary>
-    public Boolean? FilterPrivacy { get; set; }
+    public bool? FilterPrivacy { get; set; }
 
-    public Boolean GenerateCalculationChain { get; set; } = true;
+    public bool GenerateCalculationChain { get; set; } = true;
 
     /// <summary>
     /// Check workbook relationships and the structure of supported XML parts before writing the package.
     /// </summary>
-    public Boolean ValidatePackage { get; set; }
+    public bool ValidatePackage { get; set; }
 }

@@ -20,9 +20,9 @@ public static partial class XlsxHelper
     public const int MinColumnNumber = 1;
     public const int MaxRowNumber = 1048576;
     public const int MaxColumnNumber = 16384;
-    public const String MaxColumnLetter = "XFD";
+    public const string MaxColumnLetter = "XFD";
     public const string LastSheetAddress = "XFD1048576";
-    public const Double Epsilon = 1e-10;
+    public const double Epsilon = 1e-10;
 
     internal const string RefError = "#REF!";
 
@@ -40,10 +40,10 @@ public static partial class XlsxHelper
     /// 1904 calendar serial date upper limit (exclusive).
     /// </summary>
     internal const int Calendar1904UpperLimit = 2957004;
-
+    private static readonly char[] sourceArray = new[] { 'C', 'R' };
     public static Encoding NoBomUTF8 = new UTF8Encoding(false);
 
-    public static String LastCell { get { return $"{MaxColumnLetter}{MaxRowNumber}"; } }
+    public static string LastCell { get { return $"{MaxColumnLetter}{MaxRowNumber}"; } }
 
     internal static readonly NumberStyles NumberStyle = NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign | NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite | NumberStyles.AllowExponent;
     internal static readonly CultureInfo ParseCulture = CultureInfo.InvariantCulture;
@@ -63,39 +63,17 @@ public static partial class XlsxHelper
     /// </summary>
     internal static readonly StringComparer FunctionComparer = StringComparer.OrdinalIgnoreCase;
 
-    internal static readonly Regex RCSimpleRegex = new Regex(
-        @"^(r(((-\d)?\d*)|\[(-\d)?\d*\]))?(c(((-\d)?\d*)|\[(-\d)?\d*\]))?$"
-        , RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    [GeneratedRegex(@"^(r(((-\d)?\d*)|\[(-\d)?\d*\]))?(c(((-\d)?\d*)|\[(-\d)?\d*\]))?$"
+    , RegexOptions.IgnoreCase | RegexOptions.Compiled)]
+    internal static partial Regex RCSimpleRegex { get; }
 
-    internal static readonly Regex A1SimpleRegex = new Regex(
-        @"\A"
-        + @"(?<Reference>" // Start Group to pick
-        + @"(?<Sheet>" // Start Sheet Name, optional
-        + @"("
-        + @"\'([^\[\]\*/\\\?:\']+|\'\')\'"
-        // Sheet name with special characters, surrounding apostrophes are required
-        + @"|"
-        + @"\'?\w+\'?" // Sheet name with letters and numbers, surrounding apostrophes are optional
-        + @")"
-        + @"!)?" // End Sheet Name, optional
-        + @"(?<Range>" // Start range
-        + @"\$?[a-zA-Z]{1,3}\$?\d{1,7}" // A1 Address 1
-        + @"(?<RangeEnd>:\$?[a-zA-Z]{1,3}\$?\d{1,7})?" // A1 Address 2, optional
-        + @"|"
-        + @"(?<ColumnNumbers>\$?\d{1,7}:\$?\d{1,7})" // 1:1
-        + @"|"
-        + @"(?<ColumnLetters>\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})" // A:A
-        + @")" // End Range
-        + @")" // End Group to pick
-        + @"\Z"
-        , RegexOptions.Compiled);
+    [GeneratedRegex(@"\A(?<Reference>(?<Sheet>(\'([^\[\]\*/\\\?:\']+|\'\')\'|\'?\w+\'?)!)?(?<Range>\$?[a-zA-Z]{1,3}\$?\d{1,7}(?<RangeEnd>:\$?[a-zA-Z]{1,3}\$?\d{1,7})?|(?<ColumnNumbers>\$?\d{1,7}:\$?\d{1,7})|(?<ColumnLetters>\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})))\Z", RegexOptions.Compiled)]
+    internal static partial Regex A1SimpleRegex { get; }
 
-    internal static readonly Regex NamedRangeReferenceRegex =
-        new Regex(@"^('?(?<Sheet>[^'!]+)'?!(?<Range>.+))|((?<Table>[^\[]+)\[(?<Column>[^\]]+)\])$",
-                  RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture
-            );
+    [GeneratedRegex(@"^('?(?<Sheet>[^'!]+)'?!(?<Range>.+))|((?<Table>[^\[]+)\[(?<Column>[^\]]+)\])$", RegexOptions.ExplicitCapture | RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+    internal static partial Regex NamedRangeReferenceRegex { get; }
 
-    private static readonly string[] letters = new[] { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
+    private static readonly string[] letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
 
     private static readonly string[] allLetters;
     private static readonly Dictionary<string, int> letterIndexes;
@@ -124,12 +102,12 @@ public static partial class XlsxHelper
     /// <param name="columnLetter"> The column letter to translate into a column number. </param>
     public static int GetColumnNumberFromLetter(string columnLetter)
     {
-        if (string.IsNullOrEmpty(columnLetter)) throw new ArgumentNullException("columnLetter");
+        if (string.IsNullOrEmpty(columnLetter)) throw new ArgumentNullException(nameof(columnLetter));
 
         //Extra check because we allow users to pass row col positions in as strings
         if (columnLetter[0] <= '9')
         {
-            return Int32.Parse(columnLetter, XlsxHelper.NumberStyle, XlsxHelper.ParseCulture);
+            return int.Parse(columnLetter, XlsxHelper.NumberStyle, XlsxHelper.ParseCulture);
         }
 
         if (letterIndexes.TryGetValue(columnLetter, out var retVal))
@@ -166,7 +144,7 @@ public static partial class XlsxHelper
 
     public static bool IsValidColumn(string column)
     {
-        if (String.IsNullOrWhiteSpace(column))
+        if (string.IsNullOrWhiteSpace(column))
             return false;
         var length = column.Length;
         if (length > 3)
@@ -197,14 +175,14 @@ public static partial class XlsxHelper
 
     public static bool IsValidRow(string rowString)
     {
-        if (Int32.TryParse(rowString, out int row))
+        if (int.TryParse(rowString, out int row))
             return row > 0 && row <= MaxRowNumber;
         return false;
     }
 
     public static bool IsValidA1Address(string address)
     {
-        if (String.IsNullOrWhiteSpace(address))
+        if (string.IsNullOrWhiteSpace(address))
             return false;
 
         address = address.Replace("$", "");
@@ -215,27 +193,27 @@ public static partial class XlsxHelper
 
         return
             rowPos < addressLength
-            && IsValidRow(address.Substring(rowPos))
-            && IsValidColumn(address.Substring(0, rowPos));
+            && IsValidRow(address[rowPos..])
+            && IsValidColumn(address[..rowPos]);
     }
 
     public static bool IsValidRCAddress(string address)
     {
-        if (String.IsNullOrWhiteSpace(address))
+        if (string.IsNullOrWhiteSpace(address))
             return false;
 
         return RCSimpleRegex.IsMatch(address);
     }
 
-    public static Boolean IsValidRangeAddress(String rangeAddress)
+    public static bool IsValidRangeAddress(string rangeAddress)
     {
-        if (String.IsNullOrWhiteSpace(rangeAddress))
+        if (string.IsNullOrWhiteSpace(rangeAddress))
             return false;
 
         return A1SimpleRegex.IsMatch(rangeAddress);
     }
 
-    public static Boolean IsValidRangeAddress(IXlsxRangeAddress rangeAddress)
+    public static bool IsValidRangeAddress(IXlsxRangeAddress rangeAddress)
     {
         return rangeAddress.IsValid
                && rangeAddress.FirstAddress.RowNumber >= 1 && rangeAddress.LastAddress.RowNumber <= MaxRowNumber
@@ -250,7 +228,7 @@ public static partial class XlsxHelper
         while (cellAddressString[rowPos] > '9')
             rowPos++;
 
-        return GetColumnNumberFromLetter(cellAddressString.Substring(0, rowPos));
+        return GetColumnNumberFromLetter(cellAddressString[..rowPos]);
     }
 
     internal static string[] SplitRange(string range)
@@ -259,12 +237,12 @@ public static partial class XlsxHelper
     }
 
     internal static IXlsxTableRows InsertRowsWithoutEvents(Func<int, bool, IXlsxRangeRows> insertFunc,
-                                                         XlsxTableRange tableRange, Int32 numberOfRows,
-                                                         Boolean expandTable)
+                                                         XlsxTableRange tableRange, int numberOfRows,
+                                                         bool expandTable)
     {
-        var ws = tableRange.Worksheet;
+        XlsxWorksheet ws = tableRange.Worksheet;
         var rows = new XlsxTableRows(ws);
-        var inserted = insertFunc(numberOfRows, false);
+        IXlsxRangeRows inserted = insertFunc(numberOfRows, false);
         inserted.ForEach(r => rows.Add(new XlsxTableRow(tableRange, (XlsxRangeRow)r)));
 
         if (expandTable)
@@ -273,12 +251,10 @@ public static partial class XlsxHelper
         return rows;
     }
 
-    private static readonly Regex A1RegexRelative = new Regex(
-  @"(?<=\W)(?<one>\$?[a-zA-Z]{1,3}\$?\d{1,7})(?=\W)" // A1
-+ @"|(?<=\W)(?<two>\$?\d{1,7}:\$?\d{1,7})(?=\W)" // 1:1
-+ @"|(?<=\W)(?<three>\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})(?=\W)", RegexOptions.Compiled); // A:A
+    [GeneratedRegex(@"(?<=\W)(?<one>\$?[a-zA-Z]{1,3}\$?\d{1,7})(?=\W)|(?<=\W)(?<two>\$?\d{1,7}:\$?\d{1,7})(?=\W)|(?<=\W)(?<three>\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})(?=\W)", RegexOptions.Compiled)]
+    private static partial Regex A1RegexRelative { get; }
 
-    private static string Evaluator(Match match, Int32 row, String column)
+    private static string Evaluator(Match match, int row, string column)
     {
         if (match.Groups["one"].Success)
         {
@@ -296,38 +272,38 @@ public static partial class XlsxHelper
         return ReplaceGroup(match.Groups["three"].Value, column);
     }
 
-    private static String ReplaceGroup(String value, String item)
+    private static string ReplaceGroup(string value, string item)
     {
         var split = value.Split(':');
-        String ret1 = split[0].StartsWith("$") ? split[0] : item;
-        String ret2 = split[1].StartsWith("$") ? split[1] : item;
+        string ret1 = split[0].StartsWith('$') ? split[0] : item;
+        string ret2 = split[1].StartsWith('$') ? split[1] : item;
         return ret1 + ":" + ret2;
     }
 
-    internal static String ReplaceRelative(String value, Int32 row, String column)
+    internal static string ReplaceRelative(string value, int row, string column)
     {
         var oldValue = ">" + value + "<";
         var newVal = A1RegexRelative.Replace(oldValue, m => Evaluator(m, row, column));
-        return newVal.Substring(1, newVal.Length - 2);
+        return newVal[1..^1];
     }
 
-    public static Boolean AreEqual(Double d1, Double d2)
+    public static bool AreEqual(double d1, double d2)
     {
         return Math.Abs(d1 - d2) < Epsilon;
     }
 
-    public static DateTime GetDate(Object v)
+    public static DateTime GetDate(object v)
     {
         // handle dates
-        if (v is DateTime)
+        if (v is DateTime dateTime)
         {
-            return (DateTime)v;
+            return dateTime;
         }
 
         // handle doubles
-        if (v is double && ((double)v).IsValidOADateNumber())
+        if (v is double d && d.IsValidOADateNumber())
         {
-            return DateTime.FromOADate((double)v);
+            return DateTime.FromOADate(d);
         }
 
         // handle everything else
@@ -363,7 +339,7 @@ public static partial class XlsxHelper
         return TimeSpan.FromTicks(checked((long)ticks));
     }
 
-    internal static Boolean ValidateName(String objectType, String newName, String oldName, IEnumerable<String> existingNames, out String message)
+    internal static bool ValidateName(string objectType, string newName, string oldName, IEnumerable<string> existingNames, out string message)
     {
         if (!ValidateName(objectType, newName, out message))
             return false;
@@ -379,10 +355,10 @@ public static partial class XlsxHelper
         return true;
     }
 
-    internal static Boolean ValidateName(String objectType, String newName, out String message)
+    internal static bool ValidateName(string objectType, string newName, out string message)
     {
         message = "";
-        if (String.IsNullOrWhiteSpace(newName))
+        if (string.IsNullOrWhiteSpace(newName))
         {
             message = $"The {objectType} name '{newName}' is invalid";
             return false;
@@ -401,7 +377,7 @@ public static partial class XlsxHelper
             return false;
         }
 
-        if (new[] { 'C', 'R' }.Any(c => newName.ToUpper().Equals(c.ToString())))
+        if (sourceArray.Any(c => newName.ToUpper().Equals(c.ToString())))
         {
             message = $"The {objectType} name '{newName}' is invalid";
             return false;

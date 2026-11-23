@@ -2,29 +2,26 @@
 
 namespace Aid.Xlsx.Model.Drawings.Styles;
 
-internal class XlsxDrawingMargins : IXlsxDrawingMargins
+internal class XlsxDrawingMargins(IXlsxDrawingStyle style) : IXlsxDrawingMargins
 {
-    private readonly IXlsxDrawingStyle _style;
-    public XlsxDrawingMargins(IXlsxDrawingStyle style)
-    {
-        _style = style;
-    }
-    public Boolean Automatic { get; set; }
+    private readonly IXlsxDrawingStyle _style = style;
+
+    public bool Automatic { get; set; }
     public IXlsxDrawingStyle SetAutomatic() { Automatic = true; return _style; }
-    public IXlsxDrawingStyle SetAutomatic(Boolean value) { Automatic = value; return _style; }
-    Double _left;
-    public Double Left { get { return _left; } set { _left = value; Automatic = false; } }
-    public IXlsxDrawingStyle SetLeft(Double value) { Left = value; return _style; }
-    Double _right;
-    public Double Right { get { return _right; } set { _right = value; Automatic = false; } }
-    public IXlsxDrawingStyle SetRight(Double value) { Right = value; return _style; }
-    Double _top;
-    public Double Top { get { return _top; } set { _top = value; Automatic = false; } }
-    public IXlsxDrawingStyle SetTop(Double value) { Top = value; return _style; }
-    Double _bottom;
-    public Double Bottom { get { return _bottom; } set { _bottom = value; Automatic = false; } }
-    public IXlsxDrawingStyle SetBottom(Double value) { Bottom = value; return _style; }
-    public Double All
+    public IXlsxDrawingStyle SetAutomatic(bool value) { Automatic = value; return _style; }
+    double _left;
+    public double Left { get { return _left; } set { _left = value; Automatic = false; } }
+    public IXlsxDrawingStyle SetLeft(double value) { Left = value; return _style; }
+    double _right;
+    public double Right { get { return _right; } set { _right = value; Automatic = false; } }
+    public IXlsxDrawingStyle SetRight(double value) { Right = value; return _style; }
+    double _top;
+    public double Top { get { return _top; } set { _top = value; Automatic = false; } }
+    public IXlsxDrawingStyle SetTop(double value) { Top = value; return _style; }
+    double _bottom;
+    public double Bottom { get { return _bottom; } set { _bottom = value; Automatic = false; } }
+    public IXlsxDrawingStyle SetBottom(double value) { Bottom = value; return _style; }
+    public double All
     {
         set
         {
@@ -35,5 +32,5 @@ internal class XlsxDrawingMargins : IXlsxDrawingMargins
             Automatic = false;
         }
     }
-    public IXlsxDrawingStyle SetAll(Double value) { All = value; return _style; }
+    public IXlsxDrawingStyle SetAll(double value) { All = value; return _style; }
 }

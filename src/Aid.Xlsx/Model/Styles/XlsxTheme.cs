@@ -21,46 +21,21 @@ internal class XlsxTheme : IXlsxTheme
 
     public XlsxColor ResolveThemeColor(XlsxThemeColor themeColor)
     {
-        switch (themeColor)
+        return themeColor switch
         {
-            case XlsxThemeColor.Background1:
-                return Background1;
-
-            case XlsxThemeColor.Text1:
-                return Text1;
-
-            case XlsxThemeColor.Background2:
-                return Background2;
-
-            case XlsxThemeColor.Text2:
-                return Text2;
-
-            case XlsxThemeColor.Accent1:
-                return Accent1;
-
-            case XlsxThemeColor.Accent2:
-                return Accent2;
-
-            case XlsxThemeColor.Accent3:
-                return Accent3;
-
-            case XlsxThemeColor.Accent4:
-                return Accent4;
-
-            case XlsxThemeColor.Accent5:
-                return Accent5;
-
-            case XlsxThemeColor.Accent6:
-                return Accent6;
-
-            case XlsxThemeColor.Hyperlink:
-                return Hyperlink;
-
-            case XlsxThemeColor.FollowedHyperlink:
-                return FollowedHyperlink;
-
-            default:
-                return null;
-        }
+            XlsxThemeColor.Background1 => Background1,
+            XlsxThemeColor.Text1 => Text1,
+            XlsxThemeColor.Background2 => Background2,
+            XlsxThemeColor.Text2 => Text2,
+            XlsxThemeColor.Accent1 => Accent1,
+            XlsxThemeColor.Accent2 => Accent2,
+            XlsxThemeColor.Accent3 => Accent3,
+            XlsxThemeColor.Accent4 => Accent4,
+            XlsxThemeColor.Accent5 => Accent5,
+            XlsxThemeColor.Accent6 => Accent6,
+            XlsxThemeColor.Hyperlink => Hyperlink,
+            XlsxThemeColor.FollowedHyperlink => FollowedHyperlink,
+            _ => null,
+        };
     }
 }

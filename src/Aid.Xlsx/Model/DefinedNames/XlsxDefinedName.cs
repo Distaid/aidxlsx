@@ -16,11 +16,11 @@ namespace Aid.Xlsx.Model.DefinedNames;
 internal class XlsxDefinedName : IXlsxDefinedName, IWorkbookListener
 {
     private readonly XlsxDefinedNames _container;
-    private String _name;
-    private String _formula = null!;
+    private string _name;
+    private string _formula = null!;
     private FormulaReferences _references = null!;
 
-    internal XlsxDefinedName(XlsxDefinedNames container, String name, Boolean validateName, String formula, String? comment)
+    internal XlsxDefinedName(XlsxDefinedNames container, string name, bool validateName, string formula, string? comment)
     {
         // Excel accepts invalid names per grammar (e.g. `[Foo]Bar`) as a valid name and they can
         // encountered in existing workbooks. We shouldn't throw exception on load.
@@ -39,7 +39,7 @@ internal class XlsxDefinedName : IXlsxDefinedName, IWorkbookListener
 
     public bool IsValid => !_references.ContainsRefError;
 
-    public String Name
+    public string Name
     {
         get => _name;
         set
@@ -61,26 +61,25 @@ internal class XlsxDefinedName : IXlsxDefinedName, IWorkbookListener
 
     public IXlsxRanges Ranges => _references.GetExternalRanges(_container.Workbook, new Point(1, 1));
 
-    public String? Comment { get; set; }
+    public string? Comment { get; set; }
 
-    public Boolean Visible { get; set; }
+    public bool Visible { get; set; }
 
     public XlsxNamedRangeScope Scope => _container.Scope;
 
-    public String RefersTo
+    public string RefersTo
     {
         get => _formula;
         set
         {
-            if (value is null)
-                throw new ArgumentNullException();
+            ArgumentNullException.ThrowIfNull(value);
 
             var formula = value.TrimFormulaEqual();
             if (string.IsNullOrWhiteSpace(formula))
                 throw new ArgumentException("Formula can't be empty.");
 
             var references = FormulaReferences.ForFormula(formula);
-            if (references.References.Any())
+            if (references.References.Count != 0)
             {
                 // `[MS-XLSX] 2.2.2.5: The formula MUST NOT use the local-cell-reference production
                 // rule.` Excel will refuse to load a workbook with such a defined name (e.g. `A1`).
@@ -102,11 +101,11 @@ internal class XlsxDefinedName : IXlsxDefinedName, IWorkbookListener
     /// Get sheet references found in the formula in A1. Doesn't return tables or name references,
     /// only what has col/row coordinates.
     /// </summary>
-    internal IReadOnlyList<String> SheetReferencesList => _references.SheetReferences.Select(x => x.GetA1()).ToList();
+    internal IReadOnlyList<string> SheetReferencesList => [.. _references.SheetReferences.Select(x => x.GetA1())];
 
     internal XlsxDefinedName CopyTo(XlsxWorksheet targetSheet)
     {
-        var sheet = _container.Worksheet;
+        XlsxWorksheet? sheet = _container.Worksheet;
         if (targetSheet == sheet)
             throw new InvalidOperationException("Cannot copy named range to the worksheet it already belongs to.");
 
@@ -115,9 +114,9 @@ internal class XlsxDefinedName : IXlsxDefinedName, IWorkbookListener
 
         var targetTables = targetSheet.Tables.ToDictionary<XlsxTable, Area>(x => x.SheetRange);
         var tableRenames = new Dictionary<string, string>();
-        foreach (var table in sheet.Tables)
+        foreach (XlsxTable? table in sheet.Tables)
         {
-            if (targetTables.TryGetValue(table.SheetRange, out var targetTable))
+            if (targetTables.TryGetValue(table.SheetRange, out XlsxTable? targetTable))
             {
                 tableRenames.Add(table.Name, targetTable.Name);
             }
@@ -143,7 +142,7 @@ internal class XlsxDefinedName : IXlsxDefinedName, IWorkbookListener
         return SetRefersTo(unionFormula);
     }
 
-    public IXlsxDefinedName SetRefersTo(String formula)
+    public IXlsxDefinedName SetRefersTo(string formula)
     {
         RefersTo = formula;
         return this;
@@ -154,12 +153,12 @@ internal class XlsxDefinedName : IXlsxDefinedName, IWorkbookListener
         return _formula;
     }
 
-    internal void Add(String rangeAddress)
+    internal void Add(string rangeAddress)
     {
         var byExclamation = rangeAddress.Split('!');
         var wsName = byExclamation[0].Replace("'", "");
         var rng = byExclamation[1];
-        var rangeToAdd = _container.Workbook.WorksheetsInternal.Worksheet(wsName).Range(rng);
+        IXlsxRange rangeToAdd = _container.Workbook.WorksheetsInternal.Worksheet(wsName).Range(rng);
 
         var ranges = new XlsxRanges(_container.Workbook) { rangeToAdd };
         RefersTo = _formula + "," + string.Join(",", ranges.Select<XlsxRange, string>(RangeToFixed));

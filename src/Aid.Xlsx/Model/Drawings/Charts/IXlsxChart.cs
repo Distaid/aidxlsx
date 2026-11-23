@@ -81,9 +81,9 @@ public enum XlsxChartType
 }
 public interface IXlsxChart : IXlsxDrawing<IXlsxChart>
 {
-    Boolean RightAngleAxes { get; set; }
+    bool RightAngleAxes { get; set; }
     IXlsxChart SetRightAngleAxes();
-    IXlsxChart SetRightAngleAxes(Boolean rightAngleAxes);
+    IXlsxChart SetRightAngleAxes(bool rightAngleAxes);
 
     XlsxChartType ChartType { get; set; }
     IXlsxChart SetChartType(XlsxChartType chartType);

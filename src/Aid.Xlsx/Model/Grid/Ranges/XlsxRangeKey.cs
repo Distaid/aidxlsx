@@ -3,24 +3,18 @@
 namespace Aid.Xlsx.Model.Grid.Ranges;
 
 [System.Diagnostics.DebuggerDisplay("{RangeType} {RangeAddress}")]
-internal struct XlsxRangeKey : IEquatable<XlsxRangeKey>
+internal struct XlsxRangeKey(XlsxRangeType rangeType, XlsxRangeAddress address) : IEquatable<XlsxRangeKey>
 {
-    public XlsxRangeType RangeType { get; private set; }
+    public XlsxRangeType RangeType { get; private set; } = rangeType;
 
-    public XlsxRangeAddress RangeAddress { get; private set; }
-
-    public XlsxRangeKey(XlsxRangeType rangeType, XlsxRangeAddress address)
-    {
-        RangeType = rangeType;
-        RangeAddress = address;
-    }
+    public XlsxRangeAddress RangeAddress { get; private set; } = address;
 
     #region Overrides
 
     /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>
     /// <returns>true if the current object is equal to the <paramref name="other" /> parameter; otherwise, false.</returns>
     /// <param name="other">An object to compare with this object.</param>
-    public bool Equals(XlsxRangeKey other)
+    public readonly bool Equals(XlsxRangeKey other)
     {
         return RangeType == other.RangeType &&
                RangeAddress.Equals(other.RangeAddress);
@@ -29,15 +23,15 @@ internal struct XlsxRangeKey : IEquatable<XlsxRangeKey>
     /// <summary>Indicates whether this instance and a specified object are equal.</summary>
     /// <returns>true if <paramref name="obj" /> and this instance are the same type and represent the same value; otherwise, false.</returns>
     /// <param name="obj">Another object to compare to. </param>
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
-        if (ReferenceEquals(null, obj)) return false;
-        return obj is XlsxRangeKey && Equals((XlsxRangeKey)obj);
+        if (obj is null) return false;
+        return obj is XlsxRangeKey key && Equals(key);
     }
 
     /// <summary>Returns the hash code for this instance.</summary>
     /// <returns>A 32-bit signed integer that is the hash code for this instance.</returns>
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         unchecked
         {

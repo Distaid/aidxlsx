@@ -50,15 +50,15 @@ internal static class ArgumentsExtensions
          Func<ScalarValue, CalcContext, OneOf<TValue, XlsxError>> convert,
          Func<ScalarValue, bool>? collectionFilter = null)
     {
-        var result = initialValue;
+        TValue? result = initialValue;
         var hasElement = false;
-        foreach (var arg in args)
+        foreach (AnyValue arg in args)
         {
-            if (arg.TryPickScalar(out var scalar, out var collection))
+            if (arg.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> collection))
             {
                 ctx.ThrowIfCancelled();
-                var conversionResult = convert(scalar, ctx);
-                if (!conversionResult.TryPickT0(out var elementValue, out var elementError))
+                OneOf<TValue, XlsxError> conversionResult = convert(scalar, ctx);
+                if (!conversionResult.TryPickT0(out TValue? elementValue, out XlsxError elementError))
                     return elementError;
 
                 hasElement = true;
@@ -66,17 +66,17 @@ internal static class ArgumentsExtensions
             }
             else
             {
-                var valuesIterator = collection.TryPickT0(out var array, out var reference)
+                IEnumerable<ScalarValue> valuesIterator = collection.TryPickT0(out Array? array, out Reference? reference)
                     ? array!
                     : reference!.GetCellsValues(ctx);
-                foreach (var value in valuesIterator)
+                foreach (ScalarValue value in valuesIterator)
                 {
                     ctx.ThrowIfCancelled();
                     if (collectionFilter is not null && !collectionFilter(value))
                         continue;
 
-                    var conversionResult = convert(value, ctx);
-                    if (!conversionResult.TryPickT0(out var elementValue, out var elementError))
+                    OneOf<TValue, XlsxError> conversionResult = convert(value, ctx);
+                    if (!conversionResult.TryPickT0(out TValue? elementValue, out XlsxError elementError))
                         return elementError;
 
                     hasElement = true;

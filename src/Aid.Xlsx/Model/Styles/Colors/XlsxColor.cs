@@ -52,9 +52,9 @@ public enum XlsxThemeColor
 
 public partial class XlsxColor : IEquatable<XlsxColor>
 {
-    internal Boolean IsAuto => !HasValue;
+    internal bool IsAuto => !HasValue;
 
-    public Boolean HasValue { get; }
+    public bool HasValue { get; }
 
     public XlsxColorType ColorType => Key.ColorType;
 
@@ -72,7 +72,7 @@ public partial class XlsxColor : IEquatable<XlsxColor>
         }
     }
 
-    public Int32 Indexed
+    public int Indexed
     {
         get
         {
@@ -95,7 +95,7 @@ public partial class XlsxColor : IEquatable<XlsxColor>
         }
     }
 
-    public Double ThemeTint
+    public double ThemeTint
     {
         get
         {
@@ -148,18 +148,18 @@ public partial class XlsxColor : IEquatable<XlsxColor>
         return "Color Index: " + Indexed;
     }
 
-    public static Boolean operator ==(XlsxColor? left, XlsxColor? right)
+    public static bool operator ==(XlsxColor? left, XlsxColor? right)
     {
         // If both are null, or both are same instance, return true.
         if (ReferenceEquals(left, right)) return true;
 
         // If one is null, but not both, return false.
-        if ((left as object) == null || (right as Object) == null) return false;
+        if ((left as object) == null || (right as object) == null) return false;
 
         return left.Equals(right);
     }
 
-    public static Boolean operator !=(XlsxColor? left, XlsxColor? right)
+    public static bool operator !=(XlsxColor? left, XlsxColor? right)
     {
         return !(left == right);
     }

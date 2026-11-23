@@ -27,7 +27,7 @@ internal static class PivotCacheDefinitionXml
 
     internal static XlsxPivotCache Load(XElement definition, string workbookRelId, XlsxWorkbook workbook)
     {
-        var pivotCache = workbook.PivotCachesInternal.Add(ReadSource(definition));
+        XlsxPivotCache pivotCache = workbook.PivotCachesInternal.Add(ReadSource(definition));
         if (string.IsNullOrWhiteSpace(pivotCache.WorkbookCacheRelId))
             pivotCache.WorkbookCacheRelId = workbookRelId;
 
@@ -41,15 +41,15 @@ internal static class PivotCacheDefinitionXml
             };
         }
 
-        var ns = definition.Name.Namespace;
+        XNamespace ns = definition.Name.Namespace;
         if (definition.Element(ns + "cacheFields") is { } fields)
         {
-            foreach (var field in fields.Elements(ns + "cacheField"))
+            foreach (XElement field in fields.Elements(ns + "cacheField"))
             {
                 var name = Required(field, "name");
                 if (!pivotCache.ContainsField(name))
                 {
-                    var items = field.Element(ns + "sharedItems");
+                    XElement? items = field.Element(ns + "sharedItems");
                     pivotCache.AddCachedField(name, new XlsxPivotCacheValues(ReadSharedItems(items), ReadStats(items)));
                 }
             }
@@ -61,8 +61,8 @@ internal static class PivotCacheDefinitionXml
 
     internal static IXlsxPivotSource ReadSource(XElement definition)
     {
-        var ns = definition.Name.Namespace;
-        var source = definition.Element(ns + "cacheSource") ?? throw PartStructureException.RequiredElementIsMissing("cacheSource");
+        XNamespace ns = definition.Name.Namespace;
+        XElement source = definition.Element(ns + "cacheSource") ?? throw PartStructureException.RequiredElementIsMissing("cacheSource");
         var type = Required(source, "type");
         return type switch
         {
@@ -88,13 +88,13 @@ internal static class PivotCacheDefinitionXml
 
     private static XlsxPivotSourceConsolidation ReadConsolidation(XElement consolidation)
     {
-        var ns = consolidation.Name.Namespace;
-        var pages = consolidation.Element(ns + "pages")?.Elements(ns + "page")
-            .Select(page => new XlsxPivotCacheSourceConsolidationPage(page.Elements(ns + "pageItem").Select(item => Required(item, "name")).ToList()))
+        XNamespace ns = consolidation.Name.Namespace;
+        List<XlsxPivotCacheSourceConsolidationPage> pages = consolidation.Element(ns + "pages")?.Elements(ns + "page")
+            .Select(page => new XlsxPivotCacheSourceConsolidationPage([.. page.Elements(ns + "pageItem").Select(item => Required(item, "name"))]))
             .ToList() ?? [];
-        var ranges = consolidation.Element(ns + "rangeSets") ?? throw PartStructureException.RequiredElementIsMissing("rangeSets");
+        XElement ranges = consolidation.Element(ns + "rangeSets") ?? throw PartStructureException.RequiredElementIsMissing("rangeSets");
         var rangeSets = new List<XlsxPivotCacheSourceConsolidationRangeSet>();
-        foreach (var range in ranges.Elements(ns + "rangeSet"))
+        foreach (XElement range in ranges.Elements(ns + "rangeSet"))
         {
             uint?[] indexes = [(uint?)range.Attribute("i1"), (uint?)range.Attribute("i2"), (uint?)range.Attribute("i3"), (uint?)range.Attribute("i4")];
             for (var i = 0; i < indexes.Length; ++i)
@@ -104,7 +104,7 @@ internal static class PivotCacheDefinitionXml
             }
 
             var name = (string?)range.Attribute("name");
-            var area = name is null ? ReadArea(range) ?? throw PartStructureException.IncorrectElementFormat("rangeSet") : (SheetArea?)null;
+            SheetArea? area = name is null ? ReadArea(range) ?? throw PartStructureException.IncorrectElementFormat("rangeSet") : (SheetArea?)null;
             rangeSets.Add(new XlsxPivotCacheSourceConsolidationRangeSet
             {
                 Indexes = indexes,
@@ -128,7 +128,7 @@ internal static class PivotCacheDefinitionXml
     private static SheetArea? ReadArea(XElement element)
     {
         return (string?)element.Attribute("sheet") is { } sheet &&
-               (string?)element.Attribute("ref") is { } reference && Area.TryParse(reference, out var area)
+               (string?)element.Attribute("ref") is { } reference && Area.TryParse(reference, out Area area)
             ? new SheetArea(sheet, area)
             : null;
     }
@@ -151,8 +151,8 @@ internal static class PivotCacheDefinitionXml
         if (element is null)
             return items;
 
-        var ns = element.Name.Namespace;
-        foreach (var item in element.Elements().Where(item => item.Name.Namespace == ns))
+        XNamespace ns = element.Name.Namespace;
+        foreach (XElement? item in element.Elements().Where(item => item.Name.Namespace == ns))
         {
             switch (item.Name.LocalName)
             {
@@ -166,7 +166,7 @@ internal static class PivotCacheDefinitionXml
                     items.AddBoolean((bool?)item.Attribute("v") ?? throw PartStructureException.MissingAttribute("v"));
                     break;
                 case "e":
-                    if (!XlsxErrorParser.TryParseError(Required(item, "v"), out var error))
+                    if (!XlsxErrorParser.TryParseError(Required(item, "v"), out XlsxError error))
                         throw PartStructureException.InvalidAttributeFormat();
                     items.AddError(error);
                     break;
@@ -187,7 +187,7 @@ internal static class PivotCacheDefinitionXml
     internal static void Write(Stream stream, XElement? definition, XlsxPivotCache cache, string recordsRelId)
     {
         XNamespace ns = definition?.Name.Namespace ?? OpenXmlConst.Main2006SsNs;
-        var rel = RelationshipId(ns);
+        XName rel = RelationshipId(ns);
         definition ??= new XElement(ns + "pivotCacheDefinition",
             new XAttribute(XNamespace.Xmlns + "r", rel.NamespaceName), new XAttribute(XNamespace.Xmlns + "x", ns.NamespaceName),
             new XAttribute("refreshOnLoad", "1"));
@@ -205,13 +205,13 @@ internal static class PivotCacheDefinitionXml
             _ => (uint?)definition.Attribute("missingItemsLimit")
         });
 
-        var source = WriteSource(ns, cache.Source);
+        XElement source = WriteSource(ns, cache.Source);
         if (definition.Element(ns + "cacheSource") is { } existingSource)
             existingSource.ReplaceWith(source);
         else
             definition.AddFirst(source);
 
-        var fields = definition.Element(ns + "cacheFields");
+        XElement? fields = definition.Element(ns + "cacheFields");
         if (fields is null)
         {
             fields = new XElement(ns + "cacheFields");
@@ -223,8 +223,8 @@ internal static class PivotCacheDefinitionXml
             fields.SetAttributeValue("count", cache.FieldCount);
         for (var index = 0; index < cache.FieldCount; ++index)
         {
-            var values = cache.GetFieldValues(index);
-            var items = WriteSharedItems(ns, values, cache.GetFieldSharedItems(index));
+            XlsxPivotCacheValues values = cache.GetFieldValues(index);
+            XElement items = WriteSharedItems(ns, values, cache.GetFieldSharedItems(index));
             fields.Add(new XElement(ns + "cacheField", new XAttribute("name", cache.FieldNames[index]), items));
         }
 
@@ -253,14 +253,14 @@ internal static class PivotCacheDefinitionXml
                 break;
             case XlsxPivotSourceConsolidation consolidation:
                 cacheSource.SetAttributeValue("type", "consolidation");
-                var pages = consolidation.Pages.Count > 0
+                XElement? pages = consolidation.Pages.Count > 0
                     ? new XElement(ns + "pages", consolidation.Pages.Select(page => new XElement(ns + "page",
                         page.PageItems.Select(item => new XElement(ns + "pageItem", new XAttribute("name", item))))))
                     : null;
                 var ranges = new XElement(ns + "rangeSets");
-                foreach (var range in consolidation.RangeSets)
+                foreach (XlsxPivotCacheSourceConsolidationRangeSet range in consolidation.RangeSets)
                 {
-                    var element = WriteReference(ns + "rangeSet", range.UsesName ? range.TableOrName : null, range.Area, range.RelId);
+                    XElement element = WriteReference(ns + "rangeSet", range.UsesName ? range.TableOrName : null, range.Area, range.RelId);
                     for (var index = 0; index < Math.Min(range.Indexes.Count, 4); ++index)
                         element.SetAttributeValue($"i{index + 1}", range.Indexes[index]);
                     ranges.Add(element);
@@ -295,7 +295,7 @@ internal static class PivotCacheDefinitionXml
 
     private static XElement WriteSharedItems(XNamespace ns, XlsxPivotCacheValues values, XlsxPivotCacheSharedItems shared)
     {
-        var stats = values.Stats;
+        XlsxPivotCacheValuesStats stats = values.Stats;
         var typesCount = (stats.ContainsNumber ? 1 : 0) + (stats.ContainsString ? 1 : 0) + (stats.ContainsDate ? 1 : 0);
         var items = new XElement(ns + "sharedItems",
             Flag("containsBlank", stats.ContainsBlank, false),
@@ -309,8 +309,8 @@ internal static class PivotCacheDefinitionXml
         // A field with dates interprets numeric values as OLE Automation dates.
         if (stats.ContainsDate)
         {
-            var minDate = DateBound(stats.MinDate, stats.MinValue, takeMinimum: true);
-            var maxDate = DateBound(stats.MaxDate, stats.MaxValue, takeMinimum: false);
+            DateTime? minDate = DateBound(stats.MinDate, stats.MinValue, takeMinimum: true);
+            DateTime? maxDate = DateBound(stats.MaxDate, stats.MaxValue, takeMinimum: false);
             items.SetAttributeValue("minDate", minDate is { } min ? DateText(min) : null);
             items.SetAttributeValue("maxDate", maxDate is { } max ? DateText(max) : null);
         }
@@ -325,7 +325,7 @@ internal static class PivotCacheDefinitionXml
         if (values.SharedCount != 0)
             items.SetAttributeValue("count", values.SharedCount);
 
-        foreach (var value in shared.GetCellValues())
+        foreach (XlsxCellValue value in shared.GetCellValues())
         {
             items.Add(value.Type switch
             {

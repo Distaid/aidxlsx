@@ -21,7 +21,7 @@ internal class XlsxMatrix
         mat = ctx.AllocateArray<double>(iRows, iCols);
     }
 
-    public XlsxMatrix(Double[,] arr, CalcContext ctx)
+    public XlsxMatrix(double[,] arr, CalcContext ctx)
         : this(arr.GetLength(0), arr.GetLength(1), ctx)
     {
         var roCount = arr.GetLength(0);
@@ -41,7 +41,7 @@ internal class XlsxMatrix
         set { mat[iRow, iCol] = value; }
     }
 
-    public Boolean IsSingular()
+    public bool IsSingular()
     {
         for (var row = 0; row < rows; row++)
         {
@@ -57,7 +57,7 @@ internal class XlsxMatrix
         return false;
     }
 
-    public Boolean IsSquare()
+    public bool IsSquare()
     {
         return (rows == cols);
     }
@@ -97,10 +97,7 @@ internal class XlsxMatrix
             if (p == 0)
                 throw new InvalidOperationException("The matrix is singular!");
 
-            var pom1 = pi[k];
-            pi[k] = pi[k0];
-            pi[k0] = pom1; // switch two rows in permutation matrix
-
+            (pi[k0], pi[k]) = (pi[k], pi[k0]);
             double pom2;
             for (var i = 0; i < k; i++)
             {
@@ -145,8 +142,8 @@ internal class XlsxMatrix
             b[i, 0] = v[pi[i], 0]; // switch two items in "v" due to permutation matrix
         }
 
-        var z = SubsForth(L, b);
-        var x = SubsBack(U, z);
+        XlsxMatrix z = SubsForth(L, b);
+        XlsxMatrix x = SubsBack(U, z);
 
         return x;
     }
@@ -159,9 +156,9 @@ internal class XlsxMatrix
 
         for (var i = 0; i < rows; i++)
         {
-            var Ei = ZeroMatrix(rows, 1);
+            XlsxMatrix Ei = ZeroMatrix(rows, 1);
             Ei[i, 0] = 1;
-            var col = SolveWith(Ei);
+            XlsxMatrix col = SolveWith(Ei);
             inv.SetCol(col, i);
         }
         return inv;
@@ -245,7 +242,7 @@ internal class XlsxMatrix
 
     public XlsxMatrix IdentityMatrix(int iRows, int iCols) // Function generates the identity matrix
     {
-        var matrix = ZeroMatrix(iRows, iCols);
+        XlsxMatrix matrix = ZeroMatrix(iRows, iCols);
         for (var i = 0; i < Math.Min(iRows, iCols); i++)
         {
             _ctx.ThrowIfCancelled();

@@ -10,16 +10,11 @@ namespace Aid.Xlsx.Model.Grid.Ranges;
 using System;
 using System.Linq;
 
-internal class XlsxRangeRow : XlsxRangeBase, IXlsxRangeRow
+/// <summary>
+/// The direct constructor should only be used in <see cref="XlsxWorksheet.RangeFactory"/>.
+/// </summary>
+internal class XlsxRangeRow(XlsxRangeAddress rangeAddress) : XlsxRangeBase(rangeAddress), IXlsxRangeRow
 {
-    /// <summary>
-    /// The direct constructor should only be used in <see cref="XlsxWorksheet.RangeFactory"/>.
-    /// </summary>
-    public XlsxRangeRow(XlsxRangeAddress rangeAddress)
-        : base(rangeAddress)
-    {
-    }
-
     internal override XlsxCellFormat Format => XlsxCellFormat.ForRange(Worksheet, RangeAddress);
 
     #region IXlsxRangeRow Members
@@ -96,7 +91,7 @@ internal class XlsxRangeRow : XlsxRangeBase, IXlsxRangeRow
         return SortLeftToRight();
     }
 
-    public new IXlsxRangeRow SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true)
+    public new IXlsxRangeRow SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true)
     {
         base.SortLeftToRight(sortOrder, matchCase, ignoreBlanks);
         return this;
@@ -248,38 +243,22 @@ internal class XlsxRangeRow : XlsxRangeBase, IXlsxRangeRow
             {
                 if (thisCell.DataType == otherCell.DataType)
                 {
-                    switch (thisCell.DataType)
+                    comparison = thisCell.DataType switch
                     {
-                        case XlsxDataType.Text:
-                            comparison = e.MatchCase
-                                             ? thisCell.GetText().CompareTo(otherCell.GetText())
-                                             : String.Compare(thisCell.GetText(), otherCell.GetText(), true);
-                            break;
-
-                        case XlsxDataType.TimeSpan:
-                            comparison = thisCell.GetTimeSpan().CompareTo(otherCell.GetTimeSpan());
-                            break;
-
-                        case XlsxDataType.DateTime:
-                            comparison = thisCell.GetDateTime().CompareTo(otherCell.GetDateTime());
-                            break;
-
-                        case XlsxDataType.Number:
-                            comparison = thisCell.GetDouble().CompareTo(otherCell.GetDouble());
-                            break;
-
-                        case XlsxDataType.Boolean:
-                            comparison = thisCell.GetBoolean().CompareTo(otherCell.GetBoolean());
-                            break;
-
-                        default:
-                            throw new NotImplementedException();
-                    }
+                        XlsxDataType.Text => e.MatchCase
+                                                                     ? thisCell.GetText().CompareTo(otherCell.GetText())
+                                                                     : string.Compare(thisCell.GetText(), otherCell.GetText(), true),
+                        XlsxDataType.TimeSpan => thisCell.GetTimeSpan().CompareTo(otherCell.GetTimeSpan()),
+                        XlsxDataType.DateTime => thisCell.GetDateTime().CompareTo(otherCell.GetDateTime()),
+                        XlsxDataType.Number => thisCell.GetDouble().CompareTo(otherCell.GetDouble()),
+                        XlsxDataType.Boolean => thisCell.GetBoolean().CompareTo(otherCell.GetBoolean()),
+                        _ => throw new NotImplementedException(),
+                    };
                 }
                 else if (thisCell.Value.IsUnifiedNumber && otherCell.Value.IsUnifiedNumber)
                     comparison = thisCell.Value.GetUnifiedNumber().CompareTo(otherCell.Value.GetUnifiedNumber());
                 else if (e.MatchCase)
-                    comparison = String.Compare(thisCell.GetString(), otherCell.GetString(), true);
+                    comparison = string.Compare(thisCell.GetString(), otherCell.GetString(), true);
                 else
                     comparison = thisCell.GetString().CompareTo(otherCell.GetString());
             }
@@ -291,11 +270,11 @@ internal class XlsxRangeRow : XlsxRangeBase, IXlsxRangeRow
         return 0;
     }
 
-    private XlsxRangeRow RowShift(Int32 rowsToShift)
+    private XlsxRangeRow RowShift(int rowsToShift)
     {
-        Int32 rowNum = RowNumber() + rowsToShift;
+        int rowNum = RowNumber() + rowsToShift;
 
-        var range = Worksheet.Range(
+        XlsxRange range = Worksheet.Range(
             rowNum,
             RangeAddress.FirstAddress.ColumnNumber,
             rowNum,
@@ -311,7 +290,7 @@ internal class XlsxRangeRow : XlsxRangeBase, IXlsxRangeRow
         return RowAbove();
     }
 
-    IXlsxRangeRow IXlsxRangeRow.RowAbove(Int32 step)
+    IXlsxRangeRow IXlsxRangeRow.RowAbove(int step)
     {
         return RowAbove(step);
     }
@@ -321,7 +300,7 @@ internal class XlsxRangeRow : XlsxRangeBase, IXlsxRangeRow
         return RowAbove(1);
     }
 
-    public XlsxRangeRow RowAbove(Int32 step)
+    public XlsxRangeRow RowAbove(int step)
     {
         return RowShift(step * -1);
     }
@@ -335,7 +314,7 @@ internal class XlsxRangeRow : XlsxRangeBase, IXlsxRangeRow
         return RowBelow();
     }
 
-    IXlsxRangeRow IXlsxRangeRow.RowBelow(Int32 step)
+    IXlsxRangeRow IXlsxRangeRow.RowBelow(int step)
     {
         return RowBelow(step);
     }
@@ -345,7 +324,7 @@ internal class XlsxRangeRow : XlsxRangeBase, IXlsxRangeRow
         return RowBelow(1);
     }
 
-    public XlsxRangeRow RowBelow(Int32 step)
+    public XlsxRangeRow RowBelow(int step)
     {
         return RowShift(step);
     }

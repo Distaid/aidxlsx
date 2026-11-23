@@ -51,7 +51,7 @@ public static partial class XlsxHelper
             return "empty";
         }
         int length = Math.Min(MaxWorksheetNameCharsCount, nameProposal.Length);
-        var shortenedName = nameProposal.Substring(0, length);
+        var shortenedName = nameProposal[..length];
         var result = new System.Text.StringBuilder(shortenedName);
         for (int i = 0; i < length; i++)
         {
@@ -85,9 +85,9 @@ public static partial class XlsxHelper
     /// </exception>
     ///
     // This method was ported from the POI project at https://github.com/apache/poi/blob/trunk/src/java/org/apache/poi/ss/util/WorkbookUtil.java
-    public static void ValidateSheetName(String sheetName)
+    public static void ValidateSheetName(string sheetName)
     {
-        if (String.IsNullOrWhiteSpace(sheetName))
+        if (string.IsNullOrWhiteSpace(sheetName))
         {
             throw new ArgumentException("sheetName must not be null or whitespace");
         }

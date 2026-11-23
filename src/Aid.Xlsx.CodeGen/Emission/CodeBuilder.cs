@@ -5,7 +5,7 @@ using Aid.Xlsx.CodeGen.Schema.Model;
 
 namespace Aid.Xlsx.CodeGen.Emission;
 
-internal class CodeBuilder
+internal class CodeBuilder(StringBuilder sb, SchemeTypeMap typeMap)
 {
     /// <summary>
     /// C# keywords. The variables with that name must be escaped, e.g. <c>in</c> must be
@@ -13,15 +13,9 @@ internal class CodeBuilder
     /// </summary>
     private static readonly HashSet<string> Keywords = ["in", "out", "ref", "char", "is"];
 
-    private readonly SchemeTypeMap _typeMap;
-    private readonly StringBuilder _sb;
+    private readonly SchemeTypeMap _typeMap = typeMap;
+    private readonly StringBuilder _sb = sb;
     private int _indentLevel;
-
-    public CodeBuilder(StringBuilder sb, SchemeTypeMap typeMap)
-    {
-        _sb = sb;
-        _typeMap = typeMap;
-    }
 
     internal CodeBuilder AddLine(string lineText)
     {
@@ -162,7 +156,7 @@ internal class CodeBuilder
     {
         Append("On").Append(name.WithoutPrefix()).Append(suffix).Append("(");
         var isFirst = true;
-        foreach (var argument in arguments)
+        foreach (Variable argument in arguments)
         {
             if (!isFirst)
                 Append(", ");
@@ -180,7 +174,7 @@ internal class CodeBuilder
         WriteIndent().Append("partial void On").Append(name.WithoutPrefix()).Append(suffix).Append("(");
 
         var isFirst = true;
-        foreach (var argument in arguments)
+        foreach (Variable argument in arguments)
         {
             if (!isFirst)
                 Append(", ");

@@ -20,6 +20,6 @@ internal static class AttributeExtensions
         this MemberInfo member)
         where TAttribute : Attribute
     {
-        return GetAttributes<TAttribute>(member).Any();
+        return GetAttributes<TAttribute>(member).Length != 0;
     }
 }

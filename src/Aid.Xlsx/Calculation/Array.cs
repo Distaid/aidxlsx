@@ -50,7 +50,7 @@ internal abstract class Array : IEnumerable<ScalarValue>
     /// </summary>
     public Array Apply(Func<ScalarValue, ScalarValue> op, CalcContext ctx)
     {
-        var data = ctx.AllocateArray<ScalarValue>(Height, Width);
+        ScalarValue[,] data = ctx.AllocateArray<ScalarValue>(Height, Width);
         for (var y = 0; y < Height; ++y)
             for (var x = 0; x < Width; ++x)
                 data[y, x] = op(this[y, x]);
@@ -64,16 +64,16 @@ internal abstract class Array : IEnumerable<ScalarValue>
     /// </summary>
     public Array Apply(Array rightArray, BinaryFunc func, CalcContext ctx)
     {
-        var leftArray = this;
+        Array leftArray = this;
         var width = Math.Max(leftArray.Width, rightArray.Width);
         var height = Math.Max(leftArray.Height, rightArray.Height);
-        var data = ctx.AllocateArray<ScalarValue>(height, width);
+        ScalarValue[,] data = ctx.AllocateArray<ScalarValue>(height, width);
         for (var y = 0; y < height; ++y)
         {
             for (var x = 0; x < width; ++x)
             {
-                var leftItem = x < leftArray.Width && y < leftArray.Height ? leftArray[y, x] : XlsxError.NoValueAvailable;
-                var rightItem = x < rightArray.Width && y < rightArray.Height ? rightArray[y, x] : XlsxError.NoValueAvailable;
+                ScalarValue leftItem = x < leftArray.Width && y < leftArray.Height ? leftArray[y, x] : XlsxError.NoValueAvailable;
+                ScalarValue rightItem = x < rightArray.Width && y < rightArray.Height ? rightArray[y, x] : XlsxError.NoValueAvailable;
                 data[y, x] = func(leftItem, rightItem, ctx);
             }
         }
@@ -167,14 +167,9 @@ internal class LiteralArray : Array
 /// <summary>
 /// A special case of an array that is actually only numbers.
 /// </summary>
-internal class NumberArray : Array
+internal class NumberArray(double[,] data) : Array
 {
-    private readonly double[,] _data;
-
-    public NumberArray(double[,] data)
-    {
-        _data = data;
-    }
+    private readonly double[,] _data = data;
 
     public override ScalarValue this[int y, int x] => _data[y, x];
 
@@ -273,20 +268,13 @@ internal class RepeatedRowArray : Array
 /// <summary>
 /// A resize array from another array. Extra items without value have <c>#N/A</c>.
 /// </summary>
-internal class ResizedArray : Array
+internal class ResizedArray(Array original, int rows, int columns) : Array
 {
-    private readonly Array _original;
+    private readonly Array _original = original;
 
-    public ResizedArray(Array original, int rows, int columns)
-    {
-        _original = original;
-        Height = rows;
-        Width = columns;
-    }
+    public override int Width { get; } = columns;
 
-    public override int Width { get; }
-
-    public override int Height { get; }
+    public override int Height { get; } = rows;
 
     public override ScalarValue this[int y, int x]
     {
@@ -313,8 +301,8 @@ internal class ScalarArray : Array
 
     public ScalarArray(ScalarValue value, int columns, int rows)
     {
-        if (columns < 1) throw new ArgumentOutOfRangeException(nameof(columns));
-        if (rows < 1) throw new ArgumentOutOfRangeException(nameof(rows));
+        ArgumentOutOfRangeException.ThrowIfLessThan(columns, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(rows, 1);
         _value = value;
         _columns = columns;
         _rows = rows;
@@ -341,14 +329,9 @@ internal class ScalarArray : Array
     }
 }
 
-internal class TransposedArray : Array
+internal class TransposedArray(Array original) : Array
 {
-    private readonly Array _original;
-
-    public TransposedArray(Array original)
-    {
-        _original = original;
-    }
+    private readonly Array _original = original;
 
     public override ScalarValue this[int y, int x] => _original[x, y];
 
@@ -379,7 +362,7 @@ internal class SlicedArray : Array
         if (rowOfs < 0 || rows < 1 || colOfs < 0 || cols < 1 ||
             rowOfs + rows > original.Height ||
             colOfs + cols > original.Width)
-            throw new ArgumentOutOfRangeException();
+            throw new ArgumentOutOfRangeException(nameof(rows), "The requested slice is outside the bounds of the original array.");
 
         _original = original;
         _rowOfs = rowOfs;

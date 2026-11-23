@@ -17,7 +17,7 @@ public class XlsxFormula
         IsFormula = defaultFormula.IsFormula;
     }
 
-    public XlsxFormula(String value)
+    public XlsxFormula(string value)
     {
         Value = value;
     }
@@ -32,29 +32,29 @@ public class XlsxFormula
         Value = value.ToInvariantString();
     }
 
-    internal String _value;
-    public String Value
+    internal string _value;
+    public string Value
     {
         get { return _value; }
         set
         {
             if (value == null)
             {
-                _value = String.Empty;
+                _value = string.Empty;
             }
             else
             {
                 _value = value.Trim();
-                IsFormula = !String.IsNullOrWhiteSpace(_value) && _value.TrimStart()[0] == '=';
+                IsFormula = !string.IsNullOrWhiteSpace(_value) && _value.TrimStart()[0] == '=';
                 if (IsFormula)
-                    _value = _value.Substring(1);
+                    _value = _value[1..];
             }
 
 
         }
     }
 
-    public Boolean IsFormula { get; internal set; }
+    public bool IsFormula { get; internal set; }
 
     internal XlsxFormula GetAdjustedCopy(Point sourceAnchor, Point targetAnchor)
     {

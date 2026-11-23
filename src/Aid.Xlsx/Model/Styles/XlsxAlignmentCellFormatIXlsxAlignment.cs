@@ -167,7 +167,7 @@ internal sealed partial class XlsxAlignmentCellFormat : IXlsxAlignment
         if (other == null)
             return false;
 
-        var align = Resolve(static x => x.Alignment);
+        XlsxAlignmentFormatValue align = Resolve(static x => x.Alignment);
         if (align.Horizontal != other.Horizontal)
             return false;
 

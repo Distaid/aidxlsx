@@ -14,17 +14,17 @@ internal class SharedStringTable
     /// Table of <c>Id</c> to text. Some ids are empty (<c>entry.RefCount = 0</c>) and
     /// are tracked in <see cref="_freeIds"/>.
     /// </summary>
-    private readonly List<Entry> _table = new();
+    private readonly List<Entry> _table = [];
 
     /// <summary>
     /// List of indexes in <see cref="_table"/> that are unused.
     /// </summary>
-    private readonly List<int> _freeIds = new();
+    private readonly List<int> _freeIds = [];
 
     /// <summary>
     /// text -&gt; id
     /// </summary>
-    private readonly Dictionary<Text, int> _reverseDict = new();
+    private readonly Dictionary<Text, int> _reverseDict = [];
 
     /// <summary>
     /// Number of texts the table holds reference to.
@@ -55,10 +55,7 @@ internal class SharedStringTable
     /// </summary>
     internal XlsxImmutableRichText? GetRichText(int id)
     {
-        var text = _table[id].Text.Value;
-        if (text is null)
-            throw new ArgumentException($"Id {id} has no text.");
-
+        var text = _table[id].Text.Value ?? throw new ArgumentException($"Id {id} has no text.");
         return text as XlsxImmutableRichText;
     }
 
@@ -76,7 +73,7 @@ internal class SharedStringTable
     /// </summary>
     internal void DecreaseRef(int id)
     {
-        var entry = _table[id];
+        Entry entry = _table[id];
         if (entry.Text.Value is null)
             throw new InvalidOperationException("Trying to release a text that doesn't have a reference.");
 
@@ -101,7 +98,7 @@ internal class SharedStringTable
         var mappedStringId = 0;
         for (var i = 0; i < _table.Count; ++i)
         {
-            var entry = _table[i];
+            Entry entry = _table[i];
             var isShared =
                 entry.RefCount > 0 && // Only used entry can be written to sst
                 !entry.Text.Inline;  // Inline texts shouldn't be written to sst
@@ -113,7 +110,7 @@ internal class SharedStringTable
 
     internal IEnumerable<XlsxFontFormatValue> GetUsedPhoneticFonts()
     {
-        foreach (var entry in _table)
+        foreach (Entry entry in _table)
         {
             if (entry.RefCount > 0 &&
                 entry.Text.Value is XlsxImmutableRichText richText &&
@@ -133,7 +130,7 @@ internal class SharedStringTable
             return id;
         }
 
-        var entry = _table[id];
+        Entry entry = _table[id];
         _table[id] = new Entry(entry.Text, entry.RefCount + 1);
         return id;
     }

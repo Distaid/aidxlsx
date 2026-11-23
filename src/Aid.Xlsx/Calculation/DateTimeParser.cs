@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace Aid.Xlsx.Calculation;
 
-internal static class DateTimeParser
+internal static partial class DateTimeParser
 {
     private const DateTimeStyles Style = DateTimeStyles.NoCurrentDateDefault | DateTimeStyles.AllowInnerWhite | DateTimeStyles.AllowTrailingWhite;
 
@@ -20,7 +20,9 @@ internal static class DateTimeParser
     // what patterns Excel uses for which cultures.
     private static readonly ConcurrentDictionary<CultureInfo, string[]> CultureSpecificPatterns = new();
 
-    private static readonly string[] TimeOfDayPatterns = { "h:m tt", "h:m t", "h:m:s tt", "h:m:s t" };
+    private static readonly string[] TimeOfDayPatterns = ["h:m tt", "h:m t", "h:m:s tt", "h:m:s t"];
+    internal static readonly string[] stringArray = ["h:m tt", "H:m", "h:m"];
+    internal static readonly string[] second = ["yyyy-M-d"];
 
     public static bool TryParseCultureDate(string s, CultureInfo culture, out DateTime date)
     {
@@ -30,13 +32,11 @@ internal static class DateTimeParser
             // The MM/dd matches only two digit month/day and date recognition should be more fuzzy, it
             // should recognize month/day even without leading zero. Many cultures return only MM/dd
             // (NOT M/d) on GetAllDateTimePatterns.
-            const string leadingZeroMonthPattern = @"(?<!M)MM(?!M)";
-            const string leadingZeroDayPattern = @"(?<!d)dd(?!d)";
             var shortDatePatterns = ci.DateTimeFormat.GetAllDateTimePatterns('d')
                 .Concat(ci.DateTimeFormat.GetAllDateTimePatterns('D'))
                 .Where(pattern => !pattern.Contains("dddd")) // It doesn't seem that Excel parser is capable of parsing day names in any culture
-                .Select(pattern => Regex.Replace(pattern, leadingZeroMonthPattern, "M")) // Recognize months even without leading zero
-                .Select(pattern => Regex.Replace(pattern, leadingZeroDayPattern, "d")) // Recognize days even without leading zero
+                .Select(pattern => MyRegex().Replace(pattern, "M")) // Recognize months even without leading zero
+                .Select(pattern => MyRegex1().Replace(pattern, "d")) // Recognize days even without leading zero
                 .Distinct().ToArray();
 
             // Not sure about this, but reasonably close. Hours pattern is probably generated (e.g. 'as-IN' culture
@@ -44,12 +44,12 @@ internal static class DateTimeParser
             // isn't a pattern to just use. Example: for en-US, Excel type coercion can transform "aug 10, 2022 14:10",
             // but every single format from CultureInfo.DateTimeFormat requires AM/PM. and two digits for minutes (thus
             // the input couldn't match in any format => excel has likely it's own logic, independent of region setting).
-            var timePatterns = new[] { "h:m tt", "H:m", "h:m" };
-            var longDatePatterns = shortDatePatterns
+            var timePatterns = stringArray;
+            IEnumerable<string> longDatePatterns = shortDatePatterns
                 .SelectMany(datePattern => timePatterns.Select(timePattern => FormattableString.Invariant($"{datePattern} {timePattern}")));
 
             // ISO8601 should be parseable in all cultures, not sure if Excel does. Be more forgiving, M,d instead MM,dd.
-            return shortDatePatterns.Concat(longDatePatterns).Concat(new[] { "yyyy-M-d" }).Distinct().ToArray();
+            return [.. shortDatePatterns.Concat(longDatePatterns).Concat(second).Distinct()];
         });
 
         return DateTime.TryParseExact(s, datePatterns, culture, Style, out date);
@@ -65,4 +65,9 @@ internal static class DateTimeParser
 
         return false;
     }
+
+    [GeneratedRegex("(?<!M)MM(?!M)")]
+    private static partial Regex MyRegex();
+    [GeneratedRegex("(?<!d)dd(?!d)")]
+    private static partial Regex MyRegex1();
 }

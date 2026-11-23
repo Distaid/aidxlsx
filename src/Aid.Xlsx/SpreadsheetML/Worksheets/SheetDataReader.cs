@@ -43,10 +43,10 @@ internal partial class SheetDataReader
     }
 
     private static readonly string[] DateCellFormats =
-    {
+    [
         "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff", // Format accepted by OpenXML SDK
         "yyyy-MM-ddTHH:mm", "yyyy-MM-dd" // Formats accepted by Excel.
-    };
+    ];
 
     private readonly string _ns;
     private readonly XmlTreeReader _reader;
@@ -54,7 +54,7 @@ internal partial class SheetDataReader
     private readonly XlsxWorkbookStyles _styles;
     private readonly RstReader _rstReader;
     private readonly List<StringItem> _sst;
-    private readonly Dictionary<uint, string> _sharedFormulasR1C1 = new();
+    private readonly Dictionary<uint, string> _sharedFormulasR1C1 = [];
 
     private int _row;
     private int _column;
@@ -124,7 +124,7 @@ internal partial class SheetDataReader
     partial void OnRowParsed(uint? r, uint s, bool customFormat, double? ht, bool hidden, bool customHeight, byte outlineLevel, bool collapsed, bool thickTop, bool thickBot, bool ph, double? dyDescent)
     {
         var rowIndex = r is null ? _row : checked((int)r.Value);
-        var xlRow = _ws.Row(rowIndex, false);
+        XlsxRow xlRow = _ws.Row(rowIndex, false);
 
         if (ht is not null)
         {
@@ -176,9 +176,9 @@ internal partial class SheetDataReader
 
     partial void OnCellParsed(string? v, StringItem? @is, Point? r, uint s, string t, uint cm, uint vm, bool ph)
     {
-        var cellAddress = r ?? new Point(_row, _column);
+        Point cellAddress = r ?? new Point(_row, _column);
 
-        var dataType = t switch
+        CellType dataType = t switch
         {
             "b" => CellType.Boolean,
             "n" => CellType.Number,
@@ -190,10 +190,10 @@ internal partial class SheetDataReader
             _ => throw new FormatException("Unknown cell type.")
         };
 
-        var xlCell = _ws.Cell(cellAddress.Row, cellAddress.Column);
+        XlsxCell xlCell = _ws.Cell(cellAddress.Row, cellAddress.Column);
 
         var xfId = checked((int)s);
-        var cellFormat = _ws.Workbook.Styles.CellFormats[xfId];
+        XlsxCellFormatValue cellFormat = _ws.Workbook.Styles.CellFormats[xfId];
         xlCell.FormatValue = cellFormat;
 
         var showPhonetic = ph;
@@ -241,7 +241,7 @@ internal partial class SheetDataReader
             if (dataType == CellType.InlineString)
             {
                 xlCell.ShareString = false;
-                if (@is.Value.TryPickT0(out var text, out var richText))
+                if (@is.Value.TryPickT0(out var text, out XlsxImmutableRichText? richText))
                     xlCell.SetOnlyValue(text.FixNewLines());
                 else
                     SetCellText(xlCell, richText);
@@ -264,10 +264,10 @@ internal partial class SheetDataReader
         if (!HasFormula)
             return null;
 
-        var formulaSlice = _ws.Internals.CellsCollection.FormulaSlice;
-        var valueSlice = _ws.Internals.CellsCollection.ValueSlice;
+        FormulaSlice formulaSlice = _ws.Internals.CellsCollection.FormulaSlice;
+        ValueSlice valueSlice = _ws.Internals.CellsCollection.ValueSlice;
 
-        var formulaType = _formulaType switch
+        FormulaType formulaType = _formulaType switch
         {
             "" or "normal" => FormulaType.Normal,
             "array" => FormulaType.Array,
@@ -334,12 +334,12 @@ internal partial class SheetDataReader
         {
             var is2D = _formulaDt2D;
             var input1Deleted = _formulaDel1;
-            var input1 = _formulaR1 ?? throw PartStructureException.MissingAttribute("r1");
+            Point input1 = _formulaR1 ?? throw PartStructureException.MissingAttribute("r1");
             if (is2D)
             {
                 // Input 2 is only used for 2D tables
                 var input2Deleted = _formulaDel2;
-                var input2 = _formulaR2 ?? throw PartStructureException.MissingAttribute("r2");
+                Point input2 = _formulaR2 ?? throw PartStructureException.MissingAttribute("r2");
                 formula = XlsxCellFormula.DataTable2D(dataTableArea, input1, input1Deleted, input2, input2Deleted);
                 formulaSlice.Set(cellAddress, formula);
             }
@@ -363,8 +363,8 @@ internal partial class SheetDataReader
             // XlsxCell is by default blank, so no need to set it.
             if (double.TryParse(cellValue, XlsxHelper.NumberStyle, XlsxHelper.ParseCulture, out var number))
             {
-                var numberDataType = format.NumberFormat.GetNumberDataType();
-                var cellNumber = numberDataType switch
+                XlsxDataType numberDataType = format.NumberFormat.GetNumberDataType();
+                XlsxCellValue cellNumber = numberDataType switch
                 {
                     XlsxDataType.DateTime => XlsxCellValue.FromSerialDateTime(number),
                     XlsxDataType.TimeSpan => XlsxCellValue.FromSerialTimeSpan(number),
@@ -378,7 +378,7 @@ internal partial class SheetDataReader
             if (int.TryParse(cellValue, XlsxHelper.NumberStyle, XlsxHelper.ParseCulture, out var sharedStringId)
                 && sharedStringId >= 0 && sharedStringId < _sst.Count)
             {
-                var sharedString = _sst[sharedStringId];
+                StringItem sharedString = _sst[sharedStringId];
                 SetCellText(xlCell, sharedString);
             }
             else
@@ -396,7 +396,7 @@ internal partial class SheetDataReader
         }
         else if (dataType == CellType.Error)
         {
-            if (XlsxErrorParser.TryParseError(cellValue, out var error))
+            if (XlsxErrorParser.TryParseError(cellValue, out XlsxError error))
                 xlCell.SetOnlyValue(error);
         }
         else if (dataType == CellType.Date)
@@ -412,15 +412,15 @@ internal partial class SheetDataReader
 
     private void SetCellText(XlsxCell xlCell, StringItem sharedString)
     {
-        var valueSlice = _ws.Internals.CellsCollection.ValueSlice;
-        if (sharedString.TryPickT0(out var plainText, out var richText))
+        ValueSlice valueSlice = _ws.Internals.CellsCollection.ValueSlice;
+        if (sharedString.TryPickT0(out var plainText, out XlsxImmutableRichText? richText))
         {
             valueSlice.SetCellValue(xlCell.Point, plainText);
         }
         else
         {
-            var cellFormat = _ws.GetStyleValue(xlCell.Point);
-            var adjustedRichText = richText.WithBaseFont(cellFormat.Font);
+            XlsxCellFormatValue cellFormat = _ws.GetStyleValue(xlCell.Point);
+            XlsxImmutableRichText adjustedRichText = richText.WithBaseFont(cellFormat.Font);
             valueSlice.SetRichText(xlCell.Point, adjustedRichText);
         }
     }

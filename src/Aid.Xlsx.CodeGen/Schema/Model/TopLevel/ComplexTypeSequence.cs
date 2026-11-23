@@ -31,16 +31,16 @@ public class ComplexTypeSequence : ComplexType
             throw new NotSupportedException("Only simple sequence is supported. Change XSD structure.");
 
         // The only sane sequence
-        foreach (var element in Sequence.Children)
+        foreach (IElementGroup element in Sequence.Children)
         {
             if (element is ElementType elementType)
             {
-                var variables = elementType.GenerateSequenceParseCode(code);
+                List<Variable> variables = elementType.GenerateSequenceParseCode(code);
                 dataVariables.AddRange(variables);
             }
             else if (element is GroupReference groupReference)
             {
-                var variables = groupReference.GenerateSequenceParseCall(code);
+                List<Variable> variables = groupReference.GenerateSequenceParseCall(code);
                 dataVariables.AddRange(variables);
             }
             else

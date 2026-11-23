@@ -14,9 +14,9 @@ internal class Reference
     public Reference(XlsxRangeAddress area)
     {
         if (!area.IsNormalized)
-            throw new ArgumentException();
+            throw new ArgumentException("The area must be normalized.", nameof(area));
 
-        Areas = new List<XlsxRangeAddress>(1) { area };
+        Areas = [area];
     }
 
     /// <summary>
@@ -25,7 +25,7 @@ internal class Reference
     public Reference(List<XlsxRangeAddress> areas)
     {
         if (areas.Count < 1)
-            throw new ArgumentException();
+            throw new ArgumentException("At least one area is required.", nameof(areas));
 
         Areas = areas;
     }
@@ -33,10 +33,10 @@ internal class Reference
     public Reference(IXlsxRanges ranges)
     {
         if (ranges.Count < 1)
-            throw new ArgumentException();
+            throw new ArgumentException("At least one range is required.", nameof(ranges));
 
         var areas = new List<XlsxRangeAddress>(ranges.Count);
-        foreach (var range in ranges)
+        foreach (IXlsxRange range in ranges)
             areas.Add((XlsxRangeAddress)range.RangeAddress);
 
         Areas = areas;
@@ -68,13 +68,13 @@ internal class Reference
     /// </summary>
     public IEnumerable<ScalarValue> GetCellsValues(CalcContext ctx)
     {
-        foreach (var area in Areas)
+        foreach (XlsxRangeAddress area in Areas)
         {
             for (var row = area.FirstAddress.RowNumber; row <= area.LastAddress.RowNumber; ++row)
             {
                 for (var column = area.FirstAddress.ColumnNumber; column <= area.LastAddress.ColumnNumber; ++column)
                 {
-                    var cellValue = ctx.GetCellValue(area.Worksheet, row, column);
+                    ScalarValue cellValue = ctx.GetCellValue(area.Worksheet, row, column);
                     if (!cellValue.IsBlank)
                     {
                         yield return cellValue;
@@ -86,21 +86,21 @@ internal class Reference
 
     public static OneOf<Reference, XlsxError> RangeOp(Reference lhs, Reference rhs, XlsxWorksheet contextWorksheet)
     {
-        var lhsWorksheets = lhs.Areas.Count == 1
-            ? lhs.Areas.Select(a => a.Worksheet).Where(ws => ws is not null).ToList()!
-            : lhs.Areas.Select(a => a.Worksheet ?? contextWorksheet).Where(ws => ws is not null).Distinct().ToList();
-        if (lhsWorksheets.Count() > 1)
+        List<XlsxWorksheet> lhsWorksheets = lhs.Areas.Count == 1
+            ? [.. lhs.Areas.Select(a => a.Worksheet).Where(ws => ws is not null).Select(ws => ws!)]
+            : [.. lhs.Areas.Select(a => a.Worksheet ?? contextWorksheet).Distinct()];
+        if (lhsWorksheets.Count > 1)
             return XlsxError.IncompatibleValue;
 
-        var lhsWorksheet = lhsWorksheets.SingleOrDefault();
+        XlsxWorksheet? lhsWorksheet = lhsWorksheets.SingleOrDefault();
 
-        var rhsWorksheets = rhs.Areas.Count == 1
-            ? rhs.Areas.Select(a => a.Worksheet).Where(ws => ws is not null).ToList()!
-            : rhs.Areas.Select(a => a.Worksheet ?? contextWorksheet).Where(ws => ws is not null).Distinct().ToList();
-        if (rhsWorksheets.Count() > 1)
+        List<XlsxWorksheet> rhsWorksheets = rhs.Areas.Count == 1
+            ? [.. rhs.Areas.Select(a => a.Worksheet).Where(ws => ws is not null).Select(ws => ws!)]
+            : [.. rhs.Areas.Select(a => a.Worksheet ?? contextWorksheet).Distinct()];
+        if (rhsWorksheets.Count > 1)
             return XlsxError.IncompatibleValue;
 
-        var rhsWorksheet = rhsWorksheets.SingleOrDefault();
+        XlsxWorksheet? rhsWorksheet = rhsWorksheets.SingleOrDefault();
 
         if (rhsWorksheet is not null)
         {
@@ -112,7 +112,7 @@ internal class Reference
         var maxCol = 1;
         var minRow = XlsxHelper.MaxRowNumber;
         var maxRow = 1;
-        foreach (var area in lhs.Areas.Concat(rhs.Areas))
+        foreach (XlsxRangeAddress area in lhs.Areas.Concat(rhs.Areas))
         {
             // Areas are normalized, so I don't have to check opposite corners
             minRow = Math.Min(minRow, area.FirstAddress.RowNumber);
@@ -121,7 +121,7 @@ internal class Reference
             maxCol = Math.Max(maxCol, area.LastAddress.ColumnNumber);
         }
 
-        var sheet = lhsWorksheet ?? rhsWorksheet;
+        XlsxWorksheet? sheet = lhsWorksheet ?? rhsWorksheet;
         return new Reference(new XlsxRangeAddress(
             new XlsxAddress(sheet, minRow, minCol, false, false),
             new XlsxAddress(sheet, maxRow, maxCol, false, false)));
@@ -129,7 +129,7 @@ internal class Reference
 
     public static Reference UnionOp(Reference lhs, Reference rhs)
     {
-        return new Reference(lhs.Areas.Concat(rhs.Areas).ToList());
+        return new Reference([.. lhs.Areas, .. rhs.Areas]);
     }
 
     public static OneOf<Reference, XlsxError> Intersect(Reference lhs, Reference rhs, CalcContext ctx)
@@ -140,12 +140,12 @@ internal class Reference
         if (sheets.Count != 1)
             return XlsxError.IncompatibleValue;
 
-        var sheet = sheets.Single();
+        XlsxWorksheet sheet = sheets.Single();
         var intersections = new List<XlsxRangeAddress>();
-        foreach (var leftArea in lhs.Areas)
+        foreach (XlsxRangeAddress leftArea in lhs.Areas)
         {
-            var intersectedArea = leftArea.WithWorksheet(sheet);
-            foreach (var rightArea in rhs.Areas)
+            XlsxRangeAddress intersectedArea = leftArea.WithWorksheet(sheet);
+            foreach (XlsxRangeAddress rightArea in rhs.Areas)
             {
                 intersectedArea = intersectedArea.Intersection(rightArea.WithWorksheet(sheet));
                 if (!intersectedArea.IsValid)
@@ -156,7 +156,7 @@ internal class Reference
                 intersections.Add(intersectedArea);
         }
 
-        return intersections.Any() ? new Reference(intersections) : XlsxError.NullValue;
+        return intersections.Count != 0 ? new Reference(intersections) : XlsxError.NullValue;
     }
 
     /// <summary>
@@ -169,7 +169,7 @@ internal class Reference
         if (Areas.Count != 1)
             return XlsxError.IncompatibleValue;
 
-        var area = Areas.Single();
+        XlsxRangeAddress area = Areas.Single();
         if (area.RowSpan == 1 && area.ColumnSpan == 1)
             return this;
 
@@ -204,7 +204,7 @@ internal class Reference
             return false;
         }
 
-        var area = Areas.Single();
+        XlsxRangeAddress area = Areas.Single();
         value = ctx.GetCellValue(area.Worksheet, area.FirstAddress.RowNumber, area.FirstAddress.ColumnNumber);
         return true;
     }
@@ -214,7 +214,7 @@ internal class Reference
         if (Areas.Count != 1)
             return XlsxError.IncompatibleValue;
 
-        var area = Areas.Single();
+        XlsxRangeAddress area = Areas.Single();
 
         return new ReferenceArray(area, context);
     }
@@ -224,19 +224,19 @@ internal class Reference
         if (Areas.Count != 1)
             return XlsxError.IncompatibleValue;
 
-        var area = Areas.Single();
+        XlsxRangeAddress area = Areas.Single();
         var width = area.ColumnSpan;
         var height = area.RowSpan;
         var startColumn = area.FirstAddress.ColumnNumber;
         var startRow = area.FirstAddress.RowNumber;
-        var data = context.AllocateArray<ScalarValue>(height, width);
+        ScalarValue[,] data = context.AllocateArray<ScalarValue>(height, width);
         for (int y = 0; y < height; ++y)
         {
             for (int x = 0; x < width; ++x)
             {
                 var row = startRow + y;
                 var column = startColumn + x;
-                var cellValue = context.GetCellValue(area.Worksheet, row, column);
+                ScalarValue cellValue = context.GetCellValue(area.Worksheet, row, column);
                 data[y, x] = op(cellValue);
             }
         }

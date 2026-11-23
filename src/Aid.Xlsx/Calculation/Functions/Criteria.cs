@@ -10,15 +10,15 @@ namespace Aid.Xlsx.Calculation.Functions;
 internal class Criteria
 {
     // Values are ordered by length of a prefix. The longer ones are before sorter ones.
-    private static readonly List<(string Prefix, Comparison Comparison)> AllComparisons = new()
-    {
+    private static readonly List<(string Prefix, Comparison Comparison)> AllComparisons =
+    [
         ("<>", Comparison.NotEqual),
         (">=", Comparison.GreaterOrEqualTo),
         ("<=", Comparison.LessOrEqualTo),
         ("=", Comparison.Equal),
         (">", Comparison.GreaterThan),
         ("<", Comparison.LessThan),
-    };
+    ];
 
     private readonly Comparison _comparison;
     private readonly ScalarValue _value;
@@ -60,7 +60,7 @@ internal class Criteria
             // with a value (e.g. ">7,5") or just value ("7,5"). Comparison must start
             // at the very first char, otherwise it's not interpreted as a comparison.
             var criteriaText = criteria.GetText();
-            var (prefix, comparison) = GetComparison(criteriaText);
+            (string? prefix, Comparison comparison) = GetComparison(criteriaText);
             var operandText = criteriaText[prefix.Length..];
             var operand = ScalarValue.Parse(operandText, culture);
             return new Criteria(comparison, operand, culture);
@@ -75,7 +75,7 @@ internal class Criteria
 
         static (string Prefix, Comparison Comparison) GetComparison(string criteriaText)
         {
-            foreach (var (prefix, prefixComparison) in AllComparisons)
+            foreach ((string? prefix, Comparison prefixComparison) in AllComparisons)
             {
                 if (criteriaText.StartsWith(prefix))
                     return (prefix, prefixComparison);

@@ -7,26 +7,20 @@ using Aid.Xlsx.Model.Grid.Ranges.Sort;
 
 namespace Aid.Xlsx.Model.Tables;
 
-internal class XlsxTableRow : XlsxRangeRow, IXlsxTableRow
+internal class XlsxTableRow(XlsxTableRange tableRange, XlsxRangeRow rangeRow) : XlsxRangeRow(rangeRow.RangeAddress), IXlsxTableRow
 {
-    private readonly XlsxTableRange _tableRange;
-
-    public XlsxTableRow(XlsxTableRange tableRange, XlsxRangeRow rangeRow)
-        : base(rangeRow.RangeAddress)
-    {
-        _tableRange = tableRange;
-    }
+    private readonly XlsxTableRange _tableRange = tableRange;
 
     #region IXlsxTableRow Members
 
-    public IXlsxCell Field(Int32 index)
+    public IXlsxCell Field(int index)
     {
         return Cell(index + 1);
     }
 
-    public IXlsxCell Field(String name)
+    public IXlsxCell Field(string name)
     {
-        Int32 fieldIndex = _tableRange.Table.GetFieldIndex(name);
+        int fieldIndex = _tableRange.Table.GetFieldIndex(name);
         return Cell(fieldIndex + 1);
     }
 
@@ -35,7 +29,7 @@ internal class XlsxTableRow : XlsxRangeRow, IXlsxTableRow
         return SortLeftToRight();
     }
 
-    public new IXlsxTableRow SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true)
+    public new IXlsxTableRow SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true)
     {
         base.SortLeftToRight(sortOrder, matchCase, ignoreBlanks);
         return this;
@@ -43,7 +37,7 @@ internal class XlsxTableRow : XlsxRangeRow, IXlsxTableRow
 
     #endregion IXlsxTableRow Members
 
-    private XlsxTableRow RowShift(Int32 rowsToShift)
+    private XlsxTableRow RowShift(int rowsToShift)
     {
         return _tableRange.Row(RowNumber() - _tableRange.FirstRow().RowNumber() + 1 + rowsToShift);
     }
@@ -55,7 +49,7 @@ internal class XlsxTableRow : XlsxRangeRow, IXlsxTableRow
         return RowAbove();
     }
 
-    IXlsxTableRow IXlsxTableRow.RowAbove(Int32 step)
+    IXlsxTableRow IXlsxTableRow.RowAbove(int step)
     {
         return RowAbove(step);
     }
@@ -65,7 +59,7 @@ internal class XlsxTableRow : XlsxRangeRow, IXlsxTableRow
         return RowAbove(1);
     }
 
-    public new XlsxTableRow RowAbove(Int32 step)
+    public new XlsxTableRow RowAbove(int step)
     {
         return RowShift(step * -1);
     }
@@ -79,7 +73,7 @@ internal class XlsxTableRow : XlsxRangeRow, IXlsxTableRow
         return RowBelow();
     }
 
-    IXlsxTableRow IXlsxTableRow.RowBelow(Int32 step)
+    IXlsxTableRow IXlsxTableRow.RowBelow(int step)
     {
         return RowBelow(step);
     }
@@ -89,7 +83,7 @@ internal class XlsxTableRow : XlsxRangeRow, IXlsxTableRow
         return RowBelow(1);
     }
 
-    public new XlsxTableRow RowBelow(Int32 step)
+    public new XlsxTableRow RowBelow(int step)
     {
         return RowShift(step);
     }

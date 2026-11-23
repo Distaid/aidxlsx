@@ -19,10 +19,9 @@ internal readonly struct SheetArea : IEquatable<SheetArea>, IEnumerable<SheetPoi
     /// </summary>
     public readonly Area Area;
 
-    public SheetArea(String name, Area area)
+    public SheetArea(string name, Area area)
     {
-        if (string.IsNullOrEmpty(name))
-            throw new ArgumentException(nameof(name));
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         Name = name;
         Area = area;
@@ -92,7 +91,7 @@ internal readonly struct SheetArea : IEquatable<SheetArea>, IEnumerable<SheetPoi
         if (!XlsxHelper.SheetComparer.Equals(Name, other.Name))
             return null;
 
-        var intersectionRange = Area.Intersect(other.Area);
+        Area? intersectionRange = Area.Intersect(other.Area);
         if (intersectionRange is null)
             return null;
 

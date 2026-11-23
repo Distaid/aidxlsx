@@ -10,7 +10,7 @@ internal class PngInfoReader : ImageInfoReader
     private const int CrcLength = 4;
     private const int SkippedHeaderLength = 5;
 
-    private int[] MagicBytes { get; } = { 137, 80, 78, 71, 13, 10, 26, 10 };
+    private int[] MagicBytes { get; } = [137, 80, 78, 71, 13, 10, 26, 10];
 
     private const int HeaderType = 0x49484452; // IHDR
     private const int PhysicalDimensionType = 0x70485973; // pHYs

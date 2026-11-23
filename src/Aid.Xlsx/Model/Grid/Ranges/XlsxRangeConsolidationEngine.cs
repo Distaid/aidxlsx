@@ -9,31 +9,25 @@ namespace Aid.Xlsx.Model.Grid.Ranges;
 /// <summary>
 /// Engine for ranges consolidation. Supports IXlsxRanges including ranges from either one or multiple worksheets.
 /// </summary>
-internal class XlsxRangeConsolidationEngine
+internal class XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ranges)
 {
-    private readonly XlsxWorkbook _workbook;
-    private readonly XlsxRanges _allRanges;
-
-    public XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ranges)
-    {
-        _workbook = workbook;
-        _allRanges = ranges ?? throw new ArgumentNullException(nameof(ranges));
-    }
+    private readonly XlsxWorkbook _workbook = workbook;
+    private readonly XlsxRanges _allRanges = ranges ?? throw new ArgumentNullException(nameof(ranges));
 
     public XlsxRanges Consolidate()
     {
         if (_allRanges.Count == 0)
             return _allRanges;
 
-        var worksheets = _allRanges.Select<XlsxRange, XlsxWorksheet>(r => r.Worksheet).Distinct().OrderBy(ws => ws.Position);
+        IOrderedEnumerable<XlsxWorksheet> worksheets = _allRanges.Select<XlsxRange, XlsxWorksheet>(r => r.Worksheet).Distinct().OrderBy(ws => ws.Position);
 
         var retVal = new XlsxRanges(_workbook);
-        foreach (var ws in worksheets)
+        foreach (XlsxWorksheet? ws in worksheets)
         {
             var areaList = new XlsxAreaList(_allRanges.Where<XlsxRange>(r => r.Worksheet == ws).Select(r => r.SheetRange).ToList());
             var matrix = new XlsxRangeConsolidationMatrix(areaList);
-            var consRanges = matrix.GetConsolidatedRanges();
-            foreach (var consArea in consRanges)
+            IEnumerable<Area> consRanges = matrix.GetConsolidatedRanges();
+            foreach (Area consArea in consRanges)
             {
                 retVal.Add(ws.Range(consArea));
             }
@@ -80,9 +74,9 @@ internal class XlsxRangeConsolidationEngine
             for (int i = 0; i < rowNumbers.Length; i++)
             {
                 var startRow = rowNumbers[i];
-                var startings = GetRangesBoundariesStartingByRow(_bitMatrix[startRow]);
+                IEnumerable<Tuple<int, int>> startings = GetRangesBoundariesStartingByRow(_bitMatrix[startRow]);
 
-                foreach (var starting in startings)
+                foreach (Tuple<int, int> starting in startings)
                 {
                     int j = i + 1;
                     while (j < rowNumbers.Length && RowIncludesRange(_bitMatrix[rowNumbers[j]], starting)) j++;
@@ -104,7 +98,7 @@ internal class XlsxRangeConsolidationEngine
 
         private void AddToBitMatrix(Area area)
         {
-            var rows = _bitMatrix.Keys
+            IEnumerable<int> rows = _bitMatrix.Keys
                 .Where(k => k >= area.TopRow &&
                             k <= area.BottomRow);
 
@@ -130,13 +124,13 @@ internal class XlsxRangeConsolidationEngine
 
         private void FillBitMatrix(IEnumerable<Area> areas)
         {
-            foreach (var area in areas)
+            foreach (Area area in areas)
             {
                 AddToBitMatrix(area);
             }
 
             System.Diagnostics.Debug.Assert(
-                _bitMatrix.Values.All(r => r[0] == false && r[r.Length - 1] == false));
+                _bitMatrix.Values.All(r => r[0] == false && r[^1] == false));
         }
 
         private IEnumerable<Tuple<int, int>> GetRangesBoundariesStartingByRow(BitArray rowArray)
@@ -155,7 +149,7 @@ internal class XlsxRangeConsolidationEngine
         {
             var minColumn = XlsxHelper.MaxColumnNumber + 1;
             var maxColumn = 0;
-            foreach (var area in areas)
+            foreach (Area area in areas)
             {
                 minColumn = (minColumn <= area.LeftColumn)
                     ? minColumn
@@ -167,7 +161,7 @@ internal class XlsxRangeConsolidationEngine
 
             var bitMaskSize = maxColumn - minColumn + 3;
             var bitMatrix = new Dictionary<int, BitArray>();
-            foreach (var area in areas)
+            foreach (Area area in areas)
             {
                 AddRowBitmask(bitMatrix, area.TopRow, bitMaskSize);
                 AddRowBitmask(bitMatrix, area.BottomRow, bitMaskSize);

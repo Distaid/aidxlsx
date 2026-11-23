@@ -23,15 +23,10 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Ranges;
 
-internal abstract class XlsxRangeBase : IXlsxRangeBase
+internal abstract class XlsxRangeBase(XlsxRangeAddress rangeAddress) : IXlsxRangeBase
 {
     private XlsxSortElements _sortRows;
     private XlsxSortElements _sortColumns;
-
-    protected XlsxRangeBase(XlsxRangeAddress rangeAddress)
-    {
-        _rangeAddress = rangeAddress;
-    }
 
     /// <summary>
     /// Get format API object tailored to the range type.
@@ -45,7 +40,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     #region Public properties
 
-    private XlsxRangeAddress _rangeAddress;
+    private XlsxRangeAddress _rangeAddress = rangeAddress;
 
     public XlsxRangeAddress RangeAddress
     {
@@ -54,7 +49,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         {
             if (_rangeAddress != value)
             {
-                var oldAddress = _rangeAddress;
+                XlsxRangeAddress oldAddress = _rangeAddress;
                 _rangeAddress = value;
                 OnRangeAddressChanged(oldAddress, _rangeAddress);
             }
@@ -89,7 +84,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     public IXlsxDataValidation GetDataValidation()
     {
-        Worksheet.DataValidations.TryGet(RangeAddress, out var existingDataValidation);
+        Worksheet.DataValidations.TryGet(RangeAddress, out IXlsxDataValidation existingDataValidation);
         return existingDataValidation;
     }
 
@@ -111,7 +106,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         get { return RangeAddress.Worksheet; }
     }
 
-    public String FormulaA1
+    public string FormulaA1
     {
         set
         {
@@ -123,7 +118,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         }
     }
 
-    public String FormulaArrayA1
+    public string FormulaArrayA1
     {
         set
         {
@@ -141,12 +136,12 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
             var fixedFunctionsFormula = FormulaTransformation.FixFutureFunctions(formula, Worksheet.Name, SheetRange.FirstPoint);
             var arrayFormula = XlsxCellFormula.Array(fixedFunctionsFormula, range, false);
 
-            var formulaSlice = Worksheet.Internals.CellsCollection.FormulaSlice;
+            FormulaSlice formulaSlice = Worksheet.Internals.CellsCollection.FormulaSlice;
             formulaSlice.SetArray(range, arrayFormula);
 
             // If formula evaluates to a text, it is stored directly in a worksheet, not in SST. Thus
             // when the switch to formula happens, disable shared string and enable when formula is removed.
-            var valueSlice = Worksheet.Internals.CellsCollection.ValueSlice;
+            ValueSlice valueSlice = Worksheet.Internals.CellsCollection.ValueSlice;
             for (var row = range.TopRow; row <= range.BottomRow; ++row)
             {
                 for (var col = range.LeftColumn; col <= range.RightColumn; ++col)
@@ -156,12 +151,12 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
             }
 
             // Formula is shared across all cells, so it's enough to invalidate master cell
-            var masterCell = FirstCell();
+            XlsxCell masterCell = FirstCell();
             masterCell.InvalidateFormula();
         }
     }
 
-    public String FormulaR1C1
+    public string FormulaR1C1
     {
         set
         {
@@ -173,7 +168,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         }
     }
 
-    public Boolean ShareString
+    public bool ShareString
     {
         set { Cells().ForEach(c => c.ShareString = value); }
     }
@@ -189,11 +184,11 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     #region IXlsxRangeBase Members
 
-    IXlsxCells IXlsxRangeBase.Cells(String cells) => Cells(cells);
+    IXlsxCells IXlsxRangeBase.Cells(string cells) => Cells(cells);
 
-    IXlsxCells IXlsxRangeBase.Cells(Boolean usedCellsOnly) => Cells(usedCellsOnly);
+    IXlsxCells IXlsxRangeBase.Cells(bool usedCellsOnly) => Cells(usedCellsOnly);
 
-    IXlsxCells IXlsxRangeBase.Cells(Boolean usedCellsOnly, XlsxCellsUsedOptions options) => Cells(usedCellsOnly, options);
+    IXlsxCells IXlsxRangeBase.Cells(bool usedCellsOnly, XlsxCellsUsedOptions options) => Cells(usedCellsOnly, options);
 
     IXlsxCells IXlsxRangeBase.CellsUsed() => CellsUsed();
 
@@ -217,12 +212,12 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return FirstCellUsed(options, null);
     }
 
-    IXlsxCell IXlsxRangeBase.FirstCellUsed(Func<IXlsxCell, Boolean> predicate)
+    IXlsxCell IXlsxRangeBase.FirstCellUsed(Func<IXlsxCell, bool> predicate)
     {
         return FirstCellUsed(predicate);
     }
 
-    IXlsxCell IXlsxRangeBase.FirstCellUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, Boolean> predicate)
+    IXlsxCell IXlsxRangeBase.FirstCellUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, bool> predicate)
     {
         return FirstCellUsed(options, predicate);
     }
@@ -237,12 +232,12 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return LastCellUsed(options, null);
     }
 
-    IXlsxCell IXlsxRangeBase.LastCellUsed(Func<IXlsxCell, Boolean> predicate)
+    IXlsxCell IXlsxRangeBase.LastCellUsed(Func<IXlsxCell, bool> predicate)
     {
         return LastCellUsed(predicate);
     }
 
-    IXlsxCell IXlsxRangeBase.LastCellUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, Boolean> predicate)
+    IXlsxCell IXlsxRangeBase.LastCellUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, bool> predicate)
     {
         return LastCellUsed(options, predicate);
     }
@@ -252,23 +247,23 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return Cells(false);
     }
 
-    public virtual XlsxCells Cells(Boolean usedCellsOnly)
+    public virtual XlsxCells Cells(bool usedCellsOnly)
     {
         return Cells(usedCellsOnly, XlsxCellsUsedOptions.AllContents);
     }
 
-    public XlsxCells Cells(Boolean usedCellsOnly, XlsxCellsUsedOptions options)
+    public XlsxCells Cells(bool usedCellsOnly, XlsxCellsUsedOptions options)
     {
         var cells = new XlsxCells(Worksheet, usedCellsOnly, options) { RangeAddress };
         return cells;
     }
 
-    public virtual XlsxCells Cells(String cells)
+    public virtual XlsxCells Cells(string cells)
     {
         return Ranges(cells).Cells();
     }
 
-    public IXlsxCells Cells(Func<IXlsxCell, Boolean> predicate)
+    public IXlsxCells Cells(Func<IXlsxCell, bool> predicate)
     {
         var cells = new XlsxCells(Worksheet, false, XlsxCellsUsedOptions.AllContents, predicate) { RangeAddress };
         return cells;
@@ -284,23 +279,23 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return Merge(true);
     }
 
-    public IXlsxRange Merge(Boolean checkIntersect)
+    public IXlsxRange Merge(bool checkIntersect)
     {
         if (RangeAddress.FirstAddress.Equals(RangeAddress.LastAddress))
             return Worksheet.Range(RangeAddress);
 
-        var asRange = AsRange();
+        XlsxRange asRange = AsRange();
 
         if (checkIntersect)
         {
             var intersectedMergedRanges =
                 Worksheet.Internals.MergedRanges.GetIntersectedRanges(RangeAddress).ToList();
-            foreach (var intersectedMergedRange in intersectedMergedRanges)
+            foreach (IXlsxRange intersectedMergedRange in intersectedMergedRanges)
             {
                 Worksheet.Internals.MergedRanges.Remove(intersectedMergedRange);
             }
 
-            var firstCell = FirstCell();
+            XlsxCell firstCell = FirstCell();
             var cellsUsed =
                 CellsUsedInternal(XlsxCellsUsedOptions.All & ~XlsxCellsUsedOptions.MergedRanges, c => c.Point != firstCell.Point).ToList<XlsxCell>();
             cellsUsed.ForEach(c => c.Clear(XlsxClearOptions.All
@@ -315,14 +310,14 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
             else
             {
                 // Merging removes borders that are not consistent across the whole border, even on the first cell
-                var area = SheetRange;
-                var leftBorder = GetVerticalBorder(area.LeftColumn, area.TopRow, area.BottomRow, static b => b.Left);
-                var topBorder = GetHorizontalBorder(area.TopRow, area.LeftColumn, area.RightColumn, static b => b.Top);
-                var rightBorder = GetVerticalBorder(area.RightColumn, area.TopRow, area.BottomRow, static b => b.Right);
-                var bottomBorder = GetHorizontalBorder(area.BottomRow, area.LeftColumn, area.RightColumn, static b => b.Bottom);
+                Area area = SheetRange;
+                XlsxBorderLine? leftBorder = GetVerticalBorder(area.LeftColumn, area.TopRow, area.BottomRow, static b => b.Left);
+                XlsxBorderLine? topBorder = GetHorizontalBorder(area.TopRow, area.LeftColumn, area.RightColumn, static b => b.Top);
+                XlsxBorderLine? rightBorder = GetVerticalBorder(area.RightColumn, area.TopRow, area.BottomRow, static b => b.Right);
+                XlsxBorderLine? bottomBorder = GetHorizontalBorder(area.BottomRow, area.LeftColumn, area.RightColumn, static b => b.Bottom);
 
-                var cellsCollection = Worksheet.Internals.CellsCollection;
-                var borderlessFormat = Worksheet.Workbook.Styles.GetModifiedFormat(firstCell.FormatValue, _ => XlsxBorderFormatValue.None);
+                XlsxCellsCollection cellsCollection = Worksheet.Internals.CellsCollection;
+                XlsxCellFormatValue borderlessFormat = Worksheet.Workbook.Styles.GetModifiedFormat(firstCell.FormatValue, _ => XlsxBorderFormatValue.None);
                 cellsCollection.FormatSlice.SetAll(SheetRange, borderlessFormat);
 
                 if (leftBorder is not null && leftBorder.Value.IsVisible)
@@ -345,10 +340,10 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     private XlsxBorderLine? GetHorizontalBorder(int row, int minColumn, int maxColumn, Func<XlsxBorderFormatValue, XlsxBorderLine> borderSide)
     {
-        var initialSide = borderSide(Worksheet.GetStyleValue(new Point(row, minColumn)).Border);
+        XlsxBorderLine initialSide = borderSide(Worksheet.GetStyleValue(new Point(row, minColumn)).Border);
         for (var column = minColumn + 1; column <= maxColumn; ++column)
         {
-            var currentSide = borderSide(Worksheet.GetStyleValue(new Point(row, column)).Border);
+            XlsxBorderLine currentSide = borderSide(Worksheet.GetStyleValue(new Point(row, column)).Border);
             if (currentSide != initialSide)
                 return null;
         }
@@ -358,10 +353,10 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     private XlsxBorderLine? GetVerticalBorder(int column, int minRow, int maxRow, Func<XlsxBorderFormatValue, XlsxBorderLine> borderSide)
     {
-        var initialSide = borderSide(Worksheet.GetStyleValue(new Point(minRow, column)).Border);
+        XlsxBorderLine initialSide = borderSide(Worksheet.GetStyleValue(new Point(minRow, column)).Border);
         for (var row = minRow + 1; row <= maxRow; ++row)
         {
-            var currentSide = borderSide(Worksheet.GetStyleValue(new Point(row, column)).Border);
+            XlsxBorderLine currentSide = borderSide(Worksheet.GetStyleValue(new Point(row, column)).Border);
             if (currentSide != initialSide)
                 return null;
         }
@@ -372,7 +367,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
     public IXlsxRange Unmerge()
     {
         string tAddress = RangeAddress.ToString();
-        var asRange = AsRange();
+        XlsxRange asRange = AsRange();
         if (Worksheet.Internals.MergedRanges.Select<XlsxRange, string>(m => m.RangeAddress.ToString()).Any(mAddress => mAddress == tAddress))
             Worksheet.Internals.MergedRanges.Remove(asRange);
 
@@ -381,13 +376,13 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     public IXlsxRangeBase Clear(XlsxClearOptions clearOptions = XlsxClearOptions.All)
     {
-        var cellClearOptions = clearOptions
+        XlsxClearOptions cellClearOptions = clearOptions
                 & ~XlsxClearOptions.ConditionalFormats
                 & ~XlsxClearOptions.DataValidation
                 & ~XlsxClearOptions.MergedRanges
                 & ~XlsxClearOptions.Sparklines;
-        var cellUsedOptions = cellClearOptions.ToCellsUsedOptions();
-        foreach (var cell in CellsUsedInternal(cellUsedOptions))
+        XlsxCellsUsedOptions cellUsedOptions = cellClearOptions.ToCellsUsedOptions();
+        foreach (XlsxCell cell in CellsUsedInternal(cellUsedOptions))
         {
             // We'll clear the conditional formatting, data validations, sparklines
             // and merged ranges later down.
@@ -399,7 +394,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
         if (clearOptions.HasFlag(XlsxClearOptions.DataValidation))
         {
-            var validation = CreateDataValidation();
+            XlsxDataValidation validation = CreateDataValidation();
             Worksheet.DataValidations.Delete(validation);
         }
 
@@ -420,7 +415,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
     {
         var xlSourceBaseRangeAddress = (XlsxRangeAddress)sourceBaseRange.RangeAddress;
         var xlTargetBaseRangeAddress = (XlsxRangeAddress)targetBaseRange.RangeAddress;
-        var xlRangeAddress = this.RangeAddress.Relative(in xlSourceBaseRangeAddress, in xlTargetBaseRangeAddress);
+        XlsxRangeAddress xlRangeAddress = this.RangeAddress.Relative(in xlSourceBaseRangeAddress, in xlTargetBaseRangeAddress);
 
         return ((XlsxRangeBase)targetBaseRange).Range(in xlRangeAddress);
     }
@@ -436,10 +431,10 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         Cells().DeleteComments();
     }
 
-    public bool Contains(String rangeAddress)
+    public bool Contains(string rangeAddress)
     {
-        string addressToUse = rangeAddress.Contains("!")
-                                  ? rangeAddress.Substring(rangeAddress.IndexOf("!") + 1)
+        string addressToUse = rangeAddress.Contains('!')
+                                  ? rangeAddress[(rangeAddress.IndexOf('!') + 1)..]
                                   : rangeAddress;
 
         XlsxAddress firstAddress;
@@ -472,8 +467,8 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
     {
         if (!range.RangeAddress.IsValid || !RangeAddress.IsValid)
             return false;
-        var ma = range.RangeAddress;
-        var ra = RangeAddress;
+        IXlsxRangeAddress ma = range.RangeAddress;
+        XlsxRangeAddress ra = RangeAddress;
         return ra.Intersects(ma);
     }
 
@@ -487,23 +482,23 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return Worksheet.Range(RangeAddress);
     }
 
-    public IXlsxRange AddToNamed(String name)
+    public IXlsxRange AddToNamed(string name)
     {
         return AddToNamed(name, XlsxScope.Workbook);
     }
 
-    public IXlsxRange AddToNamed(String name, XlsxScope scope)
+    public IXlsxRange AddToNamed(string name, XlsxScope scope)
     {
         return AddToNamed(name, scope, null);
     }
 
-    public IXlsxRange AddToNamed(String name, XlsxScope scope, String comment)
+    public IXlsxRange AddToNamed(string name, XlsxScope scope, string comment)
     {
-        var definedNames = scope == XlsxScope.Workbook
+        XlsxDefinedNames definedNames = scope == XlsxScope.Workbook
                               ? Worksheet.Workbook.DefinedNamesInternal
                               : Worksheet.DefinedNames;
 
-        if (definedNames.TryGetScopedValue(name, out var definedName))
+        if (definedNames.TryGetScopedValue(name, out XlsxDefinedName definedName))
             definedName.Add(RangeAddress.ToStringFixed(XlsxReferenceStyle.A1, true));
         else
             definedNames.Add(name, RangeAddress.ToStringFixed(XlsxReferenceStyle.A1, true), comment);
@@ -517,19 +512,19 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return this;
     }
 
-    public Boolean IsMerged()
+    public bool IsMerged()
     {
         return Cells().Any(c => c.IsMerged());
     }
 
-    public virtual Boolean IsEmpty()
+    public virtual bool IsEmpty()
     {
         return !CellsUsed().Any<XlsxCell>() || CellsUsed().Any<XlsxCell>(c => c.IsEmpty());
     }
 
-    public virtual Boolean IsEmpty(XlsxCellsUsedOptions options)
+    public virtual bool IsEmpty(XlsxCellsUsedOptions options)
     {
-        foreach (var cell in CellsUsed(options))
+        foreach (IXlsxCell cell in CellsUsed(options))
         {
             if (!cell.IsEmpty(options))
             {
@@ -539,26 +534,26 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return true;
     }
 
-    public virtual Boolean IsEntireRow()
+    public virtual bool IsEntireRow()
     {
         return RangeAddress.IsEntireRow();
     }
 
-    public virtual Boolean IsEntireColumn()
+    public virtual bool IsEntireColumn()
     {
         return RangeAddress.IsEntireColumn();
     }
 
-    public Boolean IsEntireSheet()
+    public bool IsEntireSheet()
     {
         return RangeAddress.IsEntireSheet();
     }
 
     #endregion IXlsxRangeBase Members
 
-    public IXlsxCells Search(String searchText, CompareOptions compareOptions = CompareOptions.Ordinal, Boolean searchFormulae = false)
+    public IXlsxCells Search(string searchText, CompareOptions compareOptions = CompareOptions.Ordinal, bool searchFormulae = false)
     {
-        var culture = CultureInfo.CurrentCulture;
+        CultureInfo culture = CultureInfo.CurrentCulture;
         return CellsUsed(XlsxCellsUsedOptions.AllContents, c =>
         {
             try
@@ -592,16 +587,16 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return FirstCellUsed(XlsxCellsUsedOptions.AllContents, predicate: null);
     }
 
-    internal XlsxCell FirstCellUsed(Func<IXlsxCell, Boolean> predicate)
+    internal XlsxCell FirstCellUsed(Func<IXlsxCell, bool> predicate)
     {
         return FirstCellUsed(XlsxCellsUsedOptions.AllContents, predicate);
     }
 
-    internal XlsxCell FirstCellUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, Boolean> predicate = null)
+    internal XlsxCell FirstCellUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, bool> predicate = null)
     {
         var cellsUsed = CellsUsedInternal(options, r => r.FirstCell(), predicate).ToList();
 
-        if (!cellsUsed.Any())
+        if (cellsUsed.Count == 0)
             return null;
 
         var firstRow = cellsUsed.Min(c => c.Address.RowNumber);
@@ -621,16 +616,16 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return LastCellUsed(XlsxCellsUsedOptions.AllContents, predicate: null);
     }
 
-    internal XlsxCell LastCellUsed(Func<IXlsxCell, Boolean> predicate)
+    internal XlsxCell LastCellUsed(Func<IXlsxCell, bool> predicate)
     {
         return LastCellUsed(XlsxCellsUsedOptions.AllContents, predicate);
     }
 
-    internal XlsxCell LastCellUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, Boolean> predicate = null)
+    internal XlsxCell LastCellUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, bool> predicate = null)
     {
         var cellsUsed = CellsUsedInternal(options, r => r.LastCell(), predicate).ToList();
 
-        if (!cellsUsed.Any())
+        if (cellsUsed.Count == 0)
             return null;
 
         var lastRow = cellsUsed.Max(c => c.Address.RowNumber);
@@ -645,7 +640,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return Worksheet.Cell(lastRow, lastColumn);
     }
 
-    internal XlsxCell Cell(Int32 row, Int32 column)
+    internal XlsxCell Cell(int row, int column)
     {
         return Cell(new Point(row, column));
     }
@@ -655,7 +650,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return Cell(new XlsxAddress(Worksheet, point.Row, point.Column, false, false));
     }
 
-    public virtual XlsxCell Cell(String cellAddressInRange)
+    public virtual XlsxCell Cell(string cellAddressInRange)
     {
         if (XlsxHelper.IsValidA1Address(cellAddressInRange))
             return Cell(XlsxAddress.Create(Worksheet, cellAddressInRange));
@@ -666,7 +661,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return null;
     }
 
-    public XlsxCell Cell(Int32 row, String column)
+    public XlsxCell Cell(int row, string column)
     {
         return Cell(new XlsxAddress(Worksheet, row, column, false, false));
     }
@@ -678,14 +673,14 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     public XlsxCell Cell(in XlsxAddress cellAddressInRange)
     {
-        Int32 absRow = cellAddressInRange.RowNumber + RangeAddress.FirstAddress.RowNumber - 1;
-        Int32 absColumn = cellAddressInRange.ColumnNumber + RangeAddress.FirstAddress.ColumnNumber - 1;
+        int absRow = cellAddressInRange.RowNumber + RangeAddress.FirstAddress.RowNumber - 1;
+        int absColumn = cellAddressInRange.ColumnNumber + RangeAddress.FirstAddress.ColumnNumber - 1;
 
         if (absRow <= 0 || absRow > XlsxHelper.MaxRowNumber)
         {
             throw new ArgumentOutOfRangeException(
                 nameof(cellAddressInRange),
-                String.Format("Row number must be between 1 and {0}", XlsxHelper.MaxRowNumber)
+                string.Format("Row number must be between 1 and {0}", XlsxHelper.MaxRowNumber)
             );
         }
 
@@ -693,62 +688,62 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         {
             throw new ArgumentOutOfRangeException(
                 nameof(cellAddressInRange),
-                String.Format("Column number must be between 1 and {0}", XlsxHelper.MaxColumnNumber)
+                string.Format("Column number must be between 1 and {0}", XlsxHelper.MaxColumnNumber)
             );
         }
 
-        var cell = Worksheet.Internals.CellsCollection.GetCell(new Point(absRow, absColumn));
+        XlsxCell cell = Worksheet.Internals.CellsCollection.GetCell(new Point(absRow, absColumn));
         return cell;
     }
 
-    public Int32 RowCount()
+    public int RowCount()
     {
         return RangeAddress.LastAddress.RowNumber - RangeAddress.FirstAddress.RowNumber + 1;
     }
 
-    public Int32 RowCount(XlsxCellsUsedOptions cellsUsedOptions)
+    public int RowCount(XlsxCellsUsedOptions cellsUsedOptions)
     {
-        var lcu = LastCellUsed(cellsUsedOptions);
+        XlsxCell lcu = LastCellUsed(cellsUsedOptions);
         if (lcu == null) return 0;
 
-        var fcu = FirstCellUsed(cellsUsedOptions);
+        XlsxCell fcu = FirstCellUsed(cellsUsedOptions);
         if (fcu == null) return 0;
 
         return lcu.Address.RowNumber - fcu.Address.RowNumber + 1;
     }
 
-    public Int32 RowNumber()
+    public int RowNumber()
     {
         return RangeAddress.FirstAddress.RowNumber;
     }
 
-    public Int32 ColumnCount()
+    public int ColumnCount()
     {
         return RangeAddress.LastAddress.ColumnNumber - RangeAddress.FirstAddress.ColumnNumber + 1;
     }
 
-    public Int32 ColumnCount(XlsxCellsUsedOptions cellsUsedOptions)
+    public int ColumnCount(XlsxCellsUsedOptions cellsUsedOptions)
     {
-        var lcu = LastCellUsed(cellsUsedOptions);
+        XlsxCell lcu = LastCellUsed(cellsUsedOptions);
         if (lcu == null) return 0;
 
-        var fcu = FirstCellUsed(cellsUsedOptions);
+        XlsxCell fcu = FirstCellUsed(cellsUsedOptions);
         if (fcu == null) return 0;
 
         return lcu.Address.ColumnNumber - fcu.Address.ColumnNumber + 1;
     }
 
-    public Int32 ColumnNumber()
+    public int ColumnNumber()
     {
         return RangeAddress.FirstAddress.ColumnNumber;
     }
 
-    public String ColumnLetter()
+    public string ColumnLetter()
     {
         return RangeAddress.FirstAddress.ColumnLetter;
     }
 
-    public virtual XlsxRange Range(String rangeAddressStr)
+    public virtual XlsxRange Range(string rangeAddressStr)
     {
         var rangeAddress = new XlsxRangeAddress(Worksheet, rangeAddressStr);
         return Range(rangeAddress);
@@ -786,7 +781,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
             || newLastCellAddress.ColumnNumber > RangeAddress.LastAddress.ColumnNumber
         )
         {
-            throw new ArgumentOutOfRangeException(String.Format(
+            throw new ArgumentOutOfRangeException(string.Format(
                 "The cells {0} and {1} are outside the range '{2}'.",
                 newFirstCellAddress,
                 newLastCellAddress,
@@ -798,10 +793,10 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         else if (Worksheet != null)
             return Worksheet.GetOrCreateRange(newRangeAddress);
         else
-            return new XlsxRange(newRangeAddress, Style);
+            return new XlsxRange(newRangeAddress);
     }
 
-    public XlsxRange Range(String firstCellAddress, String lastCellAddress)
+    public XlsxRange Range(string firstCellAddress, string lastCellAddress)
     {
         var rangeAddress = new XlsxRangeAddress(XlsxAddress.Create(Worksheet, firstCellAddress),
                                               XlsxAddress.Create(Worksheet, lastCellAddress));
@@ -813,7 +808,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return Range(area.TopRow, area.LeftColumn, area.BottomRow, area.RightColumn);
     }
 
-    internal XlsxRange Range(Int32 firstCellRow, Int32 firstCellColumn, Int32 lastCellRow, Int32 lastCellColumn)
+    internal XlsxRange Range(int firstCellRow, int firstCellColumn, int lastCellRow, int lastCellColumn)
     {
         var rangeAddress = new XlsxRangeAddress
         (
@@ -851,7 +846,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     internal XlsxRange Range(in XlsxRangeAddress rangeAddress)
     {
-        var ws = rangeAddress.FirstAddress.Worksheet ??
+        XlsxWorksheet ws = rangeAddress.FirstAddress.Worksheet ??
                  rangeAddress.LastAddress.Worksheet ??
                  Worksheet;
 
@@ -870,7 +865,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return GetRange(newFirstCellAddress, newLastCellAddress);
     }
 
-    public virtual XlsxRanges Ranges(String ranges)
+    public virtual XlsxRanges Ranges(string ranges)
     {
         var retVal = new XlsxRanges(Worksheet);
         var rangePairs = ranges.Split(',');
@@ -879,7 +874,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return retVal;
     }
 
-    public IXlsxRanges Ranges(params String[] ranges)
+    public IXlsxRanges Ranges(params string[] ranges)
     {
         var retVal = new XlsxRanges(Worksheet);
         foreach (string pair in ranges)
@@ -887,16 +882,16 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return retVal;
     }
 
-    protected String FixColumnAddress(String address)
+    protected string FixColumnAddress(string address)
     {
-        if (Int32.TryParse(address, out Int32 rowNumber))
+        if (int.TryParse(address, out int rowNumber))
             return RangeAddress.FirstAddress.ColumnLetter + (rowNumber + RangeAddress.FirstAddress.RowNumber - 1).ToInvariantString();
         return address;
     }
 
-    protected String FixRowAddress(String address)
+    protected string FixRowAddress(string address)
     {
-        if (Int32.TryParse(address, out Int32 columnNumber))
+        if (int.TryParse(address, out int columnNumber))
             return XlsxHelper.GetColumnLetterFromNumber(columnNumber + RangeAddress.FirstAddress.ColumnNumber - 1) + RangeAddress.FirstAddress.RowNumber.ToInvariantString();
         return address;
     }
@@ -907,31 +902,31 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return cells;
     }
 
-    public IXlsxCells CellsUsed(Func<IXlsxCell, Boolean> predicate)
+    public IXlsxCells CellsUsed(Func<IXlsxCell, bool> predicate)
     {
         var cells = new XlsxCells(Worksheet, true, XlsxCellsUsedOptions.AllContents, predicate) { RangeAddress };
         return cells;
     }
 
-    public IXlsxCells CellsUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, Boolean> predicate)
+    public IXlsxCells CellsUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, bool> predicate)
     {
         return CellsUsedInternal(options, predicate);
     }
 
-    internal XlsxCells CellsUsedInternal(XlsxCellsUsedOptions options, Func<XlsxCell, Boolean> predicate = null)
+    internal XlsxCells CellsUsedInternal(XlsxCellsUsedOptions options, Func<XlsxCell, bool> predicate = null)
     {
         var cells = new XlsxCells(Worksheet, true, options, predicate) { RangeAddress };
         return cells;
     }
 
-    public IXlsxRangeColumns InsertColumnsAfter(Int32 numberOfColumns)
+    public IXlsxRangeColumns InsertColumnsAfter(int numberOfColumns)
     {
         return InsertColumnsAfter(numberOfColumns, true);
     }
 
-    public IXlsxRangeColumns InsertColumnsAfter(Int32 numberOfColumns, Boolean expandRange)
+    public IXlsxRangeColumns InsertColumnsAfter(int numberOfColumns, bool expandRange)
     {
-        var retVal = InsertColumnsAfter(false, numberOfColumns);
+        IXlsxRangeColumns retVal = InsertColumnsAfter(false, numberOfColumns);
         // Adjust the range
         if (expandRange)
         {
@@ -950,17 +945,17 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return retVal;
     }
 
-    public IXlsxRangeColumns InsertColumnsAfter(Boolean onlyUsedCells, Int32 numberOfColumns, Boolean formatFromLeft = true)
+    public IXlsxRangeColumns InsertColumnsAfter(bool onlyUsedCells, int numberOfColumns, bool formatFromLeft = true)
     {
         return InsertColumnsAfterInternal(onlyUsedCells, numberOfColumns, formatFromLeft);
     }
 
-    public void InsertColumnsAfterVoid(Boolean onlyUsedCells, Int32 numberOfColumns, Boolean formatFromLeft = true)
+    public void InsertColumnsAfterVoid(bool onlyUsedCells, int numberOfColumns, bool formatFromLeft = true)
     {
         InsertColumnsAfterInternal(onlyUsedCells, numberOfColumns, formatFromLeft, nullReturn: true);
     }
 
-    private IXlsxRangeColumns InsertColumnsAfterInternal(Boolean onlyUsedCells, Int32 numberOfColumns, Boolean formatFromLeft = true, Boolean nullReturn = false)
+    private IXlsxRangeColumns InsertColumnsAfterInternal(bool onlyUsedCells, int numberOfColumns, bool formatFromLeft = true, bool nullReturn = false)
     {
         int columnCount = ColumnCount();
         int firstColumn = RangeAddress.FirstAddress.ColumnNumber + columnCount;
@@ -975,18 +970,18 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         if (lastRow > XlsxHelper.MaxRowNumber)
             lastRow = XlsxHelper.MaxRowNumber;
 
-        var newRange = Worksheet.Range(firstRow, firstColumn, lastRow, lastColumn);
+        XlsxRange newRange = Worksheet.Range(firstRow, firstColumn, lastRow, lastColumn);
         return newRange.InsertColumnsBeforeInternal(onlyUsedCells, numberOfColumns, formatFromLeft, nullReturn);
     }
 
-    public IXlsxRangeColumns InsertColumnsBefore(Int32 numberOfColumns)
+    public IXlsxRangeColumns InsertColumnsBefore(int numberOfColumns)
     {
         return InsertColumnsBefore(numberOfColumns, false);
     }
 
-    public IXlsxRangeColumns InsertColumnsBefore(Int32 numberOfColumns, Boolean expandRange)
+    public IXlsxRangeColumns InsertColumnsBefore(int numberOfColumns, bool expandRange)
     {
-        var retVal = InsertColumnsBefore(false, numberOfColumns);
+        IXlsxRangeColumns retVal = InsertColumnsBefore(false, numberOfColumns);
         // Adjust the range
         if (expandRange)
         {
@@ -1005,17 +1000,17 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return retVal;
     }
 
-    public IXlsxRangeColumns InsertColumnsBefore(Boolean onlyUsedCells, Int32 numberOfColumns, Boolean formatFromLeft = true)
+    public IXlsxRangeColumns InsertColumnsBefore(bool onlyUsedCells, int numberOfColumns, bool formatFromLeft = true)
     {
         return InsertColumnsBeforeInternal(onlyUsedCells, numberOfColumns, formatFromLeft);
     }
 
-    public void InsertColumnsBeforeVoid(Boolean onlyUsedCells, Int32 numberOfColumns, Boolean formatFromLeft = true)
+    public void InsertColumnsBeforeVoid(bool onlyUsedCells, int numberOfColumns, bool formatFromLeft = true)
     {
         InsertColumnsBeforeInternal(onlyUsedCells, numberOfColumns, formatFromLeft, nullReturn: true);
     }
 
-    private IXlsxRangeColumns InsertColumnsBeforeInternal(Boolean onlyUsedCells, Int32 numberOfColumns, Boolean formatFromLeft = true, Boolean nullReturn = false)
+    private IXlsxRangeColumns InsertColumnsBeforeInternal(bool onlyUsedCells, int numberOfColumns, bool formatFromLeft = true, bool nullReturn = false)
     {
         if (numberOfColumns <= 0 || numberOfColumns > XlsxHelper.MaxColumnNumber)
             throw new ArgumentOutOfRangeException(nameof(numberOfColumns),
@@ -1053,33 +1048,33 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
         Worksheet.Internals.CellsCollection.InsertAreaAndShiftRight(insertedRange);
 
-        Int32 firstRowReturn = RangeAddress.FirstAddress.RowNumber;
-        Int32 lastRowReturn = RangeAddress.LastAddress.RowNumber;
-        Int32 firstColumnReturn = RangeAddress.FirstAddress.ColumnNumber;
-        Int32 lastColumnReturn = RangeAddress.FirstAddress.ColumnNumber + numberOfColumns - 1;
+        int firstRowReturn = RangeAddress.FirstAddress.RowNumber;
+        int lastRowReturn = RangeAddress.LastAddress.RowNumber;
+        int firstColumnReturn = RangeAddress.FirstAddress.ColumnNumber;
+        int lastColumnReturn = RangeAddress.FirstAddress.ColumnNumber + numberOfColumns - 1;
 
         Worksheet.NotifyRangeShiftedColumns(AsRange(), numberOfColumns);
 
-        var rangeToReturn = Worksheet.Range(firstRowReturn, firstColumnReturn, lastRowReturn, lastColumnReturn);
+        XlsxRange rangeToReturn = Worksheet.Range(firstRowReturn, firstColumnReturn, lastRowReturn, lastColumnReturn);
 
         // We deliberately ignore conditional formats and data validation here. Their shifting is handled elsewhere
-        var contentFlags = XlsxCellsUsedOptions.All
+        XlsxCellsUsedOptions contentFlags = XlsxCellsUsedOptions.All
             & ~XlsxCellsUsedOptions.ConditionalFormats
             & ~XlsxCellsUsedOptions.DataValidation;
 
         if (formatFromLeft && rangeToReturn.RangeAddress.FirstAddress.ColumnNumber > 1)
         {
-            var firstColumnUsed = rangeToReturn.FirstColumn();
-            var model = firstColumnUsed.ColumnLeft();
-            var modelFirstRow = (model as IXlsxRangeBase).FirstCellUsed(contentFlags);
-            var modelLastRow = (model as IXlsxRangeBase).LastCellUsed(contentFlags);
+            XlsxRangeColumn firstColumnUsed = rangeToReturn.FirstColumn();
+            XlsxRangeColumn model = firstColumnUsed.ColumnLeft();
+            IXlsxCell modelFirstRow = (model as IXlsxRangeBase).FirstCellUsed(contentFlags);
+            IXlsxCell modelLastRow = (model as IXlsxRangeBase).LastCellUsed(contentFlags);
             if (modelLastRow != null)
             {
-                Int32 firstRoReturned = modelFirstRow.Address.RowNumber
+                int firstRoReturned = modelFirstRow.Address.RowNumber
                                         - model.RangeAddress.FirstAddress.RowNumber + 1;
-                Int32 lastRoReturned = modelLastRow.Address.RowNumber
+                int lastRoReturned = modelLastRow.Address.RowNumber
                                        - model.RangeAddress.FirstAddress.RowNumber + 1;
-                for (Int32 ro = firstRoReturned; ro <= lastRoReturned; ro++)
+                for (int ro = firstRoReturned; ro <= lastRoReturned; ro++)
                 {
                     rangeToReturn.Row(ro).Style = model.Cell(ro).Style;
                 }
@@ -1087,13 +1082,13 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         }
         else
         {
-            var lastRoUsed = rangeToReturn.LastRowUsed(contentFlags);
+            XlsxRangeRow lastRoUsed = rangeToReturn.LastRowUsed(contentFlags);
             if (lastRoUsed != null)
             {
-                Int32 lastRoReturned = lastRoUsed.RowNumber();
-                for (Int32 ro = 1; ro <= lastRoReturned; ro++)
+                int lastRoReturned = lastRoUsed.RowNumber();
+                for (int ro = 1; ro <= lastRoReturned; ro++)
                 {
-                    var styleToUse =
+                    IXlsxStyle styleToUse =
                         Worksheet.Internals.RowsCollection.TryGetValue(ro, out XlsxRow row)
                             ? row.Style
                             : Worksheet.Style;
@@ -1109,14 +1104,14 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return rangeToReturn.Columns();
     }
 
-    public IXlsxRangeRows InsertRowsBelow(Int32 numberOfRows)
+    public IXlsxRangeRows InsertRowsBelow(int numberOfRows)
     {
         return InsertRowsBelow(numberOfRows, true);
     }
 
-    public IXlsxRangeRows InsertRowsBelow(Int32 numberOfRows, Boolean expandRange)
+    public IXlsxRangeRows InsertRowsBelow(int numberOfRows, bool expandRange)
     {
-        var retVal = InsertRowsBelow(false, numberOfRows);
+        IXlsxRangeRows retVal = InsertRowsBelow(false, numberOfRows);
         // Adjust the range
         if (expandRange)
         {
@@ -1135,17 +1130,17 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return retVal;
     }
 
-    public IXlsxRangeRows InsertRowsBelow(Boolean onlyUsedCells, Int32 numberOfRows, Boolean formatFromAbove = true)
+    public IXlsxRangeRows InsertRowsBelow(bool onlyUsedCells, int numberOfRows, bool formatFromAbove = true)
     {
         return InsertRowsBelowInternal(onlyUsedCells, numberOfRows, formatFromAbove, nullReturn: false);
     }
 
-    public void InsertRowsBelowVoid(Boolean onlyUsedCells, Int32 numberOfRows, Boolean formatFromAbove = true)
+    public void InsertRowsBelowVoid(bool onlyUsedCells, int numberOfRows, bool formatFromAbove = true)
     {
         InsertRowsBelowInternal(onlyUsedCells, numberOfRows, formatFromAbove, nullReturn: true);
     }
 
-    private IXlsxRangeRows InsertRowsBelowInternal(Boolean onlyUsedCells, Int32 numberOfRows, Boolean formatFromAbove, Boolean nullReturn)
+    private IXlsxRangeRows InsertRowsBelowInternal(bool onlyUsedCells, int numberOfRows, bool formatFromAbove, bool nullReturn)
     {
         int rowCount = RowCount();
         int firstRow = RangeAddress.FirstAddress.RowNumber + rowCount;
@@ -1160,18 +1155,18 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         if (lastColumn > XlsxHelper.MaxColumnNumber)
             lastColumn = XlsxHelper.MaxColumnNumber;
 
-        var newRange = Worksheet.Range(firstRow, firstColumn, lastRow, lastColumn);
+        XlsxRange newRange = Worksheet.Range(firstRow, firstColumn, lastRow, lastColumn);
         return newRange.InsertRowsAboveInternal(onlyUsedCells, numberOfRows, formatFromAbove, nullReturn);
     }
 
-    public IXlsxRangeRows InsertRowsAbove(Int32 numberOfRows)
+    public IXlsxRangeRows InsertRowsAbove(int numberOfRows)
     {
         return InsertRowsAbove(numberOfRows, false);
     }
 
-    public IXlsxRangeRows InsertRowsAbove(Int32 numberOfRows, Boolean expandRange)
+    public IXlsxRangeRows InsertRowsAbove(int numberOfRows, bool expandRange)
     {
-        var retVal = InsertRowsAbove(false, numberOfRows);
+        IXlsxRangeRows retVal = InsertRowsAbove(false, numberOfRows);
         // Adjust the range
         if (expandRange)
         {
@@ -1190,23 +1185,23 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return retVal;
     }
 
-    public void InsertRowsAboveVoid(Boolean onlyUsedCells, Int32 numberOfRows, Boolean formatFromAbove = true)
+    public void InsertRowsAboveVoid(bool onlyUsedCells, int numberOfRows, bool formatFromAbove = true)
     {
         InsertRowsAboveInternal(onlyUsedCells, numberOfRows, formatFromAbove, nullReturn: true);
     }
 
-    public IXlsxRangeRows InsertRowsAbove(Boolean onlyUsedCells, Int32 numberOfRows, Boolean formatFromAbove = true)
+    public IXlsxRangeRows InsertRowsAbove(bool onlyUsedCells, int numberOfRows, bool formatFromAbove = true)
     {
         return InsertRowsAboveInternal(onlyUsedCells, numberOfRows, formatFromAbove, nullReturn: false);
     }
 
-    private IXlsxRangeRows InsertRowsAboveInternal(Boolean onlyUsedCells, Int32 numberOfRows, Boolean formatFromAbove, Boolean nullReturn)
+    private IXlsxRangeRows InsertRowsAboveInternal(bool onlyUsedCells, int numberOfRows, bool formatFromAbove, bool nullReturn)
     {
         if (numberOfRows <= 0 || numberOfRows > XlsxHelper.MaxRowNumber)
             throw new ArgumentOutOfRangeException(nameof(numberOfRows),
                 $"Number of rows to insert must be a positive number no more than {XlsxHelper.MaxRowNumber}");
 
-        var asRange = AsRange();
+        XlsxRange asRange = AsRange();
         foreach (XlsxWorksheet ws in Worksheet.Workbook.WorksheetsInternal)
         {
             foreach (XlsxCell cell in ws.Internals.CellsCollection.GetCells(c => c.Formula is not null))
@@ -1235,33 +1230,33 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
             new Point(RangeAddress.FirstAddress.RowNumber + numberOfRows - 1, RangeAddress.LastAddress.ColumnNumber));
         Worksheet.Internals.CellsCollection.InsertAreaAndShiftDown(insertedRange);
 
-        Int32 firstRowReturn = RangeAddress.FirstAddress.RowNumber;
-        Int32 lastRowReturn = RangeAddress.FirstAddress.RowNumber + numberOfRows - 1;
-        Int32 firstColumnReturn = RangeAddress.FirstAddress.ColumnNumber;
-        Int32 lastColumnReturn = RangeAddress.LastAddress.ColumnNumber;
+        int firstRowReturn = RangeAddress.FirstAddress.RowNumber;
+        int lastRowReturn = RangeAddress.FirstAddress.RowNumber + numberOfRows - 1;
+        int firstColumnReturn = RangeAddress.FirstAddress.ColumnNumber;
+        int lastColumnReturn = RangeAddress.LastAddress.ColumnNumber;
 
         Worksheet.NotifyRangeShiftedRows(AsRange(), numberOfRows);
 
-        var rangeToReturn = Worksheet.Range(firstRowReturn, firstColumnReturn, lastRowReturn, lastColumnReturn);
+        XlsxRange rangeToReturn = Worksheet.Range(firstRowReturn, firstColumnReturn, lastRowReturn, lastColumnReturn);
 
         // We deliberately ignore conditional formats and data validation here. Their shifting is handled elsewhere
-        var contentFlags = XlsxCellsUsedOptions.All
+        XlsxCellsUsedOptions contentFlags = XlsxCellsUsedOptions.All
             & ~XlsxCellsUsedOptions.ConditionalFormats
             & ~XlsxCellsUsedOptions.DataValidation;
 
         if (formatFromAbove && rangeToReturn.RangeAddress.FirstAddress.RowNumber > 1)
         {
-            var fr = rangeToReturn.FirstRow();
-            var model = fr.RowAbove();
-            var modelFirstColumn = (model as IXlsxRangeBase).FirstCellUsed(contentFlags);
-            var modelLastColumn = (model as IXlsxRangeBase).LastCellUsed(contentFlags);
+            XlsxRangeRow fr = rangeToReturn.FirstRow();
+            XlsxRangeRow model = fr.RowAbove();
+            IXlsxCell modelFirstColumn = (model as IXlsxRangeBase).FirstCellUsed(contentFlags);
+            IXlsxCell modelLastColumn = (model as IXlsxRangeBase).LastCellUsed(contentFlags);
             if (modelFirstColumn != null && modelLastColumn != null)
             {
-                Int32 firstCoReturned = modelFirstColumn.Address.ColumnNumber
+                int firstCoReturned = modelFirstColumn.Address.ColumnNumber
                                         - model.RangeAddress.FirstAddress.ColumnNumber + 1;
-                Int32 lastCoReturned = modelLastColumn.Address.ColumnNumber
+                int lastCoReturned = modelLastColumn.Address.ColumnNumber
                                         - model.RangeAddress.FirstAddress.ColumnNumber + 1;
-                for (Int32 co = firstCoReturned; co <= lastCoReturned; co++)
+                for (int co = firstCoReturned; co <= lastCoReturned; co++)
                 {
                     rangeToReturn.Column(co).Style = model.Cell(co).Style;
                 }
@@ -1269,13 +1264,13 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         }
         else
         {
-            var lastCoUsed = rangeToReturn.LastColumnUsed(contentFlags);
+            XlsxRangeColumn lastCoUsed = rangeToReturn.LastColumnUsed(contentFlags);
             if (lastCoUsed != null)
             {
-                Int32 lastCoReturned = lastCoUsed.ColumnNumber();
-                for (Int32 co = 1; co <= lastCoReturned; co++)
+                int lastCoReturned = lastCoUsed.ColumnNumber();
+                for (int co = 1; co <= lastCoReturned; co++)
                 {
-                    var styleToUse =
+                    IXlsxStyle styleToUse =
                         Worksheet.Internals.ColumnsCollection.TryGetValue(co, out XlsxColumn column)
                             ? column.Style
                             : Worksheet.Style;
@@ -1298,7 +1293,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         mergeToDelete.ForEach(m => Worksheet.Internals.MergedRanges.Remove(m));
     }
 
-    public Boolean Contains(IXlsxCell cell)
+    public bool Contains(IXlsxCell cell)
     {
         return Contains((XlsxAddress)cell.Address);
     }
@@ -1329,7 +1324,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
             RangeAddress.LastAddress.ColumnNumber);
 
         // Shift formulas first
-        foreach (var cell in Worksheet
+        foreach (XlsxCell cell in Worksheet
             .Workbook
             .Worksheets
             .Cast<XlsxWorksheet>()
@@ -1345,8 +1340,8 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         }
 
         // Range to shift...
-        Int32 columnModifier = 0;
-        Int32 rowModifier = 0;
+        int columnModifier = 0;
+        int rowModifier = 0;
         var range = Area.FromRangeAddress(RangeAddress);
         switch (shiftDeleteCells)
         {
@@ -1364,7 +1359,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         var mergesToRemove = Worksheet.Internals.MergedRanges.Where<XlsxRange>(Contains).ToList();
         mergesToRemove.ForEach(r => Worksheet.Internals.MergedRanges.Remove(r));
 
-        var shiftedRange = AsRange();
+        XlsxRange shiftedRange = AsRange();
         if (shiftDeleteCells == XlsxShiftDeletedCells.ShiftCellsUp)
             Worksheet.NotifyRangeShiftedRows(shiftedRange, rowModifier * -1);
         else
@@ -1375,7 +1370,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     public override string ToString()
     {
-        return String.Concat(
+        return string.Concat(
             Worksheet.Name.EscapeSheetName(),
             '!',
             RangeAddress.FirstAddress,
@@ -1402,7 +1397,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         if (shiftLeftBoundary)
         {
             if (newLeftBoundary + columnsShifted > shiftedRange.RangeAddress.FirstAddress.ColumnNumber)
-                newLeftBoundary = newLeftBoundary + columnsShifted;
+                newLeftBoundary += columnsShifted;
             else
                 newLeftBoundary = shiftedRange.RangeAddress.FirstAddress.ColumnNumber;
         }
@@ -1459,7 +1454,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         if (shiftTopBoundary)
         {
             if (newTopBoundary + rowsShifted > shiftedRange.RangeAddress.FirstAddress.RowNumber)
-                newTopBoundary = newTopBoundary + rowsShifted;
+                newTopBoundary += rowsShifted;
             else
                 newTopBoundary = shiftedRange.RangeAddress.FirstAddress.RowNumber;
         }
@@ -1504,10 +1499,10 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     public IXlsxRange RangeUsed(XlsxCellsUsedOptions options)
     {
-        var firstCell = (this as IXlsxRangeBase).FirstCellUsed(options);
+        IXlsxCell firstCell = (this as IXlsxRangeBase).FirstCellUsed(options);
         if (firstCell == null)
             return null;
-        var lastCell = (this as IXlsxRangeBase).LastCellUsed(options);
+        IXlsxCell lastCell = (this as IXlsxRangeBase).LastCellUsed(options);
         return Worksheet.Range(firstCell, lastCell);
     }
 
@@ -1532,12 +1527,12 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
     //    return chart;
     //}
 
-    IXlsxPivotTable IXlsxRangeBase.CreatePivotTable(IXlsxCell targetCell, String name)
+    IXlsxPivotTable IXlsxRangeBase.CreatePivotTable(IXlsxCell targetCell, string name)
     {
         return CreatePivotTable(targetCell, name);
     }
 
-    public XlsxPivotTable CreatePivotTable(IXlsxCell targetCell, String name)
+    public XlsxPivotTable CreatePivotTable(IXlsxCell targetCell, string name)
     {
         return (XlsxPivotTable)targetCell.Worksheet.PivotTables.Add(name, targetCell, AsRange());
     }
@@ -1547,7 +1542,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return SetAutoFilter(true);
     }
 
-    public IXlsxAutoFilter SetAutoFilter(Boolean value)
+    public IXlsxAutoFilter SetAutoFilter(bool value)
     {
         if (value)
             return Worksheet.AutoFilter.Set(this);
@@ -1559,18 +1554,18 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     public IXlsxSortElements SortRows
     {
-        get { return _sortRows ?? (_sortRows = new XlsxSortElements()); }
+        get { return _sortRows ??= []; }
     }
 
     public IXlsxSortElements SortColumns
     {
-        get { return _sortColumns ?? (_sortColumns = new XlsxSortElements()); }
+        get { return _sortColumns ??= []; }
     }
 
-    private String DefaultSortString()
+    private string DefaultSortString()
     {
         var sb = new StringBuilder();
-        Int32 maxColumn = ColumnCount();
+        int maxColumn = ColumnCount();
         if (maxColumn == XlsxHelper.MaxColumnNumber)
             maxColumn = (this as IXlsxRangeBase).LastCellUsed(XlsxCellsUsedOptions.All).Address.ColumnNumber;
         for (int i = 1; i <= maxColumn; i++)
@@ -1595,10 +1590,10 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return this;
     }
 
-    public IXlsxRangeBase Sort(String columnsToSortBy, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true)
+    public IXlsxRangeBase Sort(string columnsToSortBy, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true)
     {
         SortColumns.Clear();
-        if (String.IsNullOrWhiteSpace(columnsToSortBy))
+        if (string.IsNullOrWhiteSpace(columnsToSortBy))
         {
             columnsToSortBy = DefaultSortString();
         }
@@ -1609,15 +1604,15 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return this;
     }
 
-    public IXlsxRangeBase Sort(Int32 columnToSortBy, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true)
+    public IXlsxRangeBase Sort(int columnToSortBy, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true)
     {
         return Sort(columnToSortBy.ToString(), sortOrder, matchCase, ignoreBlanks);
     }
 
-    public IXlsxRangeBase SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true)
+    public IXlsxRangeBase SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true)
     {
         SortRows.Clear();
-        Int32 maxColumn = ColumnCount();
+        int maxColumn = ColumnCount();
         if (maxColumn == XlsxHelper.MaxColumnNumber)
             maxColumn = (this as IXlsxRangeBase).LastCellUsed(XlsxCellsUsedOptions.All).Address.ColumnNumber;
 
@@ -1632,8 +1627,8 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     private void SortRangeRows()
     {
-        var sortRange = SheetRange;
-        var cellsCollection = Worksheet.Internals.CellsCollection;
+        Area sortRange = SheetRange;
+        XlsxCellsCollection cellsCollection = Worksheet.Internals.CellsCollection;
         if (sortRange.IsEntireColumn())
         {
             // If we're dealing with the entire column, we're not interested in the unused cells
@@ -1653,8 +1648,8 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     private void SortRangeColumns()
     {
-        var sortRange = SheetRange;
-        var cellsCollection = Worksheet.Internals.CellsCollection;
+        Area sortRange = SheetRange;
+        XlsxCellsCollection cellsCollection = Worksheet.Internals.CellsCollection;
         if (sortRange.IsEntireRow())
         {
             // If we're dealing with the entire row, we're not interested in the unused cells
@@ -1676,9 +1671,9 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
     {
         foreach (var sortColumn in columnsToSortBy.Split(',').Select(coPair => coPair.Trim()))
         {
-            var sortOrder = defaultSortOrder;
+            XlsxSortOrder sortOrder = defaultSortOrder;
 
-            String columnName;
+            string columnName;
             if (sortColumn.Contains(' '))
             {
                 var pair = sortColumn.Split(' ');
@@ -1690,7 +1685,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
                 columnName = sortColumn;
             }
 
-            if (!Int32.TryParse(columnName, out Int32 columnNumber))
+            if (!int.TryParse(columnName, out int columnNumber))
                 columnNumber = XlsxHelper.GetColumnNumberFromLetter(columnName);
 
             yield return new XlsxSortElement(
@@ -1703,7 +1698,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     #endregion Sort
 
-    public XlsxRangeColumn ColumnQuick(Int32 column)
+    public XlsxRangeColumn ColumnQuick(int column)
     {
         var firstCellAddress = new XlsxAddress(Worksheet,
                                              RangeAddress.FirstAddress.RowNumber,
@@ -1765,7 +1760,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         return this.Worksheet.Range(firstRow, firstColumn, lastRow, lastColumn);
     }
 
-    public IXlsxRangeAddress Intersection(IXlsxRangeBase otherRange, Func<IXlsxCell, Boolean> thisRangePredicate = null, Func<IXlsxCell, Boolean> otherRangePredicate = null)
+    public IXlsxRangeAddress Intersection(IXlsxRangeBase otherRange, Func<IXlsxCell, bool> thisRangePredicate = null, Func<IXlsxCell, bool> otherRangePredicate = null)
     {
         if (otherRange == null)
             return null;
@@ -1780,10 +1775,10 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         }
         else
         {
-            thisRangePredicate = thisRangePredicate ?? (c => true);
-            otherRangePredicate = otherRangePredicate ?? (c => true);
+            thisRangePredicate ??= (c => true);
+            otherRangePredicate ??= (c => true);
 
-            var intersectionCells = this.Cells(c => thisRangePredicate(c) && otherRange.Cells(otherRangePredicate).Contains(c));
+            IXlsxCells intersectionCells = this.Cells(c => thisRangePredicate(c) && otherRange.Cells(otherRangePredicate).Contains(c));
 
             if (!intersectionCells.Any())
                 return null;
@@ -1802,14 +1797,14 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         }
     }
 
-    public IXlsxCells SurroundingCells(Func<IXlsxCell, Boolean> predicate = null)
+    public IXlsxCells SurroundingCells(Func<IXlsxCell, bool> predicate = null)
     {
         var cells = new XlsxCells(Worksheet, false, XlsxCellsUsedOptions.AllContents, predicate);
         this.Grow().Cells(c => !this.Contains(c)).ForEach(c => cells.Add(c as XlsxCell));
         return cells;
     }
 
-    public IXlsxCells Union(IXlsxRangeBase otherRange, Func<IXlsxCell, Boolean> thisRangePredicate = null, Func<IXlsxCell, Boolean> otherRangePredicate = null)
+    public IXlsxCells Union(IXlsxRangeBase otherRange, Func<IXlsxCell, bool> thisRangePredicate = null, Func<IXlsxCell, bool> otherRangePredicate = null)
     {
         if (otherRange == null)
             return this.Cells(thisRangePredicate);
@@ -1818,14 +1813,14 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         if (!this.Worksheet.Equals(otherRange.Worksheet))
             return cells;
 
-        if (thisRangePredicate == null) thisRangePredicate = c => true;
-        if (otherRangePredicate == null) otherRangePredicate = c => true;
+        thisRangePredicate ??= c => true;
+        otherRangePredicate ??= c => true;
 
         this.Cells(thisRangePredicate).Concat(otherRange.Cells(otherRangePredicate)).Distinct().ForEach(c => cells.Add(c as XlsxCell));
         return cells;
     }
 
-    public IXlsxCells Difference(IXlsxRangeBase otherRange, Func<IXlsxCell, Boolean> thisRangePredicate = null, Func<IXlsxCell, Boolean> otherRangePredicate = null)
+    public IXlsxCells Difference(IXlsxRangeBase otherRange, Func<IXlsxCell, bool> thisRangePredicate = null, Func<IXlsxCell, bool> otherRangePredicate = null)
     {
         if (otherRange == null)
             return this.Cells(thisRangePredicate);
@@ -1834,8 +1829,8 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         if (!this.Worksheet.Equals(otherRange.Worksheet))
             return cells;
 
-        if (thisRangePredicate == null) thisRangePredicate = c => true;
-        if (otherRangePredicate == null) otherRangePredicate = c => true;
+        thisRangePredicate ??= c => true;
+        otherRangePredicate ??= c => true;
 
         this.Cells(c => thisRangePredicate(c) && !otherRange.Cells(otherRangePredicate).Contains(c)).ForEach(c => cells.Add(c as XlsxCell));
         return cells;
@@ -1846,7 +1841,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         predicate ??= (t => true);
 
         // To avoid unnecessary initialization of thousands cells to not hang on very large CFs, DVs or merged ranges.
-        var opt = options
+        XlsxCellsUsedOptions opt = options
                   & ~XlsxCellsUsedOptions.ConditionalFormats
                   & ~XlsxCellsUsedOptions.DataValidation
                   & ~XlsxCellsUsedOptions.MergedRanges;
@@ -1859,7 +1854,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
         if (options.HasFlag(XlsxCellsUsedOptions.ConditionalFormats))
         {
-            var area = SheetRange;
+            Area area = SheetRange;
             cellsUsed = cellsUsed.Union(
                 Worksheet.ConditionalFormats
                     .SelectMany<XlsxConditionalFormat, Area>(cf => cf.Areas.IntersectingWith(area))

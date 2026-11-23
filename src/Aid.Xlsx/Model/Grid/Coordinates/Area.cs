@@ -22,7 +22,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
         LastPoint = lastPoint;
     }
 
-    public Area(Int32 rowStart, Int32 columnStart, Int32 rowEnd, Int32 columnEnd)
+    public Area(int rowStart, int columnStart, int rowEnd, int columnEnd)
         : this(new Point(rowStart, columnStart), new Point(rowEnd, columnEnd))
     {
     }
@@ -101,7 +101,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
 
 
     /// <inheritdoc cref="Parse(ReadOnlySpan{char})"/>
-    public static Area Parse(String input) => Parse(input.AsSpan());
+    public static Area Parse(string input) => Parse(input.AsSpan());
 
     /// <summary>
     /// Parse point per type <c>ST_Ref</c> from
@@ -112,8 +112,8 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <exception cref="FormatException">If the input doesn't match expected grammar.</exception>
     public static Area Parse(ReadOnlySpan<char> input)
     {
-        if (!TryParse(input, out var area))
-            throw new FormatException($"Area reference doesn't have correct format: '{input.ToString()}'.");
+        if (!TryParse(input, out Area area))
+            throw new FormatException($"Area reference doesn't have correct format: '{input}'.");
 
         return area;
     }
@@ -127,7 +127,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
         var separatorIndex = input.IndexOf(':');
         if (separatorIndex == -1)
         {
-            if (!Point.TryParse(input, out var sheetPoint))
+            if (!Point.TryParse(input, out Point sheetPoint))
             {
                 area = default;
                 return false;
@@ -137,8 +137,8 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
             return true;
         }
 
-        if (!Point.TryParse(input[..separatorIndex], out var first) ||
-            !Point.TryParse(input[(separatorIndex + 1)..], out var second) ||
+        if (!Point.TryParse(input[..separatorIndex], out Point first) ||
+            !Point.TryParse(input[(separatorIndex + 1)..], out Point second) ||
             first.Column > second.Column || first.Row > second.Row)
         {
             area = default;
@@ -161,15 +161,15 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
 
         var firstPointLen = FirstPoint.Format(output);
         output[firstPointLen] = ':';
-        var lastPointLen = LastPoint.Format(output.Slice(firstPointLen + 1));
+        var lastPointLen = LastPoint.Format(output[(firstPointLen + 1)..]);
         return firstPointLen + 1 + lastPointLen;
     }
 
-    public override String ToString()
+    public override string ToString()
     {
         Span<char> text = stackalloc char[21];
         var len = Format(text);
-        return text.Slice(0, len).ToString();
+        return text[..len].ToString();
     }
 
     /// <summary>
@@ -263,8 +263,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <param name="rows">How many rows to take, must be at least one.</param>
     public Area SliceFromBottom(int rows)
     {
-        if (rows < 1)
-            throw new ArgumentOutOfRangeException();
+        ArgumentOutOfRangeException.ThrowIfLessThan(rows, 1);
 
         return new Area(new Point(BottomRow - rows + 1, FirstPoint.Column), LastPoint);
     }
@@ -275,8 +274,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <param name="rows">How many rows to take, must be at least one.</param>
     public Area SliceFromTop(int rows)
     {
-        if (rows < 1)
-            throw new ArgumentOutOfRangeException();
+        ArgumentOutOfRangeException.ThrowIfLessThan(rows, 1);
 
         return new Area(FirstPoint, new Point(TopRow + rows - 1, LastPoint.Column));
     }
@@ -287,8 +285,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <param name="columns">How many columns to take, must be at least one.</param>
     public Area SliceFromLeft(int columns)
     {
-        if (columns < 1)
-            throw new ArgumentOutOfRangeException();
+        ArgumentOutOfRangeException.ThrowIfLessThan(columns, 1);
 
         return new Area(FirstPoint, new Point(LastPoint.Row, LeftColumn + columns - 1));
     }
@@ -299,8 +296,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <param name="columns">How many columns to take, must be at least one.</param>
     public Area SliceFromRight(int columns)
     {
-        if (columns < 1)
-            throw new ArgumentOutOfRangeException();
+        ArgumentOutOfRangeException.ThrowIfLessThan(columns, 1);
 
         return new Area(new Point(FirstPoint.Row, RightColumn - columns + 1), LastPoint);
     }
@@ -381,7 +377,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <returns>New range.</returns>
     internal Area At(Point topLeftCorner)
     {
-        var bottomRightCorner = topLeftCorner.ShiftColumn(Width - 1).ShiftRow(Height - 1);
+        Point bottomRightCorner = topLeftCorner.ShiftColumn(Width - 1).ShiftRow(Height - 1);
         return new Area(topLeftCorner, bottomRightCorner);
     }
 
@@ -409,8 +405,8 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <returns>Newly created area.</returns>
     internal Area ShiftRows(int rowShift)
     {
-        var topLeftCorner = FirstPoint.ShiftRow(rowShift);
-        var bottomRightCorner = LastPoint.ShiftRow(rowShift);
+        Point topLeftCorner = FirstPoint.ShiftRow(rowShift);
+        Point bottomRightCorner = LastPoint.ShiftRow(rowShift);
         return new Area(topLeftCorner, bottomRightCorner);
     }
 
@@ -443,8 +439,8 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <returns>Newly created area.</returns>
     internal Area ShiftColumns(int columnShift)
     {
-        var topLeftCorner = FirstPoint.ShiftColumn(columnShift);
-        var bottomRightCorner = LastPoint.ShiftColumn(columnShift);
+        Point topLeftCorner = FirstPoint.ShiftColumn(columnShift);
+        Point bottomRightCorner = LastPoint.ShiftColumn(columnShift);
         return new Area(topLeftCorner, bottomRightCorner);
     }
 
@@ -526,7 +522,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
             {
                 var pushedOutColsCount = RightColumn + insertedArea.Width - XlsxHelper.MaxColumnNumber;
                 var keepCols = Width - pushedOutColsCount;
-                var resized = SliceFromLeft(keepCols);
+                Area resized = SliceFromLeft(keepCols);
                 result = resized.ShiftColumns(insertedArea.Width);
                 return true;
             }
@@ -580,7 +576,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
             {
                 var pushedOutRowsCount = BottomRow + insertedArea.Height - XlsxHelper.MaxRowNumber;
                 var keepRows = Height - pushedOutRowsCount;
-                var resized = SliceFromTop(keepRows);
+                Area resized = SliceFromTop(keepRows);
                 result = resized.ShiftRows(insertedArea.Height);
                 return true;
             }
@@ -661,7 +657,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
         var deletesColumnsToLeft = deletedArea.LeftColumn < LeftColumn;
         var deletesColumnsOfArea = deletedArea.LeftColumn <= RightColumn &&
                                    deletedArea.RightColumn >= LeftColumn;
-        var repositioned = this;
+        Area repositioned = this;
         if (deletesColumnsOfArea)
         {
             // Decrease width of repositioned area
@@ -761,7 +757,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
         var deletesRowsAboveArea = deletedArea.TopRow < TopRow;
         var deletesRowsOfArea = deletedArea.TopRow <= BottomRow &&
                                 deletedArea.BottomRow >= TopRow;
-        var repositioned = this;
+        Area repositioned = this;
         if (deletesRowsOfArea)
         {
             // Decrease height of repositioned area
@@ -908,7 +904,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
             return null;
 
         var shift = Math.Max(TopRow - deletedTopRow, 0);
-        var shifted = ShiftRows(-shift);
+        Area shifted = ShiftRows(-shift);
         return new Area(shifted.TopRow, shifted.LeftColumn, shifted.BottomRow - shrink, shifted.RightColumn);
     }
 
@@ -940,7 +936,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
             return null;
 
         var shift = Math.Max(LeftColumn - deletedLeftColumn, 0);
-        var shifted = ShiftColumns(-shift);
+        Area shifted = ShiftColumns(-shift);
         return new Area(shifted.TopRow, shifted.LeftColumn, shifted.BottomRow, shifted.RightColumn - shrink);
     }
 

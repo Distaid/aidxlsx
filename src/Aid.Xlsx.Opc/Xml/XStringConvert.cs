@@ -38,7 +38,7 @@ public class XStringConvert
         // An index of next character after last encountered XString pattern.
         // Initial value is 0 because text from that index on is copied.
         var prevSliceNextCharIndex = 0;
-        var textSpan = text.AsSpan();
+        ReadOnlySpan<char> textSpan = text.AsSpan();
         for (var i = textSpan.IndexOf('_'); i >= 0 && i < text.Length - 6; i = text.IndexOf('_', i + 1))
         {
             if (IsPattern(textSpan, i))
@@ -101,7 +101,7 @@ public class XStringConvert
     private static uint GetHexValue(ReadOnlySpan<char> text)
     {
         if (text.Length > 8)
-            throw new ArgumentException();
+            throw new ArgumentException("A hexadecimal value cannot be longer than 8 characters.", nameof(text));
 
         var codepoint = 0u;
         foreach (var c in text)

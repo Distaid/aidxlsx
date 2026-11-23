@@ -103,7 +103,6 @@ internal sealed class XmlTreeWriter : IDisposable
 
     private void ThrowIfDisposed()
     {
-        if (_disposed)
-            throw new ObjectDisposedException(nameof(XmlTreeWriter));
+        ObjectDisposedException.ThrowIf(_disposed, this);
     }
 }

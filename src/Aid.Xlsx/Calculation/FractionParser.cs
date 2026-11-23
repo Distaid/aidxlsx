@@ -8,14 +8,14 @@ namespace Aid.Xlsx.Calculation;
 /// <summary>
 /// Parse a fraction for text-to-number type coercion.
 /// </summary>
-internal static class FractionParser
+internal static partial class FractionParser
 {
-    private static readonly Regex FractionRegex = new(@"^ *([+-]?) *([0-9]+) ([0-9]{1,5})/([0-9]{1,5}) *$", RegexOptions.CultureInvariant);
+    private static readonly Regex FractionRegex = MyRegex();
 
     public static bool TryParse(string s, out double result)
     {
         result = default;
-        var match = FractionRegex.Match(s);
+        Match match = FractionRegex.Match(s);
         if (!match.Success)
             return false;
 
@@ -27,7 +27,7 @@ internal static class FractionParser
         if (numerator > short.MaxValue)
             return false;
 
-        var sign = match.Groups[1];
+        Group sign = match.Groups[1];
         var wholeNumber = ParseInt(match.Groups[2]);
 
         var fraction = wholeNumber + numerator / (double)denominator;
@@ -38,4 +38,7 @@ internal static class FractionParser
         static int ParseInt(Capture capture) =>
             int.Parse(capture.Value, NumberStyles.None, CultureInfo.InvariantCulture);
     }
+
+    [GeneratedRegex(@"^ *([+-]?) *([0-9]+) ([0-9]{1,5})/([0-9]{1,5}) *$", RegexOptions.CultureInvariant)]
+    private static partial Regex MyRegex();
 }

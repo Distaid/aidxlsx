@@ -13,7 +13,7 @@ public interface IXlsxRows : IEnumerable<IXlsxRow>
     /// <value>
     /// The height of all rows.
     /// </value>
-    Double Height { set; }
+    double Height { set; }
 
     /// <summary>
     /// Deletes all rows and shifts the rows below them accordingly.
@@ -29,20 +29,20 @@ public interface IXlsxRows : IEnumerable<IXlsxRow>
     /// Adjusts the height of all rows based on its contents, starting from the startColumn.
     /// </summary>
     /// <param name="startColumn">The column to start calculating the row height.</param>
-    IXlsxRows AdjustToContents(Int32 startColumn);
+    IXlsxRows AdjustToContents(int startColumn);
 
     /// <summary>
     /// Adjusts the height of all rows based on its contents, starting from the startColumn and ending at endColumn.
     /// </summary>
     /// <param name="startColumn">The column to start calculating the row height.</param>
     /// <param name="endColumn">The column to end calculating the row height.</param>
-    IXlsxRows AdjustToContents(Int32 startColumn, Int32 endColumn);
+    IXlsxRows AdjustToContents(int startColumn, int endColumn);
 
-    IXlsxRows AdjustToContents(Double minHeight, Double maxHeight);
+    IXlsxRows AdjustToContents(double minHeight, double maxHeight);
 
-    IXlsxRows AdjustToContents(Int32 startColumn, Double minHeight, Double maxHeight);
+    IXlsxRows AdjustToContents(int startColumn, double minHeight, double maxHeight);
 
-    IXlsxRows AdjustToContents(Int32 startColumn, Int32 endColumn, Double minHeight, Double maxHeight);
+    IXlsxRows AdjustToContents(int startColumn, int endColumn, double minHeight, double maxHeight);
 
     /// <summary>
     /// Hides all rows.
@@ -61,20 +61,20 @@ public interface IXlsxRows : IEnumerable<IXlsxRow>
     /// Increments the outline level of all rows by 1.
     /// </summary>
     /// <param name="collapse">If set to <c>true</c> the rows will be shown collapsed.</param>
-    void Group(Boolean collapse);
+    void Group(bool collapse);
 
     /// <summary>
     /// Sets outline level for all rows.
     /// </summary>
     /// <param name="outlineLevel">The outline level.</param>
-    void Group(Int32 outlineLevel);
+    void Group(int outlineLevel);
 
     /// <summary>
     /// Sets outline level for all rows.
     /// </summary>
     /// <param name="outlineLevel">The outline level.</param>
     /// <param name="collapse">If set to <c>true</c> the rows will be shown collapsed.</param>
-    void Group(Int32 outlineLevel, Boolean collapse);
+    void Group(int outlineLevel, bool collapse);
 
     /// <summary>
     /// Decrements the outline level of all rows by 1.
@@ -85,7 +85,7 @@ public interface IXlsxRows : IEnumerable<IXlsxRow>
     /// Decrements the outline level of all rows by 1.
     /// </summary>
     /// <param name="fromAll">If set to <c>true</c> it will remove the rows from all outline levels.</param>
-    void Ungroup(Boolean fromAll);
+    void Ungroup(bool fromAll);
 
     /// <summary>
     /// Show all rows as collapsed.

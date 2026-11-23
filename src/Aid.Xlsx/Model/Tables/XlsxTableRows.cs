@@ -7,15 +7,10 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Tables;
 
-internal class XlsxTableRows : IXlsxTableRows
+internal class XlsxTableRows(XlsxWorksheet worksheet) : IXlsxTableRows
 {
-    private readonly XlsxWorksheet _worksheet;
-    private readonly List<XlsxTableRow> _ranges = new List<XlsxTableRow>();
-
-    public XlsxTableRows(XlsxWorksheet worksheet)
-    {
-        _worksheet = worksheet;
-    }
+    private readonly XlsxWorksheet _worksheet = worksheet;
+    private readonly List<XlsxTableRow> _ranges = [];
 
     #region IXlsxTableRows Members
 
@@ -70,7 +65,7 @@ internal class XlsxTableRows : IXlsxTableRows
         return cells;
     }
 
-    public IXlsxCells CellsUsed(Boolean includeFormats)
+    public IXlsxCells CellsUsed(bool includeFormats)
     {
         return CellsUsed(includeFormats
             ? XlsxCellsUsedOptions.All
@@ -87,7 +82,7 @@ internal class XlsxTableRows : IXlsxTableRows
 
     public void Select()
     {
-        foreach (var range in this)
+        foreach (IXlsxTableRow range in this)
             range.Select();
     }
 
@@ -97,7 +92,7 @@ internal class XlsxTableRows : IXlsxTableRows
     {
         get
         {
-            var rowAreas = _ranges.Select(x => SheetArea.From(x.RangeAddress)).ToArray();
+            SheetArea[] rowAreas = [.. _ranges.Select(x => SheetArea.From(x.RangeAddress))];
             return XlsxCellFormat.ForTableRows(_worksheet, rowAreas);
         }
     }

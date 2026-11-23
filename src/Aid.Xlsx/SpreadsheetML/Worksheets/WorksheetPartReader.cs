@@ -76,14 +76,14 @@ internal static class WorksheetPartReader
                     LoadSheetViews((XElement)XNode.ReadFrom(reader), ws);
                     break;
                 case "mergeCells":
-                    foreach (var merge in ((XElement)XNode.ReadFrom(reader)).Elements(XName.Get("mergeCell", ns)))
+                    foreach (XElement merge in ((XElement)XNode.ReadFrom(reader)).Elements(XName.Get("mergeCell", ns)))
                         ws.Range((string)merge.Attribute("ref")).Merge(false);
                     break;
                 case "cols":
                     LoadColumns(ws, (XElement)XNode.ReadFrom(reader));
                     break;
                 case "sheetData":
-                    using (var subtree = reader.ReadSubtree())
+                    using (XmlReader subtree = reader.ReadSubtree())
                     using (var tree = new XmlTreeReader(subtree, XmlToEnumMapper.Instance, ws.Workbook.StrictAttributeParsing, leaveOpen: true))
                         new SheetDataReader(tree, ws, ws.Workbook.Styles, sst, ns).ParseCtSheetData("sheetData", ns);
                     reader.Read();
@@ -95,7 +95,7 @@ internal static class WorksheetPartReader
                     LoadSheetProtection((XElement)XNode.ReadFrom(reader), ws);
                     break;
                 case "dataValidations":
-                    foreach (var validation in ((XElement)XNode.ReadFrom(reader)).Elements(XName.Get("dataValidation", ns)))
+                    foreach (XElement validation in ((XElement)XNode.ReadFrom(reader)).Elements(XName.Get("dataValidation", ns)))
                         LoadDataValidation(validation, (string)validation.Attribute("sqref"), ws);
                     break;
                 case "conditionalFormatting":
@@ -157,11 +157,11 @@ internal static class WorksheetPartReader
 
     private static bool LoadSheetProperties(XElement properties, XlsxWorksheet ws)
     {
-        var ns = properties.Name.Namespace;
+        XNamespace ns = properties.Name.Namespace;
         if (properties.Element(ns + "tabColor") is { } tabColor)
             ws.TabColor = SpreadsheetColorXml.Read(tabColor);
 
-        var outline = properties.Element(ns + "outlinePr");
+        XElement outline = properties.Element(ns + "outlinePr");
         if ((bool?)outline?.Attribute("summaryBelow") is { } below)
             ws.Outline.SummaryVLocation = below ? XlsxOutlineSummaryVLocation.Bottom : XlsxOutlineSummaryVLocation.Top;
         if ((bool?)outline?.Attribute("summaryRight") is { } right)
@@ -172,8 +172,8 @@ internal static class WorksheetPartReader
 
     private static void LoadColumns(XlsxWorksheet ws, XElement columns)
     {
-        var spans = columns.Elements(columns.Name.Namespace + "col");
-        var defaultColumn = spans.FirstOrDefault(col => (uint?)col.Attribute("max") == XlsxHelper.MaxColumnNumber);
+        IEnumerable<XElement> spans = columns.Elements(columns.Name.Namespace + "col");
+        XElement defaultColumn = spans.FirstOrDefault(col => (uint?)col.Attribute("max") == XlsxHelper.MaxColumnNumber);
 
         if ((double?)defaultColumn?.Attribute("width") is { } defaultWidth)
             ws.ColumnWidth = defaultWidth - XlsxConstants.ColumnWidthOffset;
@@ -181,7 +181,7 @@ internal static class WorksheetPartReader
         // Sheet doesn't have a format, only column spans have format. When whole sheet is selected
         // to change format, Excel will mark all cols spans as having a particular format. Format
         // is considered a sheet format when all columns have a format and it's in the last column.
-        var colSpanFormats = spans.Select(col => (MinColumn: (uint?)col.Attribute("min"), MaxColumn: (uint?)col.Attribute("max"), XfId: (uint?)col.Attribute("style") ?? 0)).ToArray();
+        (uint? MinColumn, uint? MaxColumn, uint XfId)[] colSpanFormats = [.. spans.Select(col => (MinColumn: (uint?)col.Attribute("min"), MaxColumn: (uint?)col.Attribute("max"), XfId: (uint?)col.Attribute("style") ?? 0))];
         var allColsHaveFormat = colSpanFormats.Sum(x => x.MaxColumn - x.MinColumn + 1) == XlsxHelper.MaxColumnNumber;
         if (allColsHaveFormat)
         {
@@ -189,7 +189,7 @@ internal static class WorksheetPartReader
             ApplyStyle(ws, checked((int)lastColumnXfId), ws.Workbook.Styles);
         }
 
-        foreach (var col in spans)
+        foreach (XElement col in spans)
         {
             var max = (int)col.Attribute("max");
             if (max == XlsxHelper.MaxColumnNumber)
@@ -210,8 +210,8 @@ internal static class WorksheetPartReader
 
     private static void LoadSheetViews(XElement views, XlsxWorksheet ws)
     {
-        var ns = views.Name.Namespace;
-        var view = views.Element(ns + "sheetView");
+        XNamespace ns = views.Name.Namespace;
+        XElement view = views.Element(ns + "sheetView");
         if (view is null)
             return;
 
@@ -225,7 +225,7 @@ internal static class WorksheetPartReader
         ws.ShowZeros = (bool?)view.Attribute("showZeros") ?? ws.ShowZeros;
         ws.TabSelected = (bool?)view.Attribute("tabSelected") ?? ws.TabSelected;
 
-        var selection = view.Element(ns + "selection");
+        XElement selection = view.Element(ns + "selection");
         if ((string)selection?.Attribute("sqref") is { } references)
             ws.Ranges(references.Replace(' ', ',')).Select();
         if ((string)selection?.Attribute("activeCell") is { } activeCell)
@@ -240,7 +240,7 @@ internal static class WorksheetPartReader
         if ((uint?)view.Attribute("zoomScaleSheetLayoutView") is { } sheetZoom)
             ws.SheetView.ZoomScaleSheetLayoutView = unchecked((int)sheetZoom);
 
-        var pane = view.Element(ns + "pane");
+        XElement pane = view.Element(ns + "pane");
         if ((string)pane?.Attribute("state") is "frozen" or "frozenSplit")
         {
             if ((double?)pane.Attribute("xSplit") is { } xSplit)
@@ -258,12 +258,12 @@ internal static class WorksheetPartReader
         ws.Protection.IsProtected = (bool?)sp.Attribute("sheet") ?? false;
 
         var algorithmName = (string)sp.Attribute("algorithmName") ?? string.Empty;
-        if (String.IsNullOrEmpty(algorithmName))
+        if (string.IsNullOrEmpty(algorithmName))
         {
             ws.Protection.PasswordHash = (string)sp.Attribute("password") ?? string.Empty;
             ws.Protection.Base64EncodedSalt = string.Empty;
         }
-        else if (XlsxProtectionAlgorithm.TryParseDescription(algorithmName, out var algorithm))
+        else if (XlsxProtectionAlgorithm.TryParseDescription(algorithmName, out XlsxProtectionAlgorithm.Algorithm algorithm))
         {
             ws.Protection.Algorithm = algorithm;
             ws.Protection.PasswordHash = (string)sp.Attribute("hashValue") ?? string.Empty;
@@ -298,10 +298,10 @@ internal static class WorksheetPartReader
         if (string.IsNullOrWhiteSpace(references))
             return;
 
-        var ns = validation.Name.Namespace;
+        XNamespace ns = validation.Name.Namespace;
         foreach (var rangeAddress in references.Split((char[])null, StringSplitOptions.RemoveEmptyEntries))
         {
-            var rule = ws.DataValidations.Create(Area.Parse(rangeAddress));
+            XlsxDataValidation rule = ws.DataValidations.Create(Area.Parse(rangeAddress));
             rule.IgnoreBlanks = (bool?)validation.Attribute("allowBlank") ?? rule.IgnoreBlanks;
             if ((bool?)validation.Attribute("showDropDown") is { } hideDropdown)
                 rule.InCellDropdown = !hideDropdown;
@@ -349,7 +349,7 @@ internal static class WorksheetPartReader
 
     private static void LoadHyperlinks(XElement hyperlinks, IReadOnlyDictionary<string, Uri> targets, XlsxWorksheet ws)
     {
-        foreach (var link in hyperlinks.Elements(hyperlinks.Name.Namespace + "hyperlink"))
+        foreach (XElement link in hyperlinks.Elements(hyperlinks.Name.Namespace + "hyperlink"))
         {
             var reference = (string)link.Attribute("ref");
             if (string.IsNullOrEmpty(reference) || reference == "#REF")
@@ -359,7 +359,7 @@ internal static class WorksheetPartReader
             var id = (string)link.Attribute(XName.Get("id", OpenXmlConst.RelationshipsNs))
                 ?? (string)link.Attribute(XName.Get("id", OpenXmlConst.StrictRelationshipsNs));
             var location = (string)link.Attribute("location") ?? reference;
-            foreach (XlsxCell cell in ws.Range(reference).Cells())
+            foreach (XlsxCell cell in ws.Range(reference).Cells().Cast<XlsxCell>())
             {
                 cell.SetCellHyperlink(id is null ? new XlsxHyperlink(location, tooltip) : new XlsxHyperlink(targets[id], tooltip));
             }
@@ -368,7 +368,7 @@ internal static class WorksheetPartReader
 
     private static void LoadPrintOptions(XElement options, XlsxWorksheet ws)
     {
-        var setup = ws.PageSetup;
+        IXlsxPageSetup setup = ws.PageSetup;
         setup.ShowGridlines = (bool?)options.Attribute("gridLines") ?? setup.ShowGridlines;
         setup.CenterHorizontally = (bool?)options.Attribute("horizontalCentered") ?? setup.CenterHorizontally;
         setup.CenterVertically = (bool?)options.Attribute("verticalCentered") ?? setup.CenterVertically;
@@ -377,7 +377,7 @@ internal static class WorksheetPartReader
 
     private static void LoadPageMargins(XElement margins, XlsxWorksheet ws)
     {
-        var target = ws.PageSetup.Margins;
+        IXlsxMargins target = ws.PageSetup.Margins;
         target.Bottom = (double?)margins.Attribute("bottom") ?? target.Bottom;
         target.Footer = (double?)margins.Attribute("footer") ?? target.Footer;
         target.Header = (double?)margins.Attribute("header") ?? target.Header;
@@ -388,7 +388,7 @@ internal static class WorksheetPartReader
 
     private static void LoadPageSetup(XElement source, XlsxWorksheet ws, bool fitToPage)
     {
-        var setup = ws.PageSetup;
+        IXlsxPageSetup setup = ws.PageSetup;
         if ((int?)source.Attribute("paperSize") is { } paperSize)
             setup.PaperSize = (XlsxPaperSize)paperSize;
         if ((int?)source.Attribute("scale") is { } scale)
@@ -440,7 +440,7 @@ internal static class WorksheetPartReader
 
     private static void LoadHeaderFooter(XElement headerFooter, XlsxWorksheet ws)
     {
-        var setup = ws.PageSetup;
+        IXlsxPageSetup setup = ws.PageSetup;
         setup.AlignHFWithMargins = (bool?)headerFooter.Attribute("alignWithMargins") ?? setup.AlignHFWithMargins;
         setup.ScaleHFWithDocument = (bool?)headerFooter.Attribute("scaleWithDoc") ?? setup.ScaleHFWithDocument;
         setup.DifferentFirstPageOnHF = (bool?)headerFooter.Attribute("differentFirst") ?? setup.DifferentFirstPageOnHF;
@@ -451,7 +451,7 @@ internal static class WorksheetPartReader
 
         void LoadText(XlsxHeaderFooter target, string suffix)
         {
-            var ns = headerFooter.Name.Namespace;
+            XNamespace ns = headerFooter.Name.Namespace;
             if ((string)headerFooter.Element(ns + ("odd" + suffix)) is { } odd)
                 target.SetInnerText(XlsxHFOccurrence.OddPages, odd);
             if ((string)headerFooter.Element(ns + ("even" + suffix)) is { } even)
@@ -464,7 +464,7 @@ internal static class WorksheetPartReader
 
     private static void LoadBreaks(XElement breaks, ICollection<int> target)
     {
-        foreach (var pageBreak in breaks.Elements(breaks.Name.Namespace + "brk"))
+        foreach (XElement pageBreak in breaks.Elements(breaks.Name.Namespace + "brk"))
         {
             if ((int?)pageBreak.Attribute("id") is { } id)
                 target.Add(id);
@@ -473,16 +473,16 @@ internal static class WorksheetPartReader
 
     private static void LoadExtensions(XElement extensions, XlsxWorksheet ws)
     {
-        foreach (var validation in extensions.Descendants(Extended + "dataValidations").Elements(Extended + "dataValidation"))
+        foreach (XElement validation in extensions.Descendants(Extended + "dataValidations").Elements(Extended + "dataValidation"))
             LoadDataValidation(validation, (string)validation.Element(Excel + "sqref"), ws);
 
-        foreach (var source in extensions.Descendants(Extended + "sparklineGroups").Elements(Extended + "sparklineGroup"))
+        foreach (XElement source in extensions.Descendants(Extended + "sparklineGroups").Elements(Extended + "sparklineGroup"))
         {
-            var group = ws.SparklineGroupsInternal.Add();
+            XlsxSparklineGroup group = ws.SparklineGroupsInternal.Add();
             if ((string)source.Element(Excel + "f") is { } dates)
                 group.DateRange = ws.Workbook.Range(dates);
 
-            var style = group.Style;
+            IXlsxSparklineStyle style = group.Style;
             style.FirstMarkerColor = ReadColor("colorFirst", style.FirstMarkerColor);
             style.LastMarkerColor = ReadColor("colorLast", style.LastMarkerColor);
             style.HighMarkerColor = ReadColor("colorHigh", style.HighMarkerColor);
@@ -526,7 +526,7 @@ internal static class WorksheetPartReader
             group.VerticalAxis.MinAxisType = ReadAxisType("minAxisType", group.VerticalAxis.MinAxisType);
             group.VerticalAxis.MaxAxisType = ReadAxisType("maxAxisType", group.VerticalAxis.MaxAxisType);
 
-            foreach (var sparkline in source.Elements(Extended + "sparklines").Elements(Extended + "sparkline"))
+            foreach (XElement sparkline in source.Elements(Extended + "sparklines").Elements(Extended + "sparkline"))
             {
                 // Excel uses the first reference when a sparkline lists multiple cells.
                 var references = ((string)sparkline.Element(Excel + "sqref") ?? string.Empty).Trim().Split(' ');
@@ -551,15 +551,15 @@ internal static class WorksheetPartReader
         }
     }
 
-    private static void ApplyStyle(IXlsxFormatContainer container, Int32 styleIndex, XlsxWorkbookStyles styles)
+    private static void ApplyStyle(IXlsxFormatContainer container, int styleIndex, XlsxWorkbookStyles styles)
     {
         container.FormatValue = styles.CellFormats[styleIndex];
     }
 
-    private static void ApplyStyle(XlsxColumns columns, Int32 styleIndex, XlsxWorkbookStyles styles)
+    private static void ApplyStyle(XlsxColumns columns, int styleIndex, XlsxWorkbookStyles styles)
     {
         // When loading columns we must propagate style to each column but not deeper. In other cases we do not propagate at all.
-        foreach (XlsxColumn col in columns)
+        foreach (XlsxColumn col in columns.Cast<XlsxColumn>())
             ApplyStyle(col, styleIndex, styles);
     }
 }

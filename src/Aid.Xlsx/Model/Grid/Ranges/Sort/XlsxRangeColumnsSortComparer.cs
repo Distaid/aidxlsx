@@ -18,15 +18,15 @@ internal class XlsxRangeColumnsSortComparer : IComparer<int>
             throw new ArgumentException("Range has fewer columns that sort specification.");
 
         _valueSlice = sheet.Internals.CellsCollection.ValueSlice;
-        _rowComparers = sortRows.Select(se => (se.ElementNumber + sortRange.TopRow - 1, new XlsxCellValueSortComparer(se))).ToList();
+        _rowComparers = [.. sortRows.Select(se => (se.ElementNumber + sortRange.TopRow - 1, new XlsxCellValueSortComparer(se)))];
     }
 
     public int Compare(int colNumber1, int colNumber2)
     {
-        foreach (var (rowNumber, comparer) in _rowComparers)
+        foreach ((int rowNumber, XlsxCellValueSortComparer? comparer) in _rowComparers)
         {
-            var col1 = _valueSlice.GetCellValue(new Point(rowNumber, colNumber1));
-            var col2 = _valueSlice.GetCellValue(new Point(rowNumber, colNumber2));
+            XlsxCellValue col1 = _valueSlice.GetCellValue(new Point(rowNumber, colNumber1));
+            XlsxCellValue col2 = _valueSlice.GetCellValue(new Point(rowNumber, colNumber2));
             var comparison = comparer.Compare(col1, col2);
             if (comparison != 0)
                 return comparison;

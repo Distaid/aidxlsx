@@ -3,16 +3,11 @@ namespace Aid.Xlsx.Calculation;
 /// <summary>
 /// A non-state representation of a formula that can be used by many cells.
 /// </summary>
-internal class Formula
+internal class Formula(string text, ValueNode root)
 {
-    public Formula(string text, ValueNode root)
-    {
-        AstRoot = root;
-        Text = text;
-    }
 
     /// <summary>Text of the formula.</summary>
-    public string Text { get; }
+    public string Text { get; } = text;
 
-    public ValueNode AstRoot { get; }
+    public ValueNode AstRoot { get; } = root;
 }

@@ -22,7 +22,7 @@ public class ModContext
     public ModContext(string formula, string sheet, int row, int col, bool isA1)
     {
         if (string.IsNullOrWhiteSpace(formula))
-            throw new ArgumentException(nameof(formula));
+            throw new ArgumentException("The formula must not be empty.", nameof(formula));
 
         if (row is < 1 or > RowCol.MaxRow)
             throw new ArgumentOutOfRangeException(nameof(row));

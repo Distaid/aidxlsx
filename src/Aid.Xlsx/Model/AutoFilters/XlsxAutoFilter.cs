@@ -17,21 +17,21 @@ internal class XlsxAutoFilter : IXlsxAutoFilter
     /// <summary>
     /// Key is column number.
     /// </summary>
-    private readonly Dictionary<Int32, XlsxFilterColumn> _columns = new();
+    private readonly Dictionary<int, XlsxFilterColumn> _columns = [];
 
-    internal IReadOnlyDictionary<Int32, XlsxFilterColumn> Columns => _columns;
+    internal IReadOnlyDictionary<int, XlsxFilterColumn> Columns => _columns;
 
     #region IXlsxAutoFilter Members
 
     public IEnumerable<IXlsxRangeRow> HiddenRows => Range.Rows(r => r.WorksheetRow().IsHidden);
 
-    public Boolean IsEnabled { get; set; }
+    public bool IsEnabled { get; set; }
 
     public IXlsxRange Range { get; set; }
 
-    public Int32 SortColumn { get; set; }
+    public int SortColumn { get; set; }
 
-    public Boolean Sorted { get; set; }
+    public bool Sorted { get; set; }
 
     public XlsxSortOrder SortOrder { get; set; }
 
@@ -39,11 +39,11 @@ internal class XlsxAutoFilter : IXlsxAutoFilter
 
     IXlsxAutoFilter IXlsxAutoFilter.Clear() => Clear();
 
-    IXlsxFilterColumn IXlsxAutoFilter.Column(String columnLetter) => Column(columnLetter);
+    IXlsxFilterColumn IXlsxAutoFilter.Column(string columnLetter) => Column(columnLetter);
 
-    IXlsxFilterColumn IXlsxAutoFilter.Column(Int32 columnNumber) => Column(columnNumber);
+    IXlsxFilterColumn IXlsxAutoFilter.Column(int columnNumber) => Column(columnNumber);
 
-    IXlsxAutoFilter IXlsxAutoFilter.Sort(Int32 columnToSortBy, XlsxSortOrder sortOrder, Boolean matchCase, Boolean ignoreBlanks)
+    IXlsxAutoFilter IXlsxAutoFilter.Sort(int columnToSortBy, XlsxSortOrder sortOrder, bool matchCase, bool ignoreBlanks)
     {
         return Sort(columnToSortBy, sortOrder, matchCase, ignoreBlanks);
     }
@@ -51,21 +51,21 @@ internal class XlsxAutoFilter : IXlsxAutoFilter
     public IXlsxAutoFilter Reapply()
     {
         // Recalculate shown / hidden rows
-        var rows = Range.Rows(2, Range.RowCount());
+        IXlsxRangeRows rows = Range.Rows(2, Range.RowCount());
         rows.ForEach(row =>
             row.WorksheetRow().Unhide()
         );
 
-        foreach (var filterColumn in _columns.Values)
+        foreach (XlsxFilterColumn filterColumn in _columns.Values)
             filterColumn.Refresh();
 
         foreach (IXlsxRangeRow row in rows)
         {
             var rowMatch = true;
 
-            foreach (var (columnIndex, column) in _columns)
+            foreach ((int columnIndex, XlsxFilterColumn column) in _columns)
             {
-                var cell = row.Cell(columnIndex);
+                IXlsxCell cell = row.Cell(columnIndex);
                 var columnFilterMatch = column.Check(cell);
                 rowMatch &= columnFilterMatch;
 
@@ -80,7 +80,7 @@ internal class XlsxAutoFilter : IXlsxAutoFilter
 
     #endregion IXlsxAutoFilter Members
 
-    internal XlsxFilterColumn Column(String columnLetter)
+    internal XlsxFilterColumn Column(string columnLetter)
     {
         var columnNumber = XlsxHelper.GetColumnNumberFromLetter(columnLetter);
         if (columnNumber < 1 || columnNumber > XlsxHelper.MaxColumnNumber)
@@ -89,7 +89,7 @@ internal class XlsxAutoFilter : IXlsxAutoFilter
         return Column(columnNumber);
     }
 
-    internal XlsxFilterColumn Column(Int32 columnNumber)
+    internal XlsxFilterColumn Column(int columnNumber)
     {
         if (columnNumber < 1 || columnNumber > XlsxHelper.MaxColumnNumber)
             throw new ArgumentOutOfRangeException(nameof(columnNumber), "Column " + columnNumber + " is outside the allowed column range.");
@@ -108,7 +108,7 @@ internal class XlsxAutoFilter : IXlsxAutoFilter
         if (!IsEnabled) return this;
 
         IsEnabled = false;
-        foreach (var filterColumn in _columns.Values)
+        foreach (XlsxFilterColumn filterColumn in _columns.Values)
             filterColumn.Clear(false);
 
         foreach (IXlsxRangeRow row in Range.Rows().Where(r => r.RowNumber() > 1))
@@ -118,7 +118,7 @@ internal class XlsxAutoFilter : IXlsxAutoFilter
 
     internal XlsxAutoFilter Set(IXlsxRangeBase range)
     {
-        var firstOverlappingTable = range.Worksheet.Tables.FirstOrDefault(t => t.RangeUsed().Intersects(range));
+        IXlsxTable firstOverlappingTable = range.Worksheet.Tables.FirstOrDefault(t => t.RangeUsed().Intersects(range));
         if (firstOverlappingTable != null)
             throw new InvalidOperationException($"The range {range.RangeAddress.ToStringRelative(includeSheet: true)} is already part of table '{firstOverlappingTable.Name}'");
 
@@ -127,7 +127,7 @@ internal class XlsxAutoFilter : IXlsxAutoFilter
         return this;
     }
 
-    internal XlsxAutoFilter Sort(Int32 columnToSortBy, XlsxSortOrder sortOrder, Boolean matchCase, Boolean ignoreBlanks)
+    internal XlsxAutoFilter Sort(int columnToSortBy, XlsxSortOrder sortOrder, bool matchCase, bool ignoreBlanks)
     {
         if (!IsEnabled)
             throw new InvalidOperationException("Filter has not been enabled.");

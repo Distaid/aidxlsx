@@ -4,15 +4,10 @@ using Aid.Xlsx.Model.Grid.Cells;
 
 namespace Aid.Xlsx.DataImport.RowReaders;
 
-internal class NullDataReader : IInsertDataReader
+internal class NullDataReader(IEnumerable<object> nulls) : IInsertDataReader
 {
-    private readonly XlsxCellValue[] _row = { Blank.Value };
-    private readonly int _count;
-
-    public NullDataReader(IEnumerable<object> nulls)
-    {
-        _count = nulls.Count();
-    }
+    private readonly XlsxCellValue[] _row = [Blank.Value];
+    private readonly int _count = nulls.Count();
 
     public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
     {

@@ -47,7 +47,7 @@ public interface IXlsxPivotField
     /// duplicate column names, the cache will rename them to keep all names unique.
     /// </para>
     /// </summary>
-    String SourceName { get; }
+    string SourceName { get; }
 
     /// <summary>
     /// <see cref="CustomName"/> of the field in the pivot table. Custom name is a unique
@@ -57,9 +57,9 @@ public interface IXlsxPivotField
     /// </summary>
     /// <exception cref="ArgumentException">When setting name to a name that is already used by
     ///     another field.</exception>
-    String CustomName { get; set; }
+    string CustomName { get; set; }
 
-    String SubtotalCaption { get; set; }
+    string SubtotalCaption { get; set; }
 
     /// <summary>
     /// Get subtotals of the field. The content of the collection depends on the type of subtotal:
@@ -70,14 +70,14 @@ public interface IXlsxPivotField
     /// </list>
     /// </summary>
     IReadOnlyCollection<XlsxSubtotalFunction> Subtotals { get; }
-    Boolean IncludeNewItemsInFilter { get; set; }
-    Boolean Outline { get; set; }
-    Boolean Compact { get; set; }
-    Boolean? SubtotalsAtTop { get; set; }
-    Boolean RepeatItemLabels { get; set; }
-    Boolean InsertBlankLines { get; set; }
-    Boolean ShowBlankItems { get; set; }
-    Boolean InsertPageBreaks { get; set; }
+    bool IncludeNewItemsInFilter { get; set; }
+    bool Outline { get; set; }
+    bool Compact { get; set; }
+    bool? SubtotalsAtTop { get; set; }
+    bool RepeatItemLabels { get; set; }
+    bool InsertBlankLines { get; set; }
+    bool ShowBlankItems { get; set; }
+    bool InsertPageBreaks { get; set; }
 
     /// <summary>
     /// Are all items of the field collapsed?
@@ -85,32 +85,32 @@ public interface IXlsxPivotField
     /// <remarks>
     /// If only a subset of items is collapsed, getter returns <c>false</c>.
     /// </remarks>
-    Boolean Collapsed { get; set; }
+    bool Collapsed { get; set; }
 
     XlsxPivotSortType SortType { get; set; }
 
     /// <inheritdoc cref="CustomName"/>
-    IXlsxPivotField SetCustomName(String value);
+    IXlsxPivotField SetCustomName(string value);
 
-    IXlsxPivotField SetSubtotalCaption(String value);
+    IXlsxPivotField SetSubtotalCaption(string value);
 
     IXlsxPivotField AddSubtotal(XlsxSubtotalFunction value);
 
-    IXlsxPivotField SetIncludeNewItemsInFilter(Boolean value = true);
+    IXlsxPivotField SetIncludeNewItemsInFilter(bool value = true);
 
     IXlsxPivotField SetLayout(XlsxPivotLayout value);
 
-    IXlsxPivotField SetSubtotalsAtTop(Boolean value = true);
+    IXlsxPivotField SetSubtotalsAtTop(bool value = true);
 
-    IXlsxPivotField SetRepeatItemLabels(Boolean value = true);
+    IXlsxPivotField SetRepeatItemLabels(bool value = true);
 
-    IXlsxPivotField SetInsertBlankLines(Boolean value = true);
+    IXlsxPivotField SetInsertBlankLines(bool value = true);
 
-    IXlsxPivotField SetShowBlankItems(Boolean value = true);
+    IXlsxPivotField SetShowBlankItems(bool value = true);
 
-    IXlsxPivotField SetInsertPageBreaks(Boolean value = true);
+    IXlsxPivotField SetInsertPageBreaks(bool value = true);
 
-    IXlsxPivotField SetCollapsed(Boolean value = true);
+    IXlsxPivotField SetCollapsed(bool value = true);
 
     IXlsxPivotField SetSort(XlsxPivotSortType value);
 
@@ -134,13 +134,13 @@ public interface IXlsxPivotField
 
     IXlsxPivotFieldStyleFormats StyleFormats { get; }
 
-    Boolean IsOnRowAxis { get; }
-    Boolean IsOnColumnAxis { get; }
-    Boolean IsInFilterList { get; }
+    bool IsOnRowAxis { get; }
+    bool IsOnColumnAxis { get; }
+    bool IsInFilterList { get; }
 
     /// <summary>
     /// Index of a field in <see cref="XlsxPivotTable.PivotFields">all pivot fields</see> or -2
     /// for data field.
     /// </summary>
-    Int32 Offset { get; }
+    int Offset { get; }
 }

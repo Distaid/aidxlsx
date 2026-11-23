@@ -17,13 +17,13 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
     /// Don't use directly, use properties.
     /// </summary>
     private XlRowFlags _flags;
-    private Double _height;
-    private Int32 _outlineLevel;
+    private double _height;
+    private int _outlineLevel;
 
     /// <summary>
     /// The direct constructor should only be used in <see cref="XlsxWorksheet.RangeFactory"/>.
     /// </summary>
-    public XlsxRow(XlsxWorksheet worksheet, Int32 row)
+    public XlsxRow(XlsxWorksheet worksheet, int row)
         : base(XlsxRangeAddress.EntireRow(worksheet, row))
     {
         SetRowNumber(row);
@@ -31,14 +31,14 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         _height = worksheet.RowHeight;
     }
 
-    internal XlsxRowArea Area => new XlsxRowArea(Worksheet.Name, RowNumber());
+    internal XlsxRowArea Area => new(Worksheet.Name, RowNumber());
 
     public override XlsxRangeType RangeType
     {
         get { return XlsxRangeType.Row; }
     }
 
-    public Boolean Collapsed
+    public bool Collapsed
     {
         get => _flags.HasFlag(XlRowFlags.Collapsed);
         set
@@ -60,7 +60,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
     /// set to false. Custom height means no auto-sizing by Excel on load, so if row has this
     /// attribute, it stops Excel from auto-sizing the height of a row to fit the content on load.
     /// </remarks>
-    public Double? DyDescent { get; set; }
+    public double? DyDescent { get; set; }
 
     /// <summary>
     /// Should cells in the row display phonetic? This doesn't actually affect whether the phonetic are
@@ -69,7 +69,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
     /// (and also the state of the "Show or hide phonetic" in Excel when whole row is selected).
     /// Default is <c>false</c>.
     /// </summary>
-    public Boolean ShowPhonetic
+    public bool ShowPhonetic
     {
         get => _flags.HasFlag(XlRowFlags.ShowPhonetic);
         set
@@ -81,7 +81,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         }
     }
 
-    public Boolean Loading
+    public bool Loading
     {
         get => _flags.HasFlag(XlRowFlags.Loading);
         set
@@ -96,7 +96,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
     /// <summary>
     /// Does row have an individual height or is it derived from the worksheet <see cref="XlsxWorksheet.RowHeight"/>?
     /// </summary>
-    public Boolean HeightChanged
+    public bool HeightChanged
     {
         get => _flags.HasFlag(XlRowFlags.HeightChanged);
         private set
@@ -110,7 +110,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
 
     #region IXlsxRow Members
 
-    public Double Height
+    public double Height
     {
         get { return _height; }
         set
@@ -122,9 +122,9 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         }
     }
 
-    IXlsxCells IXlsxRow.Cells(String cellsInRow) => Cells(cellsInRow);
+    IXlsxCells IXlsxRow.Cells(string cellsInRow) => Cells(cellsInRow);
 
-    IXlsxCells IXlsxRow.Cells(Int32 firstColumn, Int32 lastColumn) => Cells(firstColumn, lastColumn);
+    IXlsxCells IXlsxRow.Cells(int firstColumn, int lastColumn) => Cells(firstColumn, lastColumn);
 
     public void ClearHeight()
     {
@@ -139,17 +139,17 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         Worksheet.DeleteRow(rowNumber);
     }
 
-    public new IXlsxRows InsertRowsBelow(Int32 numberOfRows)
+    public new IXlsxRows InsertRowsBelow(int numberOfRows)
     {
         int rowNum = RowNumber();
         Worksheet.Internals.RowsCollection.ShiftRowsDown(rowNum + 1, numberOfRows);
-        var asRange = Worksheet.Row(rowNum).AsRange();
+        XlsxRange asRange = Worksheet.Row(rowNum).AsRange();
         asRange.InsertRowsBelowVoid(true, numberOfRows);
 
-        var newRows = Worksheet.Rows(rowNum + 1, rowNum + numberOfRows);
-        foreach (var newRow in newRows)
+        IXlsxRows newRows = Worksheet.Rows(rowNum + 1, rowNum + numberOfRows);
+        foreach (IXlsxRow? newRow in newRows)
         {
-            var internalRow = Worksheet.Internals.RowsCollection[newRow.RowNumber()];
+            XlsxRow internalRow = Worksheet.Internals.RowsCollection[newRow.RowNumber()];
             internalRow._height = Height;
             internalRow.FormatValue = FormatValue; // Is within a worbook
             internalRow.Collapsed = Collapsed;
@@ -160,7 +160,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return newRows;
     }
 
-    public new IXlsxRows InsertRowsAbove(Int32 numberOfRows)
+    public new IXlsxRows InsertRowsAbove(int numberOfRows)
     {
         int rowNum = RowNumber();
         if (rowNum > 1)
@@ -169,7 +169,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         }
 
         Worksheet.Internals.RowsCollection.ShiftRowsDown(rowNum, numberOfRows);
-        var asRange = Worksheet.Row(rowNum).AsRange();
+        XlsxRange asRange = Worksheet.Row(rowNum).AsRange();
         asRange.InsertRowsAboveVoid(true, numberOfRows);
 
         return Worksheet.Rows(rowNum, rowNum + numberOfRows - 1);
@@ -181,12 +181,12 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return this;
     }
 
-    public IXlsxCell Cell(Int32 columnNumber)
+    public IXlsxCell Cell(int columnNumber)
     {
         return Cell(1, columnNumber);
     }
 
-    public override XlsxCell Cell(String columnLetter)
+    public override XlsxCell Cell(string columnLetter)
     {
         return Cell(1, columnLetter);
     }
@@ -201,7 +201,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return Cells(true, XlsxCellsUsedOptions.All);
     }
 
-    public override XlsxCells Cells(Boolean usedCellsOnly)
+    public override XlsxCells Cells(bool usedCellsOnly)
     {
         if (usedCellsOnly)
             return Cells(true, XlsxCellsUsedOptions.AllContents);
@@ -209,7 +209,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
             return Cells(FirstCellUsed().Address.ColumnNumber, LastCellUsed().Address.ColumnNumber);
     }
 
-    public override XlsxCells Cells(String cellsInRow)
+    public override XlsxCells Cells(string cellsInRow)
     {
         var retVal = new XlsxCells(Worksheet, false, XlsxCellsUsedOptions.AllContents);
         var rangePairs = cellsInRow.Split(',');
@@ -218,40 +218,40 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return retVal;
     }
 
-    public XlsxCells Cells(Int32 firstColumn, Int32 lastColumn)
+    public XlsxCells Cells(int firstColumn, int lastColumn)
     {
         return Cells(firstColumn + ":" + lastColumn);
     }
 
-    public IXlsxCells Cells(String firstColumn, String lastColumn)
+    public IXlsxCells Cells(string firstColumn, string lastColumn)
     {
         return Cells(XlsxHelper.GetColumnNumberFromLetter(firstColumn) + ":"
                      + XlsxHelper.GetColumnNumberFromLetter(lastColumn));
     }
 
-    public IXlsxRow AdjustToContents(Int32 startColumn)
+    public IXlsxRow AdjustToContents(int startColumn)
     {
         return AdjustToContents(startColumn, XlsxHelper.MaxColumnNumber);
     }
 
-    public IXlsxRow AdjustToContents(Int32 startColumn, Int32 endColumn)
+    public IXlsxRow AdjustToContents(int startColumn, int endColumn)
     {
-        return AdjustToContents(startColumn, endColumn, 0, Double.MaxValue);
+        return AdjustToContents(startColumn, endColumn, 0, double.MaxValue);
     }
 
-    public IXlsxRow AdjustToContents(Double minHeight, Double maxHeight)
+    public IXlsxRow AdjustToContents(double minHeight, double maxHeight)
     {
         return AdjustToContents(1, XlsxHelper.MaxColumnNumber, minHeight, maxHeight);
     }
 
-    public IXlsxRow AdjustToContents(Int32 startColumn, Double minHeight, Double maxHeight)
+    public IXlsxRow AdjustToContents(int startColumn, double minHeight, double maxHeight)
     {
         return AdjustToContents(startColumn, XlsxHelper.MaxColumnNumber, minHeight, maxHeight);
     }
 
-    public IXlsxRow AdjustToContents(Int32 startColumn, Int32 endColumn, Double minHeightPt, Double maxHeightPt)
+    public IXlsxRow AdjustToContents(int startColumn, int endColumn, double minHeightPt, double maxHeightPt)
     {
-        var engine = Worksheet.Workbook.GraphicEngine;
+        IXlsxGraphicEngine engine = Worksheet.Workbook.GraphicEngine;
         var dpi = new Dpi(Worksheet.Workbook.DpiX, Worksheet.Workbook.DpiY);
 
         var rowHeightPx = CalculateMinRowHeight(startColumn, endColumn, engine, dpi);
@@ -275,7 +275,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
     {
         var glyphs = new List<GlyphBox>();
         var rowHeightPx = 0;
-        foreach (var cell in Row(startColumn, endColumn).CellsUsed().Cast<XlsxCell>())
+        foreach (XlsxCell cell in Row(startColumn, endColumn).CellsUsed().Cast<XlsxCell>())
         {
             // Clear maintains capacity -> reduce need for GC
             glyphs.Clear();
@@ -283,7 +283,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
             if (cell.IsMerged())
                 continue;
 
-            var cellFormat = Worksheet.GetStyleValue(cell.Point);
+            XlsxCellFormatValue cellFormat = Worksheet.GetStyleValue(cell.Point);
 
             cell.GetGlyphBoxes(engine, dpi, glyphs);
             var cellHeightPx = (int)Math.Ceiling(GetContentHeight(cellFormat.Alignment.TextRotation.Value, glyphs));
@@ -300,7 +300,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         {
             var textHeight = 0d;
             var lineMaxHeight = 0d;
-            foreach (var glyph in glyphs)
+            foreach (GlyphBox glyph in glyphs)
             {
                 if (!glyph.IsLineBreak)
                 {
@@ -331,7 +331,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
             // Rotated text
             var width = 0d;
             var height = 0d;
-            foreach (var glyph in glyphs)
+            foreach (GlyphBox glyph in glyphs)
             {
                 width += glyph.AdvanceWidth;
                 height = Math.Max(glyph.LineHeight, height);
@@ -355,7 +355,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return this;
     }
 
-    public Boolean IsHidden
+    public bool IsHidden
     {
         get => _flags.HasFlag(XlRowFlags.IsHidden);
         set
@@ -367,13 +367,13 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         }
     }
 
-    public Int32 OutlineLevel
+    public int OutlineLevel
     {
         get { return _outlineLevel; }
         set
         {
             if (value < 0 || value > 8)
-                throw new ArgumentOutOfRangeException("value", "Outline level must be between 0 and 8.");
+                throw new ArgumentOutOfRangeException(nameof(value), "Outline level must be between 0 and 8.");
 
             Worksheet.IncrementColumnOutline(value);
             Worksheet.DecrementColumnOutline(_outlineLevel);
@@ -386,7 +386,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return Group(false);
     }
 
-    public IXlsxRow Group(Int32 outlineLevel)
+    public IXlsxRow Group(int outlineLevel)
     {
         return Group(outlineLevel, false);
     }
@@ -396,7 +396,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return Ungroup(false);
     }
 
-    public IXlsxRow Group(Boolean collapse)
+    public IXlsxRow Group(bool collapse)
     {
         if (OutlineLevel < 8)
             OutlineLevel += 1;
@@ -405,14 +405,14 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return this;
     }
 
-    public IXlsxRow Group(Int32 outlineLevel, Boolean collapse)
+    public IXlsxRow Group(int outlineLevel, bool collapse)
     {
         OutlineLevel = outlineLevel;
         Collapsed = collapse;
         return this;
     }
 
-    public IXlsxRow Ungroup(Boolean ungroupFromAll)
+    public IXlsxRow Ungroup(bool ungroupFromAll)
     {
         if (ungroupFromAll)
             OutlineLevel = 0;
@@ -436,7 +436,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return Unhide();
     }
 
-    public Int32 CellCount()
+    public int CellCount()
     {
         return RangeAddress.LastAddress.ColumnNumber - RangeAddress.FirstAddress.ColumnNumber + 1;
     }
@@ -446,8 +446,8 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return SortLeftToRight();
     }
 
-    public new IXlsxRow SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false,
-                                      Boolean ignoreBlanks = true)
+    public new IXlsxRow SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false,
+                                      bool ignoreBlanks = true)
     {
         base.SortLeftToRight(sortOrder, matchCase, ignoreBlanks);
         return this;
@@ -455,13 +455,13 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
 
     IXlsxRangeRow IXlsxRow.CopyTo(IXlsxCell target)
     {
-        var copy = AsRange().CopyTo(target);
+        IXlsxRange copy = AsRange().CopyTo(target);
         return copy.Row(1);
     }
 
     IXlsxRangeRow IXlsxRow.CopyTo(IXlsxRangeBase target)
     {
-        var copy = AsRange().CopyTo(target);
+        IXlsxRange copy = AsRange().CopyTo(target);
         return copy.Row(1);
     }
 
@@ -482,7 +482,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return newRow;
     }
 
-    public IXlsxRangeRow Row(Int32 start, Int32 end)
+    public IXlsxRangeRow Row(int start, int end)
     {
         return Range(1, start, 1, end).Row(1);
     }
@@ -492,7 +492,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return Row(start.Address.ColumnNumber, end.Address.ColumnNumber);
     }
 
-    public IXlsxRangeRows Rows(String rows)
+    public IXlsxRangeRows Rows(string rows)
     {
         var retVal = new XlsxRangeRows(Worksheet);
         var rowPairs = rows.Split(',');
@@ -549,7 +549,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         // rows are shifted by XlsxRowCollection
     }
 
-    internal void SetRowNumber(Int32 row)
+    internal void SetRowNumber(int row)
     {
         RangeAddress = new XlsxRangeAddress(
             new XlsxAddress(Worksheet, row, 1, RangeAddress.FirstAddress.FixedRow,
@@ -561,9 +561,9 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
                           RangeAddress.LastAddress.FixedColumn));
     }
 
-    public override XlsxRange Range(String rangeAddressStr)
+    public override XlsxRange Range(string rangeAddressStr)
     {
-        String rangeAddressToUse;
+        string rangeAddressToUse;
         if (rangeAddressStr.Contains(':') || rangeAddressStr.Contains('-'))
         {
             if (rangeAddressStr.Contains('-'))
@@ -586,7 +586,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return AdjustToContents(1);
     }
 
-    private XlsxRow RowShift(Int32 rowsToShift)
+    private XlsxRow RowShift(int rowsToShift)
     {
         return Worksheet.Row(RowNumber() + rowsToShift);
     }
@@ -598,7 +598,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return RowAbove();
     }
 
-    IXlsxRow IXlsxRow.RowAbove(Int32 step)
+    IXlsxRow IXlsxRow.RowAbove(int step)
     {
         return RowAbove(step);
     }
@@ -608,7 +608,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return RowAbove(1);
     }
 
-    public XlsxRow RowAbove(Int32 step)
+    public XlsxRow RowAbove(int step)
     {
         return RowShift(step * -1);
     }
@@ -622,7 +622,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return RowBelow();
     }
 
-    IXlsxRow IXlsxRow.RowBelow(Int32 step)
+    IXlsxRow IXlsxRow.RowBelow(int step)
     {
         return RowBelow(step);
     }
@@ -632,19 +632,19 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return RowBelow(1);
     }
 
-    public XlsxRow RowBelow(Int32 step)
+    public XlsxRow RowBelow(int step)
     {
         return RowShift(step);
     }
 
     #endregion XlsxRow Below
 
-    public override Boolean IsEmpty()
+    public override bool IsEmpty()
     {
         return IsEmpty(XlsxCellsUsedOptions.AllContents);
     }
 
-    public override Boolean IsEmpty(XlsxCellsUsedOptions options)
+    public override bool IsEmpty(XlsxCellsUsedOptions options)
     {
         if (options.HasFlag(XlsxCellsUsedOptions.NormalFormats) && FormatValue is not null)
             return false;
@@ -652,12 +652,12 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         return base.IsEmpty(options);
     }
 
-    public override Boolean IsEntireRow()
+    public override bool IsEntireRow()
     {
         return true;
     }
 
-    public override Boolean IsEntireColumn()
+    public override bool IsEntireColumn()
     {
         return false;
     }

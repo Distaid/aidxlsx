@@ -68,10 +68,10 @@ internal sealed class XlsxImmutableRichText : IEquatable<XlsxImmutableRichText>
         {
             var hashCode = Text.GetHashCode();
             hashCode = (hashCode * 397) ^ PhoneticsProperties.GetHashCode();
-            foreach (var phoneticRun in _phoneticRuns)
+            foreach (PhoneticRun phoneticRun in _phoneticRuns)
                 hashCode = (hashCode * 397) ^ phoneticRun.GetHashCode();
 
-            foreach (var run in _runs)
+            foreach (RichTextRun run in _runs)
                 hashCode = (hashCode * 397) ^ run.GetHashCode();
 
             return hashCode;
@@ -89,7 +89,7 @@ internal sealed class XlsxImmutableRichText : IEquatable<XlsxImmutableRichText>
         var runs = new RichTextRun[formattedText.Count];
         var runIdx = 0;
         var charStartIdx = 0;
-        foreach (var richString in formattedText)
+        foreach (XlsxRichString? richString in formattedText)
         {
             runs[runIdx++] = new RichTextRun(richString.Font, charStartIdx, richString.Text.Length);
             charStartIdx += richString.Text.Length;
@@ -99,11 +99,11 @@ internal sealed class XlsxImmutableRichText : IEquatable<XlsxImmutableRichText>
         PhoneticProperties? phoneticProps;
         if (formattedText.HasPhonetics)
         {
-            var rtPhonetics = formattedText.Phonetics;
+            XlsxPhonetics rtPhonetics = formattedText.Phonetics;
             phoneticRuns = new PhoneticRun[rtPhonetics.Count];
             var phoneticRunIdx = 0;
             var prevPhoneticEndIdx = 0;
-            foreach (var phonetic in formattedText.Phonetics)
+            foreach (IXlsxPhonetic phonetic in formattedText.Phonetics)
             {
                 if (phonetic.Start >= text.Length)
                     throw new ArgumentException("Phonetic run start index must be within the text boundaries.");
@@ -122,7 +122,7 @@ internal sealed class XlsxImmutableRichText : IEquatable<XlsxImmutableRichText>
         }
         else
         {
-            phoneticRuns = Array.Empty<PhoneticRun>();
+            phoneticRuns = [];
             phoneticProps = null;
         }
 
@@ -140,12 +140,12 @@ internal sealed class XlsxImmutableRichText : IEquatable<XlsxImmutableRichText>
         var adjustedRuns = new RichTextRun[_runs.Length];
         for (var i = 0; i < _runs.Length; ++i)
         {
-            var run = _runs[i];
-            var adjustedFont = font.AdjustWith(run.Dxf);
+            RichTextRun run = _runs[i];
+            XlsxFontFormatValue adjustedFont = font.AdjustWith(run.Dxf);
             adjustedRuns[i] = new RichTextRun(adjustedFont, run.StartIndex, run.Length);
         }
 
-        return new XlsxImmutableRichText(Text, adjustedRuns.ToArray(), _phoneticRuns, PhoneticsProperties);
+        return new XlsxImmutableRichText(Text, [.. adjustedRuns], _phoneticRuns, PhoneticsProperties);
     }
 
     internal readonly struct RichTextRun : IEquatable<RichTextRun>

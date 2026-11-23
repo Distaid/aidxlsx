@@ -30,14 +30,14 @@ internal partial class XlsxDxFormat
     internal TProperty? Resolve<TComponent, TProperty>(Func<XlsxDxfValue, TComponent> getComponent, Func<TComponent, TProperty?> getProperty)
         where TProperty : struct
     {
-        var component = getComponent(Dxf);
+        TComponent? component = getComponent(Dxf);
         return getProperty(component);
     }
 
     internal TProperty? Resolve<TComponent, TProperty>(Func<XlsxDxfValue, TComponent> getComponent, Func<TComponent, TProperty?> getProperty)
         where TProperty : class
     {
-        var component = getComponent(Dxf);
+        TComponent? component = getComponent(Dxf);
         return getProperty(component);
     }
 
@@ -48,10 +48,10 @@ internal partial class XlsxDxFormat
 
     internal void ModifyFont<T>(Func<XlsxDifferentialFontValue, T, XlsxDifferentialFontValue> modify, T value)
     {
-        var modifiedDxf = _styles.GetRegisteredDxFormat(Dxf, dxf =>
+        XlsxDxfValue modifiedDxf = _styles.GetRegisteredDxFormat(Dxf, dxf =>
         {
-            var modifiedFont = modify(dxf.Font, value);
-            var modifiedDxf = dxf with { Font = modifiedFont };
+            XlsxDifferentialFontValue modifiedFont = modify(dxf.Font, value);
+            XlsxDxfValue modifiedDxf = dxf with { Font = modifiedFont };
             return modifiedDxf;
         });
         _container.FormatValue = modifiedDxf;
@@ -59,10 +59,10 @@ internal partial class XlsxDxFormat
 
     internal void ModifyFill<T>(Func<XlsxDifferentialFillValue, T, XlsxDifferentialFillValue> modify, T value)
     {
-        var modifiedDxf = _styles.GetRegisteredDxFormat(Dxf, dxf =>
+        XlsxDxfValue modifiedDxf = _styles.GetRegisteredDxFormat(Dxf, dxf =>
         {
-            var modifiedFill = modify(dxf.Fill, value);
-            var modifiedDxf = dxf with { Fill = modifiedFill };
+            XlsxDifferentialFillValue modifiedFill = modify(dxf.Fill, value);
+            XlsxDxfValue modifiedDxf = dxf with { Fill = modifiedFill };
             return modifiedDxf;
         });
         _container.FormatValue = modifiedDxf;
@@ -70,10 +70,10 @@ internal partial class XlsxDxFormat
 
     internal void ModifyAlignment<T>(Func<XlsxDifferentialAlignmentValue, T, XlsxDifferentialAlignmentValue> modify, T value)
     {
-        var modifiedDxf = _styles.GetRegisteredDxFormat(Dxf, dxf =>
+        XlsxDxfValue modifiedDxf = _styles.GetRegisteredDxFormat(Dxf, dxf =>
         {
-            var modifiedAlignment = modify(dxf.Alignment, value);
-            var modifiedDxf = dxf with { Alignment = modifiedAlignment };
+            XlsxDifferentialAlignmentValue modifiedAlignment = modify(dxf.Alignment, value);
+            XlsxDxfValue modifiedDxf = dxf with { Alignment = modifiedAlignment };
             return modifiedDxf;
         });
         _container.FormatValue = modifiedDxf;
@@ -81,10 +81,10 @@ internal partial class XlsxDxFormat
 
     internal void ModifyBorder<T>(Func<XlsxDifferentialBorderValue, T, XlsxDifferentialBorderValue> modify, T value)
     {
-        var modifiedDxf = _styles.GetRegisteredDxFormat(Dxf, dxf =>
+        XlsxDxfValue modifiedDxf = _styles.GetRegisteredDxFormat(Dxf, dxf =>
         {
-            var modifiedBorder = modify(dxf.Border, value);
-            var modifiedDxf = dxf with { Border = modifiedBorder };
+            XlsxDifferentialBorderValue modifiedBorder = modify(dxf.Border, value);
+            XlsxDxfValue modifiedDxf = dxf with { Border = modifiedBorder };
             return modifiedDxf;
         });
         _container.FormatValue = modifiedDxf;
@@ -92,10 +92,10 @@ internal partial class XlsxDxFormat
 
     internal void ModifyProtection<T>(Func<XlsxDifferentialProtectionValue, T, XlsxDifferentialProtectionValue> modify, T value)
     {
-        var modifiedDxf = _styles.GetRegisteredDxFormat(Dxf, dxf =>
+        XlsxDxfValue modifiedDxf = _styles.GetRegisteredDxFormat(Dxf, dxf =>
         {
-            var modifiedProtection = modify(dxf.Protection, value);
-            var modifiedDxf = dxf with { Protection = modifiedProtection };
+            XlsxDifferentialProtectionValue modifiedProtection = modify(dxf.Protection, value);
+            XlsxDxfValue modifiedDxf = dxf with { Protection = modifiedProtection };
             return modifiedDxf;
         });
         _container.FormatValue = modifiedDxf;

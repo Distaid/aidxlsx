@@ -51,8 +51,7 @@ internal sealed class XlsxPivotSourceExternalWorkbook : IXlsxPivotSource
 
     public bool Equals(IXlsxPivotSource? otherSource)
     {
-        var other = otherSource as XlsxPivotSourceExternalWorkbook;
-        if (other is null)
+        if (otherSource is not XlsxPivotSourceExternalWorkbook other)
             return false;
 
         if (ReferenceEquals(this, other))

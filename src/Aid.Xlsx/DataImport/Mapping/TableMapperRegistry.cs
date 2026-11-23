@@ -42,7 +42,7 @@ internal sealed class MappedDataReader<T>(IEnumerable<T> data, TableRowMap<T> ma
 
     public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
     {
-        foreach (var item in data)
+        foreach (T? item in data)
             yield return ReadRow(item);
     }
 

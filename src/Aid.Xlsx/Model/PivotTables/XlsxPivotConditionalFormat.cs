@@ -7,7 +7,7 @@ namespace Aid.Xlsx.Model.PivotTables;
 /// </summary>
 internal class XlsxPivotConditionalFormat
 {
-    private readonly List<XlsxPivotArea> _area = new();
+    private readonly List<XlsxPivotArea> _area = [];
 
     internal XlsxPivotConditionalFormat(XlsxConditionalFormat format)
     {

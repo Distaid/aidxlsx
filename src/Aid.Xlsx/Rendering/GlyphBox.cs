@@ -15,30 +15,23 @@ namespace Aid.Xlsx.Rendering;
 /// where values can be a floats (e.g. advance could be non-pixels aligned).
 /// </remarks>
 [DebuggerDisplay("{AdvanceWidth}x{LineHeight}")]
-public readonly struct GlyphBox
+public readonly struct GlyphBox(float advanceWidth, float emSize, float descent)
 {
     /// <summary>
     /// A special glyph box that indicates a line break. Dimensions are kept at 0, so it doesn't affect any calculations.
     /// </summary>
     internal static GlyphBox LineBreak => default;
 
-    public GlyphBox(float advanceWidth, float emSize, float descent)
-    {
-        AdvanceWidth = advanceWidth;
-        EmSize = emSize;
-        Descent = descent;
-    }
-
     /// <summary>
     /// Advance width in px of a box for code point. Value should be whole number.
     /// </summary>
-    public float AdvanceWidth { get; }
+    public float AdvanceWidth { get; } = advanceWidth;
 
     /// <summary>
     /// Size of Em square in pixels. If em is not a square, vertical dimension of
     /// em square. Value should be whole number.
     /// </summary>
-    public float EmSize { get; }
+    public float EmSize { get; } = emSize;
 
     /// <summary>
     /// Distance in px from baseline to the bottom of the box.
@@ -47,7 +40,7 @@ public readonly struct GlyphBox
     /// Descent/height is determined by font, not by codepoints
     /// of the glyph. Value should be whole number.
     /// </remarks>
-    public float Descent { get; }
+    public float Descent { get; } = descent;
 
     internal bool IsLineBreak => AdvanceWidth == 0 && EmSize == 0 && Descent == 0;
 

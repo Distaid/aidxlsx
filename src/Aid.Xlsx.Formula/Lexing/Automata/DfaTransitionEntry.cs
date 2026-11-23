@@ -1,13 +1,7 @@
 namespace Aid.Xlsx.Formulas.Lexing.Automata;
 
-internal struct DfaTransitionEntry
+internal struct DfaTransitionEntry(int[] packedRanges, int destination)
 {
-    public int[] PackedRanges;
-    public int Destination;
-
-    public DfaTransitionEntry(int[] packedRanges, int destination)
-    {
-        PackedRanges = packedRanges;
-        Destination = destination;
-    }
+    public int[] PackedRanges = packedRanges;
+    public int Destination = destination;
 }

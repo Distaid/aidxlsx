@@ -26,13 +26,13 @@ public class GroupDefinition : IParslet
     {
         if (Content is Choice choice)
         {
-            var choicesCount = choice.DetermineChoicesCount();
+            ElementsCount choicesCount = choice.DetermineChoicesCount();
             if (choicesCount != ElementsCount.OneToOne)
                 throw new NotSupportedException("Element group choice should have 1 occurence.");
 
             var returnCsType = code.StartParseMethod(Name);
             code.OpenBrace();
-            var variables = choice.GenerateParseContent(Name, choicesCount, code, throwOnFail: false);
+            List<Variable> variables = choice.GenerateParseContent(Name, choicesCount, code, throwOnFail: false);
             if (returnCsType is null)
             {
                 code.EndLine();

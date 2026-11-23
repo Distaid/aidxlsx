@@ -35,7 +35,7 @@ internal class DependencyTree
     /// The source of the truth, a storage of formula dependencies. The dependency tree is
     /// constructed from this collection.
     /// </summary>
-    private readonly Dictionary<XlsxCellFormula, FormulaDependencies> _dependencies = new();
+    private readonly Dictionary<XlsxCellFormula, FormulaDependencies> _dependencies = [];
 
     /// <summary>
     /// Visitor to extract precedents of formulas.
@@ -59,16 +59,16 @@ internal class DependencyTree
         var tree = new DependencyTree();
 
         // Add tree before adding formulas, because formula can reference any sheet.
-        foreach (var sheet in workbook.WorksheetsInternal)
+        foreach (XlsxWorksheet sheet in workbook.WorksheetsInternal)
             tree.AddSheetTree(sheet);
 
-        foreach (var sheet in workbook.WorksheetsInternal)
+        foreach (XlsxWorksheet sheet in workbook.WorksheetsInternal)
         {
-            using var enumerator = sheet.Internals.CellsCollection.FormulaSlice.GetForwardEnumerator(Area.Full);
+            using Slice<XlsxCellFormula>.Enumerator enumerator = sheet.Internals.CellsCollection.FormulaSlice.GetForwardEnumerator(Area.Full);
             while (enumerator.MoveNext())
             {
-                var formula = enumerator.Current;
-                var point = enumerator.Point;
+                XlsxCellFormula formula = enumerator.Current;
+                Point point = enumerator.Point;
                 if (formula.Type == FormulaType.Normal)
                 {
                     var bookArea = new SheetArea(sheet.Name, new Area(point, point));
@@ -104,16 +104,16 @@ internal class DependencyTree
     /// <exception cref="ArgumentException">Formula already is in the tree.</exception>
     internal FormulaDependencies AddFormula(SheetArea formulaArea, XlsxCellFormula formula, XlsxWorkbook workbook)
     {
-        var precedents = GetFormulaPrecedents(formulaArea, formula, workbook);
+        FormulaDependencies precedents = GetFormulaPrecedents(formulaArea, formula, workbook);
 
         _dependencies.Add(formula, precedents);
 
-        foreach (var precedentArea in precedents.Areas)
+        foreach (SheetArea precedentArea in precedents.Areas)
         {
             // Add dependency to its sheet dependency tree. The formula might contain
             // a dependency for a sheet that doesn't exist in a workbook. Such dependencies
             // are ignored, until sheet is added.
-            if (_sheetTrees.TryGetValue(precedentArea.Name, out var sheetTree))
+            if (_sheetTrees.TryGetValue(precedentArea.Name, out SheetDependencyTree? sheetTree))
             {
                 // Dependent worksheet exists
                 var dependent = new Dependent(formulaArea, formula);
@@ -130,13 +130,13 @@ internal class DependencyTree
     /// <param name="formula">Formula to remove.</param>
     internal void RemoveFormula(XlsxCellFormula formula)
     {
-        if (!_dependencies.TryGetValue(formula, out var dependencies))
+        if (!_dependencies.TryGetValue(formula, out FormulaDependencies? dependencies))
             return;
 
         _dependencies.Remove(formula);
-        foreach (var precedentArea in dependencies.Areas)
+        foreach (SheetArea precedentArea in dependencies.Areas)
         {
-            if (!_sheetTrees.TryGetValue(precedentArea.Name, out var sheetTree))
+            if (!_sheetTrees.TryGetValue(precedentArea.Name, out SheetDependencyTree? sheetTree))
                 throw new InvalidOperationException($"Dependency tree for sheet '{precedentArea.Name}' not found.");
 
             sheetTree.RemoveDependent(precedentArea.Area, formula);
@@ -150,14 +150,14 @@ internal class DependencyTree
 
     internal void RenameSheet(string oldSheetName, string newSheetName)
     {
-        foreach (var formulaDependencies in _dependencies.Values)
+        foreach (FormulaDependencies formulaDependencies in _dependencies.Values)
             formulaDependencies.RenameSheet(oldSheetName, newSheetName);
 
-        var renamedSheetTree = _sheetTrees[oldSheetName];
+        SheetDependencyTree renamedSheetTree = _sheetTrees[oldSheetName];
         _sheetTrees.Remove(oldSheetName);
         _sheetTrees.Add(newSheetName, renamedSheetTree);
 
-        foreach (var sheetTree in _sheetTrees.Values)
+        foreach (SheetDependencyTree sheetTree in _sheetTrees.Values)
             sheetTree.RenameSheet(oldSheetName, newSheetName);
     }
 
@@ -173,11 +173,11 @@ internal class DependencyTree
         queue.Enqueue(dirtyArea);
         while (queue.Count > 0)
         {
-            var affectedArea = queue.Dequeue();
-            var sheetTree = _sheetTrees[affectedArea.Name];
-            foreach (var area in sheetTree.FindDependentsAreas(affectedArea.Area))
+            SheetArea affectedArea = queue.Dequeue();
+            SheetDependencyTree sheetTree = _sheetTrees[affectedArea.Name];
+            foreach (AreaDependents area in sheetTree.FindDependentsAreas(affectedArea.Area))
             {
-                foreach (var dependent in area.Dependents)
+                foreach (Dependent dependent in area.Dependents)
                 {
                     // Ensure we don't end up in an infinite cycle
                     if (dependent.IsDirty)
@@ -192,9 +192,9 @@ internal class DependencyTree
 
     private FormulaDependencies GetFormulaPrecedents(SheetArea formulaArea, XlsxCellFormula formula, XlsxWorkbook workbook)
     {
-        var ast = formula.GetAst(workbook.CalcEngine);
+        Formula ast = formula.GetAst(workbook.CalcEngine);
         var context = new DependenciesContext(formulaArea, workbook);
-        var rootReference = ast.AstRoot.Accept(context, _visitor);
+        List<SheetArea>? rootReference = ast.AstRoot.Accept(context, _visitor);
 
         // If formula references are propagated to the root, make sure to add them.
         if (rootReference is not null)
@@ -221,7 +221,7 @@ internal class DependencyTree
         internal AreaDependents(in Envelope area, Dependent firstDependent)
         {
             _area = area;
-            _dependents = new List<Dependent> { firstDependent };
+            _dependents = [firstDependent];
         }
 
         /// <summary>
@@ -244,7 +244,7 @@ internal class DependencyTree
         {
             for (var i = 0; i < _dependents.Count; ++i)
             {
-                var dependent = _dependents[i];
+                Dependent dependent = _dependents[i];
 
                 // several different formulas can depend on same area,
                 // remove only dependent of the formula.
@@ -253,7 +253,7 @@ internal class DependencyTree
 
                 // Remove from list by moving the last element to the removed
                 // element place and decrease capacity.
-                _dependents[i] = _dependents[_dependents.Count - 1];
+                _dependents[i] = _dependents[^1];
 
                 // Remove last item, capacity is unchanged, only list size is updated.
                 _dependents.RemoveAt(_dependents.Count - 1);
@@ -264,7 +264,7 @@ internal class DependencyTree
         {
             for (var i = 0; i < _dependents.Count; ++i)
             {
-                var dependent = _dependents[i];
+                Dependent dependent = _dependents[i];
                 if (XlsxHelper.SheetComparer.Equals(dependent.FormulaArea.Name, oldSheetName))
                 {
                     var renamedArea = new SheetArea(newSheetName, dependent.FormulaArea.Area);
@@ -326,14 +326,14 @@ internal class DependencyTree
         internal SheetDependencyTree()
         {
             _tree = new RBush<AreaDependents>();
-            _precedentAreas = new Dictionary<Area, AreaDependents>();
+            _precedentAreas = [];
         }
 
         internal bool IsEmpty => _tree.Count == 0;
 
         internal void AddDependent(Area precedentRange, Dependent dependent)
         {
-            if (!_precedentAreas.TryGetValue(precedentRange, out var precedentArea))
+            if (!_precedentAreas.TryGetValue(precedentRange, out AreaDependents? precedentArea))
             {
                 precedentArea = new AreaDependents(ToEnvelope(precedentRange), dependent);
                 _precedentAreas.Add(precedentRange, precedentArea);
@@ -358,7 +358,7 @@ internal class DependencyTree
         /// <param name="formula">Formula depending on the <paramref name="precedentRange"/>.</param>
         internal void RemoveDependent(Area precedentRange, XlsxCellFormula formula)
         {
-            if (!_precedentAreas.TryGetValue(precedentRange, out var precedentArea))
+            if (!_precedentAreas.TryGetValue(precedentRange, out AreaDependents? precedentArea))
                 return;
 
             precedentArea.RemoveDependent(formula);
@@ -373,7 +373,7 @@ internal class DependencyTree
         {
             // Area dependents instances are shared among _precedentAreas and _tree, so it is
             // enough to change _precedentAreas.
-            foreach (var areaDependents in _precedentAreas.Values)
+            foreach (AreaDependents areaDependents in _precedentAreas.Values)
                 areaDependents.RenameSheet(oldSheetName, newSheetName);
         }
 

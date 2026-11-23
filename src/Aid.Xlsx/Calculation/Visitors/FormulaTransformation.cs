@@ -75,7 +75,7 @@ internal static class FormulaTransformation
 
         public bool IsPrefixOf(ReadOnlySpan<char> text)
         {
-            var current = this;
+            PrefixTree current = this;
             foreach (var c in text)
             {
                 if (current.IsEnd)
@@ -98,9 +98,9 @@ internal static class FormulaTransformation
         {
             // Prev is necessary to update previous list due to immutability
             Debug.Assert(functionName.Length > 0);
-            var prevTransitions = System.Array.Empty<PrefixTree>();
+            PrefixTree[] prevTransitions = [];
             var prevIndex = -1;
-            var curNode = this;
+            PrefixTree curNode = this;
             foreach (var c in functionName)
             {
                 // All future function names are uppercase and in range, no need to transform.

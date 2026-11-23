@@ -123,11 +123,11 @@ internal sealed class CompoundWorkbookStream
             sector = _fat[sector];
         }
 
-        var entries = directory.GetBuffer().AsSpan(0, (int)directory.Length);
+        Span<byte> entries = directory.GetBuffer().AsSpan(0, (int)directory.Length);
         if (entries.Length < 128 || entries[66] != 5)
             throw Invalid("Missing compound file root directory entry.");
 
-        var root = entries[..128];
+        Span<byte> root = entries[..128];
         var pending = new Stack<uint>();
         pending.Push(U32(root[76..]));
         seen.Clear();
@@ -138,7 +138,7 @@ internal sealed class CompoundWorkbookStream
             if (entryIndex == 0 || entryIndex >= entries.Length / 128 || !seen.Add(entryIndex))
                 throw Invalid("Invalid compound file directory tree.");
 
-            var entry = entries.Slice((int)entryIndex * 128, 128);
+            Span<byte> entry = entries.Slice((int)entryIndex * 128, 128);
             var nameBytes = U16(entry[64..]);
             if (nameBytes is < 2 or > 64 || (nameBytes & 1) != 0)
                 throw Invalid("Invalid compound file directory name.");
@@ -214,7 +214,7 @@ internal sealed class CompoundWorkbookStream
 
     private static int StreamSize(ReadOnlySpan<byte> entry, ReadOnlySpan<byte> header)
     {
-        var field = entry[120..];
+        ReadOnlySpan<byte> field = entry[120..];
         ulong size = U16(header[26..]) == 3 ? U32(field) : BinaryPrimitives.ReadUInt64LittleEndian(field);
         if (size > MaxWorkbookBytes)
             throw Invalid("Compound file stream is too large.");

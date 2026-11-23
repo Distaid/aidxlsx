@@ -6,22 +6,16 @@ using Aid.Xlsx.SpreadsheetML.Xml;
 
 namespace Aid.Xlsx.SpreadsheetML.Pivots;
 
-internal partial class PivotCacheRecordsReader
+internal partial class PivotCacheRecordsReader(XmlTreeReader reader, XlsxPivotCache pivotCache)
 {
     private readonly string _ns = OpenXmlConst.Main2006SsNs;
-    private readonly XmlTreeReader _reader;
-    private readonly XlsxPivotCache _pivotCache;
+    private readonly XmlTreeReader _reader = reader;
+    private readonly XlsxPivotCache _pivotCache = pivotCache;
 
     /// <summary>
     /// Index of current field that is read from the <c>r</c> element.
     /// </summary>
     private int _fieldIdx;
-
-    public PivotCacheRecordsReader(XmlTreeReader reader, XlsxPivotCache pivotCache)
-    {
-        _reader = reader;
-        _pivotCache = pivotCache;
-    }
 
     internal void ReadRecordsToCache()
     {
@@ -56,26 +50,26 @@ internal partial class PivotCacheRecordsReader
 
     partial void OnMissingParsed(bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b)
     {
-        var fieldValues = GetFieldValues();
+        XlsxPivotCacheValues fieldValues = GetFieldValues();
         fieldValues.AddMissing();
     }
 
     partial void OnNumberParsed(double v, bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b)
     {
-        var fieldValues = GetFieldValues();
+        XlsxPivotCacheValues fieldValues = GetFieldValues();
         fieldValues.AddNumber(v);
     }
 
     partial void OnBooleanParsed(bool v, bool? u, bool? f, string? c, uint? cp)
     {
-        var fieldValues = GetFieldValues();
+        XlsxPivotCacheValues fieldValues = GetFieldValues();
         fieldValues.AddBoolean(v);
     }
 
     partial void OnErrorParsed(string v, bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b)
     {
-        var fieldValues = GetFieldValues();
-        if (!XlsxErrorParser.TryParseError(v, out var error))
+        XlsxPivotCacheValues fieldValues = GetFieldValues();
+        if (!XlsxErrorParser.TryParseError(v, out XlsxError error))
             throw PartStructureException.InvalidAttributeFormat();
 
         fieldValues.AddError(error);
@@ -83,19 +77,19 @@ internal partial class PivotCacheRecordsReader
 
     partial void OnStringParsed(string v, bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b)
     {
-        var fieldValues = GetFieldValues();
+        XlsxPivotCacheValues fieldValues = GetFieldValues();
         fieldValues.AddString(v);
     }
 
     partial void OnDateTimeParsed(DateTime v, bool? u, bool? f, string? c, uint? cp)
     {
-        var fieldValues = GetFieldValues();
+        XlsxPivotCacheValues fieldValues = GetFieldValues();
         fieldValues.AddDateTime(v);
     }
 
     partial void OnIndexParsed(uint v)
     {
-        var fieldValues = GetFieldValues();
+        XlsxPivotCacheValues fieldValues = GetFieldValues();
         if (v >= fieldValues.SharedCount)
             throw PartStructureException.InvalidAttributeValue();
 

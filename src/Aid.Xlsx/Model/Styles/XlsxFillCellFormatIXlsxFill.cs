@@ -60,8 +60,8 @@ internal sealed partial class XlsxFillCellFormat : IXlsxFill
         if (BackgroundColor != other.BackgroundColor)
             return false;
 
-        var patternColor = UsesPatternColor(this) ? PatternColor : null;
-        var otherPatternColor = UsesPatternColor(other) ? other.PatternColor : null;
+        XlsxColor? patternColor = UsesPatternColor(this) ? PatternColor : null;
+        XlsxColor? otherPatternColor = UsesPatternColor(other) ? other.PatternColor : null;
         if (patternColor != otherPatternColor)
             return false;
 
@@ -69,7 +69,7 @@ internal sealed partial class XlsxFillCellFormat : IXlsxFill
 
         static bool HasFill(IXlsxFill fill)
         {
-            var patternType = fill.PatternType;
+            XlsxFillPatternValues patternType = fill.PatternType;
             if (patternType == XlsxFillPatternValues.None)
                 return false;
 

@@ -8,12 +8,20 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Rows;
 
-internal class XlsxRows : IXlsxRows
+/// <summary>
+/// Create a new instance of <see cref="XlsxRows"/>.
+/// </summary>
+/// <param name="workbook">Workbook of the rows.</param>
+/// <param name="worksheet">If worksheet is specified it means that the created instance represents
+/// all rows on a worksheet so changing its height will affect all rows.</param>
+/// <param name="defaultStyleSheet">A sheet with a default style to use when initializing child entries.</param>
+/// <param name="lazyEnumerable">A predefined enumerator of <see cref="XlsxRow"/> to support lazy initialization.</param>
+internal class XlsxRows(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWorksheet? defaultStyleSheet = null, IEnumerable<XlsxRow>? lazyEnumerable = null) : IXlsxRows
 {
-    private readonly List<XlsxRow> _rowsCollection = new List<XlsxRow>();
-    private readonly XlsxWorkbook _workbook;
-    private readonly XlsxWorksheet? _worksheet;
-    private readonly XlsxWorksheet? _defaultStyleSheet;
+    private readonly List<XlsxRow> _rowsCollection = [];
+    private readonly XlsxWorkbook _workbook = workbook;
+    private readonly XlsxWorksheet? _worksheet = worksheet;
+    private readonly XlsxWorksheet? _defaultStyleSheet = defaultStyleSheet;
 
     /// <summary>
     /// This object represents all rows of the worksheet, even non-materialized ones.
@@ -23,24 +31,8 @@ internal class XlsxRows : IXlsxRows
 
     private bool IsMaterialized => _lazyEnumerable == null;
 
-    private IEnumerable<XlsxRow>? _lazyEnumerable;
+    private IEnumerable<XlsxRow>? _lazyEnumerable = lazyEnumerable;
     private IEnumerable<XlsxRow> Rows => _lazyEnumerable ?? _rowsCollection.AsEnumerable();
-
-    /// <summary>
-    /// Create a new instance of <see cref="XlsxRows"/>.
-    /// </summary>
-    /// <param name="workbook">Workbook of the rows.</param>
-    /// <param name="worksheet">If worksheet is specified it means that the created instance represents
-    /// all rows on a worksheet so changing its height will affect all rows.</param>
-    /// <param name="defaultStyleSheet">A sheet with a default style to use when initializing child entries.</param>
-    /// <param name="lazyEnumerable">A predefined enumerator of <see cref="XlsxRow"/> to support lazy initialization.</param>
-    public XlsxRows(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWorksheet? defaultStyleSheet = null, IEnumerable<XlsxRow>? lazyEnumerable = null)
-    {
-        _workbook = workbook;
-        _worksheet = worksheet;
-        _defaultStyleSheet = defaultStyleSheet;
-        _lazyEnumerable = lazyEnumerable;
-    }
 
     #region IXlsxRows Members
 
@@ -76,12 +68,12 @@ internal class XlsxRows : IXlsxRows
         }
         else
         {
-            var toDelete = new Dictionary<IXlsxWorksheet, List<Int32>>();
+            var toDelete = new Dictionary<IXlsxWorksheet, List<int>>();
             foreach (XlsxRow r in Rows)
             {
-                if (!toDelete.TryGetValue(r.Worksheet, out List<Int32>? list))
+                if (!toDelete.TryGetValue(r.Worksheet, out List<int>? list))
                 {
-                    list = new List<Int32>();
+                    list = [];
                     toDelete.Add(r.Worksheet, list);
                 }
 
@@ -102,31 +94,31 @@ internal class XlsxRows : IXlsxRows
         return this;
     }
 
-    public IXlsxRows AdjustToContents(Int32 startColumn)
+    public IXlsxRows AdjustToContents(int startColumn)
     {
         Rows.ForEach(r => r.AdjustToContents(startColumn));
         return this;
     }
 
-    public IXlsxRows AdjustToContents(Int32 startColumn, Int32 endColumn)
+    public IXlsxRows AdjustToContents(int startColumn, int endColumn)
     {
         Rows.ForEach(r => r.AdjustToContents(startColumn, endColumn));
         return this;
     }
 
-    public IXlsxRows AdjustToContents(Double minHeight, Double maxHeight)
+    public IXlsxRows AdjustToContents(double minHeight, double maxHeight)
     {
         Rows.ForEach(r => r.AdjustToContents(minHeight, maxHeight));
         return this;
     }
 
-    public IXlsxRows AdjustToContents(Int32 startColumn, Double minHeight, Double maxHeight)
+    public IXlsxRows AdjustToContents(int startColumn, double minHeight, double maxHeight)
     {
         Rows.ForEach(r => r.AdjustToContents(startColumn, minHeight, maxHeight));
         return this;
     }
 
-    public IXlsxRows AdjustToContents(Int32 startColumn, Int32 endColumn, Double minHeight, Double maxHeight)
+    public IXlsxRows AdjustToContents(int startColumn, int endColumn, double minHeight, double maxHeight)
     {
         Rows.ForEach(r => r.AdjustToContents(startColumn, endColumn, minHeight, maxHeight));
         return this;
@@ -147,7 +139,7 @@ internal class XlsxRows : IXlsxRows
         Group(false);
     }
 
-    public void Group(Int32 outlineLevel)
+    public void Group(int outlineLevel)
     {
         Group(outlineLevel, false);
     }
@@ -157,17 +149,17 @@ internal class XlsxRows : IXlsxRows
         Ungroup(false);
     }
 
-    public void Group(Boolean collapse)
+    public void Group(bool collapse)
     {
         Rows.ForEach(r => r.Group(collapse));
     }
 
-    public void Group(Int32 outlineLevel, Boolean collapse)
+    public void Group(int outlineLevel, bool collapse)
     {
         Rows.ForEach(r => r.Group(outlineLevel, collapse));
     }
 
-    public void Ungroup(Boolean ungroupFromAll)
+    public void Ungroup(bool ungroupFromAll)
     {
         Rows.ForEach(r => r.Ungroup(ungroupFromAll));
     }
@@ -249,7 +241,7 @@ internal class XlsxRows : IXlsxRows
 
     public void Select()
     {
-        foreach (var range in this)
+        foreach (IXlsxRow range in this)
             range.Select();
     }
 

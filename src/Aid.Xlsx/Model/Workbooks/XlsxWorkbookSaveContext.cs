@@ -20,7 +20,7 @@ public partial class XlsxWorkbook
         {
             RelIdGenerator = new RelIdGenerator();
             TableId = 0;
-            TableNames = new HashSet<String>();
+            TableNames = [];
         }
 
         public RelIdGenerator RelIdGenerator { get; }
@@ -30,13 +30,13 @@ public partial class XlsxWorkbook
         /// formats from the file, all number formats used in the application (styles, pivot
         /// tables, dxf) and all predefined formats.
         /// </summary>
-        internal Dictionary<string, int> NumberFormatMap = new();
+        internal Dictionary<string, int> NumberFormatMap = [];
 
-        internal Dictionary<XlsxFontFormatValue, int> FontMap = new();
+        internal Dictionary<XlsxFontFormatValue, int> FontMap = [];
 
-        internal Dictionary<XlsxCellFormatValue, uint> FormatMap = new();
+        internal Dictionary<XlsxCellFormatValue, uint> FormatMap = [];
 
-        internal Dictionary<XlsxDxfValue, uint> DxfMap = new();
+        internal Dictionary<XlsxDxfValue, uint> DxfMap = [];
 
         public uint TableId { get; set; }
         public HashSet<string> TableNames { get; private set; }
@@ -111,13 +111,13 @@ public partial class XlsxWorkbook
 
     internal sealed class RelIdGenerator
     {
-        private readonly Dictionary<RelType, HashSet<String>> _relIds = new();
+        private readonly Dictionary<RelType, HashSet<string>> _relIds = [];
 
-        public void AddValues(IEnumerable<String> values, RelType relType)
+        public void AddValues(IEnumerable<string> values, RelType relType)
         {
-            if (!_relIds.TryGetValue(relType, out var set))
+            if (!_relIds.TryGetValue(relType, out HashSet<string> set))
             {
-                set = new HashSet<string>();
+                set = [];
                 _relIds.Add(relType, set);
             }
 
@@ -130,15 +130,15 @@ public partial class XlsxWorkbook
         public void AddExistingValues(WorkbookPackage package, OpcPart workbookPart, XlsxWorkbook xlWorkbook)
         {
             AddValues(workbookPart.Relationships.Select(rel => rel.Id), RelType.Workbook);
-            AddValues(xlWorkbook.WorksheetsInternal.Cast<XlsxWorksheet>().Where(ws => !String.IsNullOrWhiteSpace(ws.RelId)).Select(ws => ws.RelId), RelType.Workbook);
-            AddValues(xlWorkbook.WorksheetsInternal.Cast<XlsxWorksheet>().Where(ws => !String.IsNullOrWhiteSpace(ws.LegacyDrawingId)).Select(ws => ws.LegacyDrawingId), RelType.Workbook);
+            AddValues(xlWorkbook.WorksheetsInternal.Cast<XlsxWorksheet>().Where(ws => !string.IsNullOrWhiteSpace(ws.RelId)).Select(ws => ws.RelId), RelType.Workbook);
+            AddValues(xlWorkbook.WorksheetsInternal.Cast<XlsxWorksheet>().Where(ws => !string.IsNullOrWhiteSpace(ws.LegacyDrawingId)).Select(ws => ws.LegacyDrawingId), RelType.Workbook);
             AddValues(xlWorkbook.WorksheetsInternal
                 .Cast<XlsxWorksheet>()
                 .SelectMany(ws => ws.Tables.Cast<XlsxTable>())
-                .Where(t => !String.IsNullOrWhiteSpace(t.RelId))
+                .Where(t => !string.IsNullOrWhiteSpace(t.RelId))
                 .Select(t => t.RelId), RelType.Workbook);
 
-            foreach (var xlWorksheet in xlWorkbook.WorksheetsInternal.Cast<XlsxWorksheet>())
+            foreach (XlsxWorksheet xlWorksheet in xlWorkbook.WorksheetsInternal.Cast<XlsxWorksheet>())
             {
                 // if the worksheet is a new one, it doesn't have RelId yet.
                 if (string.IsNullOrEmpty(xlWorksheet.RelId) || package.RelatedPart(workbookPart, xlWorksheet.RelId, "worksheet") is not { } worksheetPart)
@@ -150,21 +150,20 @@ public partial class XlsxWorkbook
             }
         }
 
-        public String GetNext(RelType relType)
+        public string GetNext(RelType relType)
         {
-            if (!_relIds.TryGetValue(relType, out var set))
+            if (!_relIds.TryGetValue(relType, out HashSet<string> set))
             {
-                set = new HashSet<String>();
+                set = [];
                 _relIds.Add(relType, set);
             }
 
             var id = set.Count + 1;
             while (true)
             {
-                var relId = String.Concat("rId", id);
-                if (!set.Contains(relId))
+                var relId = string.Concat("rId", id);
+                if (set.Add(relId))
                 {
-                    set.Add(relId);
                     return relId;
                 }
                 id++;

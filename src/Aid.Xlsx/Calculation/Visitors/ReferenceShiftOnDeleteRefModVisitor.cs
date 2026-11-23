@@ -10,16 +10,10 @@ namespace Aid.Xlsx.Calculation.Visitors;
 /// <summary>
 /// A RefModVisitor that adjusts a reference in a formula when an area is deleted and shifted up/left.
 /// </summary>
-internal class ReferenceShiftOnDeleteRefModVisitor : CopyVisitor
+internal class ReferenceShiftOnDeleteRefModVisitor(SheetArea deletedBookArea, XlsxShiftDeletedCells shift) : CopyVisitor
 {
-    private readonly SheetArea _deletedBookArea;
-    private readonly XlsxShiftDeletedCells _shift;
-
-    public ReferenceShiftOnDeleteRefModVisitor(SheetArea deletedBookArea, XlsxShiftDeletedCells shift)
-    {
-        _deletedBookArea = deletedBookArea;
-        _shift = shift;
-    }
+    private readonly SheetArea _deletedBookArea = deletedBookArea;
+    private readonly XlsxShiftDeletedCells _shift = shift;
 
     public override TransformedSymbol SheetReference(ModContext ctx, SymbolRange range, string sheet, ReferenceArea reference)
     {
@@ -37,7 +31,7 @@ internal class ReferenceShiftOnDeleteRefModVisitor : CopyVisitor
             return TransformedSymbol.CopyOriginal(ctx.Formula, range);
 
         var wouldSplitArea = _shift == XlsxShiftDeletedCells.ShiftCellsUp
-            ? !referenceToShift.TryDeleteAndShiftUp(_deletedBookArea.Area, out var shiftedReference)
+            ? !referenceToShift.TryDeleteAndShiftUp(_deletedBookArea.Area, out ReferenceArea? shiftedReference)
             : !referenceToShift.TryDeleteAndShiftLeft(_deletedBookArea.Area, out shiftedReference);
 
         // Return original reference if the shift would cause a split

@@ -20,7 +20,7 @@ namespace Aid.Xlsx.Model.Sparklines;
 internal class XlsxSparklineGroup : IXlsxSparklineGroup, ISheetListener
 {
     private readonly XlsxWorksheet _worksheet;
-    private readonly Dictionary<Point, SparklineFormula?> _sparklines = new();
+    private readonly Dictionary<Point, SparklineFormula?> _sparklines = [];
     private IXlsxRange? _dateRange;
     private IXlsxSparklineStyle _style;
 
@@ -34,11 +34,11 @@ internal class XlsxSparklineGroup : IXlsxSparklineGroup, ISheetListener
 
     public XlsxDisplayBlanksAsValues DisplayEmptyCellsAs { get; set; }
 
-    public Boolean DisplayHidden { get; set; }
+    public bool DisplayHidden { get; set; }
 
     public IXlsxSparklineHorizontalAxis HorizontalAxis { get; }
 
-    public Double LineWeight { get; set; }
+    public double LineWeight { get; set; }
 
     public XlsxSparklineMarkers ShowMarkers { get; set; }
 
@@ -168,7 +168,7 @@ internal class XlsxSparklineGroup : IXlsxSparklineGroup, ISheetListener
 
     public IEnumerable<IXlsxSparkline> Add(string locationRangeAddress, string sourceDataAddress)
     {
-        var sourceDataRange = _worksheet.Workbook.Range(sourceDataAddress) ??
+        IXlsxRange sourceDataRange = _worksheet.Workbook.Range(sourceDataAddress) ??
                               _worksheet.Range(sourceDataAddress);
         return Add(_worksheet.Range(locationRangeAddress), sourceDataRange);
     }
@@ -210,9 +210,9 @@ internal class XlsxSparklineGroup : IXlsxSparklineGroup, ISheetListener
 
         var groupCopy = new XlsxSparklineGroup(targetSheet, this);
         targetSheet.SparklineGroupsInternal.Add(groupCopy);
-        foreach (var (sparklineLocation, sourceData) in _sparklines)
+        foreach ((Point sparklineLocation, SparklineFormula? sourceData) in _sparklines)
         {
-            var copiedSourceData = sourceData?.CopyFromTo(_worksheet, targetSheet);
+            SparklineFormula? copiedSourceData = sourceData?.CopyFromTo(_worksheet, targetSheet);
             groupCopy._sparklines.Add(sparklineLocation, copiedSourceData);
         }
 
@@ -221,7 +221,7 @@ internal class XlsxSparklineGroup : IXlsxSparklineGroup, ISheetListener
 
     public IEnumerator<XlsxSparkline> GetEnumerator()
     {
-        foreach (var sparklinePoint in _sparklines.Keys)
+        foreach (Point sparklinePoint in _sparklines.Keys)
             yield return new XlsxSparkline(this, sparklinePoint);
     }
 
@@ -253,7 +253,7 @@ internal class XlsxSparklineGroup : IXlsxSparklineGroup, ISheetListener
             yield break;
 
         var searchArea = Area.FromRangeAddress(searchRange.RangeAddress);
-        foreach (var location in _sparklines.Keys.Where(searchArea.Contains))
+        foreach (Point location in _sparklines.Keys.Where(searchArea.Contains))
         {
             yield return new XlsxSparkline(this, location);
         }
@@ -306,13 +306,13 @@ internal class XlsxSparklineGroup : IXlsxSparklineGroup, ISheetListener
         return this;
     }
 
-    public IXlsxSparklineGroup SetDisplayHidden(Boolean displayHidden)
+    public IXlsxSparklineGroup SetDisplayHidden(bool displayHidden)
     {
         DisplayHidden = displayHidden;
         return this;
     }
 
-    public IXlsxSparklineGroup SetLineWeight(Double lineWeight)
+    public IXlsxSparklineGroup SetLineWeight(double lineWeight)
     {
         LineWeight = lineWeight;
         return this;
@@ -353,7 +353,7 @@ internal class XlsxSparklineGroup : IXlsxSparklineGroup, ISheetListener
 
     internal void MoveSparkline(Point originalLocation, Point sparklineDestination)
     {
-        if (!_sparklines.TryGetValue(originalLocation, out var sourceData))
+        if (!_sparklines.TryGetValue(originalLocation, out SparklineFormula? sourceData))
             throw new InvalidOperationException($"No sparkline at the source cell {originalLocation}.");
 
         // Target can contain sparkline from different group, ensure invariant that only one sparkline per cell
@@ -376,7 +376,7 @@ internal class XlsxSparklineGroup : IXlsxSparklineGroup, ISheetListener
 
     internal IXlsxRange? GetSparklineSourceData(Point sparklineLocation)
     {
-        if (!_sparklines.TryGetValue(sparklineLocation, out var sourceData))
+        if (!_sparklines.TryGetValue(sparklineLocation, out SparklineFormula? sourceData))
             throw new InvalidOperationException($"No sparkline at the source cell {sparklineLocation}.");
 
         // Sparkline formula is always specified with a sheet (or a global name), it doesn't need current worksheet.
@@ -519,9 +519,9 @@ internal class XlsxSparklineGroup : IXlsxSparklineGroup, ISheetListener
         // Clear to avoid problems during shifting (e.g. A1 and A2 have sparklines, A1 is
         // shifted to A2, but A2 hasn't yet been shifted). Just reinsert everything.
         _sparklines.Clear();
-        foreach (var (originalLocation, sourceData) in sparklinesCopy)
+        foreach ((Point originalLocation, SparklineFormula? sourceData) in sparklinesCopy)
         {
-            var shiftedLocation = shiftLocation(originalLocation, shiftedRange.Area);
+            Point? shiftedLocation = shiftLocation(originalLocation, shiftedRange.Area);
             if (shiftedLocation is not null)
                 _sparklines.Add(shiftedLocation.Value, sourceData);
         }
@@ -531,9 +531,9 @@ internal class XlsxSparklineGroup : IXlsxSparklineGroup, ISheetListener
     {
         // Can't modify dictionary while iterating over it, make a copy.
         var locationsCopy = new List<Point>(_sparklines.Keys);
-        foreach (var location in locationsCopy)
+        foreach (Point location in locationsCopy)
         {
-            var originalSourceData = _sparklines[location];
+            SparklineFormula? originalSourceData = _sparklines[location];
             if (originalSourceData is not null)
             {
                 var shiftedSourceData = FormulaConverter.ModifyA1(originalSourceData.Value.Text, _worksheet.Name, location.Row, location.Column, refMod);
@@ -574,7 +574,7 @@ internal class XlsxSparklineGroup : IXlsxSparklineGroup, ISheetListener
         internal SparklineFormula CopyFromTo(XlsxWorksheet sourceSheet, XlsxWorksheet targetSheet)
         {
             // If formula is single-sheet-area, i.e. `single-sheet-prefix A1-area`
-            if (ReferenceParser.TryParseSheetA1(Text, out var formulaSheetName, out var reference) &&
+            if (ReferenceParser.TryParseSheetA1(Text, out var formulaSheetName, out ReferenceArea reference) &&
                 XlsxHelper.SheetComparer.Equals(formulaSheetName, sourceSheet.Name))
             {
                 var copiedReference = reference.GetDisplayStringA1(targetSheet.Name);

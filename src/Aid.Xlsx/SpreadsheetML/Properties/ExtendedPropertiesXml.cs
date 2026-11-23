@@ -13,7 +13,7 @@ internal static class ExtendedPropertiesXml
 
     internal static void Read(Stream stream, XlsxWorkbook workbook)
     {
-        var root = XDocumentExtensions.Load(stream)?.Root;
+        XElement? root = XDocumentExtensions.Load(stream)?.Root;
         if (root is null)
             return;
 
@@ -23,7 +23,7 @@ internal static class ExtendedPropertiesXml
 
     internal static XDocument Update(Stream? existing, XlsxWorkbook workbook)
     {
-        var root = existing is null ? null : XDocumentExtensions.Load(existing)?.Root;
+        XElement? root = existing is null ? null : XDocumentExtensions.Load(existing)?.Root;
         if (root?.Name != Extended + "Properties")
             root = new XElement(Extended + "Properties");
 
@@ -37,9 +37,8 @@ internal static class ExtendedPropertiesXml
 
         var worksheetNames = workbook.WorksheetsInternal.Cast<XlsxWorksheet>()
             .OrderBy(sheet => sheet.Position).Select(sheet => sheet.Name).ToList();
-        var namedRanges = GetRangeNames(workbook);
-        SetVector(root, "TitlesOfParts", "lpstr", worksheetNames.Concat(namedRanges)
-            .Select(name => new XElement(Variant + "lpstr", name)).ToList());
+        List<string> namedRanges = GetRangeNames(workbook);
+        SetVector(root, "TitlesOfParts", "lpstr", [.. worksheetNames.Concat(namedRanges).Select(name => new XElement(Variant + "lpstr", name))]);
         SetVector(root, "HeadingPairs", "variant",
         [
             new XElement(Variant + "variant", new XElement(Variant + "lpstr", "Worksheets")),
@@ -62,7 +61,7 @@ internal static class ExtendedPropertiesXml
     {
         var vector = new XElement(Extended + name, new XElement(Variant + "vector",
             new XAttribute("baseType", kind), new XAttribute("size", entries.Count), entries));
-        var existing = root.Element(vector.Name);
+        XElement? existing = root.Element(vector.Name);
         if (existing is null)
             root.Element(Extended + "DocSecurity")!.AddBeforeSelf(vector);
         else
@@ -78,7 +77,7 @@ internal static class ExtendedPropertiesXml
     private static List<string> GetRangeNames(XlsxWorkbook workbook)
     {
         var names = new List<string>();
-        foreach (var sheet in workbook.WorksheetsInternal)
+        foreach (XlsxWorksheet sheet in workbook.WorksheetsInternal)
         {
             names.AddRange(sheet.DefinedNames.Select<XlsxDefinedName, string>(namedRange => $"{sheet.Name}!{namedRange.Name}"));
             names.Add($"{sheet.Name}!Print_Area");

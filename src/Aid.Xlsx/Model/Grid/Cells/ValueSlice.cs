@@ -53,9 +53,9 @@ internal class ValueSlice : ISlice
         // Only pushed out references have to be dereferenced, other text references just move.
         if (areaToInsert.BottomRow < XlsxHelper.MaxRowNumber)
         {
-            var belowRange = areaToInsert.BelowRange();
+            Area belowRange = areaToInsert.BelowRange();
             var pushedOutRows = Math.Min(areaToInsert.Height, belowRange.Height);
-            var pushedOutRange = belowRange.SliceFromBottom(pushedOutRows);
+            Area pushedOutRange = belowRange.SliceFromBottom(pushedOutRows);
             DereferenceTextInRange(pushedOutRange);
         }
 
@@ -67,9 +67,9 @@ internal class ValueSlice : ISlice
         // Only pushed out references have to be dereferenced, other text references just move.
         if (areaToInsert.RightColumn < XlsxHelper.MaxColumnNumber)
         {
-            var rightRange = areaToInsert.RightRange();
+            Area rightRange = areaToInsert.RightRange();
             var pushedOutColumns = Math.Min(areaToInsert.Width, rightRange.Width);
-            var pushedOutRange = rightRange.SliceFromRight(pushedOutColumns);
+            Area pushedOutRange = rightRange.SliceFromRight(pushedOutColumns);
             DereferenceTextInRange(pushedOutRange);
         }
 
@@ -82,8 +82,8 @@ internal class ValueSlice : ISlice
 
     internal XlsxCellValue GetCellValue(Point point)
     {
-        ref readonly var cellValue = ref _values[point];
-        var type = cellValue.Type;
+        ref readonly XlsxValueSliceContent cellValue = ref _values[point];
+        XlsxDataType type = cellValue.Type;
         var value = cellValue.Value;
         return type switch
         {
@@ -94,13 +94,13 @@ internal class ValueSlice : ISlice
             XlsxDataType.Error => (XlsxError)value,
             XlsxDataType.DateTime => XlsxCellValue.FromSerialDateTime(value),
             XlsxDataType.TimeSpan => XlsxCellValue.FromSerialTimeSpan(value),
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Unknown cell data type.")
         };
     }
 
     internal void SetCellValue(Point point, XlsxCellValue cellValue)
     {
-        ref readonly var original = ref _values[point];
+        ref readonly XlsxValueSliceContent original = ref _values[point];
 
         double value;
         if (cellValue.Type == XlsxDataType.Text)
@@ -144,7 +144,7 @@ internal class ValueSlice : ISlice
 
     internal XlsxImmutableRichText? GetRichText(Point point)
     {
-        ref readonly var cellValue = ref _values[point];
+        ref readonly XlsxValueSliceContent cellValue = ref _values[point];
         if (cellValue.Type != XlsxDataType.Text)
             return null;
 
@@ -154,10 +154,9 @@ internal class ValueSlice : ISlice
 
     internal void SetRichText(Point point, XlsxImmutableRichText richText)
     {
-        if (richText is null)
-            throw new ArgumentNullException(nameof(richText));
+        ArgumentNullException.ThrowIfNull(richText);
 
-        ref readonly var original = ref _values[point];
+        ref readonly XlsxValueSliceContent original = ref _values[point];
 
         // If original value was a text (no matter if plain or rich text),
         // dereference because it's being replaced.
@@ -180,7 +179,7 @@ internal class ValueSlice : ISlice
     internal void SetShareString(Point point, bool shareString)
     {
         var inlineString = !shareString;
-        ref readonly var original = ref _values[point];
+        ref readonly XlsxValueSliceContent original = ref _values[point];
         if (original.Inline == inlineString)
             return;
 
@@ -189,7 +188,7 @@ internal class ValueSlice : ISlice
         {
             // Because inline is a part of SST, we have to update stringIds when inline flag changes.
             var originalStringId = (int)cellValue;
-            var richText = _sst.GetRichText(originalStringId);
+            XlsxImmutableRichText? richText = _sst.GetRichText(originalStringId);
             if (richText is not null)
             {
                 // Cell is storing rich text
@@ -211,7 +210,7 @@ internal class ValueSlice : ISlice
 
     internal int GetShareStringId(Point point)
     {
-        ref readonly var value = ref _values[point];
+        ref readonly XlsxValueSliceContent value = ref _values[point];
         if (value.Type != XlsxDataType.Text)
             throw new InvalidOperationException($"Asking for a shared string id of a non-text cell {point}.");
 
@@ -226,10 +225,10 @@ internal class ValueSlice : ISlice
     private void DereferenceTextInRange(Area range)
     {
         // Dereference all texts in the range, so the ref count is kept correct.
-        using var e = _values.GetEnumerator(range);
+        using IEnumerator<Point> e = _values.GetEnumerator(range);
         while (e.MoveNext())
         {
-            ref readonly var value = ref _values[e.Current];
+            ref readonly XlsxValueSliceContent value = ref _values[e.Current];
             if (value.Type == XlsxDataType.Text)
             {
                 _sst.DecreaseRef((int)value.Value);

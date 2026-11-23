@@ -5,28 +5,19 @@ using Aid.Xlsx.Model.Styles.Colors;
 
 namespace Aid.Xlsx.Model.Drawings.Styles;
 
-internal class XlsxDrawingFont : IXlsxDrawingFont
+internal class XlsxDrawingFont(IXlsxDrawingStyle style) : IXlsxDrawingFont
 {
-    private readonly IXlsxDrawingStyle _style;
+    private readonly IXlsxDrawingStyle _style = style;
 
-    public XlsxDrawingFont(IXlsxDrawingStyle style)
-    {
-        _style = style;
-        FontName = "Tahoma";
-        FontSize = 9;
-        Underline = XlsxFontUnderlineValues.None;
-        FontColor = XlsxColor.FromIndex(64);
-    }
-
-    public Boolean Bold { get; set; }
-    public Boolean Italic { get; set; }
-    public XlsxFontUnderlineValues Underline { get; set; }
-    public Boolean Strikethrough { get; set; }
+    public bool Bold { get; set; }
+    public bool Italic { get; set; }
+    public XlsxFontUnderlineValues Underline { get; set; } = XlsxFontUnderlineValues.None;
+    public bool Strikethrough { get; set; }
     public XlsxFontVerticalTextAlignmentValues VerticalAlignment { get; set; }
-    public Boolean Shadow { get; set; }
-    public Double FontSize { get; set; }
-    public XlsxColor FontColor { get; set; }
-    public String FontName { get; set; }
+    public bool Shadow { get; set; }
+    public double FontSize { get; set; } = 9;
+    public XlsxColor FontColor { get; set; } = XlsxColor.FromIndex(64);
+    public string FontName { get; set; } = "Tahoma";
     public XlsxFontFamilyNumberingValues FontFamilyNumbering { get; set; }
     public XlsxFontCharSet FontCharSet { get; set; }
     public XlsxFontScheme FontScheme { get; set; }
@@ -37,7 +28,7 @@ internal class XlsxDrawingFont : IXlsxDrawingFont
         return _style;
     }
 
-    public IXlsxDrawingStyle SetBold(Boolean value)
+    public IXlsxDrawingStyle SetBold(bool value)
     {
         Bold = value;
         return _style;
@@ -49,7 +40,7 @@ internal class XlsxDrawingFont : IXlsxDrawingFont
         return _style;
     }
 
-    public IXlsxDrawingStyle SetItalic(Boolean value)
+    public IXlsxDrawingStyle SetItalic(bool value)
     {
         Italic = value;
         return _style;
@@ -73,7 +64,7 @@ internal class XlsxDrawingFont : IXlsxDrawingFont
         return _style;
     }
 
-    public IXlsxDrawingStyle SetStrikethrough(Boolean value)
+    public IXlsxDrawingStyle SetStrikethrough(bool value)
     {
         Strikethrough = value;
         return _style;
@@ -91,13 +82,13 @@ internal class XlsxDrawingFont : IXlsxDrawingFont
         return _style;
     }
 
-    public IXlsxDrawingStyle SetShadow(Boolean value)
+    public IXlsxDrawingStyle SetShadow(bool value)
     {
         Shadow = value;
         return _style;
     }
 
-    public IXlsxDrawingStyle SetFontSize(Double value)
+    public IXlsxDrawingStyle SetFontSize(double value)
     {
         FontSize = value;
         return _style;
@@ -109,7 +100,7 @@ internal class XlsxDrawingFont : IXlsxDrawingFont
         return _style;
     }
 
-    public IXlsxDrawingStyle SetFontName(String value)
+    public IXlsxDrawingStyle SetFontName(string value)
     {
         FontName = value;
         return _style;

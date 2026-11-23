@@ -22,7 +22,7 @@ public static class FormulaConverter
     public static string ToR1C1(string formulaA1, int row, int col)
     {
         var ctx = new ModContext(formulaA1, string.Empty, row, col, isA1: true);
-        var transformedFormula = FormulaParser<TransformedSymbol, TransformedSymbol, ModContext>.CellFormulaA1(formulaA1, ctx, s_visitorR1C1);
+        TransformedSymbol transformedFormula = FormulaParser<TransformedSymbol, TransformedSymbol, ModContext>.CellFormulaA1(formulaA1, ctx, s_visitorR1C1);
         return Normalize(transformedFormula, formulaA1);
     }
 
@@ -37,7 +37,7 @@ public static class FormulaConverter
     public static string ToA1(string formulaR1C1, int row, int col)
     {
         var ctx = new ModContext(formulaR1C1, string.Empty, row, col, isA1: false);
-        var transformedFormula = FormulaParser<TransformedSymbol, TransformedSymbol, ModContext>.CellFormulaR1C1(formulaR1C1, ctx, s_visitorA1);
+        TransformedSymbol transformedFormula = FormulaParser<TransformedSymbol, TransformedSymbol, ModContext>.CellFormulaR1C1(formulaR1C1, ctx, s_visitorA1);
         return Normalize(transformedFormula, formulaR1C1);
     }
 
@@ -65,7 +65,7 @@ public static class FormulaConverter
     public static string ModifyA1(string formulaA1, string sheet, int row, int col, IAstFactory<TransformedSymbol, TransformedSymbol, ModContext> factory)
     {
         var ctx = new ModContext(formulaA1, sheet, row, col, isA1: true);
-        var transformedFormula = FormulaParser<TransformedSymbol, TransformedSymbol, ModContext>.CellFormulaA1(formulaA1, ctx, factory);
+        TransformedSymbol transformedFormula = FormulaParser<TransformedSymbol, TransformedSymbol, ModContext>.CellFormulaA1(formulaA1, ctx, factory);
         return Normalize(transformedFormula, formulaA1);
     }
 
@@ -75,7 +75,7 @@ public static class FormulaConverter
         // formula to the parser. Add them back, if necessary.
         var trimmed = originalFormula.TrimEnd();
         var endLength = originalFormula.Length - trimmed.Length;
-        var trimmedEnd = originalFormula.AsSpan().Slice(trimmed.Length, endLength);
+        ReadOnlySpan<char> trimmedEnd = originalFormula.AsSpan().Slice(trimmed.Length, endLength);
         return transformedFormula.ToString(trimmedEnd);
     }
 

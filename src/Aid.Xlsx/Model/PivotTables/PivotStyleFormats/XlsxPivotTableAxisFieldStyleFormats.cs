@@ -4,16 +4,10 @@ using Aid.Xlsx.Model.PivotTables.Areas;
 
 namespace Aid.Xlsx.Model.PivotTables.PivotStyleFormats;
 
-internal class XlsxPivotTableAxisFieldStyleFormats : IXlsxPivotFieldStyleFormats
+internal class XlsxPivotTableAxisFieldStyleFormats(XlsxPivotTable pivotTable, XlsxPivotTableAxisField axisField) : IXlsxPivotFieldStyleFormats
 {
-    private readonly XlsxPivotTable _pivotTable;
-    private readonly XlsxPivotTableAxisField _axisField;
-
-    public XlsxPivotTableAxisFieldStyleFormats(XlsxPivotTable pivotTable, XlsxPivotTableAxisField axisField)
-    {
-        _pivotTable = pivotTable;
-        _axisField = axisField;
-    }
+    private readonly XlsxPivotTable _pivotTable = pivotTable;
+    private readonly XlsxPivotTableAxisField _axisField = axisField;
 
     #region IXlsxPivotFieldStyleFormats
 
@@ -36,7 +30,7 @@ internal class XlsxPivotTableAxisFieldStyleFormats : IXlsxPivotFieldStyleFormats
             // contain correct position of the field on the axis. If table is compact, there is
             // only one header and its position is first in axis, because it's the only one.
             var fieldPosition = _pivotTable.Compact ? 0 : _axisField.Position;
-            var fieldAxis = _axisField.Axis;
+            XlsxPivotAxis fieldAxis = _axisField.Axis;
             var headerArea = new XlsxPivotArea
             {
                 Field = _axisField.Offset,

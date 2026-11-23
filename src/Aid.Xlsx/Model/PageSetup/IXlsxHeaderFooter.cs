@@ -24,7 +24,7 @@ public interface IXlsxHeaderFooter
     /// Gets the text of the specified header/footer occurrence.
     /// </summary>
     /// <param name="occurrence">The occurrence.</param>
-    String GetText(XlsxHFOccurrence occurrence);
+    string GetText(XlsxHFOccurrence occurrence);
 
     IXlsxHeaderFooter Clear(XlsxHFOccurrence occurrence = XlsxHFOccurrence.AllPages);
 }

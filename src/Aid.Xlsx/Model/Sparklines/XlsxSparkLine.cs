@@ -36,8 +36,7 @@ internal class XlsxSparkline : IXlsxSparkline
 
     public IXlsxSparkline SetLocation(IXlsxCell newLocation)
     {
-        if (newLocation is null)
-            throw new ArgumentNullException(nameof(newLocation));
+        ArgumentNullException.ThrowIfNull(newLocation);
 
         if (newLocation.Worksheet != SparklineGroup.Worksheet)
             throw new ArgumentException("Cannot move the sparkline to a different worksheet");

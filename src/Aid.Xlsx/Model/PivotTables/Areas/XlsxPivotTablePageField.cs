@@ -171,11 +171,11 @@ internal class XlsxPivotTablePageField : IXlsxPivotField
     {
         get
         {
-            var shownItems = GetField().Items.Where(i => !i.Hidden);
+            IEnumerable<XlsxPivotFieldItem> shownItems = GetField().Items.Where(i => !i.Hidden);
             var selectedValues = new List<XlsxCellValue>();
-            foreach (var selectedItem in shownItems)
+            foreach (XlsxPivotFieldItem selectedItem in shownItems)
             {
-                var selectedValue = selectedItem.GetValue();
+                XlsxCellValue? selectedValue = selectedItem.GetValue();
                 if (selectedValue is not null)
                     selectedValues.Add(selectedValue.Value);
             }
@@ -188,12 +188,12 @@ internal class XlsxPivotTablePageField : IXlsxPivotField
     {
         // Try to keep the original behavior - it always allows multiple selected items for added values.
         // But it's complete kludge with no sane semantic that will be nuked ASAP.
-        var pivotField = GetField();
+        XlsxPivotTableField pivotField = GetField();
 
         var nothingSelected = _filterField.ItemIndex is null && !pivotField.MultipleItemSelectionAllowed;
         if (nothingSelected)
         {
-            var fieldItem = pivotField.GetOrAddItem(value);
+            XlsxPivotFieldItem fieldItem = pivotField.GetOrAddItem(value);
             _filterField.ItemIndex = fieldItem.ItemIndex;
             return this;
         }
@@ -203,20 +203,20 @@ internal class XlsxPivotTablePageField : IXlsxPivotField
         {
             // Switch to multiple
             pivotField.MultipleItemSelectionAllowed = true;
-            foreach (var item in pivotField.Items.Where(x => x.ItemType == XlsxPivotItemType.Data))
+            foreach (XlsxPivotFieldItem item in pivotField.Items.Where(x => x.ItemType == XlsxPivotItemType.Data))
                 item.Hidden = true;
 
-            var selectedItem = pivotField.Items.Single(i => i.ItemIndex == _filterField.ItemIndex);
+            XlsxPivotFieldItem selectedItem = pivotField.Items.Single(i => i.ItemIndex == _filterField.ItemIndex);
             selectedItem.Hidden = false;
             _filterField.ItemIndex = null;
-            var fieldItem = pivotField.GetOrAddItem(value);
+            XlsxPivotFieldItem fieldItem = pivotField.GetOrAddItem(value);
             fieldItem.Hidden = false;
             return this;
         }
         else
         {
             // Add another item to selected item filters.
-            var fieldItem = pivotField.GetOrAddItem(value);
+            XlsxPivotFieldItem fieldItem = pivotField.GetOrAddItem(value);
             fieldItem.Hidden = false;
             return this;
         }
@@ -224,7 +224,7 @@ internal class XlsxPivotTablePageField : IXlsxPivotField
 
     public IXlsxPivotField AddSelectedValues(IEnumerable<XlsxCellValue> values)
     {
-        foreach (var value in values)
+        foreach (XlsxCellValue value in values)
             AddSelectedValue(value);
 
         return this;

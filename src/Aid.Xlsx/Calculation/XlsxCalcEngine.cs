@@ -28,7 +28,7 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
     public XlsxCalcEngine(CultureInfo culture)
     {
         _culture = culture;
-        var funcRegistry = GetFunctionTable();
+        FunctionRegistry funcRegistry = GetFunctionTable();
         _parser = new FormulaParser(funcRegistry);
         _visitor = new CalculationVisitor(funcRegistry);
         _dependencyTree = null;
@@ -123,7 +123,7 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
         _chain = null;
 
         // Mark everything as dirty, because there can be stale values
-        foreach (var sheet in sheets)
+        foreach (XlsxWorksheet sheet in sheets)
         {
             sheet.Internals.CellsCollection.FormulaSlice.MarkDirty(Area.Full);
         }
@@ -168,7 +168,7 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
             // It ends when a cell has been calculated and thus chain can move ahead.
             while (true)
             {
-                var current = _chain.Current;
+                SheetPoint current = _chain.Current;
                 var sheetName = current.SheetName;
 
                 // Skip dirty cells from sheets that are not being recalculated
@@ -179,7 +179,7 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
                     break;
                 }
 
-                if (!sheetMap.TryGetValue(sheetName, out var sheetInfo))
+                if (!sheetMap.TryGetValue(sheetName, out (XlsxWorksheet Sheet, ValueSlice ValueSlice, FormulaSlice FormulaSlice) sheetInfo))
                 {
                     throw new InvalidOperationException($"Sheet of a calc chain cell {current} doesn't exist in the workbook.");
                 }
@@ -189,12 +189,7 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
                     throw new InvalidOperationException($"Formula in a cell {current} is part of a cycle.");
                 }
 
-                var cellFormula = sheetInfo.FormulaSlice.Get(current.Point);
-                if (cellFormula is null)
-                {
-                    throw new InvalidOperationException($"Calculation chain contains a {current}, but the cell doesn't contain a formula.");
-                }
-
+                XlsxCellFormula? cellFormula = sheetInfo.FormulaSlice.Get(current.Point) ?? throw new InvalidOperationException($"Calculation chain contains a {current}, but the cell doesn't contain a formula.");
                 if (!cellFormula.IsDirty)
                     break;
 
@@ -226,7 +221,7 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
         var formulaText = formula.A1;
         if (formula.Type == FormulaType.Normal)
         {
-            var single = EvaluateFormula(
+            ScalarValue single = EvaluateFormula(
                 formulaText,
                 sheet.Workbook,
                 sheet,
@@ -237,21 +232,21 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
         else if (formula.Type == FormulaType.Array)
         {
             // The point can be any point in an array, so we can't use it.
-            var range = formula.Range;
-            var leftTopCorner = range.FirstPoint;
-            var masterCell = sheet.Cell(leftTopCorner.Row, leftTopCorner.Column);
-            var array = EvaluateArrayFormula(formulaText, masterCell, recalculateSheetName);
+            Area range = formula.Range;
+            Point leftTopCorner = range.FirstPoint;
+            XlsxCell masterCell = sheet.Cell(leftTopCorner.Row, leftTopCorner.Column);
+            Array array = EvaluateArrayFormula(formulaText, masterCell, recalculateSheetName);
 
             // The array from formula can be smaller or larger than the
             // range of cells it should fit into. Broadcast it to the size.
-            var result = array.Broadcast(range.Height, range.Width);
+            Array result = array.Broadcast(range.Height, range.Width);
 
             // Copy value to the value slice
             for (var rowIdx = 0; rowIdx < result.Height; ++rowIdx)
             {
                 for (var colIdx = 0; colIdx < result.Width; ++colIdx)
                 {
-                    var cellValue = result[rowIdx, colIdx];
+                    ScalarValue cellValue = result[rowIdx, colIdx];
                     var row = range.FirstPoint.Row + rowIdx;
                     var column = range.FirstPoint.Column + colIdx;
                     valueSlice.SetCellValue(new Point(row, column), cellValue.ToCellValue());
@@ -289,7 +284,7 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
         {
             RecalculateSheetName = recalculateSheetName
         };
-        var result = EvaluateFormula(expression, ctx);
+        AnyValue result = EvaluateFormula(expression, ctx);
         if (ctx.UseImplicitIntersection)
         {
             result = result.Match(
@@ -312,8 +307,8 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
             IsArrayCalculation = true,
             RecalculateSheetName = recalculateSheetName
         };
-        var result = EvaluateFormula(expression, ctx);
-        if (result.TryPickSingleOrMultiValue(out var single, out var multi, ctx))
+        AnyValue result = EvaluateFormula(expression, ctx);
+        if (result.TryPickSingleOrMultiValue(out ScalarValue single, out Array? multi, ctx))
             return new ScalarArray(single, 1, 1);
 
         return multi;
@@ -327,8 +322,8 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
 
     private AnyValue EvaluateFormula(string expression, CalcContext ctx)
     {
-        var formula = Parse(expression);
-        var result = formula.AstRoot.Accept(ctx, _visitor);
+        Formula formula = Parse(expression);
+        AnyValue result = formula.AstRoot.Accept(ctx, _visitor);
         return result;
     }
 
@@ -362,22 +357,22 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
     /// </summary>
     private static ScalarValue ToCellContentValue(AnyValue value, CalcContext ctx)
     {
-        if (value.TryPickScalar(out var scalar, out var collection))
+        if (value.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> collection))
             return scalar;
 
-        if (collection.TryPickT0(out var array, out var reference))
+        if (collection.TryPickT0(out Array? array, out Reference? reference))
         {
             return array![0, 0];
         }
 
-        if (reference!.TryGetSingleCellValue(out var cellValue, ctx))
+        if (reference!.TryGetSingleCellValue(out ScalarValue cellValue, ctx))
             return cellValue;
 
-        var intersected = reference.ImplicitIntersection(ctx.FormulaAddress);
-        if (!intersected.TryPickT0(out var singleCellReference, out var error))
+        OneOf<Reference, XlsxError> intersected = reference.ImplicitIntersection(ctx.FormulaAddress);
+        if (!intersected.TryPickT0(out Reference? singleCellReference, out XlsxError error))
             return error;
 
-        if (!singleCellReference!.TryGetSingleCellValue(out var singleCellValue, ctx))
+        if (!singleCellReference!.TryGetSingleCellValue(out ScalarValue singleCellValue, ctx))
             throw new InvalidOperationException("Got multi cell reference instead of single cell reference.");
 
         return singleCellValue;
@@ -385,8 +380,7 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
 
     void IWorkbookListener.OnSheetRenamed(string oldSheetName, string newSheetName)
     {
-        if (_dependencyTree is not null)
-            _dependencyTree.RenameSheet(oldSheetName, newSheetName);
+        _dependencyTree?.RenameSheet(oldSheetName, newSheetName);
     }
 }
 

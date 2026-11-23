@@ -6,12 +6,7 @@ namespace Aid.Xlsx.Calculation.Exceptions;
 /// Exception that happens when formula in a cell depends on other cells,
 /// but the supporting formulas are still dirty.
 /// </summary>
-internal class GettingDataException : Exception
+internal class GettingDataException(SheetPoint point) : Exception
 {
-    public GettingDataException(SheetPoint point)
-    {
-        Point = point;
-    }
-
-    public SheetPoint Point { get; }
+    public SheetPoint Point { get; } = point;
 }

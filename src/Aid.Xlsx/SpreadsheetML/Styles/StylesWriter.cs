@@ -24,8 +24,8 @@ internal class StylesWriter
 {
     private const int FirstUserDefinedFormatIndex = XlsxWorkbookStyles.FirstUserDefinedNumberFormatIndex;
 
-    private static readonly List<(string Type, TableRegion? TableRegion, PivotRegion? PivotRegion)> TableRegionsMap = new()
-    {
+    private static readonly List<(string Type, TableRegion? TableRegion, PivotRegion? PivotRegion)> TableRegionsMap =
+    [
         ("wholeTable", TableRegion.WholeTable, PivotRegion.WholeTable),
         ("headerRow", TableRegion.HeaderRow, PivotRegion.HeaderRow),
         ("totalRow", TableRegion.TotalRow, PivotRegion.GrandTotalRow),
@@ -54,7 +54,7 @@ internal class StylesWriter
         ("thirdRowSubheading", null, PivotRegion.RowSubheading3),
         ("pageFieldLabels", null, PivotRegion.PageFieldLabels),
         ("pageFieldValues", null, PivotRegion.PageFieldValues),
-    };
+    ];
 
     private readonly string _ns = Main2006SsNs;
 
@@ -65,18 +65,18 @@ internal class StylesWriter
         {
             styles.DefaultFormat
         };
-        foreach (var sheet in workbook.WorksheetsInternal)
+        foreach (XlsxWorksheet sheet in workbook.WorksheetsInternal)
         {
             if (sheet.FormatValue is { } sheetFormat)
                 usedCellFormats.Add(sheetFormat);
 
-            foreach (var column in sheet.Internals.ColumnsCollection.Values)
+            foreach (XlsxColumn? column in sheet.Internals.ColumnsCollection.Values)
             {
                 if (column.FormatValue is { } columnFormat)
                     usedCellFormats.Add(columnFormat);
             }
 
-            foreach (var row in sheet.Internals.RowsCollection.Values)
+            foreach (XlsxRow? row in sheet.Internals.RowsCollection.Values)
             {
                 if (row.FormatValue is { } rowFormat)
                     usedCellFormats.Add(rowFormat);
@@ -89,7 +89,7 @@ internal class StylesWriter
         var usedFonts = new HashSet<XlsxFontFormatValue>();
         var usedFills = new HashSet<XlsxFillFormatValue>();
         var usedBorders = new HashSet<XlsxBorderFormatValue>();
-        foreach (var cellFormat in usedCellFormats)
+        foreach (XlsxCellFormatValue cellFormat in usedCellFormats)
         {
             if (cellFormat.NumberFormat is { } numberFormat)
                 usedNumberFormats.Add(numberFormat);
@@ -104,7 +104,7 @@ internal class StylesWriter
                 usedBorders.Add(border);
         }
 
-        foreach (var cellStyle in styles.CellStyles.Values)
+        foreach (XlsxCellStyleValue cellStyle in styles.CellStyles.Values)
         {
             if (cellStyle.NumberFormat is { } numberFormat)
                 usedNumberFormats.Add(numberFormat);
@@ -120,31 +120,31 @@ internal class StylesWriter
         }
 
         // SST writes fonts as ids, unlike other format properties which are inlined next to a rich text
-        foreach (var phoneticsFont in workbook.SharedStringTable.GetUsedPhoneticFonts())
+        foreach (XlsxFontFormatValue phoneticsFont in workbook.SharedStringTable.GetUsedPhoneticFonts())
             usedFonts.Add(phoneticsFont);
 
         // Create dxfMap from used dxfs in cfs, tables, pivot tables and so on
         var usedDxf = new HashSet<XlsxDxfValue>();
-        foreach (var ws in workbook.WorksheetsInternal)
+        foreach (XlsxWorksheet ws in workbook.WorksheetsInternal)
         {
-            foreach (var cf in ws.ConditionalFormats)
+            foreach (XlsxConditionalFormat cf in ws.ConditionalFormats)
             {
                 if (cf.FormatValue is { } dxf)
                     usedDxf.Add(dxf);
             }
 
             // Table styles should be retained in a workbook, even if not used in a table.
-            foreach (var tableStyle in styles.TableStyles.Values)
+            foreach (XlsxTableTheme tableStyle in styles.TableStyles.Values)
             {
-                foreach (var regionDxf in tableStyle.RegionFormats.Values)
+                foreach (XlsxDxfValue regionDxf in tableStyle.RegionFormats.Values)
                 {
                     usedDxf.Add(regionDxf);
                 }
             }
 
-            foreach (var table in ws.Tables)
+            foreach (XlsxTable? table in ws.Tables)
             {
-                foreach (var field in table.Fields)
+                foreach (XlsxTableField? field in table.Fields)
                 {
                     if (field.HeaderFormatValue is { } headerDxf)
                         usedDxf.Add(headerDxf);
@@ -157,21 +157,21 @@ internal class StylesWriter
                 }
             }
 
-            foreach (var pt in ws.PivotTables)
+            foreach (XlsxPivotTable? pt in ws.PivotTables)
             {
-                foreach (var format in pt.Formats)
+                foreach (XlsxPivotFormat? format in pt.Formats)
                 {
                     if (format.FormatValue is { } dxFormat)
                         usedDxf.Add(dxFormat);
                 }
 
-                foreach (var cf in pt.ConditionalFormats)
+                foreach (XlsxPivotConditionalFormat? cf in pt.ConditionalFormats)
                 {
                     if (cf.Format.FormatValue is { } cfDxf)
                         usedDxf.Add(cfDxf);
                 }
 
-                foreach (var field in pt.PivotFields)
+                foreach (XlsxPivotTableField? field in pt.PivotFields)
                 {
                     if (field.NumberFormatValue is { } fieldNumFmt)
                         usedNumberFormats.Add(fieldNumFmt);
@@ -191,7 +191,7 @@ internal class StylesWriter
         // Number formats
         // The map has predefined formats from index 0 and the user defined ones from 164 onward.
         // There is a gap between predefined formats.
-        var predefinedNumberFormats = XlsxPredefinedFormat.NumberFormatIds;
+        IReadOnlyDictionary<XlsxNumberFormat, int> predefinedNumberFormats = XlsxPredefinedFormat.NumberFormatIds;
         var numberFormatMap = SequentialMap<int, XlsxNumberFormat>.Create(usedNumberFormats, styles.NumberFormats, XlsxPredefinedFormat.NumberFormatIds, FirstUserDefinedFormatIndex);
 
         if (numberFormatMap.Count > predefinedNumberFormats.Count)
@@ -223,7 +223,7 @@ internal class StylesWriter
         var cellStylesMap = new SequentialMap<StyleId, XlsxCellStyleValue>(styles.CellStyles);
 
         // All cell styles, regardless if they are used or not should be written to the file
-        foreach (var styleId in styles.CellStyles.Keys)
+        foreach (StyleId styleId in styles.CellStyles.Keys)
             cellStylesMap.Add(styleId);
 
         cellStylesMap.Sort();
@@ -254,16 +254,16 @@ internal class StylesWriter
         xml.WriteEndDocument();
 
         // Fill the maps used in other parts to determine saved id for a format
-        foreach (var (numberFormatId, numberFormat) in numberFormatMap.GetActual())
+        foreach ((int numberFormatId, XlsxNumberFormat numberFormat) in numberFormatMap.GetActual())
             context.NumberFormatMap.TryAdd(numberFormat, numberFormatId);
 
-        foreach (var (fontId, fontFormat) in fontFormatsMap.GetActual())
+        foreach ((int fontId, XlsxFontFormatValue? fontFormat) in fontFormatsMap.GetActual())
             context.FontMap.TryAdd(fontFormat, fontId);
 
-        foreach (var (xfId, format) in cellXfsMap.GetActual())
+        foreach ((int xfId, XlsxCellFormatValue? format) in cellXfsMap.GetActual())
             context.FormatMap.TryAdd(format, (uint)xfId);
 
-        foreach (var (dxfId, dxf) in dxfMap.GetActual())
+        foreach ((int dxfId, XlsxDxfValue? dxf) in dxfMap.GetActual())
             context.DxfMap.TryAdd(dxf, (uint)dxfId);
 
         return;
@@ -282,7 +282,7 @@ internal class StylesWriter
         xml.WriteStartElement("numFmts", _ns);
         xml.WriteAttribute("count", idMap.Count - predefinedNumberFormats.Count);
 
-        foreach (var (savedId, format) in idMap.GetActual())
+        foreach ((int savedId, XlsxNumberFormat format) in idMap.GetActual())
         {
             // Do not write the predefined formats, Excel doesn't write that either
             if (predefinedNumberFormats.ContainsKey(format))
@@ -307,7 +307,7 @@ internal class StylesWriter
         xml.WriteStartElement("fonts", _ns);
         xml.WriteAttribute("count", idMap.Count);
 
-        foreach (var (_, font) in idMap.GetActual())
+        foreach ((int _, XlsxFontFormatValue? font) in idMap.GetActual())
             WriteFont(xml, "font", font);
 
         xml.WriteEndElement();
@@ -460,7 +460,7 @@ internal class StylesWriter
         xml.WriteStartElement("fills", _ns);
         xml.WriteAttribute("count", idMap.Count);
 
-        foreach (var (_, fill) in idMap.GetActual())
+        foreach ((int _, XlsxFillFormatValue? fill) in idMap.GetActual())
             WriteFill(xml, "fill", fill.Pattern, fill.LinearGradient, fill.PathGradient, false);
 
         xml.WriteEndElement();
@@ -476,8 +476,8 @@ internal class StylesWriter
             xml.WriteStartElement("patternFill", _ns);
             xml.WriteAttribute("patternType", patternFill.PatternType);
 
-            var patternColor = patternFill.PatternColor;
-            var bgColor = patternFill.BackgroundColor;
+            XlsxColor patternColor = patternFill.PatternColor;
+            XlsxColor bgColor = patternFill.BackgroundColor;
 
             // Fix solid pattern discrepancy. The GUI shows solid fill color in the background
             // color picker, so it would be expected that it is stored in bgColor.
@@ -527,7 +527,7 @@ internal class StylesWriter
         void WriteStops(IReadOnlyDictionary<FractionOfOne, XlsxColor> stops)
         {
             // Excel doesn't care about stop order by positions, but sort anyway
-            foreach (var (position, color) in stops.OrderBy(x => x.Key.Value))
+            foreach ((FractionOfOne position, XlsxColor? color) in stops.OrderBy(x => x.Key.Value))
             {
                 xml.WriteStartElement("stop", _ns);
                 xml.WriteAttribute("position", position.Value);
@@ -541,7 +541,7 @@ internal class StylesWriter
     {
         xml.WriteStartElement("borders", _ns);
         xml.WriteAttribute("count", idMap.Count);
-        foreach (var (_, border) in idMap.GetActual())
+        foreach ((int _, XlsxBorderFormatValue? border) in idMap.GetActual())
             WriteBorder(xml, "border", border);
 
         xml.WriteEndElement();
@@ -622,7 +622,7 @@ internal class StylesWriter
         xml.WriteAttribute("count", cellStylesMap.Count);
 
         // Collection must have at least one element
-        foreach (var (_, cellStyle) in cellStylesMap.GetActual())
+        foreach ((int _, XlsxCellStyleValue? cellStyle) in cellStylesMap.GetActual())
         {
             xml.WriteStartElement("xf", _ns);
             xml.WriteAttributeOptional("numFmtId", numFmtIdMap.GetSavedId(cellStyle.NumberFormat));
@@ -662,7 +662,7 @@ internal class StylesWriter
     {
         xml.WriteStartElement("cellXfs", _ns);
         xml.WriteAttribute("count", idMap.Count);
-        foreach (var (_, cellXf) in idMap.GetActual())
+        foreach ((int _, XlsxCellFormatValue? cellXf) in idMap.GetActual())
         {
             xml.WriteStartElement("xf", _ns);
 
@@ -778,7 +778,7 @@ internal class StylesWriter
         xml.WriteAttribute("count", cellStylesMap.Count);
 
         // Collection must have at least one element
-        foreach (var (mappedStyleId, cellStyle) in cellStylesMap.GetActual())
+        foreach ((int mappedStyleId, XlsxCellStyleValue? cellStyle) in cellStylesMap.GetActual())
         {
             xml.WriteStartElement("cellStyle", _ns);
 
@@ -816,7 +816,7 @@ internal class StylesWriter
     {
         xml.WriteStartElement("dxfs", _ns);
         xml.WriteAttribute("count", differentialFormats.Count);
-        foreach (var (_, dxf) in differentialFormats.GetActual())
+        foreach ((int _, XlsxDxfValue? dxf) in differentialFormats.GetActual())
         {
             xml.WriteStartElement("dxf", _ns);
 
@@ -872,17 +872,17 @@ internal class StylesWriter
         xml.WriteStartElement("tableStyle", _ns);
         xml.WriteAttribute("name", styleName);
 
-        var hasPivotStyle = styles.PivotStyles.TryGetValue(styleName, out var pivotStyle);
+        var hasPivotStyle = styles.PivotStyles.TryGetValue(styleName, out XlsxPivotTableStyle? pivotStyle);
         xml.WriteAttributeDefault("pivot", hasPivotStyle, true);
 
-        var hasTableStyle = styles.TableStyles.TryGetValue(styleName, out var tableStyle);
+        var hasTableStyle = styles.TableStyles.TryGetValue(styleName, out XlsxTableTheme? tableStyle);
         xml.WriteAttributeDefault("table", hasTableStyle, true);
 
         var styledRegions = new List<(string Type, int Size, int DxfId)>(TableRegionsMap.Count);
-        foreach (var (type, tableRegion, pivotRegion) in TableRegionsMap)
+        foreach ((string? type, TableRegion? tableRegion, PivotRegion? pivotRegion) in TableRegionsMap)
         {
-            var tableRegionStyle = TryGetTableRegion(tableStyle, tableRegion);
-            var pivotRegionStyle = TryGetPivotRegion(pivotStyle, pivotRegion);
+            (int Size, XlsxDxfValue Dxf)? tableRegionStyle = TryGetTableRegion(tableStyle, tableRegion);
+            (int Size, XlsxDxfValue Dxf)? pivotRegionStyle = TryGetPivotRegion(pivotStyle, pivotRegion);
             if (tableRegionStyle is var (tableSize, tableDxf) &&
                 pivotRegionStyle is var (pivotSize, pivotDxf) &&
                 (tableSize != pivotSize || tableDxf != pivotDxf))
@@ -899,7 +899,7 @@ internal class StylesWriter
         }
 
         xml.WriteAttribute("count", styledRegions.Count);
-        foreach (var (type, bandSize, dxfId) in styledRegions)
+        foreach ((string? type, int bandSize, int dxfId) in styledRegions)
         {
             xml.WriteStartElement("tableStyleElement", _ns);
             xml.WriteAttribute("type", type);
@@ -916,7 +916,7 @@ internal class StylesWriter
             if (tableStyle is null || tableRegion is null)
                 return null;
 
-            if (!tableStyle.RegionFormats.TryGetValue(tableRegion.Value, out var dxf))
+            if (!tableStyle.RegionFormats.TryGetValue(tableRegion.Value, out XlsxDxfValue? dxf))
                 return null;
 
             var bandSize = tableRegion switch
@@ -935,7 +935,7 @@ internal class StylesWriter
             if (pivotStyle is null || region is null)
                 return null;
 
-            if (!pivotStyle.RegionFormats.TryGetValue(region.Value, out var dxf))
+            if (!pivotStyle.RegionFormats.TryGetValue(region.Value, out XlsxDxfValue? dxf))
                 return null;
 
             var bandSize = region switch
@@ -953,7 +953,7 @@ internal class StylesWriter
     private void WriteColors(XmlTreeWriter xml, XlsxWorkbookStyles styles)
     {
         var hasMruColors = styles.MruColors.Count > 0;
-        var indexedColors = styles.IndexedColorsArgb;
+        IReadOnlyList<uint>? indexedColors = styles.IndexedColorsArgb;
         var hasIndexColors = indexedColors is { Count: > 0 };
         if (!hasMruColors && !hasIndexColors)
             return;
@@ -976,7 +976,7 @@ internal class StylesWriter
         if (hasMruColors)
         {
             xml.WriteStartElement("mruColors", _ns);
-            foreach (var mruColor in styles.MruColors)
+            foreach (XlsxColor mruColor in styles.MruColors)
                 xml.WriteColor("color", _ns, mruColor);
 
             xml.WriteEndElement();

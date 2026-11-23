@@ -4,7 +4,7 @@ namespace Aid.Xlsx.Model.Drawings.Charts;
 
 internal class XlsxCharts : IXlsxCharts
 {
-    private List<IXlsxChart> charts = new List<IXlsxChart>();
+    private readonly List<IXlsxChart> charts = [];
     public IEnumerator<IXlsxChart> GetEnumerator()
     {
         return charts.GetEnumerator();

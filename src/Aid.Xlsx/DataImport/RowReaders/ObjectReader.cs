@@ -38,13 +38,12 @@ internal class ObjectReader : IInsertDataReader
         if (itemType.IsNullableType())
             itemType = itemType.GetUnderlyingType();
 
-        _members = itemType.GetFields(MemberBindingFlags).Cast<MemberInfo>()
-            .Concat(itemType.GetProperties(MemberBindingFlags).Where(pi => !pi.GetIndexParameters().Any()))
+        _members = [.. itemType.GetFields(MemberBindingFlags).Cast<MemberInfo>()
+            .Concat(itemType.GetProperties(MemberBindingFlags).Where(pi => pi.GetIndexParameters().Length == 0))
             .Where(mi => !XlsxColumnAttribute.IgnoreMember(mi))
-            .OrderBy(XlsxColumnAttribute.GetOrder)
-            .ToArray();
+            .OrderBy(XlsxColumnAttribute.GetOrder)];
 
-        _staticMembers = _members.Select(ReflectionExtensions.IsStatic).ToArray();
+        _staticMembers = [.. _members.Select(ReflectionExtensions.IsStatic)];
     }
 
     public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
@@ -65,9 +64,9 @@ internal class ObjectReader : IInsertDataReader
         if (propertyIndex >= GetPropertiesCount())
             throw new ArgumentOutOfRangeException($"{propertyIndex} exceeds the number of the object properties");
 
-        var memberInfo = _members[propertyIndex];
+        MemberInfo memberInfo = _members[propertyIndex];
         var fieldName = XlsxColumnAttribute.GetHeader(memberInfo);
-        if (String.IsNullOrWhiteSpace(fieldName))
+        if (string.IsNullOrWhiteSpace(fieldName))
             fieldName = memberInfo.Name;
 
         return fieldName;
@@ -83,7 +82,7 @@ internal class ObjectReader : IInsertDataReader
                 continue;
             }
 
-            var memberInfo = _members[i];
+            MemberInfo memberInfo = _members[i];
             switch (memberInfo)
             {
                 case PropertyInfo propertyInfo when _staticMembers[i]:

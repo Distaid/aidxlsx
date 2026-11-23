@@ -8,20 +8,15 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.PivotTables;
 
-internal class XlsxPivotTables : IXlsxPivotTables, IEnumerable<XlsxPivotTable>
+internal class XlsxPivotTables(XlsxWorksheet worksheet) : IXlsxPivotTables, IEnumerable<XlsxPivotTable>
 {
-    private readonly Dictionary<String, XlsxPivotTable> _pivotTables = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, XlsxPivotTable> _pivotTables = new(StringComparer.OrdinalIgnoreCase);
 
-    public XlsxPivotTables(XlsxWorksheet worksheet)
-    {
-        Worksheet = worksheet ?? throw new ArgumentNullException(nameof(worksheet));
-    }
-
-    internal XlsxWorksheet Worksheet { get; }
+    internal XlsxWorksheet Worksheet { get; } = worksheet ?? throw new ArgumentNullException(nameof(worksheet));
 
     public void Add(XlsxPivotTable pivotTable)
     {
-        var pivotCache = pivotTable.PivotCache;
+        XlsxPivotCache pivotCache = pivotTable.PivotCache;
         if (!pivotCache.FieldNames.Any())
             pivotCache.Refresh();
 
@@ -36,16 +31,16 @@ internal class XlsxPivotTables : IXlsxPivotTables, IEnumerable<XlsxPivotTable>
             Area = new Area(Point.FromAddress(targetCell.Address)),
         };
         Add(pivotTable);
-        pivotTable.UpdateCacheFields(Array.Empty<string>());
+        pivotTable.UpdateCacheFields([]);
         return pivotTable;
     }
 
     public IXlsxPivotTable Add(string name, IXlsxCell targetCell, IXlsxRange range)
     {
         var area = SheetArea.From(range);
-        var pivotCaches = Worksheet.Workbook.PivotCachesInternal;
-        var existingPivotCache = pivotCaches.Find(area);
-        var pivotCache = existingPivotCache ?? pivotCaches.Add(area);
+        XlsxPivotCaches pivotCaches = Worksheet.Workbook.PivotCachesInternal;
+        XlsxPivotCache existingPivotCache = pivotCaches.Find(area);
+        XlsxPivotCache pivotCache = existingPivotCache ?? pivotCaches.Add(area);
         return Add(name, targetCell, pivotCache);
     }
 
@@ -54,12 +49,12 @@ internal class XlsxPivotTables : IXlsxPivotTables, IEnumerable<XlsxPivotTable>
         return Add(name, targetCell, (IXlsxRange)table);
     }
 
-    public Boolean Contains(String name)
+    public bool Contains(string name)
     {
         return _pivotTables.ContainsKey(name);
     }
 
-    public void Delete(String name)
+    public void Delete(string name)
     {
         _pivotTables.Remove(name);
     }
@@ -69,7 +64,7 @@ internal class XlsxPivotTables : IXlsxPivotTables, IEnumerable<XlsxPivotTable>
         _pivotTables.Clear();
     }
 
-    IXlsxPivotTable IXlsxPivotTables.PivotTable(String name)
+    IXlsxPivotTable IXlsxPivotTables.PivotTable(string name)
     {
         return PivotTable(name);
     }
@@ -94,13 +89,13 @@ internal class XlsxPivotTables : IXlsxPivotTables, IEnumerable<XlsxPivotTable>
         return _pivotTables.Values.GetEnumerator();
     }
 
-    internal void Add(String name, IXlsxPivotTable pivotTable)
+    internal void Add(string name, IXlsxPivotTable pivotTable)
     {
         _pivotTables.Add(name, (XlsxPivotTable)pivotTable);
     }
 
     /// <inheritdoc cref="IXlsxPivotTables.PivotTable"/>
-    internal XlsxPivotTable PivotTable(String name)
+    internal XlsxPivotTable PivotTable(string name)
     {
         return _pivotTables[name];
     }

@@ -51,7 +51,7 @@ public interface IXlsxAutoFilter
     /// contain some filter that hide some rows. Disabled autofilter doesn't show arrow buttons
     /// and all rows are visible.
     /// </summary>
-    Boolean IsEnabled { get; set; }
+    bool IsEnabled { get; set; }
 
     /// <summary>
     /// Range of the autofilter. It consists of a header in first row, followed by data rows.
@@ -63,7 +63,7 @@ public interface IXlsxAutoFilter
     /// What column was used during last <see cref="Sort"/>. Contains undefined value for not
     /// yet <see cref="Sorted"/> autofilter.
     /// </summary>
-    Int32 SortColumn { get; }
+    int SortColumn { get; }
 
     /// <summary>
     /// Are values in the autofilter range sorted? I.e. the values were either already loaded
@@ -72,7 +72,7 @@ public interface IXlsxAutoFilter
     /// <remarks>
     /// If <c>true</c>, <see cref="SortColumn"/> and <see cref="SortOrder"/> contain valid values.
     /// </remarks>
-    Boolean Sorted { get; }
+    bool Sorted { get; }
 
     /// <summary>
     /// What sorting order was used during last <see cref="Sort"/>. Contains undefined value
@@ -103,14 +103,14 @@ public interface IXlsxAutoFilter
     /// </param>
     /// <returns>Filter configuration for the column.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Invalid column.</exception>
-    IXlsxFilterColumn Column(String columnLetter);
+    IXlsxFilterColumn Column(string columnLetter);
 
     /// <summary>
     /// Get filter configuration for a column.
     /// </summary>
     /// <param name="columnNumber">Column number in the range, from 1 as the first column of a <see cref="Range"/>.</param>
     /// <returns>Filter configuration for the column.</returns>
-    IXlsxFilterColumn Column(Int32 columnNumber);
+    IXlsxFilterColumn Column(int columnNumber);
 
     /// <summary>
     /// Apply autofilter filters to the range and show every row that satisfies the conditions
@@ -140,5 +140,5 @@ public interface IXlsxAutoFilter
     /// sorting order. <c>false</c> - blank will be treated as empty string and sorted
     /// accordingly.
     /// </param>
-    IXlsxAutoFilter Sort(Int32 columnToSortBy = 1, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true);
+    IXlsxAutoFilter Sort(int columnToSortBy = 1, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true);
 }

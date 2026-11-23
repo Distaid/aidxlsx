@@ -19,13 +19,13 @@ namespace Aid.Xlsx.Model.PivotTables;
 /// </summary>
 internal class XlsxPivotCacheSharedItems
 {
-    private readonly List<XlsxPivotCacheValue> _values = new();
+    private readonly List<XlsxPivotCacheValue> _values = [];
 
     /// <summary>
     /// Storage of strings to save 8 bytes per <c>XlsxPivotCacheValue</c>
     /// (reference can't be aliased with a number).
     /// </summary>
-    private readonly List<string> _stringStorage = new();
+    private readonly List<string> _stringStorage = [];
 
     /// <summary>
     /// Strings in a pivot table are case-insensitive.
@@ -59,7 +59,7 @@ internal class XlsxPivotCacheSharedItems
                 AddDateTime(value.GetDateTime());
                 break;
             case XlsxDataType.TimeSpan:
-                var timeSpan = value.GetTimeSpan().ToSerialDateTime().ToSerialDateTime();
+                DateTime timeSpan = value.GetTimeSpan().ToSerialDateTime().ToSerialDateTime();
                 AddDateTime(timeSpan);
                 break;
             default:
@@ -105,7 +105,7 @@ internal class XlsxPivotCacheSharedItems
 
     internal IEnumerable<XlsxCellValue> GetCellValues()
     {
-        foreach (var value in _values)
+        foreach (XlsxPivotCacheValue value in _values)
         {
             yield return value.GetCellValue(_stringStorage, this);
         }
@@ -118,7 +118,7 @@ internal class XlsxPivotCacheSharedItems
 
     internal string GetStringValue(uint index)
     {
-        var value = GetValue(index);
+        XlsxPivotCacheValue value = GetValue(index);
         return value.GetText(_stringStorage);
     }
 
@@ -129,8 +129,8 @@ internal class XlsxPivotCacheSharedItems
     {
         for (var index = 0; index < _values.Count; ++index)
         {
-            var sharedValue = _values[index];
-            var cacheValue = sharedValue.GetCellValue(_stringStorage, this);
+            XlsxPivotCacheValue sharedValue = _values[index];
+            XlsxCellValue cacheValue = sharedValue.GetCellValue(_stringStorage, this);
             if (XlsxCellValueComparer.OrdinalIgnoreCase.Equals(cacheValue, value))
                 return index;
         }

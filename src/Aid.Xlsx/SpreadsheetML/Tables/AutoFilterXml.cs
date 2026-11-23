@@ -17,10 +17,10 @@ internal static class AutoFilterXml
     internal static void LoadWorksheetFilter(XElement source, XlsxWorksheet worksheet)
     {
         GetRange(worksheet, source).SetAutoFilter();
-        var filter = worksheet.AutoFilter;
+        XlsxAutoFilter filter = worksheet.AutoFilter;
         ReadColumns(source, filter);
 
-        var ns = source.Name.Namespace;
+        XNamespace ns = source.Name.Namespace;
         if (source.Element(ns + "sortState")?.Element(ns + "sortCondition") is { } condition)
         {
             var sortedColumn = GetRange(worksheet, condition).FirstCell().Address.ColumnNumber;
@@ -32,10 +32,10 @@ internal static class AutoFilterXml
 
     internal static void ReadColumns(XElement source, XlsxAutoFilter filter)
     {
-        var ns = source.Name.Namespace;
-        foreach (var element in source.Elements(ns + "filterColumn"))
+        XNamespace ns = source.Name.Namespace;
+        foreach (XElement element in source.Elements(ns + "filterColumn"))
         {
-            var column = filter.Column(checked((int)(uint)element.Attribute("colId")! + 1));
+            XlsxFilterColumn column = filter.Column(checked((int)(uint)element.Attribute("colId")! + 1));
             if (element.Element(ns + "customFilters") is { } custom)
                 ReadCustom(custom, column);
             else if (element.Element(ns + "filters") is { } regular)
@@ -50,10 +50,10 @@ internal static class AutoFilterXml
     private static void ReadCustom(XElement source, XlsxFilterColumn column)
     {
         column.FilterType = XlsxFilterType.Custom;
-        var connector = (bool?)source.Attribute("and") == true ? XlsxConnector.And : XlsxConnector.Or;
-        foreach (var element in source.Elements(source.Name.Namespace + "customFilter"))
+        XlsxConnector connector = (bool?)source.Attribute("and") == true ? XlsxConnector.And : XlsxConnector.Or;
+        foreach (XElement element in source.Elements(source.Name.Namespace + "customFilter"))
         {
-            var op = (string?)element.Attribute("operator") switch
+            XlsxFilterOperator op = (string?)element.Attribute("operator") switch
             {
                 null or "equal" => XlsxFilterOperator.Equal,
                 "notEqual" => XlsxFilterOperator.NotEqual,
@@ -64,7 +64,7 @@ internal static class AutoFilterXml
                 var value => throw new InvalidDataException($"Unknown filter operator '{value}'.")
             };
             var operand = Required(element, "val");
-            var filter = op is XlsxFilterOperator.Equal or XlsxFilterOperator.NotEqual
+            XlsxFilter filter = op is XlsxFilterOperator.Equal or XlsxFilterOperator.NotEqual
                 ? XlsxFilter.CreateCustomPatternFilter(operand, op == XlsxFilterOperator.Equal, connector)
                 : XlsxFilter.CreateCustomFilter(XlsxCellValue.FromText(operand, CultureInfo.InvariantCulture), op, connector);
             column.AddFilter(filter);
@@ -74,12 +74,12 @@ internal static class AutoFilterXml
     private static void ReadRegular(XElement source, XlsxFilterColumn column)
     {
         column.FilterType = XlsxFilterType.Regular;
-        var ns = source.Name.Namespace;
-        foreach (var element in source.Elements(ns + "filter"))
+        XNamespace ns = source.Name.Namespace;
+        foreach (XElement element in source.Elements(ns + "filter"))
             column.AddFilter(XlsxFilter.CreateRegularFilter(Required(element, "val")));
 
         Span<int> date = stackalloc int[6];
-        foreach (var element in source.Elements(ns + "dateGroupItem"))
+        foreach (XElement element in source.Elements(ns + "dateGroupItem"))
         {
             var grouping = Array.IndexOf(DateParts, (string?)element.Attribute("dateTimeGrouping"));
             if (grouping < 0)
@@ -110,7 +110,7 @@ internal static class AutoFilterXml
 
     private static void ReadDynamic(XElement source, XlsxFilterColumn column)
     {
-        var type = (string?)source.Attribute("type") switch
+        XlsxFilterDynamicType type = (string?)source.Attribute("type") switch
         {
             null or "aboveAverage" => XlsxFilterDynamicType.AboveAverage,
             "belowAverage" => XlsxFilterDynamicType.BelowAverage,
@@ -125,11 +125,11 @@ internal static class AutoFilterXml
 
     internal static XElement Write(XlsxAutoFilter filter)
     {
-        var range = filter.Range!;
+        IXlsxRange range = filter.Range!;
         var target = new XElement(Spreadsheet + "autoFilter", new XAttribute("ref", range.RangeAddress.ToString()!));
-        foreach (var (index, column) in filter.Columns)
+        foreach ((int index, XlsxFilterColumn? column) in filter.Columns)
         {
-            var definition = column.FilterType switch
+            XElement definition = column.FilterType switch
             {
                 XlsxFilterType.Custom => WriteCustom(column),
                 XlsxFilterType.TopBottom => new XElement(Spreadsheet + "top10",
@@ -147,8 +147,8 @@ internal static class AutoFilterXml
 
         if (filter.Sorted)
         {
-            var sortRange = range.RowCount() > 1 ? range.Range(range.FirstCell().CellBelow(), range.LastCell()) : range;
-            var columnRange = range.Range(1, filter.SortColumn, range.RowCount(), filter.SortColumn);
+            IXlsxRange sortRange = range.RowCount() > 1 ? range.Range(range.FirstCell().CellBelow(), range.LastCell()) : range;
+            IXlsxRange columnRange = range.Range(1, filter.SortColumn, range.RowCount(), filter.SortColumn);
             target.Add(new XElement(Spreadsheet + "sortState", new XAttribute("ref", sortRange.RangeAddress.ToString()!),
                 new XElement(Spreadsheet + "sortCondition",
                     filter.SortOrder == XlsxSortOrder.Descending ? new XAttribute("descending", "1") : null,
@@ -161,7 +161,7 @@ internal static class AutoFilterXml
     private static XElement WriteCustom(XlsxFilterColumn column)
     {
         var element = new XElement(Spreadsheet + "customFilters");
-        foreach (var filter in column)
+        foreach (XlsxFilter filter in column)
         {
             if (filter.Connector == XlsxConnector.And)
                 element.SetAttributeValue("and", "1");
@@ -186,14 +186,14 @@ internal static class AutoFilterXml
     private static XElement WriteRegular(XlsxFilterColumn column)
     {
         var element = new XElement(Spreadsheet + "filters");
-        foreach (var filter in column)
+        foreach (XlsxFilter filter in column)
         {
             if (filter.Value is string text)
                 element.Add(new XElement(Spreadsheet + "filter", new XAttribute("val", text)));
         }
 
         Span<int> date = stackalloc int[6];
-        foreach (var filter in column)
+        foreach (XlsxFilter filter in column)
         {
             if (filter.Value is not DateTime value)
                 continue;

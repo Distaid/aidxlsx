@@ -43,21 +43,21 @@ internal static class CommentPartReader
             if (author >= authors.Count)
                 throw new InvalidDataException($"The author index for comment '{address}' is out of range.");
 
-            var cell = worksheet.Cell(address) ?? throw new InvalidDataException($"Invalid comment address '{address}'.");
-            var comment = cell.CreateComment(getShapeId(index));
+            XlsxCell cell = worksheet.Cell(address) ?? throw new InvalidDataException($"Invalid comment address '{address}'.");
+            XlsxComment comment = cell.CreateComment(getShapeId(index));
             comment.Author = authors[(int)author];
             worksheet.Workbook.ShapeIdManager.Add(comment.ShapeId);
 
             if (textReader.ParseCtRst("text", ns) is { IsSuccess: true } text)
             {
-                if (text.Value.TryPickT0(out var plainText, out var richText))
+                if (text.Value.TryPickT0(out var plainText, out XlsxImmutableRichText? richText))
                 {
                     if (plainText.Length != 0)
                         comment.AddText(plainText.FixNewLines());
                 }
                 else
                 {
-                    foreach (var run in richText.Runs)
+                    foreach (XlsxImmutableRichText.RichTextRun run in richText.Runs)
                         comment.AddText(richText.GetRunText(run).FixNewLines(), run.Dxf);
                 }
             }

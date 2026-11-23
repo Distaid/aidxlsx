@@ -3,10 +3,6 @@
 // Keep this file CodeMaid organised and cleaned
 namespace Aid.Xlsx.Model.DataValidation;
 
-public class XlsxWholeNumberCriteria : XlsxWholeNumberCriteriaBase
+public class XlsxWholeNumberCriteria(IXlsxDataValidation dataValidation) : XlsxWholeNumberCriteriaBase(dataValidation)
 {
-    public XlsxWholeNumberCriteria(IXlsxDataValidation dataValidation)
-        : base(dataValidation)
-    {
-    }
 }

@@ -8,21 +8,21 @@ namespace Aid.Xlsx.Model.Tables;
 
 public interface IXlsxTableRow : IXlsxRangeRow
 {
-    IXlsxCell Field(Int32 index);
+    IXlsxCell Field(int index);
 
-    IXlsxCell Field(String name);
+    IXlsxCell Field(string name);
 
     new IXlsxTableRow Sort();
 
-    new IXlsxTableRow SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true);
+    new IXlsxTableRow SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true);
 
     new IXlsxTableRow RowAbove();
 
-    new IXlsxTableRow RowAbove(Int32 step);
+    new IXlsxTableRow RowAbove(int step);
 
     new IXlsxTableRow RowBelow();
 
-    new IXlsxTableRow RowBelow(Int32 step);
+    new IXlsxTableRow RowBelow(int step);
 
     /// <summary>
     /// Clears the contents of this row.

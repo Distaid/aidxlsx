@@ -57,7 +57,7 @@ internal static class XmlTreeReaderExtensions
             var indexed = reader.GetOptionalUintAsInt("indexed");
             if (indexed is not null)
             {
-                var indexedColor = indexed <= XlsxColor.IndexedColors.Count ? XlsxColor.FromIndex(indexed.Value) : XlsxColor.Automatic;
+                XlsxColor indexedColor = indexed <= XlsxColor.IndexedColors.Count ? XlsxColor.FromIndex(indexed.Value) : XlsxColor.Automatic;
                 reader.Close(colorElementName, ns);
                 return indexedColor;
             }
@@ -169,7 +169,7 @@ internal static class XmlTreeReaderExtensions
             if (attributeValue is null)
                 return null;
 
-            if (!Point.TryParse(attributeValue, out var point))
+            if (!Point.TryParse(attributeValue, out Point point))
             {
                 if (reader.StrictAttributeParsing)
                     throw PartStructureException.InvalidAttributeFormat(attributeName, attributeValue, reader);
@@ -189,7 +189,7 @@ internal static class XmlTreeReaderExtensions
             if (attributeValue is null)
                 return null;
 
-            if (!Area.TryParse(attributeValue, out var area))
+            if (!Area.TryParse(attributeValue, out Area area))
             {
                 if (reader.StrictAttributeParsing)
                     throw PartStructureException.InvalidAttributeFormat(attributeName, attributeValue, reader);

@@ -83,63 +83,63 @@ public interface IXlsxConditionalFormat
 
     IXlsxStyle WhenDateIs(XlsxTimePeriod timePeriod);
 
-    IXlsxStyle WhenContains(String value);
+    IXlsxStyle WhenContains(string value);
 
-    IXlsxStyle WhenNotContains(String value);
+    IXlsxStyle WhenNotContains(string value);
 
-    IXlsxStyle WhenStartsWith(String value);
+    IXlsxStyle WhenStartsWith(string value);
 
-    IXlsxStyle WhenEndsWith(String value);
+    IXlsxStyle WhenEndsWith(string value);
 
-    IXlsxStyle WhenEquals(String value);
+    IXlsxStyle WhenEquals(string value);
 
-    IXlsxStyle WhenNotEquals(String value);
+    IXlsxStyle WhenNotEquals(string value);
 
-    IXlsxStyle WhenGreaterThan(String value);
+    IXlsxStyle WhenGreaterThan(string value);
 
-    IXlsxStyle WhenLessThan(String value);
+    IXlsxStyle WhenLessThan(string value);
 
-    IXlsxStyle WhenEqualOrGreaterThan(String value);
+    IXlsxStyle WhenEqualOrGreaterThan(string value);
 
-    IXlsxStyle WhenEqualOrLessThan(String value);
+    IXlsxStyle WhenEqualOrLessThan(string value);
 
-    IXlsxStyle WhenBetween(String minValue, String maxValue);
+    IXlsxStyle WhenBetween(string minValue, string maxValue);
 
-    IXlsxStyle WhenNotBetween(String minValue, String maxValue);
+    IXlsxStyle WhenNotBetween(string minValue, string maxValue);
 
-    IXlsxStyle WhenEquals(Double value);
+    IXlsxStyle WhenEquals(double value);
 
-    IXlsxStyle WhenNotEquals(Double value);
+    IXlsxStyle WhenNotEquals(double value);
 
-    IXlsxStyle WhenGreaterThan(Double value);
+    IXlsxStyle WhenGreaterThan(double value);
 
-    IXlsxStyle WhenLessThan(Double value);
+    IXlsxStyle WhenLessThan(double value);
 
-    IXlsxStyle WhenEqualOrGreaterThan(Double value);
+    IXlsxStyle WhenEqualOrGreaterThan(double value);
 
-    IXlsxStyle WhenEqualOrLessThan(Double value);
+    IXlsxStyle WhenEqualOrLessThan(double value);
 
-    IXlsxStyle WhenBetween(Double minValue, Double maxValue);
+    IXlsxStyle WhenBetween(double minValue, double maxValue);
 
-    IXlsxStyle WhenNotBetween(Double minValue, Double maxValue);
+    IXlsxStyle WhenNotBetween(double minValue, double maxValue);
 
     IXlsxStyle WhenIsDuplicate();
 
     IXlsxStyle WhenIsUnique();
 
-    IXlsxStyle WhenIsTrue(String formula);
+    IXlsxStyle WhenIsTrue(string formula);
 
-    IXlsxStyle WhenIsTop(Int32 value, XlsxTopBottomType topBottomType = XlsxTopBottomType.Items);
+    IXlsxStyle WhenIsTop(int value, XlsxTopBottomType topBottomType = XlsxTopBottomType.Items);
 
-    IXlsxStyle WhenIsBottom(Int32 value, XlsxTopBottomType topBottomType);
+    IXlsxStyle WhenIsBottom(int value, XlsxTopBottomType topBottomType);
 
     IXlsxCFColorScaleMin ColorScale();
 
-    IXlsxCFDataBarMin DataBar(XlsxColor color, Boolean showBarOnly = false);
+    IXlsxCFDataBarMin DataBar(XlsxColor color, bool showBarOnly = false);
 
-    IXlsxCFDataBarMin DataBar(XlsxColor positiveColor, XlsxColor negativeColor, Boolean showBarOnly = false);
+    IXlsxCFDataBarMin DataBar(XlsxColor positiveColor, XlsxColor negativeColor, bool showBarOnly = false);
 
-    IXlsxCFIconSet IconSet(XlsxIconSetStyle iconSetStyle, Boolean reverseIconOrder = false, Boolean showIconOnly = false);
+    IXlsxCFIconSet IconSet(XlsxIconSetStyle iconSetStyle, bool reverseIconOrder = false, bool showIconOnly = false);
 
     XlsxConditionalFormatType ConditionalFormatType { get; }
 
@@ -147,13 +147,13 @@ public interface IXlsxConditionalFormat
 
     XlsxTimePeriod TimePeriod { get; }
 
-    Boolean ReverseIconOrder { get; }
+    bool ReverseIconOrder { get; }
 
-    Boolean ShowIconOnly { get; }
+    bool ShowIconOnly { get; }
 
-    Boolean ShowBarOnly { get; }
+    bool ShowBarOnly { get; }
 
-    Boolean StopIfTrue { get; }
+    bool StopIfTrue { get; }
 
     /// <summary>
     /// The first of the <see cref="Ranges"/>.
@@ -176,13 +176,13 @@ public interface IXlsxConditionalFormat
 
     XlsxCFOperator Operator { get; }
 
-    Boolean Bottom { get; }
+    bool Bottom { get; }
 
-    Boolean Percent { get; }
+    bool Percent { get; }
 
     IXlsxConditionalFormat SetStopIfTrue();
 
-    IXlsxConditionalFormat SetStopIfTrue(Boolean value);
+    IXlsxConditionalFormat SetStopIfTrue(bool value);
 
     IXlsxConditionalFormat CopyTo(IXlsxWorksheet targetSheet);
 }

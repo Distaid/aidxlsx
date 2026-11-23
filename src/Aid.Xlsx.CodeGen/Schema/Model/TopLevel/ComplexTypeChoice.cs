@@ -26,27 +26,27 @@ public class ComplexTypeChoice : ComplexType
 
     internal override List<Variable> GenerateParseMethod(CodeBuilder code)
     {
-        var choicesCount = Choice.DetermineChoicesCount();
+        ElementsCount choicesCount = Choice.DetermineChoicesCount();
         switch (choicesCount)
         {
             case ElementsCount.ZeroToOne:
                 {
-                    var variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
+                    List<Variable> variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
                     return variables;
                 }
             case ElementsCount.ZeroToMany:
                 {
-                    var variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
+                    List<Variable> variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
                     return variables;
                 }
             case ElementsCount.OneToOne:
                 {
-                    var variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
+                    List<Variable> variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
                     return variables;
                 }
             case ElementsCount.OneToMany:
                 {
-                    var variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
+                    List<Variable> variables = Choice.GenerateParseContent(Name, choicesCount, code, true);
                     return variables;
                 }
             default:

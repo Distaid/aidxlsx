@@ -83,7 +83,7 @@ public interface IXlsxPivotValue
     /// <example>
     /// Show values as a percent of a specific value of a different field, e.g. as a % of units sold from Q1 (quarts is a base field and Q1 is a base item).
     /// </example>
-    String BaseFieldName { get; set; }
+    string BaseFieldName { get; set; }
 
     /// <summary>
     /// The value of a base item to calculate a value to show in the pivot table. The base item is selected from values of a base field.
@@ -105,14 +105,14 @@ public interface IXlsxPivotValue
     /// Get custom name of pivot value. If custom name is not specified, return source name as
     /// a fallback.
     /// </summary>
-    String CustomName { get; set; }
+    string CustomName { get; set; }
 
     IXlsxPivotValueFormat NumberFormat { get; }
 
-    String SourceName { get; }
+    string SourceName { get; }
     XlsxPivotSummary SummaryFormula { get; set; }
 
-    IXlsxPivotValue SetBaseFieldName(String value);
+    IXlsxPivotValue SetBaseFieldName(string value);
 
     IXlsxPivotValue SetBaseItemValue(XlsxCellValue value);
 
@@ -122,15 +122,15 @@ public interface IXlsxPivotValue
 
     IXlsxPivotValue SetSummaryFormula(XlsxPivotSummary value);
 
-    IXlsxPivotValueCombination ShowAsDifferenceFrom(String fieldSourceName);
+    IXlsxPivotValueCombination ShowAsDifferenceFrom(string fieldSourceName);
 
     IXlsxPivotValue ShowAsIndex();
 
     IXlsxPivotValue ShowAsNormal();
 
-    IXlsxPivotValueCombination ShowAsPercentageDifferenceFrom(String fieldSourceName);
+    IXlsxPivotValueCombination ShowAsPercentageDifferenceFrom(string fieldSourceName);
 
-    IXlsxPivotValueCombination ShowAsPercentageFrom(String fieldSourceName);
+    IXlsxPivotValueCombination ShowAsPercentageFrom(string fieldSourceName);
 
     IXlsxPivotValue ShowAsPercentageOfColumn();
 
@@ -138,5 +138,5 @@ public interface IXlsxPivotValue
 
     IXlsxPivotValue ShowAsPercentageOfTotal();
 
-    IXlsxPivotValue ShowAsRunningTotalIn(String fieldSourceName);
+    IXlsxPivotValue ShowAsRunningTotalIn(string fieldSourceName);
 }

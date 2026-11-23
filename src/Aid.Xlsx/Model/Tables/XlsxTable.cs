@@ -27,13 +27,13 @@ internal class XlsxTable : XlsxRange, IXlsxTable
 {
     private string _name;
     internal bool _showTotalsRow;
-    internal HashSet<String> _uniqueNames;
+    internal HashSet<string> _uniqueNames;
 
     /// <summary>
     /// The direct constructor should only be used in <see cref="XlsxWorksheet.RangeFactory"/>.
     /// </summary>
     public XlsxTable(XlsxRangeAddress tableArea, IXlsxStyle defaultStyle)
-        : base(tableArea, defaultStyle)
+        : base(tableArea)
     {
         InitializeValues(false);
     }
@@ -43,9 +43,9 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     }
 
     private IXlsxRangeAddress _lastRangeAddress;
-    private Dictionary<String, XlsxTableField> _fieldNames = CreateFieldNames();
+    private Dictionary<string, XlsxTableField> _fieldNames = CreateFieldNames();
 
-    internal Dictionary<String, XlsxTableField> FieldNames
+    internal Dictionary<string, XlsxTableField> FieldNames
     {
         get
         {
@@ -69,16 +69,16 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     {
         if (ShowHeaderRow)
         {
-            var oldFieldNames = _fieldNames ?? CreateFieldNames();
+            Dictionary<string, XlsxTableField> oldFieldNames = _fieldNames ?? CreateFieldNames();
             _fieldNames = CreateFieldNames();
-            var headersRow = HeadersRow(false);
-            Int32 cellPos = 0;
-            foreach (XlsxCell cell in headersRow.Cells())
+            XlsxRangeRow headersRow = HeadersRow(false);
+            int cellPos = 0;
+            foreach (XlsxCell cell in headersRow.Cells().Cast<XlsxCell>())
             {
-                var cellValue = cell.CachedValue;
+                XlsxCellValue cellValue = cell.CachedValue;
                 var name = cellValue.ToString(CultureInfo.CurrentCulture);
 
-                if (oldFieldNames.TryGetValue(name, out var tableField))// && tableField.Column.ColumnNumber() == cell.Address.ColumnNumber)
+                if (oldFieldNames.TryGetValue(name, out XlsxTableField tableField))// && tableField.Column.ColumnNumber() == cell.Address.ColumnNumber)
                 {
                     tableField.Index = cellPos;
                     _fieldNames.Add(name, tableField);
@@ -87,7 +87,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
                 }
 
                 // Be careful here. Fields names may actually be whitespace, but not empty
-                if (String.IsNullOrEmpty(name))
+                if (string.IsNullOrEmpty(name))
                 {
                     name = GetUniqueName("Column", cellPos + 1, true);
                 }
@@ -107,8 +107,8 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         }
         else
         {
-            Int32 colCount = ColumnCount();
-            for (Int32 i = 1; i <= colCount; i++)
+            int colCount = ColumnCount();
+            for (int i = 1; i <= colCount; i++)
             {
                 if (_fieldNames.Values.All(f => f.Index != i - 1))
                 {
@@ -127,16 +127,16 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         return field;
     }
 
-    internal void RenameField(String oldName, String newName)
+    internal void RenameField(string oldName, string newName)
     {
-        if (!_fieldNames.TryGetValue(oldName, out var field))
-            throw new ArgumentException("The field does not exist in this table", "oldName");
+        if (!_fieldNames.TryGetValue(oldName, out XlsxTableField field))
+            throw new ArgumentException("The field does not exist in this table", nameof(oldName));
 
         _fieldNames.Remove(oldName);
         _fieldNames.Add(newName, field);
     }
 
-    internal String RelId { get; set; }
+    internal string RelId { get; set; }
 
     public IXlsxTableRange DataRange
     {
@@ -168,8 +168,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     {
         get
         {
-            if (_autoFilter == null)
-                _autoFilter = new XlsxAutoFilter();
+            _autoFilter ??= new XlsxAutoFilter();
 
             _autoFilter.Range = ShowTotalsRow ? Range(1, 1, RowCount() - 1, ColumnCount()) : AsRange();
             return _autoFilter;
@@ -188,14 +187,14 @@ internal class XlsxTable : XlsxRange, IXlsxTable
 
     #region IXlsxTable Members
 
-    public Boolean EmphasizeFirstColumn { get; set; }
-    public Boolean EmphasizeLastColumn { get; set; }
-    public Boolean ShowRowStripes { get; set; }
-    public Boolean ShowColumnStripes { get; set; }
+    public bool EmphasizeFirstColumn { get; set; }
+    public bool EmphasizeLastColumn { get; set; }
+    public bool ShowRowStripes { get; set; }
+    public bool ShowColumnStripes { get; set; }
 
-    private Boolean _showAutoFilter;
+    private bool _showAutoFilter;
 
-    public Boolean ShowAutoFilter
+    public bool ShowAutoFilter
     {
         get { return _showHeaderRow && _showAutoFilter; }
         set { _showAutoFilter = value; }
@@ -203,7 +202,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
 
     public XlsxTableTheme Theme { get; set; }
 
-    public String Name
+    public string Name
     {
         get { return _name; }
         set
@@ -212,17 +211,17 @@ internal class XlsxTable : XlsxRange, IXlsxTable
 
             // Validation rules for table names
             var oldname = _name ?? string.Empty;
-            var tableNames = Worksheet.Tables.Select<XlsxTable, string>(t => t.Name);
-            if (!XlsxHelper.ValidateName("table", value, oldname, tableNames, out String message))
+            IEnumerable<string> tableNames = Worksheet.Tables.Select<XlsxTable, string>(t => t.Name);
+            if (!XlsxHelper.ValidateName("table", value, oldname, tableNames, out string message))
                 throw new ArgumentException(message, nameof(value));
 
             _name = value;
 
             // Some totals row formula depend on the table name. Update them.
-            if (_fieldNames?.Any() ?? false)
+            if ((_fieldNames?.Count ?? 0) > 0)
                 this.Fields.ForEach(f => (f as XlsxTableField).UpdateTableFieldTotalsRowFormula());
 
-            if (!String.IsNullOrWhiteSpace(oldname) && !String.Equals(oldname, _name, StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrWhiteSpace(oldname) && !string.Equals(oldname, _name, StringComparison.OrdinalIgnoreCase))
             {
                 Worksheet.Tables.Add(this);
                 if (Worksheet.Tables.Contains(oldname))
@@ -231,7 +230,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         }
     }
 
-    public Boolean ShowTotalsRow
+    public bool ShowTotalsRow
     {
         get { return _showTotalsRow; }
         set
@@ -262,13 +261,13 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         return HeadersRow(true);
     }
 
-    internal XlsxRangeRow HeadersRow(Boolean scanForNewFieldsNames)
+    internal XlsxRangeRow HeadersRow(bool scanForNewFieldsNames)
     {
         if (!ShowHeaderRow) return null;
 
         if (scanForNewFieldsNames)
         {
-            var tempResult = FieldNames;
+            _ = FieldNames;
         }
 
         return FirstRow();
@@ -279,17 +278,17 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         return ShowTotalsRow ? LastRow() : null;
     }
 
-    public IXlsxTableField Field(String fieldName)
+    public IXlsxTableField Field(string fieldName)
     {
         return Field(GetFieldIndex(fieldName));
     }
 
-    IXlsxTableField IXlsxTable.Field(Int32 fieldIndex)
+    IXlsxTableField IXlsxTable.Field(int fieldIndex)
     {
         return Field(fieldIndex);
     }
 
-    internal XlsxTableField Field(Int32 fieldIndex)
+    internal XlsxTableField Field(int fieldIndex)
     {
         return FieldNames.Values.First(f => f.Index == fieldIndex);
     }
@@ -300,7 +299,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     {
         get
         {
-            Int32 columnCount = ColumnCount();
+            int columnCount = ColumnCount();
             for (int co = 0; co < columnCount; co++)
                 yield return Field(co);
         }
@@ -347,19 +346,19 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         var totalsRowChanged = this.ShowTotalsRow ? range.LastRow().RowNumber() - this.TotalsRow().RowNumber() : 0;
         var oldTotalsRowNumber = this.ShowTotalsRow ? this.TotalsRow().RowNumber() : -1;
 
-        var existingHeaders = this.FieldNames.Keys;
+        Dictionary<string, XlsxTableField>.KeyCollection existingHeaders = this.FieldNames.Keys;
         var newHeaders = new HashSet<string>();
 
         // Force evaluation of f.Column field
-        var tempArray = this.Fields.Select(f => f.Column).ToArray();
+        IXlsxRangeColumn[] tempArray = [.. this.Fields.Select(f => f.Column)];
 
-        var firstRow = range.Row(1);
+        IXlsxRangeRow firstRow = range.Row(1);
         if (!firstRow.FirstCell().Address.Equals(this.HeadersRow().FirstCell().Address)
             || !firstRow.LastCell().Address.Equals(this.HeadersRow().LastCell().Address))
         {
             _uniqueNames.Clear();
             var co = 1;
-            foreach (var c in firstRow.Cells())
+            foreach (IXlsxCell c in firstRow.Cells())
             {
                 if (c.IsEmpty(XlsxCellsUsedOptions.Contents))
                     c.Value = GetUniqueName("Column", co, true);
@@ -391,10 +390,10 @@ internal class XlsxTable : XlsxRange, IXlsxTable
 
         if (this.ShowTotalsRow)
         {
-            foreach (var f in this._fieldNames.Values)
+            foreach (XlsxTableField f in this._fieldNames.Values)
             {
                 var fieldColumn = f.Index + 1;
-                var c = this.TotalsRow().Cell(fieldColumn);
+                IXlsxCell c = this.TotalsRow().Cell(fieldColumn);
                 if (!c.IsEmpty() && newHeaders.Contains(f.Name))
                 {
                     f.TotalsRowLabel = c.GetFormattedString();
@@ -403,15 +402,15 @@ internal class XlsxTable : XlsxRange, IXlsxTable
 
             if (totalsRowChanged != 0)
             {
-                foreach (var f in this._fieldNames.Values.Cast<XlsxTableField>())
+                foreach (XlsxTableField f in this._fieldNames.Values.Cast<XlsxTableField>())
                 {
                     f.UpdateTableFieldTotalsRowFormula();
                     var fieldColumn = f.Index + 1;
-                    var c = this.TotalsRow().Cell(fieldColumn);
-                    if (!String.IsNullOrWhiteSpace(f.TotalsRowLabel))
+                    IXlsxCell c = this.TotalsRow().Cell(fieldColumn);
+                    if (!string.IsNullOrWhiteSpace(f.TotalsRowLabel))
                     {
                         //Remove previous row's label
-                        var oldTotalsCell = Worksheet.Cell(oldTotalsRowNumber, f.Column.ColumnNumber());
+                        XlsxCell oldTotalsCell = Worksheet.Cell(oldTotalsRowNumber, f.Column.ColumnNumber());
                         if (oldTotalsCell.Value.Equals(f.TotalsRowLabel))
                             oldTotalsCell.Value = Blank.Value;
                     }
@@ -431,7 +430,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         return this;
     }
 
-    public IXlsxTable SetEmphasizeFirstColumn(Boolean value)
+    public IXlsxTable SetEmphasizeFirstColumn(bool value)
     {
         EmphasizeFirstColumn = value;
         return this;
@@ -443,7 +442,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         return this;
     }
 
-    public IXlsxTable SetEmphasizeLastColumn(Boolean value)
+    public IXlsxTable SetEmphasizeLastColumn(bool value)
     {
         EmphasizeLastColumn = value;
         return this;
@@ -455,7 +454,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         return this;
     }
 
-    public IXlsxTable SetShowRowStripes(Boolean value)
+    public IXlsxTable SetShowRowStripes(bool value)
     {
         ShowRowStripes = value;
         return this;
@@ -467,7 +466,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         return this;
     }
 
-    public IXlsxTable SetShowColumnStripes(Boolean value)
+    public IXlsxTable SetShowColumnStripes(bool value)
     {
         ShowColumnStripes = value;
         return this;
@@ -479,7 +478,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         return this;
     }
 
-    public IXlsxTable SetShowTotalsRow(Boolean value)
+    public IXlsxTable SetShowTotalsRow(bool value)
     {
         ShowTotalsRow = value;
         return this;
@@ -491,20 +490,20 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         return this;
     }
 
-    public IXlsxTable SetShowAutoFilter(Boolean value)
+    public IXlsxTable SetShowAutoFilter(bool value)
     {
         ShowAutoFilter = value;
         return this;
     }
 
-    public new IXlsxRange Sort(String columnsToSortBy, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending,
-                             Boolean matchCase = false, Boolean ignoreBlanks = true)
+    public new IXlsxRange Sort(string columnsToSortBy, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending,
+                             bool matchCase = false, bool ignoreBlanks = true)
     {
         var toSortBy = new StringBuilder();
         foreach (string coPairTrimmed in columnsToSortBy.Split(',').Select(coPair => coPair.Trim()))
         {
-            String coString;
-            String order;
+            string coString;
+            string order;
             if (coPairTrimmed.Contains(' '))
             {
                 var pair = coPairTrimmed.Split(' ');
@@ -517,7 +516,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
                 order = sortOrder == XlsxSortOrder.Ascending ? "ASC" : "DESC";
             }
 
-            if (!Int32.TryParse(coString, out Int32 co))
+            if (!int.TryParse(coString, out int co))
                 co = Field(coString).Index + 1;
 
             if (toSortBy.Length > 0)
@@ -543,7 +542,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
 
     #endregion IXlsxTable Members
 
-    private void InitializeValues(Boolean setAutofilter)
+    private void InitializeValues(bool setAutofilter)
     {
         ShowRowStripes = true;
         _showHeaderRow = true;
@@ -562,8 +561,8 @@ internal class XlsxTable : XlsxRange, IXlsxTable
 
     internal void OnAddedToTables()
     {
-        _uniqueNames = new HashSet<string>();
-        Int32 co = 1;
+        _uniqueNames = [];
+        int co = 1;
         foreach (IXlsxCell c in Row(1).Cells())
         {
             // Be careful here. Fields names may actually be whitespace, but not empty
@@ -579,12 +578,12 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         return new Dictionary<string, XlsxTableField>(StringComparer.CurrentCultureIgnoreCase);
     }
 
-    private String GetUniqueName(String originalName, Int32 initialOffset, Boolean enforceOffset)
+    private string GetUniqueName(string originalName, int initialOffset, bool enforceOffset)
     {
-        String name = String.Concat(originalName, enforceOffset ? initialOffset.ToInvariantString() : string.Empty);
+        string name = string.Concat(originalName, enforceOffset ? initialOffset.ToInvariantString() : string.Empty);
         if (_uniqueNames?.Contains(name) ?? false)
         {
-            Int32 i = initialOffset;
+            int i = initialOffset;
             name = originalName + i.ToInvariantString();
             while (_uniqueNames.Contains(name))
             {
@@ -596,21 +595,21 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         return name;
     }
 
-    public Int32 GetFieldIndex(String name)
+    public int GetFieldIndex(string name)
     {
         // There is a discrepancy in the way headers with line breaks are stored.
         // The entry in the table definition will contain \r\n
         // but the shared string value of the actual cell will contain only \n
         name = name.Replace("\r\n", "\n");
-        if (FieldNames.TryGetValue(name, out var tableField))
+        if (FieldNames.TryGetValue(name, out XlsxTableField tableField))
             return tableField.Index;
 
         throw new ArgumentOutOfRangeException("The header row doesn't contain field name '" + name + "'.");
     }
 
-    internal Boolean _showHeaderRow;
+    internal bool _showHeaderRow;
 
-    public Boolean ShowHeaderRow
+    public bool ShowHeaderRow
     {
         get { return _showHeaderRow; }
         set
@@ -619,12 +618,12 @@ internal class XlsxTable : XlsxRange, IXlsxTable
 
             if (_showHeaderRow)
             {
-                var headersRow = HeadersRow();
-                _uniqueNames = new HashSet<string>();
-                Int32 co = 1;
+                IXlsxRangeRow headersRow = HeadersRow();
+                _uniqueNames = [];
+                int co = 1;
                 foreach (IXlsxCell c in headersRow.Cells())
                 {
-                    if (String.IsNullOrWhiteSpace(c.GetString()))
+                    if (string.IsNullOrWhiteSpace(c.GetString()))
                         c.Value = GetUniqueName("Column", co, true);
                     _uniqueNames.Add(c.GetString());
                     co++;
@@ -640,12 +639,12 @@ internal class XlsxTable : XlsxRange, IXlsxTable
             }
             else
             {
-                var asRange = Worksheet.Range(
+                XlsxRange asRange = Worksheet.Range(
                     RangeAddress.FirstAddress.RowNumber - 1,
                     RangeAddress.FirstAddress.ColumnNumber,
                     RangeAddress.LastAddress.RowNumber,
                     RangeAddress.LastAddress.ColumnNumber);
-                var firstRow = asRange.FirstRow();
+                XlsxRangeRow firstRow = asRange.FirstRow();
                 IXlsxRangeRow rangeRow;
                 if (firstRow.IsEmpty(XlsxCellsUsedOptions.All))
                 {
@@ -660,7 +659,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
                 }
                 else
                 {
-                    var fAddress = RangeAddress.FirstAddress;
+                    XlsxAddress fAddress = RangeAddress.FirstAddress;
                     //var lAddress = RangeAddress.LastAddress;
 
                     rangeRow = firstRow.InsertRowsBelow(1, false).First();
@@ -670,7 +669,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
                         RangeAddress.LastAddress);
                 }
 
-                Int32 co = 1;
+                int co = 1;
                 foreach (var name in FieldNames.Values.Select(f => f.Name))
                 {
                     rangeRow.Cell(co).SetValue(name);
@@ -690,13 +689,13 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         return SetShowHeaderRow(true);
     }
 
-    public IXlsxTable SetShowHeaderRow(Boolean value)
+    public IXlsxTable SetShowHeaderRow(bool value)
     {
         ShowHeaderRow = value;
         return this;
     }
 
-    public void ExpandTableRows(Int32 rows)
+    public void ExpandTableRows(int rows)
     {
         RangeAddress = new XlsxRangeAddress(
             RangeAddress.FirstAddress,
@@ -708,78 +707,78 @@ internal class XlsxTable : XlsxRange, IXlsxTable
 
     public override XlsxRangeColumn Column(int columnNumber)
     {
-        var column = base.Column(columnNumber);
+        XlsxRangeColumn column = base.Column(columnNumber);
         column.Table = this;
         return column;
     }
 
     public override XlsxRangeColumn Column(string columnName)
     {
-        var column = base.Column(columnName);
+        XlsxRangeColumn column = base.Column(columnName);
         column.Table = this;
         return column;
     }
 
     public override IXlsxRangeColumns Columns(int firstColumn, int lastColumn)
     {
-        var columns = base.Columns(firstColumn, lastColumn);
+        IXlsxRangeColumns columns = base.Columns(firstColumn, lastColumn);
         columns.Cast<XlsxRangeColumn>().ForEach(column => column.Table = this);
         return columns;
     }
 
     public override IXlsxRangeColumns Columns(Func<IXlsxRangeColumn, bool> predicate = null)
     {
-        var columns = base.Columns(predicate);
+        IXlsxRangeColumns columns = base.Columns(predicate);
         columns.Cast<XlsxRangeColumn>().ForEach(column => column.Table = this);
         return columns;
     }
 
     public override IXlsxRangeColumns Columns(string columns)
     {
-        var cols = base.Columns(columns);
+        IXlsxRangeColumns cols = base.Columns(columns);
         cols.Cast<XlsxRangeColumn>().ForEach(column => column.Table = this);
         return cols;
     }
 
     public override IXlsxRangeColumns Columns(string firstColumn, string lastColumn)
     {
-        var columns = base.Columns(firstColumn, lastColumn);
+        IXlsxRangeColumns columns = base.Columns(firstColumn, lastColumn);
         columns.Cast<XlsxRangeColumn>().ForEach(column => column.Table = this);
         return columns;
     }
 
     internal override XlsxRangeColumns ColumnsUsed(XlsxCellsUsedOptions options, Func<IXlsxRangeColumn, bool> predicate = null)
     {
-        var columns = base.ColumnsUsed(options, predicate);
+        XlsxRangeColumns columns = base.ColumnsUsed(options, predicate);
         columns.Cast<XlsxRangeColumn>().ForEach(column => column.Table = this);
         return columns;
     }
 
     internal override XlsxRangeColumns ColumnsUsed(Func<IXlsxRangeColumn, bool> predicate = null)
     {
-        var columns = base.ColumnsUsed(predicate);
+        XlsxRangeColumns columns = base.ColumnsUsed(predicate);
         columns.Cast<XlsxRangeColumn>().ForEach(column => column.Table = this);
         return columns;
     }
 
-    IXlsxPivotTable IXlsxRangeBase.CreatePivotTable(IXlsxCell targetCell, String name)
+    IXlsxPivotTable IXlsxRangeBase.CreatePivotTable(IXlsxCell targetCell, string name)
     {
         return CreatePivotTable(targetCell, name);
     }
 
-    internal new XlsxPivotTable CreatePivotTable(IXlsxCell targetCell, String name)
+    internal new XlsxPivotTable CreatePivotTable(IXlsxCell targetCell, string name)
     {
         return (XlsxPivotTable)targetCell.Worksheet.PivotTables.Add(name, targetCell, this);
     }
 
     public IEnumerable<dynamic> AsDynamicEnumerable()
     {
-        foreach (var row in this.DataRange.Rows())
+        foreach (IXlsxTableRow row in this.DataRange.Rows())
         {
             dynamic expando = new ExpandoObject();
-            foreach (var f in this.Fields)
+            foreach (XlsxTableField f in this.Fields)
             {
-                var value = row.Cell(f.Index + 1).Value;
+                XlsxCellValue value = row.Cell(f.Index + 1).Value;
                 // ExpandoObject supports IDictionary so we can extend it like this
                 var expandoDict = expando as IDictionary<string, object>;
                 expandoDict[f.Name] = value;
@@ -793,20 +792,20 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     {
         var table = new DataTable(this.Name);
 
-        foreach (var f in Fields.Cast<XlsxTableField>())
+        foreach (XlsxTableField f in Fields.Cast<XlsxTableField>())
         {
             Type type = typeof(object);
             if (f.IsConsistentDataType())
             {
-                var c = f.Column.Cells().Skip(this.ShowHeaderRow ? 1 : 0).First();
+                IXlsxCell c = f.Column.Cells().Skip(this.ShowHeaderRow ? 1 : 0).First();
                 switch (c.DataType)
                 {
                     case XlsxDataType.Text:
-                        type = typeof(String);
+                        type = typeof(string);
                         break;
 
                     case XlsxDataType.Boolean:
-                        type = typeof(Boolean);
+                        type = typeof(bool);
                         break;
 
                     case XlsxDataType.DateTime:
@@ -818,7 +817,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
                         break;
 
                     case XlsxDataType.Number:
-                        type = typeof(Double);
+                        type = typeof(double);
                         break;
                 }
             }
@@ -826,11 +825,11 @@ internal class XlsxTable : XlsxRange, IXlsxTable
             table.Columns.Add(f.Name, type);
         }
 
-        foreach (var row in this.DataRange.Rows())
+        foreach (IXlsxTableRow row in this.DataRange.Rows())
         {
-            var dr = table.NewRow();
+            DataRow dr = table.NewRow();
 
-            foreach (var f in this.Fields)
+            foreach (XlsxTableField f in this.Fields)
             {
                 dr[f.Name] = row.Cell(f.Index + 1).Value.ToObject();
             }
@@ -851,13 +850,13 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         if (targetSheet == Worksheet)
             throw new InvalidOperationException("Cannot copy table to the worksheet it already belongs to.");
 
-        var targetRange = targetSheet.Range(RangeAddress.WithoutWorksheet());
+        XlsxRange targetRange = targetSheet.Range(RangeAddress.WithoutWorksheet());
         if (copyData)
             RangeUsed().CopyTo(targetRange);
         else
             HeadersRow().CopyTo(targetRange.FirstRow());
 
-        String tableName = Name;
+        string tableName = Name;
         var newTable = (XlsxTable)targetSheet.Table(targetRange, tableName, true);
 
         newTable.RelId = null;
@@ -869,8 +868,8 @@ internal class XlsxTable : XlsxRange, IXlsxTable
         newTable.Theme = Theme;
         newTable._showTotalsRow = ShowTotalsRow;
 
-        Int32 fieldCount = ColumnCount();
-        for (Int32 f = 0; f < fieldCount; f++)
+        int fieldCount = ColumnCount();
+        for (int f = 0; f < fieldCount; f++)
         {
             var tableField = newTable.Field(f) as XlsxTableField;
             var tField = Field(f) as XlsxTableField;
@@ -885,22 +884,22 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     #region Append and replace data
 
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
-    public IXlsxRange AppendData(IEnumerable data, Boolean propagateExtraColumns = false)
+    public IXlsxRange AppendData(IEnumerable data, bool propagateExtraColumns = false)
     {
         return AppendData(data, transpose: false, propagateExtraColumns: propagateExtraColumns);
     }
 
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
-    public IXlsxRange AppendData(IEnumerable data, bool transpose, Boolean propagateExtraColumns = false)
+    public IXlsxRange AppendData(IEnumerable data, bool transpose, bool propagateExtraColumns = false)
     {
-        var castedData = data?.Cast<object>().ToArray() ?? Array.Empty<object>();
-        if (!castedData.Any() || data is String)
+        var castedData = data?.Cast<object>().ToArray() ?? [];
+        if (castedData.Length == 0 || data is string)
             return null;
 
         return AppendDataCore(castedData.Length, cell => cell.InsertData(castedData, transpose));
     }
 
-    public IXlsxRange AppendData(DataTable dataTable, Boolean propagateExtraColumns = false)
+    public IXlsxRange AppendData(DataTable dataTable, bool propagateExtraColumns = false)
     {
         if (dataTable.Rows.Count == 0)
             return null;
@@ -909,32 +908,32 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     }
 
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
-    public IXlsxRange AppendData<T>(IEnumerable<T> data, Boolean propagateExtraColumns = false)
+    public IXlsxRange AppendData<T>(IEnumerable<T> data, bool propagateExtraColumns = false)
     {
-        var materializedData = data?.ToArray() ?? Array.Empty<T>();
-        if (!materializedData.Any() || data is String)
+        T[] materializedData = data?.ToArray() ?? [];
+        if (materializedData.Length == 0 || data is string)
             return null;
 
         return AppendDataCore(materializedData.Length, cell => cell.InsertData(materializedData));
     }
 
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
-    public IXlsxRange ReplaceData(IEnumerable data, Boolean propagateExtraColumns = false)
+    public IXlsxRange ReplaceData(IEnumerable data, bool propagateExtraColumns = false)
     {
         return ReplaceData(data, transpose: false, propagateExtraColumns: propagateExtraColumns);
     }
 
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
-    public IXlsxRange ReplaceData(IEnumerable data, bool transpose, Boolean propagateExtraColumns = false)
+    public IXlsxRange ReplaceData(IEnumerable data, bool transpose, bool propagateExtraColumns = false)
     {
-        var castedData = data?.Cast<object>().ToArray() ?? Array.Empty<object>();
-        if (!castedData.Any() || data is String)
+        var castedData = data?.Cast<object>().ToArray() ?? [];
+        if (castedData.Length == 0 || data is string)
             throw new InvalidOperationException("Cannot replace table data with empty enumerable.");
 
         return ReplaceDataCore(castedData.Length, propagateExtraColumns, cell => cell.InsertData(castedData, transpose));
     }
 
-    public IXlsxRange ReplaceData(DataTable dataTable, Boolean propagateExtraColumns = false)
+    public IXlsxRange ReplaceData(DataTable dataTable, bool propagateExtraColumns = false)
     {
         if (dataTable.Rows.Count == 0)
             throw new InvalidOperationException("Cannot replace table data with empty enumerable.");
@@ -943,10 +942,10 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     }
 
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
-    public IXlsxRange ReplaceData<T>(IEnumerable<T> data, Boolean propagateExtraColumns = false)
+    public IXlsxRange ReplaceData<T>(IEnumerable<T> data, bool propagateExtraColumns = false)
     {
-        var materializedData = data?.ToArray() ?? Array.Empty<T>();
-        if (!materializedData.Any() || data is String)
+        T[] materializedData = data?.ToArray() ?? [];
+        if (materializedData.Length == 0 || data is string)
             throw new InvalidOperationException("Cannot replace table data with empty enumerable.");
 
         return ReplaceDataCore(materializedData.Length, propagateExtraColumns, cell => cell.InsertData(materializedData));
@@ -954,18 +953,18 @@ internal class XlsxTable : XlsxRange, IXlsxTable
 
     private IXlsxRange AppendDataCore(int numberOfNewRows, Func<IXlsxCell, IXlsxRange> insertData)
     {
-        var lastRowOfOldRange = this.DataRange.LastRow();
+        IXlsxTableRow lastRowOfOldRange = this.DataRange.LastRow();
         lastRowOfOldRange.InsertRowsBelow(numberOfNewRows);
         this.Fields.Cast<XlsxTableField>().ForEach(f => f.Column = null);
 
-        var insertedRange = insertData(lastRowOfOldRange.RowBelow().FirstCell());
+        IXlsxRange insertedRange = insertData(lastRowOfOldRange.RowBelow().FirstCell());
 
         PropagateExtraColumns(insertedRange.ColumnCount(), lastRowOfOldRange.RowNumber());
 
         return insertedRange;
     }
 
-    private IXlsxRange ReplaceDataCore(int numberOfRows, Boolean propagateExtraColumns, Func<IXlsxCell, IXlsxRange> insertData)
+    private IXlsxRange ReplaceDataCore(int numberOfRows, bool propagateExtraColumns, Func<IXlsxCell, IXlsxRange> insertData)
     {
         var firstDataRowNumber = this.DataRange.FirstRow().RowNumber();
         var lastDataRowNumber = this.DataRange.LastRow().RowNumber();
@@ -991,7 +990,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
             // Invalidate table fields' columns
             this.Fields.Cast<XlsxTableField>().ForEach(f => f.Column = null);
 
-        var replacedRange = insertData(this.DataRange.FirstCell());
+        IXlsxRange replacedRange = insertData(this.DataRange.FirstCell());
 
         if (propagateExtraColumns)
             PropagateExtraColumns(replacedRange.ColumnCount(), lastDataRowNumber);
@@ -1002,9 +1001,9 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     {
         for (var i = numberOfNonExtraColumns; i < this.Fields.Count(); i++)
         {
-            var field = this.Field(i);
+            XlsxTableField field = this.Field(i);
 
-            var cell = this.Worksheet.Cell(previousLastDataRow, field.Column.ColumnNumber());
+            XlsxCell cell = this.Worksheet.Cell(previousLastDataRow, field.Column.ColumnNumber());
             field.Column.Cells(c => c.Address.RowNumber > previousLastDataRow)
                 .ForEach(c =>
                 {
@@ -1022,20 +1021,20 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     /// <param name="refreshArea">Area that contains cells with changed values that might affect header and totals fields.</param>
     internal void RefreshFieldsFromCells(Area refreshArea)
     {
-        var tableArea = Area;
+        Area tableArea = Area;
         if (ShowTotalsRow)
         {
-            var totalsRow = tableArea.SliceFromBottom(1);
-            var intersection = totalsRow.Intersect(refreshArea);
+            Area totalsRow = tableArea.SliceFromBottom(1);
+            Area? intersection = totalsRow.Intersect(refreshArea);
             if (intersection is not null)
             {
                 var totalsRowNumber = totalsRow.BottomRow;
-                var valueSlice = Worksheet.Internals.CellsCollection.ValueSlice;
+                ValueSlice valueSlice = Worksheet.Internals.CellsCollection.ValueSlice;
                 for (var column = intersection.Value.LeftColumn; column <= intersection.Value.RightColumn; ++column)
                 {
                     var fieldIndex = column - totalsRow.LeftColumn;
-                    var field = Field(fieldIndex);
-                    var value = valueSlice.GetCellValue(new Point(totalsRowNumber, column));
+                    XlsxTableField field = Field(fieldIndex);
+                    XlsxCellValue value = valueSlice.GetCellValue(new Point(totalsRowNumber, column));
 
                     // Convert value to text, because Excel always converts values to text when replacing totals row.
                     field.TotalsRowLabel = value.ToString(CultureInfo.CurrentCulture);
@@ -1045,17 +1044,17 @@ internal class XlsxTable : XlsxRange, IXlsxTable
 
         if (ShowHeaderRow)
         {
-            var headersRow = Area.SliceFromTop(1);
-            var intersection = headersRow.Intersect(refreshArea);
+            Area headersRow = Area.SliceFromTop(1);
+            Area? intersection = headersRow.Intersect(refreshArea);
             if (intersection is not null)
             {
                 var headersRowNumber = headersRow.TopRow;
-                var valueSlice = Worksheet.Internals.CellsCollection.ValueSlice;
+                ValueSlice valueSlice = Worksheet.Internals.CellsCollection.ValueSlice;
                 for (var column = intersection.Value.LeftColumn; column <= intersection.Value.RightColumn; ++column)
                 {
                     var fieldIndex = column - headersRow.LeftColumn;
-                    var field = Field(fieldIndex);
-                    var value = valueSlice.GetCellValue(new Point(headersRowNumber, column));
+                    XlsxTableField field = Field(fieldIndex);
+                    XlsxCellValue value = valueSlice.GetCellValue(new Point(headersRowNumber, column));
 
                     // Convert to text, because headers row of a table can be only
                     // string in OOXML and Excel converts it to string as well.

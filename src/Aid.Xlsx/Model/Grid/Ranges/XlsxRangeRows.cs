@@ -9,21 +9,16 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Ranges;
 
-internal class XlsxRangeRows : IXlsxRangeRows
+internal class XlsxRangeRows(XlsxWorksheet worksheet) : IXlsxRangeRows
 {
-    private readonly XlsxWorksheet _worksheet;
-    private readonly List<XlsxRangeRow> _ranges = new List<XlsxRangeRow>();
-
-    public XlsxRangeRows(XlsxWorksheet worksheet)
-    {
-        _worksheet = worksheet;
-    }
+    private readonly XlsxWorksheet _worksheet = worksheet;
+    private readonly List<XlsxRangeRow> _ranges = [];
 
     internal XlsxCellFormat Format
     {
         get
         {
-            var areas = _ranges.Select(x => SheetArea.From(x.RangeAddress)).ToArray();
+            SheetArea[] areas = [.. _ranges.Select(x => SheetArea.From(x.RangeAddress))];
             return XlsxCellFormat.ForAreas(_worksheet.Workbook, areas, null);
         }
     }
@@ -93,7 +88,7 @@ internal class XlsxRangeRows : IXlsxRangeRows
 
     public void Select()
     {
-        foreach (var range in this)
+        foreach (IXlsxRangeRow range in this)
             range.Select();
     }
 

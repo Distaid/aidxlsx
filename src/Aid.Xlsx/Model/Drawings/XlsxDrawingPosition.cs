@@ -4,13 +4,13 @@ namespace Aid.Xlsx.Model.Drawings;
 
 internal class XlsxDrawingPosition : IXlsxDrawingPosition
 {
-    public Int32 Column { get; set; }
-    public IXlsxDrawingPosition SetColumn(Int32 column) { Column = column; return this; }
-    public Double ColumnOffset { get; set; }
-    public IXlsxDrawingPosition SetColumnOffset(Double columnOffset) { ColumnOffset = columnOffset; return this; }
+    public int Column { get; set; }
+    public IXlsxDrawingPosition SetColumn(int column) { Column = column; return this; }
+    public double ColumnOffset { get; set; }
+    public IXlsxDrawingPosition SetColumnOffset(double columnOffset) { ColumnOffset = columnOffset; return this; }
 
-    public Int32 Row { get; set; }
-    public IXlsxDrawingPosition SetRow(Int32 row) { Row = row; return this; }
-    public Double RowOffset { get; set; }
-    public IXlsxDrawingPosition SetRowOffset(Double rowOffset) { RowOffset = rowOffset; return this; }
+    public int Row { get; set; }
+    public IXlsxDrawingPosition SetRow(int row) { Row = row; return this; }
+    public double RowOffset { get; set; }
+    public IXlsxDrawingPosition SetRowOffset(double rowOffset) { RowOffset = rowOffset; return this; }
 }

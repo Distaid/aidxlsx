@@ -8,78 +8,78 @@ internal static class XmlWriterExtensions
 {
     extension(XmlWriter w)
     {
-        public void WriteAttribute(String attrName, String value)
+        public void WriteAttribute(string attrName, string value)
         {
             w.WriteStartAttribute(attrName);
             w.WriteValue(value);
             w.WriteEndAttribute();
         }
 
-        public void WriteAttributeOptional(String attrName, String? value)
+        public void WriteAttributeOptional(string attrName, string? value)
         {
             if (!string.IsNullOrEmpty(value))
                 w.WriteAttribute(attrName, value);
         }
 
-        public void WriteAttribute(String attrName, Int32 value)
+        public void WriteAttribute(string attrName, int value)
         {
             w.WriteStartAttribute(attrName);
             w.WriteValue(value);
             w.WriteEndAttribute();
         }
 
-        public void WriteAttribute(String attrName, UInt32 value)
+        public void WriteAttribute(string attrName, uint value)
         {
             w.WriteStartAttribute(attrName);
             w.WriteValue(value);
             w.WriteEndAttribute();
         }
 
-        public void WriteAttributeOptional(String attrName, UInt32? value)
+        public void WriteAttributeOptional(string attrName, uint? value)
         {
             if (value is not null)
                 w.WriteAttribute(attrName, value.Value);
         }
 
-        public void WriteAttributeOptional(String attrName, Int32? value)
+        public void WriteAttributeOptional(string attrName, int? value)
         {
             if (value is not null)
                 w.WriteAttribute(attrName, value.Value);
         }
 
-        public void WriteAttribute(String attrName, Double value)
+        public void WriteAttribute(string attrName, double value)
         {
             w.WriteStartAttribute(attrName);
             w.WriteNumberValue(value);
             w.WriteEndAttribute();
         }
 
-        public void WriteAttribute(String attrName, Boolean value)
+        public void WriteAttribute(string attrName, bool value)
         {
             w.WriteStartAttribute(attrName);
             w.WriteValue(value ? "1" : "0");
             w.WriteEndAttribute();
         }
 
-        public void WriteAttributeDefault(String attrName, Boolean value, Boolean defaultValue)
+        public void WriteAttributeDefault(string attrName, bool value, bool defaultValue)
         {
             if (value != defaultValue)
                 w.WriteAttribute(attrName, value);
         }
 
-        public void WriteAttributeOptional(String attrName, Boolean? value)
+        public void WriteAttributeOptional(string attrName, bool? value)
         {
             if (value is not null)
                 w.WriteAttribute(attrName, value.Value);
         }
 
-        public void WriteAttributeDefault(String attrName, int value, int defaultValue)
+        public void WriteAttributeDefault(string attrName, int value, int defaultValue)
         {
             if (value != defaultValue)
                 w.WriteAttribute(attrName, value);
         }
 
-        public void WriteAttributeDefault(String attrName, uint value, uint defaultValue)
+        public void WriteAttributeDefault(string attrName, uint value, uint defaultValue)
         {
             if (value != defaultValue)
                 w.WriteAttribute(attrName, value);
@@ -88,21 +88,21 @@ internal static class XmlWriterExtensions
         /// <summary>
         /// Write date in a format <c>2015-01-01T00:00:00</c> (ignore kind).
         /// </summary>
-        public void WriteAttribute(String attrName, DateTime value)
+        public void WriteAttribute(string attrName, DateTime value)
         {
             w.WriteStartAttribute(attrName);
             w.WriteValue(value.ToString("s"));
             w.WriteEndAttribute();
         }
 
-        public void WriteAttribute(String attrName, String ns, Double value)
+        public void WriteAttribute(string attrName, string ns, double value)
         {
             w.WriteStartAttribute(attrName, ns);
             w.WriteNumberValue(value);
             w.WriteEndAttribute();
         }
 
-        public void WriteNumberValue(Double value)
+        public void WriteNumberValue(double value)
         {
             // G17 will survive roundtrip to file and back
             w.WriteValue(value.ToInvariantString());
@@ -113,13 +113,13 @@ internal static class XmlWriterExtensions
             w.WriteAttributeString("xml", "space", OpenXmlConst.Xml1998Ns, "preserve");
         }
 
-        public void WriteEmptyElement(String elName)
+        public void WriteEmptyElement(string elName)
         {
             w.WriteStartElement(elName, OpenXmlConst.Main2006SsNs);
             w.WriteEndElement();
         }
 
-        public void WriteColor(String elName, XlsxColor xlColor, Boolean isDifferential = false)
+        public void WriteColor(string elName, XlsxColor xlColor, bool isDifferential = false)
         {
             w.WriteStartElement(elName, OpenXmlConst.Main2006SsNs);
             switch (xlColor.ColorType)

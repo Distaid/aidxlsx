@@ -17,7 +17,7 @@ internal class XlsxRichString : IXlsxRichString
     private string _text;
     private XlsxFontFormatValue _font;
 
-    internal XlsxRichString(String text, XlsxFontFormatValue font, IXlsxWithRichString withRichString, XlsxWorkbookStyles styles, Action? onChange)
+    internal XlsxRichString(string text, XlsxFontFormatValue font, IXlsxWithRichString withRichString, XlsxWorkbookStyles styles, Action? onChange)
     {
         _text = text;
         _font = font;
@@ -26,7 +26,7 @@ internal class XlsxRichString : IXlsxRichString
         _onChange = onChange ?? (() => { });
     }
 
-    public String Text
+    public string Text
     {
         get => _text;
         set
@@ -36,7 +36,7 @@ internal class XlsxRichString : IXlsxRichString
         }
     }
 
-    public IXlsxRichString AddText(String text)
+    public IXlsxRichString AddText(string text)
     {
         return _withRichString.AddText(text);
     }
@@ -46,13 +46,13 @@ internal class XlsxRichString : IXlsxRichString
         return AddText(Environment.NewLine);
     }
 
-    public Boolean Bold
+    public bool Bold
     {
         get => _font.Bold;
         set => ChangeFont(f => f with { Bold = value });
     }
 
-    public Boolean Italic
+    public bool Italic
     {
         get => _font.Italic;
         set => ChangeFont(f => f with { Italic = value });
@@ -64,7 +64,7 @@ internal class XlsxRichString : IXlsxRichString
         set => ChangeFont(f => f with { Underline = value });
     }
 
-    public Boolean Strikethrough
+    public bool Strikethrough
     {
         get => _font.Strikethrough;
         set => ChangeFont(f => f with { Strikethrough = value });
@@ -76,13 +76,13 @@ internal class XlsxRichString : IXlsxRichString
         set => ChangeFont(f => f with { VerticalAlignment = value });
     }
 
-    public Boolean Shadow
+    public bool Shadow
     {
         get => _font.Shadow;
         set => ChangeFont(f => f with { Shadow = value });
     }
 
-    public Double FontSize
+    public double FontSize
     {
         get => _font.Size.Points;
         set => ChangeFont(f => f with { Size = XlsxFontSize.FromPoints(value) });
@@ -94,7 +94,7 @@ internal class XlsxRichString : IXlsxRichString
         set => ChangeFont(f => f with { Color = value });
     }
 
-    public String FontName
+    public string FontName
     {
         get => _font.Name.Text;
         set => ChangeFont(f => f with { Name = value });
@@ -125,7 +125,7 @@ internal class XlsxRichString : IXlsxRichString
         Bold = true; return this;
     }
 
-    public IXlsxRichString SetBold(Boolean value)
+    public IXlsxRichString SetBold(bool value)
     {
         Bold = value; return this;
     }
@@ -135,7 +135,7 @@ internal class XlsxRichString : IXlsxRichString
         Italic = true; return this;
     }
 
-    public IXlsxRichString SetItalic(Boolean value)
+    public IXlsxRichString SetItalic(bool value)
     {
         Italic = value; return this;
     }
@@ -155,7 +155,7 @@ internal class XlsxRichString : IXlsxRichString
         Strikethrough = true; return this;
     }
 
-    public IXlsxRichString SetStrikethrough(Boolean value)
+    public IXlsxRichString SetStrikethrough(bool value)
     {
         Strikethrough = value; return this;
     }
@@ -170,12 +170,12 @@ internal class XlsxRichString : IXlsxRichString
         Shadow = true; return this;
     }
 
-    public IXlsxRichString SetShadow(Boolean value)
+    public IXlsxRichString SetShadow(bool value)
     {
         Shadow = value; return this;
     }
 
-    public IXlsxRichString SetFontSize(Double value)
+    public IXlsxRichString SetFontSize(double value)
     {
         FontSize = value; return this;
     }
@@ -185,7 +185,7 @@ internal class XlsxRichString : IXlsxRichString
         FontColor = value; return this;
     }
 
-    public IXlsxRichString SetFontName(String value)
+    public IXlsxRichString SetFontName(string value)
     {
         FontName = value; return this;
     }
@@ -207,9 +207,9 @@ internal class XlsxRichString : IXlsxRichString
 
     public override bool Equals(object? obj) => Equals(obj as XlsxRichString);
 
-    public Boolean Equals(IXlsxRichString? other) => Equals(other as XlsxRichString);
+    public bool Equals(IXlsxRichString? other) => Equals(other as XlsxRichString);
 
-    public Boolean Equals(XlsxRichString? other)
+    public bool Equals(XlsxRichString? other)
     {
         if (other is null)
             return false;

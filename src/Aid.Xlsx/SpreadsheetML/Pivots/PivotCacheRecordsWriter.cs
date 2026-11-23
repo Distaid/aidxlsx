@@ -33,8 +33,8 @@ internal class PivotCacheRecordsWriter
             xml.WriteStartElement("r");
             for (var fieldIdx = 0; fieldIdx < fieldCount; ++fieldIdx)
             {
-                var fieldValues = pivotCache.GetFieldValues(fieldIdx);
-                var value = fieldValues.GetValue(recordIdx);
+                XlsxPivotCacheValues fieldValues = pivotCache.GetFieldValues(fieldIdx);
+                XlsxPivotCacheValue value = fieldValues.GetValue(recordIdx);
                 switch (value.Type)
                 {
                     case XlsxPivotCacheValueType.Missing:

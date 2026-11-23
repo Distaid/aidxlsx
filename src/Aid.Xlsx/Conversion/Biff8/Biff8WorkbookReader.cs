@@ -33,7 +33,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
         ReadBof(ref offset, 0x0005);
         while (true)
         {
-            var record = ReadRecord(ref offset, out var type);
+            ReadOnlySpan<byte> record = ReadRecord(ref offset, out var type);
             if (type == Eof)
                 break;
 
@@ -85,7 +85,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
                 throw new InvalidDataException("Invalid BIFF worksheet offset.");
         }
 
-        foreach (var sheet in _sheets)
+        foreach (SheetInfo sheet in _sheets)
         {
             var index = Array.BinarySearch(boundaries, sheet.Offset);
             var end = index + 1 < boundaries.Length ? boundaries[index + 1] : data.Length;
@@ -131,7 +131,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
         {
             for (var index = 0; index < links.Length; index += 6)
             {
-                var link = links[index..];
+                ReadOnlySpan<byte> link = links[index..];
                 _sheetLinks.Add(new SheetLink(U16(link), U16(link[2..]), U16(link[4..])));
             }
         }
@@ -146,7 +146,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
         var links = new string?[_sheetLinks.Count];
         for (var index = 0; index < links.Length; index++)
         {
-            var link = _sheetLinks[index];
+            SheetLink link = _sheetLinks[index];
             // External workbooks, deleted sheets and sheet intervals use cached values.
             if (link.Book < _internalBooks.Count && _internalBooks[link.Book] &&
                 link.FirstSheet == link.LastSheet && link.FirstSheet < sheetPrefixes.Length)
@@ -163,7 +163,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
         if (record[5] != 0)
             throw new NotSupportedException("Chart, macro, and dialog sheets in .xls workbooks are not supported.");
 
-        var visibility = record[4] switch
+        XlsxWorksheetVisibility visibility = record[4] switch
         {
             0 => XlsxWorksheetVisibility.Visible,
             1 => XlsxWorksheetVisibility.Hidden,
@@ -184,7 +184,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
         ReadBof(ref offset, 0x0010);
         while (offset < end)
         {
-            var record = ReadRecord(ref offset, out var type);
+            ReadOnlySpan<byte> record = ReadRecord(ref offset, out var type);
             if (offset > end)
                 break;
 
@@ -264,8 +264,8 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
         if (record.Length < 22 || U16(record[20..]) > record.Length - 22)
             throw new InvalidDataException("Invalid BIFF formula length.");
 
-        var value = ReadFormulaResult(record[6..], ref offset);
-        var cell = SetCell(sheet, record, value);
+        XlsxCellValue value = ReadFormulaResult(record[6..], ref offset);
+        XlsxCell cell = SetCell(sheet, record, value);
         var formula = Biff8Formula.Decode(record.Slice(22, U16(record[20..])), _formulaSheetPrefixes);
         if (formula is not null)
             cell.Formula = XlsxCellFormula.NormalA1(formula);
@@ -282,7 +282,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
                 // Array, shared-formula, or data-table metadata may precede the STRING record.
                 while (true)
                 {
-                    var text = ReadRecord(ref offset, out var type);
+                    ReadOnlySpan<byte> text = ReadRecord(ref offset, out var type);
                     if (type == FormulaString)
                         return ReadUnicodeString(text, ref offset);
                     if (type is not (0x0221 or 0x04BC or 0x0236))
@@ -310,7 +310,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
 
         for (var column = (int)first; column <= last; column++)
         {
-            var field = record[(4 + (column - first) * size)..];
+            ReadOnlySpan<byte> field = record[(4 + (column - first) * size)..];
             SetCell(sheet, row, column, U16(field), hasValues ? ReadRk(field[2..]) : (XlsxCellValue)Blank.Value);
         }
     }
@@ -323,7 +323,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
         if (column > 255 || xf >= _cellFormats.Length || ++_materializedCells > MaxMaterializedCells)
             throw new InvalidDataException("Invalid BIFF cell index or workbook cell limit exceeded.");
 
-        var cell = sheet.Cell(row + 1, column + 1);
+        XlsxCell cell = sheet.Cell(row + 1, column + 1);
         cell.Value = value;
         cell.FormatValue = _cellFormats[xf] ??= BuildCellFormat(sheet.Workbook.Styles, _rawCellFormats[xf]);
         return cell;
@@ -335,7 +335,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
         if ((flags & 0x60) == 0)
             return;
 
-        var row = sheet.Row(U16(record) + 1);
+        IXlsxRow row = sheet.Row(U16(record) + 1);
         if ((flags & 0x40) != 0)
             row.Height = (U16(record[6..]) & 0x7FFF) / 20d;
         if ((flags & 0x20) != 0)
@@ -353,7 +353,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
         var hidden = (U16(record[8..]) & 1) != 0;
         for (var index = (int)first; index <= last; index++)
         {
-            var column = sheet.Column(index + 1);
+            IXlsxColumn column = sheet.Column(index + 1);
             column.Width = width;
             if (hidden)
                 column.Hide();
@@ -368,7 +368,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
 
         for (var index = 0; index < count; index++)
         {
-            var field = record[(2 + index * 8)..];
+            ReadOnlySpan<byte> field = record[(2 + index * 8)..];
             var firstRow = U16(field);
             var lastRow = U16(field[2..]);
             var firstColumn = U16(field[4..]);
@@ -385,7 +385,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
 
     private void ReadBof(ref int offset, ushort expectedSubstream)
     {
-        var record = ReadRecord(ref offset, out var type);
+        ReadOnlySpan<byte> record = ReadRecord(ref offset, out var type);
         if (type != Bof || U16(record) != 0x0600)
             throw new NotSupportedException("Only Excel 97–2003 (BIFF8) .xls workbooks are supported.");
         if (U16(record[2..]) != expectedSubstream)
@@ -399,7 +399,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
         if (buffer.Length - offset < 4)
             throw new InvalidDataException("Truncated BIFF record header.");
 
-        var header = buffer.AsSpan(offset);
+        Span<byte> header = buffer.AsSpan(offset);
         type = U16(header);
         var length = U16(header[2..]);
         if (length > 8224 || length > header.Length - 4)
@@ -506,7 +506,7 @@ internal sealed partial class Biff8WorkbookReader(byte[] data)
 
         private void ReadContinuation()
         {
-            var bytes = ReadRecord(buffer, ref _offset, out var type);
+            ReadOnlySpan<byte> bytes = ReadRecord(buffer, ref _offset, out var type);
             if (type != Continue || bytes.IsEmpty)
                 throw new InvalidDataException("Missing BIFF string continuation record.");
             _available = bytes;

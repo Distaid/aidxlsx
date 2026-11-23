@@ -1,16 +1,10 @@
 namespace Aid.Xlsx.Model.RichText;
 
-internal class XlsxPhonetic : IXlsxPhonetic
+internal class XlsxPhonetic(string text, int start, int end) : IXlsxPhonetic
 {
-    public XlsxPhonetic(String text, Int32 start, Int32 end)
-    {
-        Text = text;
-        Start = start;
-        End = end;
-    }
-    public String Text { get; }
-    public Int32 Start { get; }
-    public Int32 End { get; }
+    public string Text { get; } = text;
+    public int Start { get; } = start;
+    public int End { get; } = end;
 
     public bool Equals(IXlsxPhonetic? other)
     {

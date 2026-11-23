@@ -31,17 +31,16 @@ internal sealed class XlsxPivotSourceConsolidation : IXlsxPivotSource
     /// </example>
     /// </para>
     /// </summary>
-    public IReadOnlyList<XlsxPivotCacheSourceConsolidationPage> Pages { get; init; } = Array.Empty<XlsxPivotCacheSourceConsolidationPage>();
+    public IReadOnlyList<XlsxPivotCacheSourceConsolidationPage> Pages { get; init; } = [];
 
     /// <summary>
     /// Range sets that consists the cache source.
     /// </summary>
-    public IReadOnlyList<XlsxPivotCacheSourceConsolidationRangeSet> RangeSets { get; init; } = Array.Empty<XlsxPivotCacheSourceConsolidationRangeSet>();
+    public IReadOnlyList<XlsxPivotCacheSourceConsolidationRangeSet> RangeSets { get; init; } = [];
 
     public bool Equals(IXlsxPivotSource? otherSource)
     {
-        var other = otherSource as XlsxPivotSourceConsolidation;
-        if (other is null)
+        if (otherSource is not XlsxPivotSourceConsolidation other)
             return false;
 
         if (ReferenceEquals(this, other))

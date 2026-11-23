@@ -46,7 +46,7 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
     private const string MetricCompatibleFontName = "Calibri";
     private const float FontMetricSize = 16f;
     private readonly ImageInfoReader[] _imageReaders =
-    {
+    [
         new PngInfoReader(),
         new JpegInfoReader(),
         new GifInfoReader(),
@@ -56,7 +56,7 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
         new WmfInfoReader(),
         new WebpInfoReader(),
         new PcxInfoReader() // Due to poor magic detection, keep last
-    };
+    ];
 
     private readonly Lazy<IReadOnlyFontCollection> _fontCollection;
     private readonly string _fallbackFont;
@@ -85,7 +85,7 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
     public DefaultGraphicEngine(string fallbackFont)
     {
         if (string.IsNullOrWhiteSpace(fallbackFont))
-            throw new ArgumentException(nameof(fallbackFont));
+            throw new ArgumentException(null, nameof(fallbackFont));
 
         var fontCollection = new FontCollection();
         AddEmbeddedFont(fontCollection);
@@ -105,16 +105,14 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
     /// <param name="fontStreams">Extra fonts that should be loaded to the engine.</param>
     private DefaultGraphicEngine(Stream fallbackFontStream, bool useSystemFonts, Stream[] fontStreams)
     {
-        if (fallbackFontStream is null)
-            throw new ArgumentNullException(nameof(fallbackFontStream));
+        ArgumentNullException.ThrowIfNull(fallbackFontStream);
 
-        if (fontStreams is null)
-            throw new ArgumentNullException(nameof(fontStreams));
+        ArgumentNullException.ThrowIfNull(fontStreams);
 
         var fontCollection = new FontCollection();
         AddEmbeddedFont(fontCollection);
-        var fallbackFamily = fontCollection.Add(fallbackFontStream);
-        foreach (var fontStream in fontStreams)
+        FontFamily fallbackFamily = fontCollection.Add(fallbackFontStream);
+        foreach (Stream fontStream in fontStreams)
             fontCollection.Add(fontStream);
 
         _fontCollection = useSystemFonts
@@ -165,9 +163,9 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
 
     public XlsxPictureInfo GetPictureInfo(Stream stream, XlsxPictureFormat expectedFormat)
     {
-        foreach (var imageReader in _imageReaders)
+        foreach (ImageInfoReader imageReader in _imageReaders)
         {
-            if (imageReader.TryGetInfo(stream, out var dimensions))
+            if (imageReader.TryGetInfo(stream, out XlsxPictureInfo dimensions))
                 return dimensions;
         }
 
@@ -176,7 +174,7 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
 
     public double GetDescent(IXlsxFontBase font, double dpiY)
     {
-        var metrics = GetMetrics(font);
+        FontMetrics metrics = GetMetrics(font);
         return GetDescent(font, dpiY, metrics);
     }
 
@@ -194,14 +192,14 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
 
     public double GetTextHeight(IXlsxFontBase font, double dpiY)
     {
-        var metrics = GetMetrics(font);
+        FontMetrics metrics = GetMetrics(font);
         return PointsToPixels((metrics.VerticalMetrics.Ascender - 2 * metrics.VerticalMetrics.Descender) * font.FontSize / metrics.UnitsPerEm, dpiY);
     }
 
     public double GetTextWidth(string text, IXlsxFontBase fontBase, double dpiX)
     {
-        var font = GetFont(fontBase);
-        var dimensionsPx = TextMeasurer.MeasureAdvance(text, new TextOptions(font)
+        Font font = GetFont(fontBase);
+        FontRectangle dimensionsPx = TextMeasurer.MeasureAdvance(text, new TextOptions(font)
         {
             Dpi = 72, // Normalize DPI, so 1px is 1pt
             KerningMode = KerningMode.None
@@ -214,7 +212,7 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
     {
         // SixLabors.Fonts don't have a way to get a glyph representation of a cluster
         // without a TextRenderer that has unacceptable performance.
-        var metric = GetMetrics(font);
+        FontMetrics metric = GetMetrics(font);
         var advanceFu = 0;
         for (var i = 0; i < graphemeCluster.Length; ++i)
         {
@@ -224,14 +222,14 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
                 TextDecorations.None,
                 LayoutMode.HorizontalTopBottom,
                 ColorFontSupport.None,
-                out var glyphs);
+                out IReadOnlyList<GlyphMetrics> glyphs);
 
             // As of SixLabors.Fonts 1.0.0, the TryGetGlyphMetrics method never fails. It returns .notdef glyph 0
             // as a fallback glyph, but it might change in the future.
             if (!containsMetrics)
                 continue;
 
-            foreach (var glyph in glyphs)
+            foreach (GlyphMetrics glyph in glyphs)
                 advanceFu += glyph.AdvanceWidth;
         }
 
@@ -246,7 +244,7 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
 
     private FontMetrics GetMetrics(IXlsxFontBase fontBase)
     {
-        var font = GetFont(fontBase);
+        Font font = GetFont(fontBase);
         return font.FontMetrics;
     }
 
@@ -292,23 +290,23 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
         var assembly = Assembly.GetExecutingAssembly();
         const string resourcePath = "Aid.Xlsx.Graphics.Fonts.CarlitoBare-{0}.ttf";
 
-        using var regular = assembly.GetManifestResourceStream(string.Format(resourcePath, "Regular"))!;
+        using Stream regular = assembly.GetManifestResourceStream(string.Format(resourcePath, "Regular"))!;
         fontCollection.Add(regular);
 
-        using var bold = assembly.GetManifestResourceStream(string.Format(resourcePath, "Bold"))!;
+        using Stream bold = assembly.GetManifestResourceStream(string.Format(resourcePath, "Bold"))!;
         fontCollection.Add(bold);
 
-        using var italic = assembly.GetManifestResourceStream(string.Format(resourcePath, "Italic"))!;
+        using Stream italic = assembly.GetManifestResourceStream(string.Format(resourcePath, "Italic"))!;
         fontCollection.Add(italic);
 
-        using var boldItalic = assembly.GetManifestResourceStream(string.Format(resourcePath, "BoldItalic"))!;
+        using Stream boldItalic = assembly.GetManifestResourceStream(string.Format(resourcePath, "BoldItalic"))!;
         fontCollection.Add(boldItalic);
     }
 
     private double CalculateMaxDigitWidth(MetricId metricId)
     {
-        var font = GetFont(metricId);
-        var metrics = font.FontMetrics;
+        Font font = GetFont(metricId);
+        FontMetrics metrics = font.FontMetrics;
         var maxWidth = int.MinValue;
         for (var c = '0'; c <= '9'; ++c)
         {
@@ -318,12 +316,12 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
                 TextDecorations.None,
                 LayoutMode.HorizontalTopBottom,
                 ColorFontSupport.None,
-                out var glyphMetrics);
+                out IReadOnlyList<GlyphMetrics> glyphMetrics);
             if (!containsMetrics)
                 continue;
 
             var glyphAdvance = 0;
-            foreach (var glyphMetric in glyphMetrics)
+            foreach (GlyphMetrics glyphMetric in glyphMetrics)
                 glyphAdvance += glyphMetric.AdvanceWidth;
 
             maxWidth = Math.Max(maxWidth, glyphAdvance);
@@ -333,17 +331,11 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
 
     private static double PointsToPixels(double points, double dpi) => points / 72d * dpi;
 
-    private readonly struct MetricId : IEquatable<MetricId>
+    private readonly struct MetricId(IXlsxFontBase fontBase) : IEquatable<MetricId>
     {
-        private readonly FontStyle _style;
+        private readonly FontStyle _style = GetFontStyle(fontBase);
 
-        public MetricId(IXlsxFontBase fontBase)
-        {
-            Name = fontBase.FontName;
-            _style = GetFontStyle(fontBase);
-        }
-
-        public string Name { get; }
+        public string Name { get; } = fontBase.FontName;
 
         public bool Equals(MetricId other) => Name == other.Name && _style == other._style;
 

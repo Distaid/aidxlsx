@@ -41,23 +41,23 @@ internal static class DrawingXml
 
     internal static void LoadPictures(XElement root, XlsxWorksheet sheet, Func<string, Stream?> openImage)
     {
-        var ns = root.Name.Namespace;
-        var a = GetDrawingNamespace(ns);
-        var workbook = sheet.Workbook;
-        foreach (var anchor in root.Elements())
+        XNamespace ns = root.Name.Namespace;
+        XNamespace a = GetDrawingNamespace(ns);
+        XlsxWorkbook workbook = sheet.Workbook;
+        foreach (XElement anchor in root.Elements())
         {
             if (anchor.Name.Namespace != ns || !IsPictureAnchor(anchor))
                 continue;
 
-            var shape = anchor.Descendants(ns + "pic").FirstOrDefault();
+            XElement? shape = anchor.Descendants(ns + "pic").FirstOrDefault();
             if (shape is null || ImageId(shape) is not { } id)
                 continue;
 
-            var properties = shape.Element(ns + "nvPicPr")?.Element(ns + "cNvPr");
+            XElement? properties = shape.Element(ns + "nvPicPr")?.Element(ns + "cNvPr");
             if ((string?)properties?.Attribute("name") is not { } name || (int?)properties.Attribute("id") is not { } pictureId)
                 continue;
 
-            using var stream = openImage(id);
+            using Stream? stream = openImage(id);
             if (stream is null)
                 continue;
 
@@ -67,8 +67,8 @@ internal static class DrawingXml
             picture.RelId = id;
             picture.Placement = XlsxPicturePlacement.FreeFloating;
 
-            var transform = shape.Element(ns + "spPr")?.Element(a + "xfrm");
-            var size = transform?.Element(a + "ext") ?? anchor.Element(ns + "ext");
+            XElement? transform = shape.Element(ns + "spPr")?.Element(a + "xfrm");
+            XElement? size = transform?.Element(a + "ext") ?? anchor.Element(ns + "ext");
             if ((long?)size?.Attribute("cx") is { } width)
                 picture.Width = ToPixels(width, workbook.DpiX);
             if ((long?)size?.Attribute("cy") is { } height)
@@ -83,10 +83,10 @@ internal static class DrawingXml
                     MoveAbsolute(transform?.Element(a + "off"));
                     break;
                 default:
-                    var from = ReadMarker(sheet, anchor.Element(ns + "from"), ns);
+                    XlsxMarker from = ReadMarker(sheet, anchor.Element(ns + "from"), ns);
                     if (anchor.Name.LocalName == "twoCellAnchor" && (string?)anchor.Attribute("editAs") != "oneCell")
                     {
-                        var to = ReadMarker(sheet, anchor.Element(ns + "to"), ns);
+                        XlsxMarker to = ReadMarker(sheet, anchor.Element(ns + "to"), ns);
                         picture.MoveTo(from.Cell, from.Offset, to.Cell, to.Offset);
                     }
                     else
@@ -105,8 +105,8 @@ internal static class DrawingXml
 
     internal static string? ImageId(XElement element)
     {
-        var ns = element.Name.Namespace;
-        var blip = element.Descendants(ns + "blipFill").FirstOrDefault()?.Element(GetDrawingNamespace(ns) + "blip");
+        XNamespace ns = element.Name.Namespace;
+        XElement? blip = element.Descendants(ns + "blipFill").FirstOrDefault()?.Element(GetDrawingNamespace(ns) + "blip");
         return (string?)blip?.Attribute(XName.Get("embed", OpenXmlConst.RelationshipsNs))
             ?? (string?)blip?.Attribute(XName.Get("embed", OpenXmlConst.StrictRelationshipsNs));
     }
@@ -117,10 +117,10 @@ internal static class DrawingXml
 
     internal static XElement CreatePictureAnchor(XNamespace ns, XlsxPicture picture, string imageId)
     {
-        var a = GetDrawingNamespace(ns);
+        XNamespace a = GetDrawingNamespace(ns);
         var r = (XNamespace)(ns == StrictSpreadsheetDrawing ? OpenXmlConst.StrictRelationshipsNs : OpenXmlConst.RelationshipsNs);
-        var sheet = picture.Worksheet;
-        var workbook = sheet.Workbook;
+        IXlsxWorksheet sheet = picture.Worksheet;
+        XlsxWorkbook workbook = sheet.Workbook;
         var width = ToEmu(picture.Width, workbook.DpiX);
         var height = ToEmu(picture.Height, workbook.DpiY);
         var shape = new XElement(ns + "pic",
@@ -136,10 +136,10 @@ internal static class DrawingXml
                     new XElement(a + "ext", new XAttribute("cx", width), new XAttribute("cy", height))),
                 new XElement(a + "prstGeom", new XAttribute("prst", "rect"))));
         var extent = new XElement(ns + "ext", new XAttribute("cx", width), new XAttribute("cy", height));
-        var from = picture.Markers[XlsxMarkerPosition.TopLeft] ?? new XlsxMarker(sheet.Cell("A1"));
-        var to = picture.Markers[XlsxMarkerPosition.BottomRight] ?? new XlsxMarker(sheet.Cell("A1"), new Point(picture.Width, picture.Height));
+        XlsxMarker from = picture.Markers[XlsxMarkerPosition.TopLeft] ?? new XlsxMarker(sheet.Cell("A1"));
+        XlsxMarker to = picture.Markers[XlsxMarkerPosition.BottomRight] ?? new XlsxMarker(sheet.Cell("A1"), new Point(picture.Width, picture.Height));
 
-        var anchor = picture.Placement switch
+        XElement anchor = picture.Placement switch
         {
             XlsxPicturePlacement.FreeFloating => new XElement(ns + "absoluteAnchor",
                 new XElement(ns + "pos", new XAttribute("x", ToEmu(picture.Left, workbook.DpiX)),

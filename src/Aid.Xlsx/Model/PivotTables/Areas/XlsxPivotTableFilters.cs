@@ -19,26 +19,26 @@ internal class XlsxPivotTableFilters : IXlsxPivotFields
     /// <see cref="XlsxPivotTable.FilterFieldsPageWrap"/> and
     /// <see cref="XlsxPivotTable.FilterAreaOrder"/>.
     /// </summary>
-    private readonly List<XlsxPivotPageField> _fields = new();
+    private readonly List<XlsxPivotPageField> _fields = [];
 
     internal XlsxPivotTableFilters(XlsxPivotTable pivotTable)
     {
         _pivotTable = pivotTable;
     }
 
-    IXlsxPivotField IXlsxPivotFields.Add(String sourceName) => Add(sourceName, sourceName);
+    IXlsxPivotField IXlsxPivotFields.Add(string sourceName) => Add(sourceName, sourceName);
 
-    IXlsxPivotField IXlsxPivotFields.Add(String sourceName, String customName) => Add(sourceName, customName);
+    IXlsxPivotField IXlsxPivotFields.Add(string sourceName, string customName) => Add(sourceName, customName);
 
     public void Clear()
     {
-        foreach (var field in _fields)
+        foreach (XlsxPivotPageField field in _fields)
             _pivotTable.RemoveFieldFromAxis(field.Field);
 
         _fields.Clear();
     }
 
-    public Boolean Contains(String sourceName)
+    public bool Contains(string sourceName)
     {
         return IndexOf(sourceName) >= 0;
     }
@@ -48,19 +48,16 @@ internal class XlsxPivotTableFilters : IXlsxPivotFields
         return Contains(pivotField.SourceName);
     }
 
-    public IXlsxPivotField Get(String sourceName)
+    public IXlsxPivotField Get(string sourceName)
     {
-        if (!_pivotTable.TryGetSourceNameFieldIndex(sourceName, out var fieldIndex))
+        if (!_pivotTable.TryGetSourceNameFieldIndex(sourceName, out FieldIndex fieldIndex))
             throw new KeyNotFoundException($"Field with source name '{sourceName}' not found in {XlsxPivotAxis.AxisPage}.");
 
-        var filterField = _fields.SingleOrDefault(f => f.Field == fieldIndex);
-        if (filterField is null)
-            throw new KeyNotFoundException($"Field with source name '{sourceName}' not found in {XlsxPivotAxis.AxisPage}.");
-
+        XlsxPivotPageField? filterField = _fields.SingleOrDefault(f => f.Field == fieldIndex) ?? throw new KeyNotFoundException($"Field with source name '{sourceName}' not found in {XlsxPivotAxis.AxisPage}.");
         return new XlsxPivotTablePageField(_pivotTable, filterField);
     }
 
-    public IXlsxPivotField Get(Int32 index)
+    public IXlsxPivotField Get(int index)
     {
         if (index < 0 || index >= _fields.Count)
             throw new IndexOutOfRangeException();
@@ -74,31 +71,31 @@ internal class XlsxPivotTableFilters : IXlsxPivotFields
 
     public IEnumerator<XlsxPivotTablePageField> GetEnumerator()
     {
-        foreach (var field in _fields)
+        foreach (XlsxPivotPageField field in _fields)
             yield return new XlsxPivotTablePageField(_pivotTable, field);
     }
 
-    public Int32 IndexOf(String sourceName)
+    public int IndexOf(string sourceName)
     {
-        if (!_pivotTable.TryGetSourceNameFieldIndex(sourceName, out var fieldIndex))
+        if (!_pivotTable.TryGetSourceNameFieldIndex(sourceName, out FieldIndex fieldIndex))
             return -1;
 
         return _fields.FindIndex(f => f.Field == fieldIndex);
     }
 
-    public Int32 IndexOf(IXlsxPivotField pf)
+    public int IndexOf(IXlsxPivotField pf)
     {
         return IndexOf(pf.SourceName);
     }
 
-    public void Remove(String sourceName)
+    public void Remove(string sourceName)
     {
         var index = IndexOf(sourceName);
         if (index == -1)
             return;
 
         var heightDifference = GetHeightDifference(-1);
-        var movedArea = _pivotTable.Area.ShiftRows(heightDifference);
+        Area movedArea = _pivotTable.Area.ShiftRows(heightDifference);
 
         _fields.RemoveAt(index);
         _pivotTable.RemoveFieldFromAxis(index);
@@ -108,15 +105,15 @@ internal class XlsxPivotTableFilters : IXlsxPivotFields
 
     internal IReadOnlyList<XlsxPivotPageField> Fields => _fields;
 
-    internal XlsxPivotTablePageField Add(String sourceName, String customName)
+    internal XlsxPivotTablePageField Add(string sourceName, string customName)
     {
         if (sourceName == XlsxConstants.PivotTable.ValuesSentinalLabel)
-            throw new ArgumentException(nameof(sourceName), $"The column '{sourceName}' does not appear in the source range.");
+            throw new ArgumentException($"The column '{sourceName}' does not appear in the source range.", nameof(sourceName));
 
         var heightDifference = GetHeightDifference(1);
-        var movedArea = _pivotTable.Area.ShiftRows(heightDifference);
+        Area movedArea = _pivotTable.Area.ShiftRows(heightDifference);
 
-        var fieldIndex = _pivotTable.AddFieldToAxis(sourceName, customName, XlsxPivotAxis.AxisPage);
+        FieldIndex fieldIndex = _pivotTable.AddFieldToAxis(sourceName, customName, XlsxPivotAxis.AxisPage);
         var filterField = new XlsxPivotPageField(fieldIndex);
         _fields.Add(filterField);
 
@@ -176,7 +173,7 @@ internal class XlsxPivotTableFilters : IXlsxPivotFields
 
     private static (int Width, int Height) GetSizeWithGap(int fieldCount, XlsxFilterAreaOrder order, int filterWrap)
     {
-        var filtersSize = GetSize(fieldCount, order, filterWrap);
+        (int Width, int Height) filtersSize = GetSize(fieldCount, order, filterWrap);
         return filtersSize.Height > 0
             ? (filtersSize.Width, filtersSize.Height + 1)
             : filtersSize;

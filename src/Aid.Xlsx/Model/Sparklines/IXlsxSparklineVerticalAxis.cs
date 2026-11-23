@@ -7,9 +7,9 @@ public interface IXlsxSparklineVerticalAxis
 {
     #region Public Properties
 
-    Double? ManualMax { get; set; }
+    double? ManualMax { get; set; }
 
-    Double? ManualMin { get; set; }
+    double? ManualMin { get; set; }
 
     XlsxSparklineAxisMinMax MaxAxisType { get; set; }
 
@@ -19,9 +19,9 @@ public interface IXlsxSparklineVerticalAxis
 
     #region Public Methods
 
-    IXlsxSparklineVerticalAxis SetManualMax(Double? value);
+    IXlsxSparklineVerticalAxis SetManualMax(double? value);
 
-    IXlsxSparklineVerticalAxis SetManualMin(Double? value);
+    IXlsxSparklineVerticalAxis SetManualMin(double? value);
 
     IXlsxSparklineVerticalAxis SetMaxAxisType(XlsxSparklineAxisMinMax value);
 

@@ -8,7 +8,7 @@ namespace Aid.Xlsx.Model.PivotTables;
 /// </summary>
 internal class XlsxPivotReference
 {
-    private readonly List<uint> _fieldItems = new();
+    private readonly List<uint> _fieldItems = [];
 
     /// <summary>
     /// <para>
@@ -49,7 +49,7 @@ internal class XlsxPivotReference
     /// </summary>
     internal bool Relative { get; init; } = false;
 
-    internal HashSet<XlsxSubtotalFunction> Subtotals { get; init; } = new();
+    internal HashSet<XlsxSubtotalFunction> Subtotals { get; init; } = [];
 
     internal void AddFieldItem(uint fieldItem)
     {

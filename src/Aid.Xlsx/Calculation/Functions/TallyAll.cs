@@ -60,15 +60,15 @@ internal class TallyAll : ITally
     public OneOf<T, XlsxError> Tally<T>(CalcContext ctx, Span<AnyValue> args, T initialState)
         where T : ITallyState<T>
     {
-        var state = initialState;
-        foreach (var arg in args)
+        T state = initialState;
+        foreach (AnyValue arg in args)
         {
-            if (arg.TryPickScalar(out var scalar, out var collection))
+            if (arg.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> collection))
             {
                 ctx.ThrowIfCancelled();
 
                 // Scalars are converted to number.
-                if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out var error))
+                if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out XlsxError error))
                 {
                     if (!_includeErrors)
                         return error;
@@ -83,7 +83,7 @@ internal class TallyAll : ITally
             {
                 bool isArray;
                 IEnumerable<ScalarValue> valuesIterator;
-                if (collection.TryPickT0(out var array, out var reference))
+                if (collection.TryPickT0(out Array? array, out Reference? reference))
                 {
                     valuesIterator = array;
                     isArray = true;
@@ -93,7 +93,7 @@ internal class TallyAll : ITally
                     valuesIterator = _getNonBlankValues(ctx, reference);
                     isArray = false;
                 }
-                foreach (var value in valuesIterator)
+                foreach (ScalarValue value in valuesIterator)
                 {
                     ctx.ThrowIfCancelled();
 
@@ -112,7 +112,7 @@ internal class TallyAll : ITally
                         // The text values from cells behave differently. Unlike array, the *A functions consider cell text as 0.
                         state = state.Tally(0);
                     }
-                    else if (value.TryPickError(out var error))
+                    else if (value.TryPickError(out XlsxError error))
                     {
                         if (!_includeErrors)
                             return error;

@@ -36,12 +36,12 @@ internal class XlsxFilter
     /// <summary>
     /// Value for <see cref="XlsxFilterType.Regular"/> filter.
     /// </summary>
-    public Object Value { get; set; }
+    public object Value { get; set; }
 
     internal static XlsxFilter CreateCustomFilter(XlsxCellValue value, XlsxFilterOperator op, XlsxConnector connector)
     {
         // Keep in closure, so it doesn't have to be checked for every cell.
-        var comparer = StringComparer.CurrentCultureIgnoreCase;
+        StringComparer comparer = StringComparer.CurrentCultureIgnoreCase;
         return new XlsxFilter
         {
             CustomValue = value,
@@ -69,7 +69,7 @@ internal class XlsxFilter
         }
 
         // Keep in closure, so it doesn't have to be checked for every cell.
-        var comparer = StringComparer.CurrentCultureIgnoreCase;
+        StringComparer comparer = StringComparer.CurrentCultureIgnoreCase;
         return new XlsxFilter
         {
             CustomValue = filterValue,
@@ -81,7 +81,7 @@ internal class XlsxFilter
 
         static bool TextMatchesWildcard(string pattern, IXlsxCell cell)
         {
-            var cachedValue = cell.CachedValue;
+            XlsxCellValue cachedValue = cell.CachedValue;
             if (!cachedValue.IsText)
                 return false;
 
@@ -116,13 +116,13 @@ internal class XlsxFilter
 
         bool HasSameGroup(IXlsxCell cell, XlsxFilterColumn _)
         {
-            var cachedValue = cell.CachedValue;
+            XlsxCellValue cachedValue = cell.CachedValue;
             return cachedValue.IsDateTime && IsMatch(date, cachedValue.GetDateTime(), dateTimeGrouping);
         }
 
-        static Boolean IsMatch(DateTime date1, DateTime date2, XlsxDateTimeGrouping dateTimeGrouping)
+        static bool IsMatch(DateTime date1, DateTime date2, XlsxDateTimeGrouping dateTimeGrouping)
         {
-            Boolean isMatch = true;
+            bool isMatch = true;
             if (dateTimeGrouping >= XlsxDateTimeGrouping.Year) isMatch &= date1.Year.Equals(date2.Year);
             if (isMatch && dateTimeGrouping >= XlsxDateTimeGrouping.Month) isMatch &= date1.Month.Equals(date2.Month);
             if (isMatch && dateTimeGrouping >= XlsxDateTimeGrouping.Day) isMatch &= date1.Day.Equals(date2.Day);
@@ -137,7 +137,7 @@ internal class XlsxFilter
     private static bool ContentMatches(IXlsxCell cell, string filterValue)
     {
         // IXlsxCell.GetFormattedString() could trigger formula evaluation.
-        var cachedValue = cell.CachedValue;
+        XlsxCellValue cachedValue = cell.CachedValue;
         var formattedString = ((XlsxCell)cell).GetFormattedString(cachedValue);
         return formattedString.Equals(filterValue, StringComparison.OrdinalIgnoreCase);
     }
@@ -188,12 +188,12 @@ internal class XlsxFilter
     {
         bool TopFilter(IXlsxCell cell, XlsxFilterColumn filterColumn)
         {
-            var cachedValue = cell.CachedValue;
+            XlsxCellValue cachedValue = cell.CachedValue;
             return cachedValue.IsUnifiedNumber && cachedValue.GetUnifiedNumber() >= filterColumn.TopBottomFilterValue;
         }
         bool BottomFilter(IXlsxCell cell, XlsxFilterColumn filterColumn)
         {
-            var cachedValue = cell.CachedValue;
+            XlsxCellValue cachedValue = cell.CachedValue;
             return cachedValue.IsUnifiedNumber && cachedValue.GetUnifiedNumber() <= filterColumn.TopBottomFilterValue;
         }
 
@@ -210,13 +210,13 @@ internal class XlsxFilter
     {
         bool AboveAverage(IXlsxCell cell, XlsxFilterColumn filterColumn)
         {
-            var cachedValue = cell.CachedValue;
+            XlsxCellValue cachedValue = cell.CachedValue;
             var average = filterColumn.DynamicValue;
             return cachedValue.IsUnifiedNumber && cachedValue.GetUnifiedNumber() > average;
         }
         bool BelowAverage(IXlsxCell cell, XlsxFilterColumn filterColumn)
         {
-            var cachedValue = cell.CachedValue;
+            XlsxCellValue cachedValue = cell.CachedValue;
             var average = filterColumn.DynamicValue;
             return cachedValue.IsUnifiedNumber && cachedValue.GetUnifiedNumber() < average;
         }

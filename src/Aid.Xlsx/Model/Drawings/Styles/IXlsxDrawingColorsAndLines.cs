@@ -22,18 +22,18 @@ public enum XlsxLineStyle
 public interface IXlsxDrawingColorsAndLines
 {
     XlsxColor FillColor { get; set; }
-    Double FillTransparency { get; set; }
+    double FillTransparency { get; set; }
     XlsxColor LineColor { get; set; }
-    Double LineTransparency { get; set; }
-    Double LineWeight { get; set; }
+    double LineTransparency { get; set; }
+    double LineWeight { get; set; }
     XlsxDashStyle LineDash { get; set; }
     XlsxLineStyle LineStyle { get; set; }
 
     IXlsxDrawingStyle SetFillColor(XlsxColor value);
-    IXlsxDrawingStyle SetFillTransparency(Double value);
+    IXlsxDrawingStyle SetFillTransparency(double value);
     IXlsxDrawingStyle SetLineColor(XlsxColor value);
-    IXlsxDrawingStyle SetLineTransparency(Double value);
-    IXlsxDrawingStyle SetLineWeight(Double value);
+    IXlsxDrawingStyle SetLineTransparency(double value);
+    IXlsxDrawingStyle SetLineWeight(double value);
     IXlsxDrawingStyle SetLineDash(XlsxDashStyle value);
     IXlsxDrawingStyle SetLineStyle(XlsxLineStyle value);
 

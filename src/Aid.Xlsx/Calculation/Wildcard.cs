@@ -27,7 +27,7 @@ internal readonly struct Wildcard
     /// <returns>zero-based index of a first character in a text that matches to a pattern or -1, if match wasn't found.</returns>
     public int Search(ReadOnlySpan<char> input)
     {
-        var pattern = _pattern.AsSpan();
+        ReadOnlySpan<char> pattern = _pattern.AsSpan();
         if (_pattern.Length > 255)
             return -1;
 
@@ -36,7 +36,7 @@ internal readonly struct Wildcard
 
         for (var i = 0; i <= input.Length; i++)
         {
-            var (isMatch, _) = MatchFromStart(pattern, input[i..]);
+            (bool isMatch, int _) = MatchFromStart(pattern, input[i..]);
             if (isMatch)
                 return i;
         }
@@ -50,14 +50,14 @@ internal readonly struct Wildcard
     /// <returns>Pattern matches whole input.</returns>
     public bool Matches(ReadOnlySpan<char> input)
     {
-        var pattern = _pattern.AsSpan();
+        ReadOnlySpan<char> pattern = _pattern.AsSpan();
         if (_pattern.Length > 255)
             return false;
 
         if (_unpairedTilda)
             pattern = pattern[..^1];
 
-        var (isMatch, inputEndIndex) = MatchFromStart(pattern, input);
+        (bool isMatch, int inputEndIndex) = MatchFromStart(pattern, input);
         return isMatch && inputEndIndex == input.Length;
     }
 

@@ -26,9 +26,9 @@ public static class XlsConverter
             throw new ArgumentException("The source and destination must be different files.", nameof(destinationPath));
 
         // Finish creating the XLSX before touching any existing destination file.
-        using var source = File.OpenRead(sourcePath);
-        using var converted = CreateXlsx(source);
-        using var destination = File.Create(destinationPath);
+        using FileStream source = File.OpenRead(sourcePath);
+        using MemoryStream converted = CreateXlsx(source);
+        using FileStream destination = File.Create(destinationPath);
         converted.CopyTo(destination);
     }
 
@@ -43,7 +43,7 @@ public static class XlsConverter
         if (!destination.CanWrite || ReferenceEquals(source, destination))
             throw new ArgumentException("The destination must be a different writable stream.", nameof(destination));
 
-        using var converted = CreateXlsx(source);
+        using MemoryStream converted = CreateXlsx(source);
         converted.CopyTo(destination);
         if (destination.CanSeek)
             destination.SetLength(destination.Position);

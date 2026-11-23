@@ -4,35 +4,25 @@ using Aid.Xlsx.Model.Styles.Formatting;
 
 namespace Aid.Xlsx.Model.RichText;
 
-internal class XlsxPhonetics : IXlsxPhonetics
+internal class XlsxPhonetics(XlsxFontFormatValue font, XlsxFontFormatValue defaultFont, XlsxWorkbookStyles styles, Action onChange) : IXlsxPhonetics
 {
-    private readonly List<IXlsxPhonetic> _phonetics = new();
-    private readonly XlsxWorkbookStyles _styles;
-    private readonly XlsxFontFormatValue _defaultFont;
-    private readonly Action _onChange;
-    private XlsxFontFormatValue _font;
-    private XlsxPhoneticAlignment _alignment;
-    private XlsxPhoneticType _type;
+    private readonly List<IXlsxPhonetic> _phonetics = [];
+    private readonly XlsxWorkbookStyles _styles = styles;
+    private readonly XlsxFontFormatValue _defaultFont = defaultFont;
+    private readonly Action _onChange = onChange;
+    private XlsxFontFormatValue _font = font;
+    private XlsxPhoneticAlignment _alignment = XlsxPhoneticAlignment.Left;
+    private XlsxPhoneticType _type = XlsxPhoneticType.FullWidthKatakana;
 
-    public XlsxPhonetics(XlsxFontFormatValue font, XlsxFontFormatValue defaultFont, XlsxWorkbookStyles styles, Action onChange)
-    {
-        _styles = styles;
-        _defaultFont = defaultFont;
-        _font = font;
-        _type = XlsxPhoneticType.FullWidthKatakana;
-        _alignment = XlsxPhoneticAlignment.Left;
-        _onChange = onChange;
-    }
+    public int Count => _phonetics.Count;
 
-    public Int32 Count => _phonetics.Count;
-
-    public Boolean Bold
+    public bool Bold
     {
         get => _font.Bold;
         set => ChangeFont(f => f with { Bold = value });
     }
 
-    public Boolean Italic
+    public bool Italic
     {
         get => _font.Italic;
         set => ChangeFont(f => f with { Italic = value });
@@ -44,7 +34,7 @@ internal class XlsxPhonetics : IXlsxPhonetics
         set => ChangeFont(f => f with { Underline = value });
     }
 
-    public Boolean Strikethrough
+    public bool Strikethrough
     {
         get => _font.Strikethrough;
         set => ChangeFont(f => f with { Strikethrough = value });
@@ -56,13 +46,13 @@ internal class XlsxPhonetics : IXlsxPhonetics
         set => ChangeFont(f => f with { VerticalAlignment = value });
     }
 
-    public Boolean Shadow
+    public bool Shadow
     {
         get => _font.Shadow;
         set => ChangeFont(f => f with { Shadow = value });
     }
 
-    public Double FontSize
+    public double FontSize
     {
         get => _font.Size.Points;
         set => ChangeFont(f => f with { Size = XlsxFontSize.FromPoints(value) });
@@ -74,7 +64,7 @@ internal class XlsxPhonetics : IXlsxPhonetics
         set => ChangeFont(f => f with { Color = value });
     }
 
-    public String FontName
+    public string FontName
     {
         get => _font.Name.Text;
         set => ChangeFont(f => f with { Name = value });
@@ -122,11 +112,11 @@ internal class XlsxPhonetics : IXlsxPhonetics
 
     public IXlsxPhonetics SetBold() { Bold = true; return this; }
 
-    public IXlsxPhonetics SetBold(Boolean value) { Bold = value; return this; }
+    public IXlsxPhonetics SetBold(bool value) { Bold = value; return this; }
 
     public IXlsxPhonetics SetItalic() { Italic = true; return this; }
 
-    public IXlsxPhonetics SetItalic(Boolean value) { Italic = value; return this; }
+    public IXlsxPhonetics SetItalic(bool value) { Italic = value; return this; }
 
     public IXlsxPhonetics SetUnderline() { Underline = XlsxFontUnderlineValues.Single; return this; }
 
@@ -134,19 +124,19 @@ internal class XlsxPhonetics : IXlsxPhonetics
 
     public IXlsxPhonetics SetStrikethrough() { Strikethrough = true; return this; }
 
-    public IXlsxPhonetics SetStrikethrough(Boolean value) { Strikethrough = value; return this; }
+    public IXlsxPhonetics SetStrikethrough(bool value) { Strikethrough = value; return this; }
 
     public IXlsxPhonetics SetVerticalAlignment(XlsxFontVerticalTextAlignmentValues value) { VerticalAlignment = value; return this; }
 
     public IXlsxPhonetics SetShadow() { Shadow = true; return this; }
 
-    public IXlsxPhonetics SetShadow(Boolean value) { Shadow = value; return this; }
+    public IXlsxPhonetics SetShadow(bool value) { Shadow = value; return this; }
 
-    public IXlsxPhonetics SetFontSize(Double value) { FontSize = value; return this; }
+    public IXlsxPhonetics SetFontSize(double value) { FontSize = value; return this; }
 
     public IXlsxPhonetics SetFontColor(XlsxColor value) { FontColor = value; return this; }
 
-    public IXlsxPhonetics SetFontName(String value) { FontName = value; return this; }
+    public IXlsxPhonetics SetFontName(string value) { FontName = value; return this; }
 
     public IXlsxPhonetics SetFontFamilyNumbering(XlsxFontFamilyNumberingValues value) { FontFamilyNumbering = value; return this; }
 
@@ -158,7 +148,7 @@ internal class XlsxPhonetics : IXlsxPhonetics
 
     public IXlsxPhonetics SetType(XlsxPhoneticType phoneticType) { Type = phoneticType; return this; }
 
-    public IXlsxPhonetics Add(String text, Int32 start, Int32 end)
+    public IXlsxPhonetics Add(string text, int start, int end)
     {
         _phonetics.Add(new XlsxPhonetic(text, start, end));
         _onChange();

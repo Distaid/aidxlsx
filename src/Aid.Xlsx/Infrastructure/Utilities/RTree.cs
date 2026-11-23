@@ -34,7 +34,7 @@ internal sealed class RTree<TData>
 
     internal List<Node> GetNodes(Area area, List<Node> buffer)
     {
-        var envelope = ToEnvelope(area);
+        Envelope envelope = ToEnvelope(area);
         GetNodes(_rBush.Root, in envelope, buffer);
         return buffer;
     }
@@ -47,19 +47,13 @@ internal sealed class RTree<TData>
     internal readonly record struct Node(Area Area, TData Data);
 
     // AreaData must implement Equals for RBush.Delete operation to properly work
-    private sealed class AreaData : ISpatialData, IEquatable<AreaData>
+    private sealed class AreaData(Area area, TData data) : ISpatialData, IEquatable<AreaData>
     {
-        private readonly Envelope _area;
-
-        public AreaData(Area area, TData data)
-        {
-            _area = ToEnvelope(area);
-            Data = data;
-        }
+        private readonly Envelope _area = ToEnvelope(area);
 
         public ref readonly Envelope Envelope => ref _area;
 
-        internal TData Data { get; }
+        internal TData Data { get; } = data;
 
         internal Area Area => ToArea(in _area);
 

@@ -38,7 +38,7 @@ internal static class Lookup
         if (p.Length == 0 || p[0].IsBlank)
             return ctx.FormulaAddress.ColumnNumber;
 
-        if (!p[0].TryPickArea(out var area, out var error))
+        if (!p[0].TryPickArea(out XlsxRangeAddress area, out XlsxError error))
             return error;
 
         var firstColumn = area.FirstAddress.ColumnNumber;
@@ -47,7 +47,7 @@ internal static class Lookup
             return firstColumn;
 
         var span = lastColumn - firstColumn + 1;
-        var array = ctx.AllocateArray<ScalarValue>(1, span);
+        ScalarValue[,] array = ctx.AllocateArray<ScalarValue>(1, span);
         for (var col = firstColumn; col <= lastColumn; col++)
         {
             ctx.ThrowIfCancelled();
@@ -74,9 +74,9 @@ internal static class Lookup
         if (lookupValue.TryPickText(out var lookupText, out _) && lookupText.Length > 255)
             return XlsxError.IncompatibleValue;
 
-        if (rangeValue.TryPickScalar(out _, out var range))
+        if (rangeValue.TryPickScalar(out _, out OneOf<Array, Reference> range))
             return XlsxError.NoValueAvailable;
-        if (!range.TryPickT0(out var array, out var reference))
+        if (!range.TryPickT0(out Array array, out Reference reference))
         {
             if (reference.Areas.Count > 1)
                 return XlsxError.NoValueAvailable;
@@ -106,7 +106,7 @@ internal static class Lookup
             for (var columnIndex = 0; columnIndex < array.Width; columnIndex++)
             {
                 ctx.ThrowIfCancelled();
-                var currentValue = array[0, columnIndex];
+                ScalarValue currentValue = array[0, columnIndex];
 
                 // Because lookup value can't be an error, it doesn't matter that sort treats all errors as equal.
                 var comparison = ScalarValueComparer.SortIgnoreCase.Compare(currentValue, lookupValue);
@@ -135,14 +135,14 @@ internal static class Lookup
         // There must be two paths, one for array and one for reference. Reference path
         // must return reference, so it behaves correctly with implicit intersection.
         OneOf<XlsxRangeAddress, Array> data;
-        if (value.TryPickScalar(out var scalar, out var collection))
+        if (value.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> collection))
         {
             if (scalar.IsBlank)
                 return XlsxError.IncompatibleValue;
 
             data = new ScalarArray(scalar, 1, 1);
         }
-        else if (collection.TryPickT0(out var valueArray, out var reference))
+        else if (collection.TryPickT0(out Array valueArray, out Reference reference))
         {
             data = valueArray;
         }
@@ -181,7 +181,7 @@ internal static class Lookup
         if (rowNumber > height || colNumber > width)
             return XlsxError.CellReference;
 
-        return data.TryPickT0(out var area, out var array)
+        return data.TryPickT0(out XlsxRangeAddress area, out Array array)
             ? IndexArea(area, rowNumber, colNumber)
             : IndexArray(array, rowNumber, colNumber);
 
@@ -208,7 +208,7 @@ internal static class Lookup
             }
 
             // Return single cell reference.
-            var areaCorner = area.FirstAddress;
+            XlsxAddress areaCorner = area.FirstAddress;
             var cellAddress = new XlsxAddress(area.Worksheet, areaCorner.RowNumber + rowNumber - 1, areaCorner.ColumnNumber + colNumber - 1, true, true);
             return new Reference(new XlsxRangeAddress(cellAddress, cellAddress));
         }
@@ -237,10 +237,10 @@ internal static class Lookup
         if (target.IsBlank)
             return XlsxError.NoValueAvailable;
 
-        if (target.TryPickError(out var error))
+        if (target.TryPickError(out XlsxError error))
             return error;
 
-        if (!lookupArray.TryPickCollectionArray(out var array, ctx))
+        if (!lookupArray.TryPickCollectionArray(out Array array, ctx))
             return XlsxError.NoValueAvailable;
 
         // Match only supports arrays with one row or one column.
@@ -282,7 +282,7 @@ internal static class Lookup
             for (var i = 0; i < data.Height; ++i)
             {
                 ctx.ThrowIfCancelled();
-                var value = data[i, 0];
+                ScalarValue value = data[i, 0];
                 if (target.HaveSameType(value) && criteria.Match(value))
                     return i;
             }
@@ -299,7 +299,7 @@ internal static class Lookup
                 ctx.ThrowIfCancelled();
 
                 // Skip elements with different type
-                var value = data[i, 0];
+                ScalarValue value = data[i, 0];
                 while (!value.HaveSameType(target))
                 {
                     if (i == data.Height - 1)
@@ -341,7 +341,7 @@ internal static class Lookup
         while (low < high)
         {
             ctx.ThrowIfCancelled();
-            var (middle, compare) = FindMiddleAbove(low, high, target, data, comparer);
+            (int middle, int compare) = FindMiddleAbove(low, high, target, data, comparer);
 
             if (compare == 0)
                 return middle;
@@ -389,7 +389,7 @@ internal static class Lookup
         if (p.Length == 0 || p[0].IsBlank)
             return ctx.FormulaAddress.RowNumber;
 
-        if (!p[0].TryPickArea(out var area, out var error))
+        if (!p[0].TryPickArea(out XlsxRangeAddress area, out XlsxError error))
             return error;
 
         var firstRow = area.FirstAddress.RowNumber;
@@ -398,7 +398,7 @@ internal static class Lookup
             return firstRow;
 
         var span = lastRow - firstRow + 1;
-        var array = ctx.AllocateArray<ScalarValue>(span, 1);
+        ScalarValue[,] array = ctx.AllocateArray<ScalarValue>(span, 1);
         for (var row = firstRow; row <= lastRow; row++)
         {
             ctx.ThrowIfCancelled();
@@ -415,7 +415,7 @@ internal static class Lookup
 
     private static AnyValue Transpose(CalcContext ctx, AnyValue value)
     {
-        if (value.TryPickSingleOrMultiValue(out var single, out var multi, ctx))
+        if (value.TryPickSingleOrMultiValue(out ScalarValue single, out Array multi, ctx))
             return single.ToAnyValue();
 
         return new TransposedArray(multi);
@@ -433,9 +433,9 @@ internal static class Lookup
         if (lookupValue.TryPickText(out var lookupText, out _) && lookupText.Length > 255)
             return XlsxError.IncompatibleValue;
 
-        if (rangeValue.TryPickScalar(out _, out var range))
+        if (rangeValue.TryPickScalar(out _, out OneOf<Array, Reference> range))
             return XlsxError.NoValueAvailable;
-        if (!range.TryPickT0(out var array, out var reference))
+        if (!range.TryPickT0(out Array array, out Reference reference))
         {
             if (reference.Areas.Count > 1)
                 return XlsxError.NoValueAvailable;
@@ -464,7 +464,7 @@ internal static class Lookup
             for (var rowIndex = 0; rowIndex < array.Height; rowIndex++)
             {
                 ctx.ThrowIfCancelled();
-                var currentValue = array[rowIndex, 0];
+                ScalarValue currentValue = array[rowIndex, 0];
 
                 // Because lookup value can't be an error, it doesn't matter that sort treats all errors as equal.
                 var comparison = ScalarValueComparer.SortIgnoreCase.Compare(currentValue, lookupValue);
@@ -492,7 +492,7 @@ internal static class Lookup
 
         // Sanity check for unsorted ranges. For bisection to work, lowRow always
         // has to have a value that is less or equal to the lookup value.
-        var lowValue = range[lowRow, 0];
+        ScalarValue lowValue = range[lowRow, 0];
         var lowCompare = ScalarValueComparer.SortIgnoreCase.Compare(lowValue, lookupValue);
 
         // Ensure invariants before main loop. If even lowest value in the range is greater than lookup value,
@@ -506,7 +506,7 @@ internal static class Lookup
 
         // Sanity check for unsorted ranges. For bisection to work, highRow always
         // has to have a value that is greater than the lookup value
-        var highValue = range[highRow, 0];
+        ScalarValue highValue = range[highRow, 0];
         var highCompare = ScalarValueComparer.SortIgnoreCase.Compare(highValue, lookupValue);
 
         // Ensure invariants before main loop. If the lookup value is greater/equal than
@@ -531,7 +531,7 @@ internal static class Lookup
             if (middleRow == lowRow)
                 return lowRow;
 
-            var middleValue = range[middleRow, 0];
+            ScalarValue middleValue = range[middleRow, 0];
             var middleCompare = ScalarValueComparer.SortIgnoreCase.Compare(middleValue, lookupValue);
 
             if (middleCompare <= 0)
@@ -588,13 +588,13 @@ internal static class Lookup
 
     private static AnyValue RowsOrColumns(AnyValue value, bool rows)
     {
-        if (value.TryPickArea(out var area, out _))
+        if (value.TryPickArea(out XlsxRangeAddress area, out _))
             return rows ? area.RowSpan : area.ColumnSpan;
 
-        if (value.TryPickArray(out var array))
+        if (value.TryPickArray(out Array array))
             return rows ? array.Height : array.Width;
 
-        if (value.TryPickError(out var error))
+        if (value.TryPickError(out XlsxError error))
             return error;
 
         if (value.IsLogical || value.IsNumber || value.IsText)

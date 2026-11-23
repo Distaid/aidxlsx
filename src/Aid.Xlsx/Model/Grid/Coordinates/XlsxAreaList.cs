@@ -18,7 +18,7 @@ internal class XlsxAreaList : IEnumerable<Area>
 
     internal XlsxAreaList(Area area)
     {
-        _areas = new List<Area>(1) { area };
+        _areas = [area];
     }
 
     internal XlsxAreaList(List<Area> areas)
@@ -40,7 +40,7 @@ internal class XlsxAreaList : IEnumerable<Area>
     internal static XlsxAreaList FromRanges(XlsxWorksheet worksheet, IEnumerable<IXlsxRange> value)
     {
         var areas = new List<Area>();
-        foreach (var range in value)
+        foreach (IXlsxRange range in value)
         {
             ThrowOnDifferentSheet(worksheet, range);
             areas.Add(Area.FromRangeAddress(range.RangeAddress));
@@ -57,7 +57,7 @@ internal class XlsxAreaList : IEnumerable<Area>
         if (_areas.Contains(area))
             return this;
 
-        return new XlsxAreaList(new List<Area>(_areas) { area });
+        return new XlsxAreaList([.. _areas, area]);
     }
 
     internal XlsxAreaList Without(Area area)
@@ -80,7 +80,7 @@ internal class XlsxAreaList : IEnumerable<Area>
         // symmetrical results (e.g. original C3:E5 and insert down at C3 produces asymmetrical
         // results from insert right at E3).
         var result = new List<Area>(_areas.Count);
-        foreach (var originalArea in _areas)
+        foreach (Area originalArea in _areas)
         {
             if (originalArea.HasFullColumnHeight)
             {
@@ -97,24 +97,22 @@ internal class XlsxAreaList : IEnumerable<Area>
                 continue;
             }
 
-            if (originalArea.SplitAbove(insertedArea.TopRow, out var above, out var remaining) &&
+            if (originalArea.SplitAbove(insertedArea.TopRow, out Area? above, out Area? remaining) &&
                 above.Value.LeftColumn >= insertedArea.LeftColumn &&
                 above.Value.RightColumn <= insertedArea.RightColumn)
             {
                 // Special case: If inserted area is to the full width of original area and there is something above,
                 // the whole area is just extended downwards. The optional null check is there if inserted area
                 // attaches to the bottom of the original area.
-                var mergedAndExtended = above.Value.ExtendBelow(insertedArea.Height + (remaining?.Height ?? 0));
+                Area mergedAndExtended = above.Value.ExtendBelow(insertedArea.Height + (remaining?.Height ?? 0));
                 result.Add(mergedAndExtended);
                 continue;
             }
 
             Area? left = null, right = null;
-            if (remaining is not null)
-                remaining.Value.SplitBefore(insertedArea.LeftColumn, out left, out remaining);
+            remaining?.SplitBefore(insertedArea.LeftColumn, out left, out remaining);
 
-            if (remaining is not null)
-                remaining.Value.SplitAfter(insertedArea.RightColumn, out right, out remaining);
+            remaining?.SplitAfter(insertedArea.RightColumn, out right, out remaining);
 
             if (above is not null)
                 result.Add(above.Value);
@@ -130,7 +128,7 @@ internal class XlsxAreaList : IEnumerable<Area>
                 // There was something above the inserted area so extend
                 if (remaining is not null)
                 {
-                    var extended = remaining.Value.ExtendBelow(insertedArea.Height);
+                    Area extended = remaining.Value.ExtendBelow(insertedArea.Height);
                     result.Add(extended);
                 }
                 else if (insertedArea.TopRow == originalArea.BottomRow + 1)
@@ -163,7 +161,7 @@ internal class XlsxAreaList : IEnumerable<Area>
         // symmetrical results (e.g. original C3:E5 and insert down at C3 produces asymmetrical
         // results from insert right at E3).
         var result = new List<Area>(_areas.Count);
-        foreach (var originalArea in _areas)
+        foreach (Area originalArea in _areas)
         {
             if (originalArea.HasFullRowWidth)
             {
@@ -200,13 +198,11 @@ internal class XlsxAreaList : IEnumerable<Area>
             }
 
             Area? below = null, left = null;
-            originalArea.SplitAbove(insertedArea.TopRow, out var above, out var remaining);
+            originalArea.SplitAbove(insertedArea.TopRow, out Area? above, out Area? remaining);
 
-            if (remaining is not null)
-                remaining.Value.SplitBelow(insertedArea.BottomRow, out below, out remaining);
+            remaining?.SplitBelow(insertedArea.BottomRow, out below, out remaining);
 
-            if (remaining is not null)
-                remaining.Value.SplitBefore(insertedArea.LeftColumn, out left, out remaining);
+            remaining?.SplitBefore(insertedArea.LeftColumn, out left, out remaining);
 
             // There must be something. We know that inserted area intersects original area (we took care of special
             // case of right side attachment in an if above) and we only cut three times on each side of
@@ -223,7 +219,7 @@ internal class XlsxAreaList : IEnumerable<Area>
             if (left is not null)
             {
                 // There was something on the left of the inserted area so extend
-                var mergedAndExtended = left.Value.ExtendRight(insertedArea.Width + remaining.Value.Width);
+                Area mergedAndExtended = left.Value.ExtendRight(insertedArea.Width + remaining.Value.Width);
                 result.Add(mergedAndExtended);
             }
             else
@@ -239,9 +235,9 @@ internal class XlsxAreaList : IEnumerable<Area>
 
     internal XlsxAreaList DeleteAndShiftUp(Area deletedArea)
     {
-        var groove = deletedArea.ExtendBelow(XlsxHelper.MaxRowNumber);
+        Area groove = deletedArea.ExtendBelow(XlsxHelper.MaxRowNumber);
         var result = new List<Area>(_areas.Count);
-        foreach (var originalArea in _areas)
+        foreach (Area originalArea in _areas)
         {
             if (originalArea.HasFullColumnHeight)
             {
@@ -251,17 +247,17 @@ internal class XlsxAreaList : IEnumerable<Area>
             var deleteWontSplitOriginalArea = deletedArea.LeftColumn <= originalArea.LeftColumn && deletedArea.RightColumn >= originalArea.RightColumn;
             if (deleteWontSplitOriginalArea)
             {
-                var shiftedArea = originalArea.ShiftOrShrinkUp(deletedArea.TopRow, deletedArea.Height);
+                Area? shiftedArea = originalArea.ShiftOrShrinkUp(deletedArea.TopRow, deletedArea.Height);
                 if (shiftedArea is not null)
                     result.Add(shiftedArea.Value);
             }
             else
             {
-                var inGrooveArea = originalArea.Exclude(groove, result);
+                Area? inGrooveArea = originalArea.Exclude(groove, result);
                 if (inGrooveArea is not null)
                 {
                     // There is something to shift, so shift it upwards
-                    var shiftedArea = inGrooveArea.Value.ShiftOrShrinkUp(deletedArea.TopRow, deletedArea.Height);
+                    Area? shiftedArea = inGrooveArea.Value.ShiftOrShrinkUp(deletedArea.TopRow, deletedArea.Height);
                     if (shiftedArea is not null)
                         result.Add(shiftedArea.Value);
                 }
@@ -273,9 +269,9 @@ internal class XlsxAreaList : IEnumerable<Area>
 
     internal XlsxAreaList DeleteAndShiftLeft(Area deletedArea)
     {
-        var groove = deletedArea.ExtendRight(XlsxHelper.MaxColumnNumber);
+        Area groove = deletedArea.ExtendRight(XlsxHelper.MaxColumnNumber);
         var result = new List<Area>(_areas.Count);
-        foreach (var originalArea in _areas)
+        foreach (Area originalArea in _areas)
         {
             if (originalArea.HasFullRowWidth)
             {
@@ -286,17 +282,17 @@ internal class XlsxAreaList : IEnumerable<Area>
             var deleteWontSplitOriginalArea = deletedArea.TopRow <= originalArea.TopRow && deletedArea.BottomRow >= originalArea.BottomRow;
             if (deleteWontSplitOriginalArea)
             {
-                var shiftedArea = originalArea.ShiftOrShrinkLeft(deletedArea.LeftColumn, deletedArea.Width);
+                Area? shiftedArea = originalArea.ShiftOrShrinkLeft(deletedArea.LeftColumn, deletedArea.Width);
                 if (shiftedArea is not null)
                     result.Add(shiftedArea.Value);
             }
             else
             {
-                var inGrooveArea = originalArea.Exclude(groove, result);
+                Area? inGrooveArea = originalArea.Exclude(groove, result);
                 if (inGrooveArea is not null)
                 {
                     // There is something to shift, so shift it leftward
-                    var shiftedArea = inGrooveArea.Value.ShiftOrShrinkLeft(deletedArea.LeftColumn, deletedArea.Width);
+                    Area? shiftedArea = inGrooveArea.Value.ShiftOrShrinkLeft(deletedArea.LeftColumn, deletedArea.Width);
                     if (shiftedArea is not null)
                         result.Add(shiftedArea.Value);
                 }
@@ -309,7 +305,7 @@ internal class XlsxAreaList : IEnumerable<Area>
     internal XlsxAreaList DeleteWithoutShift(Area deletedArea)
     {
         var result = new List<Area>(_areas.Count);
-        foreach (var originalArea in _areas)
+        foreach (Area originalArea in _areas)
             originalArea.Exclude(deletedArea, result);
 
         return new XlsxAreaList(result);
@@ -322,7 +318,7 @@ internal class XlsxAreaList : IEnumerable<Area>
 
     internal bool IntersectsWith(Area otherArea)
     {
-        foreach (var area in _areas)
+        foreach (Area area in _areas)
         {
             if (area.Intersects(otherArea))
                 return true;
@@ -336,7 +332,7 @@ internal class XlsxAreaList : IEnumerable<Area>
     /// </summary>
     internal IEnumerable<Area> IntersectingWith(Area otherArea)
     {
-        foreach (var area in _areas)
+        foreach (Area area in _areas)
         {
             if (area.Intersects(otherArea))
                 yield return area;
@@ -353,7 +349,7 @@ internal class XlsxAreaList : IEnumerable<Area>
         var rowShift = target.Row - areaToCopy.FirstPoint.Row;
         var columnShift = target.Column - areaToCopy.FirstPoint.Column;
         List<Area>? copyList = null;
-        foreach (var area in _areas)
+        foreach (Area area in _areas)
         {
             if (area.Intersect(areaToCopy) is not { } intersection)
                 continue;
@@ -362,7 +358,7 @@ internal class XlsxAreaList : IEnumerable<Area>
             if (intersection.ShiftAndClip(rowShift, columnShift) is not { } shiftedArea)
                 continue;
 
-            copyList ??= new List<Area>();
+            copyList ??= [];
             copyList.Add(shiftedArea);
         }
 
@@ -382,7 +378,7 @@ internal class XlsxAreaList : IEnumerable<Area>
             return this;
 
         var list = new List<Area>();
-        foreach (var area in _areas)
+        foreach (Area area in _areas)
             area.Exclude(excludedArea, list);
 
         return new XlsxAreaList(list);

@@ -7,9 +7,9 @@ namespace Aid.Xlsx.Infrastructure.Extensions;
 
 internal static class DoubleExtensions
 {
-    extension(Double value)
+    extension(double value)
     {
-        public Double SaveRound()
+        public double SaveRound()
         {
             return Math.Round(value, 6);
         }
@@ -33,7 +33,7 @@ internal static class DoubleExtensions
         /// Round the number to the integer.
         /// </summary>
         /// <remarks>A helper method to avoid need to specify the midpoint rounding and casting each time.</remarks>
-        public Int32 RoundToInt()
+        public int RoundToInt()
         {
             return (int)Math.Round(value, MidpointRounding.AwayFromZero);
         }
@@ -42,7 +42,7 @@ internal static class DoubleExtensions
         /// Round the number to specified number of digits.
         /// </summary>
         /// <remarks>A helper method to avoid need to specify the midpoint rounding each time.</remarks>
-        public Double Round(int digits)
+        public double Round(int digits)
         {
             return Math.Round(value, digits, MidpointRounding.AwayFromZero);
         }

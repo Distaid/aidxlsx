@@ -5,16 +5,10 @@ using Aid.Xlsx.Infrastructure.Extensions;
 
 namespace Aid.Xlsx.Calculation;
 
-internal class FormulaParser
+internal class FormulaParser(FunctionRegistry functionRegistry)
 {
-    private readonly AstFactory _nodeFactoryA1;
-    private readonly AstFactory _nodeFactoryR1C1;
-
-    public FormulaParser(FunctionRegistry functionRegistry)
-    {
-        _nodeFactoryA1 = new AstFactory(functionRegistry, true);
-        _nodeFactoryR1C1 = new AstFactory(functionRegistry, false);
-    }
+    private readonly AstFactory _nodeFactoryA1 = new(functionRegistry, true);
+    private readonly AstFactory _nodeFactoryR1C1 = new(functionRegistry, false);
 
     /// <summary>
     /// Parse a formula into an abstract syntax tree.
@@ -23,11 +17,11 @@ internal class FormulaParser
     {
         // Equality sign at the beginning of formula is only visualization in the GUI, real formulas don't have it.
         if (formula.Length > 0 && formula[0] == '=')
-            formula = formula.Substring(1);
+            formula = formula[1..];
 
         try
         {
-            var root = isA1
+            ValueNode root = isA1
                 ? FormulaParser<ScalarValue, ValueNode, string>.CellFormulaA1(formula, formula, _nodeFactoryA1)
                 : FormulaParser<ScalarValue, ValueNode, string>.CellFormulaR1C1(formula, formula, _nodeFactoryR1C1);
             return new Formula(formula, root);
@@ -93,7 +87,7 @@ internal class FormulaParser
 
         public ValueNode ErrorNode(string context, SymbolRange range, ReadOnlySpan<char> errorText)
         {
-            var error = GetErrorValue(errorText);
+            XlsxError error = GetErrorValue(errorText);
             return new ScalarNode(error);
         }
 
@@ -181,7 +175,7 @@ internal class FormulaParser
             // usage is likely for lambda functions. Excel (as of 2022) doesn't do that, so use preference
             // as LOG10. Parser doesn't know about names of functions, so names such as LOG10 will always end up
             // here.
-            var functionName = context.Substring(range.Start, context.IndexOf('(', range.Start) - range.Start);
+            var functionName = context[range.Start..context.IndexOf('(', range.Start)];
             if (_functionRegistry.TryGetFunc(functionName, out _, out _))
                 return new FunctionNode(functionName, args);
 
@@ -239,7 +233,7 @@ internal class FormulaParser
         public ValueNode BinaryNode(string context, SymbolRange range, BinaryOperation operation, ValueNode leftNode,
             ValueNode rightNode)
         {
-            var op = operation switch
+            BinaryOp op = operation switch
             {
                 BinaryOperation.Concat => BinaryOp.Concat,
                 BinaryOperation.GreaterOrEqualThan => BinaryOp.Gte,
@@ -264,7 +258,7 @@ internal class FormulaParser
 
         public ValueNode Unary(string context, SymbolRange range, UnaryOperation operation, ValueNode node)
         {
-            var op = operation switch
+            UnaryOp op = operation switch
             {
                 UnaryOperation.Plus => UnaryOp.Add,
                 UnaryOperation.Minus => UnaryOp.Subtract,
@@ -290,7 +284,7 @@ internal class FormulaParser
             // are without a prefix. That should change, but it's a reality for now.
             if (!foundFunction && functionName.StartsWith($"{DefaultFunctionNameSpace}."))
             {
-                functionName = functionName.Substring(DefaultFunctionNameSpace.Length + 1);
+                functionName = functionName[(DefaultFunctionNameSpace.Length + 1)..];
                 foundFunction = _functionRegistry.TryGetFunc(functionName, out minParams, out maxParams);
             }
 
@@ -311,8 +305,8 @@ internal class FormulaParser
 
         private static XlsxError GetErrorValue(ReadOnlySpan<char> error)
         {
-            if (!XlsxErrorParser.TryParseError(error.ToString(), out var errorEnum))
-                throw new InvalidOperationException($"'{error.ToString()}' is not error.");
+            if (!XlsxErrorParser.TryParseError(error.ToString(), out XlsxError errorEnum))
+                throw new InvalidOperationException($"'{error}' is not error.");
             return errorEnum;
         }
     }

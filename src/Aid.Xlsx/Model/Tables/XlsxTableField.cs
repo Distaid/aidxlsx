@@ -2,35 +2,27 @@ using System.Diagnostics;
 using Aid.Xlsx.Infrastructure.Extensions;
 using Aid.Xlsx.Model.Grid.Cells;
 using Aid.Xlsx.Model.Grid.Ranges;
+using Aid.Xlsx.Model.Styles;
 using Aid.Xlsx.Model.Styles.Formatting;
 
 namespace Aid.Xlsx.Model.Tables;
 
 [DebuggerDisplay("{Name}")]
-internal class XlsxTableField : IXlsxTableField
+internal class XlsxTableField(XlsxTable table, string name) : IXlsxTableField
 {
     internal XlsxTotalsRowFunction totalsRowFunction;
-    internal String? totalsRowLabel;
-    private readonly XlsxTable table;
+    internal string? totalsRowLabel;
+    private readonly XlsxTable table = table;
 
     private IXlsxRangeColumn? _column;
-    private Int32 index;
-    private String name;
-
-    public XlsxTableField(XlsxTable table, String name)
-    {
-        this.table = table;
-        this.name = name;
-    }
+    private int index;
+    private string name = name;
 
     public IXlsxRangeColumn Column
     {
         get
         {
-            if (_column == null)
-            {
-                _column = table.AsRange().Column(this.Index + 1);
-            }
+            _column ??= table.AsRange().Column(this.Index + 1);
             return _column;
         }
         internal set
@@ -65,7 +57,7 @@ internal class XlsxTableField : IXlsxTableField
         }
     }
 
-    public Int32 Index
+    public int Index
     {
         get { return index; }
         internal set
@@ -76,7 +68,7 @@ internal class XlsxTableField : IXlsxTableField
         }
     }
 
-    public String Name
+    public string Name
     {
         get
         {
@@ -107,7 +99,7 @@ internal class XlsxTableField : IXlsxTableField
         }
     }
 
-    public String TotalsRowFormulaA1
+    public string TotalsRowFormulaA1
     {
         get { return table.TotalsRow().Cell(Index + 1).FormulaA1; }
         set
@@ -117,7 +109,7 @@ internal class XlsxTableField : IXlsxTableField
         }
     }
 
-    public String TotalsRowFormulaR1C1
+    public string TotalsRowFormulaR1C1
     {
         get { return table.TotalsRow().Cell(Index + 1).FormulaR1C1; }
         set
@@ -137,7 +129,7 @@ internal class XlsxTableField : IXlsxTableField
         }
     }
 
-    public String? TotalsRowLabel
+    public string? TotalsRowLabel
     {
         get { return totalsRowLabel; }
         set
@@ -168,9 +160,9 @@ internal class XlsxTableField : IXlsxTableField
         Delete(true);
     }
 
-    internal void Delete(Boolean deleteUnderlyingRangeColumn)
+    internal void Delete(bool deleteUnderlyingRangeColumn)
     {
-        var fields = table.Fields.Cast<XlsxTableField>().ToArray();
+        XlsxTableField[] fields = [.. table.Fields.Cast<XlsxTableField>()];
 
         if (deleteUnderlyingRangeColumn)
         {
@@ -183,7 +175,7 @@ internal class XlsxTableField : IXlsxTableField
 
     public bool IsConsistentDataType()
     {
-        var dataTypes = this.Column
+        IEnumerable<XlsxDataType> dataTypes = this.Column
             .Cells()
             .Skip(this.table.ShowHeaderRow ? 1 : 0)
             .Select(c => c.DataType);
@@ -193,14 +185,14 @@ internal class XlsxTableField : IXlsxTableField
 
         var distinctDataTypes = dataTypes
             .GroupBy(dt => dt)
-            .Select(g => new { Key = g.Key, Count = g.Count() });
+            .Select(g => new { g.Key, Count = g.Count() });
 
         return distinctDataTypes.Count() == 1;
     }
 
-    public Boolean IsConsistentFormula()
+    public bool IsConsistentFormula()
     {
-        var formulas = this.Column
+        IEnumerable<string> formulas = this.Column
             .Cells()
             .Skip(this.table.ShowHeaderRow ? 1 : 0)
             .Select(c => c.FormulaR1C1);
@@ -210,14 +202,14 @@ internal class XlsxTableField : IXlsxTableField
 
         var distinctFormulas = formulas
             .GroupBy(f => f)
-            .Select(g => new { Key = g.Key, Count = g.Count() });
+            .Select(g => new { g.Key, Count = g.Count() });
 
         return distinctFormulas.Count() == 1;
     }
 
     public bool IsConsistentStyle()
     {
-        var styles = this.Column
+        IEnumerable<XlsxCellFormat> styles = this.Column
             .Cells()
             .Skip(this.table.ShowHeaderRow ? 1 : 0)
             .OfType<XlsxCell>()
@@ -226,20 +218,20 @@ internal class XlsxTableField : IXlsxTableField
         if (this.table.ShowTotalsRow)
             styles = styles.SkipLast();
 
-        var distinctStyles = styles
+        IEnumerable<XlsxCellFormat> distinctStyles = styles
             .Distinct();
 
         return distinctStyles.Count() == 1;
     }
 
-    private static IEnumerable<String> QuotedTableFieldCharacters = new[] { "'", "#" };
+    private static readonly IEnumerable<string> QuotedTableFieldCharacters = new[] { "'", "#" };
 
     internal void UpdateTableFieldTotalsRowFormula()
     {
         if (TotalsRowFunction != XlsxTotalsRowFunction.None && TotalsRowFunction != XlsxTotalsRowFunction.Custom)
         {
-            var cell = table.TotalsRow().Cell(Index + 1);
-            var formulaCode = String.Empty;
+            IXlsxCell cell = table.TotalsRow().Cell(Index + 1);
+            var formulaCode = string.Empty;
             switch (TotalsRowFunction)
             {
                 case XlsxTotalsRowFunction.Sum: formulaCode = "109"; break;
@@ -255,15 +247,15 @@ internal class XlsxTableField : IXlsxTableField
             var modifiedName = Name;
             QuotedTableFieldCharacters.ForEach(c => modifiedName = modifiedName.Replace(c, "'" + c));
 
-            if (modifiedName.StartsWith(" ") || modifiedName.EndsWith(" "))
+            if (modifiedName.StartsWith(' ') || modifiedName.EndsWith(' '))
             {
                 modifiedName = "[" + modifiedName + "]";
             }
 
-            var prependTableName = modifiedName.Contains(" ");
+            var prependTableName = modifiedName.Contains(' ');
 
             cell.FormulaA1 = $"SUBTOTAL({formulaCode},{(prependTableName ? table.Name : string.Empty)}[{modifiedName}])";
-            var lastCell = table.LastRow().Cell(Index + 1);
+            IXlsxCell lastCell = table.LastRow().Cell(Index + 1);
             if (lastCell.DataType != XlsxDataType.Text)
             {
                 cell.Style.NumberFormat = lastCell.Style.NumberFormat;

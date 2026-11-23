@@ -25,7 +25,7 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
             new XlsxAddress(worksheet, row, XlsxHelper.MaxColumnNumber, false, false));
     }
 
-    public static readonly XlsxRangeAddress Invalid = new XlsxRangeAddress(
+    public static readonly XlsxRangeAddress Invalid = new(
         new XlsxAddress(-1, -1, fixedRow: true, fixedColumn: true),
         new XlsxAddress(-1, -1, fixedRow: true, fixedColumn: true)
     );
@@ -49,10 +49,10 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
         LastAddress = lastAddress;
     }
 
-    public XlsxRangeAddress(XlsxWorksheet? worksheet, String rangeAddress) : this()
+    public XlsxRangeAddress(XlsxWorksheet? worksheet, string rangeAddress) : this()
     {
         string addressToUse = rangeAddress.Contains('!')
-            ? rangeAddress.Substring(rangeAddress.LastIndexOf('!') + 1)
+            ? rangeAddress[(rangeAddress.LastIndexOf('!') + 1)..]
             : rangeAddress;
 
         string firstPart;
@@ -76,8 +76,8 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
         }
         else
         {
-            firstPart = firstPart.Replace("$", String.Empty);
-            secondPart = secondPart.Replace("$", String.Empty);
+            firstPart = firstPart.Replace("$", string.Empty);
+            secondPart = secondPart.Replace("$", string.Empty);
             if (char.IsDigit(firstPart[0]))
             {
                 FirstAddress = XlsxAddress.Create(worksheet, "A" + firstPart);
@@ -154,7 +154,7 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
 
     #region Public methods
 
-    public Boolean IsNormalized => LastAddress.RowNumber >= FirstAddress.RowNumber
+    public bool IsNormalized => LastAddress.RowNumber >= FirstAddress.RowNumber
                                    && LastAddress.ColumnNumber >= FirstAddress.ColumnNumber;
 
     /// <summary>
@@ -264,17 +264,17 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
                address.ColumnNumber <= LastAddress.ColumnNumber;
     }
 
-    public String ToStringRelative()
+    public string ToStringRelative()
     {
         return ToStringRelative(false);
     }
 
-    public String ToStringFixed()
+    public string ToStringFixed()
     {
         return ToStringFixed(XlsxReferenceStyle.A1);
     }
 
-    public String ToStringRelative(Boolean includeSheet)
+    public string ToStringRelative(bool includeSheet)
     {
         string address;
         if (!IsValid)
@@ -284,27 +284,27 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
             if (IsEntireSheet())
                 address = $"1:{XlsxHelper.MaxRowNumber}";
             else if (IsEntireRow())
-                address = String.Concat(FirstAddress.RowNumber.ToString(), ":", LastAddress.RowNumber.ToString());
+                address = string.Concat(FirstAddress.RowNumber.ToString(), ":", LastAddress.RowNumber.ToString());
             else if (IsEntireColumn())
-                address = String.Concat(FirstAddress.ColumnLetter, ":", LastAddress.ColumnLetter);
+                address = string.Concat(FirstAddress.ColumnLetter, ":", LastAddress.ColumnLetter);
             else
-                address = String.Concat(FirstAddress.ToStringRelative(), ":", LastAddress.ToStringRelative());
+                address = string.Concat(FirstAddress.ToStringRelative(), ":", LastAddress.ToStringRelative());
         }
 
         if (includeSheet || WorksheetIsDeleted)
-            return String.Concat(
+            return string.Concat(
                 WorksheetIsDeleted ? "#REF" : Worksheet!.Name.EscapeSheetName(),
                 "!", address);
 
         return address;
     }
 
-    public String ToStringFixed(XlsxReferenceStyle referenceStyle)
+    public string ToStringFixed(XlsxReferenceStyle referenceStyle)
     {
         return ToStringFixed(referenceStyle, false);
     }
 
-    public String ToStringFixed(XlsxReferenceStyle referenceStyle, Boolean includeSheet)
+    public string ToStringFixed(XlsxReferenceStyle referenceStyle, bool includeSheet)
     {
         string address;
         if (!IsValid)
@@ -314,15 +314,15 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
             if (IsEntireSheet())
                 address = $"$1:${XlsxHelper.MaxRowNumber}";
             else if (IsEntireRow())
-                address = String.Concat("$", FirstAddress.RowNumber.ToString(), ":$", LastAddress.RowNumber.ToString());
+                address = string.Concat("$", FirstAddress.RowNumber.ToString(), ":$", LastAddress.RowNumber.ToString());
             else if (IsEntireColumn())
-                address = String.Concat("$", FirstAddress.ColumnLetter, ":$", LastAddress.ColumnLetter);
+                address = string.Concat("$", FirstAddress.ColumnLetter, ":$", LastAddress.ColumnLetter);
             else
-                address = String.Concat(FirstAddress.ToStringFixed(referenceStyle), ":", LastAddress.ToStringFixed(referenceStyle));
+                address = string.Concat(FirstAddress.ToStringFixed(referenceStyle), ":", LastAddress.ToStringFixed(referenceStyle));
         }
 
         if (includeSheet || WorksheetIsDeleted)
-            return String.Concat(
+            return string.Concat(
                 WorksheetIsDeleted ? "#REF" : Worksheet!.Name.EscapeSheetName(),
                 "!", address);
 
@@ -335,15 +335,15 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
         {
             var worksheet = WorksheetIsDeleted ? "#REF!" : "";
 
-            var address = (!FirstAddress.IsValid || !LastAddress.IsValid) ? "#REF!" : String.Concat(FirstAddress.ToString(), ":", LastAddress.ToString());
-            return String.Concat(worksheet, address);
+            var address = (!FirstAddress.IsValid || !LastAddress.IsValid) ? "#REF!" : string.Concat(FirstAddress.ToString(), ":", LastAddress.ToString());
+            return string.Concat(worksheet, address);
         }
 
         if (IsEntireSheet())
         {
             var worksheet = WorksheetIsDeleted ? "#REF!" : "";
             var address = $"1:{XlsxHelper.MaxRowNumber}";
-            return String.Concat(worksheet, address);
+            return string.Concat(worksheet, address);
         }
         else if (IsEntireRow())
         {
@@ -351,7 +351,7 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
             var firstAddress = FirstAddress.IsValid ? FirstAddress.RowNumber.ToString() : "#REF!";
             var lastAddress = LastAddress.IsValid ? LastAddress.RowNumber.ToString() : "#REF!";
 
-            return String.Concat(worksheet, firstAddress, ':', lastAddress);
+            return string.Concat(worksheet, firstAddress, ':', lastAddress);
         }
         else if (IsEntireColumn())
         {
@@ -359,11 +359,11 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
             var firstAddress = FirstAddress.IsValid ? FirstAddress.ColumnLetter : "#REF!";
             var lastAddress = LastAddress.IsValid ? LastAddress.ColumnLetter : "#REF!";
 
-            return String.Concat(worksheet, firstAddress, ':', lastAddress);
+            return string.Concat(worksheet, firstAddress, ':', lastAddress);
         }
         else
         {
-            return String.Concat(FirstAddress.ToString(), ":", LastAddress.ToString());
+            return string.Concat(FirstAddress.ToString(), ":", LastAddress.ToString());
         }
     }
 
@@ -382,7 +382,7 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
 
     public override bool Equals(object? obj)
     {
-        if (!(obj is XlsxRangeAddress))
+        if (obj is not XlsxRangeAddress)
         {
             return false;
         }
@@ -445,7 +445,7 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
 
     internal XlsxRangeAddress Relative(in XlsxRangeAddress sourceRangeAddress, in XlsxRangeAddress targetRangeAddress)
     {
-        var sheet = targetRangeAddress.Worksheet;
+        XlsxWorksheet? sheet = targetRangeAddress.Worksheet;
 
         return new XlsxRangeAddress
         (
@@ -470,8 +470,7 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
 
     public IXlsxRangeAddress Intersection(IXlsxRangeAddress otherRangeAddress)
     {
-        if (otherRangeAddress == null)
-            throw new ArgumentNullException(nameof(otherRangeAddress));
+        ArgumentNullException.ThrowIfNull(otherRangeAddress);
 
         var xlOtherRangeAddress = (XlsxRangeAddress)otherRangeAddress;
         return Intersection(in xlOtherRangeAddress);
@@ -482,8 +481,8 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
         if (!Equals(Worksheet, otherRangeAddress.Worksheet))
             throw new ArgumentOutOfRangeException(nameof(otherRangeAddress), "The other range address is on a different worksheet");
 
-        var thisRangeAddressNormalized = this.Normalize();
-        var otherRangeAddressNormalized = otherRangeAddress.Normalize();
+        XlsxRangeAddress thisRangeAddressNormalized = this.Normalize();
+        XlsxRangeAddress otherRangeAddressNormalized = otherRangeAddress.Normalize();
 
         var firstRow = Math.Max(thisRangeAddressNormalized.FirstAddress.RowNumber, otherRangeAddressNormalized.FirstAddress.RowNumber);
         var firstColumn = Math.Max(thisRangeAddressNormalized.FirstAddress.ColumnNumber, otherRangeAddressNormalized.FirstAddress.ColumnNumber);

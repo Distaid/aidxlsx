@@ -5,17 +5,17 @@ using Aid.Xlsx.Infrastructure.Utilities;
 
 namespace Aid.Xlsx.Model.Grid.Columns;
 
-internal class XlsxColumnsCollection : IDictionary<Int32, XlsxColumn>
+internal class XlsxColumnsCollection : IDictionary<int, XlsxColumn>
 {
-    private readonly Dictionary<Int32, XlsxColumn> _dictionary = new();
+    private readonly Dictionary<int, XlsxColumn> _dictionary = [];
 
-    public void ShiftColumnsRight(Int32 startingColumn, Int32 columnsToShift)
+    public void ShiftColumnsRight(int startingColumn, int columnsToShift)
     {
         foreach (var co in _dictionary.Keys.Where(k => k >= startingColumn).OrderByDescending(k => k))
         {
-            var columnToMove = _dictionary[co];
+            XlsxColumn columnToMove = _dictionary[co];
             _dictionary.Remove(co);
-            Int32 newColumnNum = co + columnsToShift;
+            int newColumnNum = co + columnsToShift;
             if (newColumnNum <= XlsxHelper.MaxColumnNumber)
             {
                 columnToMove.SetColumnNumber(newColumnNum);
@@ -84,7 +84,7 @@ internal class XlsxColumnsCollection : IDictionary<Int32, XlsxColumn>
 
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => _dictionary.GetEnumerator();
 
-    public void RemoveAll(Func<XlsxColumn, Boolean> predicate)
+    public void RemoveAll(Func<XlsxColumn, bool> predicate)
     {
         _dictionary.RemoveAll(predicate);
     }
