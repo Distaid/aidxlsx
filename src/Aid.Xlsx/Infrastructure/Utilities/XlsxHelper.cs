@@ -45,7 +45,7 @@ public static partial class XlsxHelper
 
     public static string LastCell { get { return $"{MaxColumnLetter}{MaxRowNumber}"; } }
 
-    internal static readonly NumberStyles NumberStyle = NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign | NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite | NumberStyles.AllowExponent;
+    internal const NumberStyles NumberStyle = NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign | NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite | NumberStyles.AllowExponent;
     internal static readonly CultureInfo ParseCulture = CultureInfo.InvariantCulture;
 
     /// <summary>
