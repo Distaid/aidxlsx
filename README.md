@@ -3,8 +3,8 @@
 ![Aid.Xlsx icon](https://raw.githubusercontent.com/Distaid/aidxlsx/main/assets/icon.png)
 
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
-[![Latest GitHub release](https://img.shields.io/github/v/release/Distaid/aidxlsx?label=GitHub%20release)](https://github.com/Distaid/aidxlsx/releases/latest)
-[![NuGet version](https://img.shields.io/nuget/v/Aid.Xlsx?logo=nuget&label=NuGet)](https://www.nuget.org/packages/Aid.Xlsx)
+[![GitHub release v1.0.0](https://img.shields.io/badge/GitHub%20release-v1.0.0-blue?logo=github)](https://github.com/Distaid/aidxlsx/releases/tag/v1.0.0)
+[![NuGet version 1.0.0](https://img.shields.io/badge/NuGet-1.0.0-004880?logo=nuget)](https://www.nuget.org/packages/Aid.Xlsx/1.0.0)
 [![NuGet downloads](https://img.shields.io/nuget/dt/Aid.Xlsx?label=NuGet%20downloads)](https://www.nuget.org/packages/Aid.Xlsx)
 [![CI status](https://img.shields.io/github/actions/workflow/status/Distaid/aidxlsx/ci.yml?branch=main&logo=githubactions&label=CI)](https://github.com/Distaid/aidxlsx/actions/workflows/ci.yml?query=branch%3Amain)
 [![MIT license](https://img.shields.io/badge/license-MIT-blue)](https://github.com/Distaid/aidxlsx/blob/main/LICENSE)

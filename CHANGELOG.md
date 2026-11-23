@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Point the GitHub release and NuGet version badges to Aid.Xlsx 1.0.0 on the 1.x branch.
 - Download release assets from the release packaging job and verify their checksums before creating a GitHub Release.
 - Honor workbook defaults when setting `workbook.Style` before adding worksheets and retain the style after saving.
 
