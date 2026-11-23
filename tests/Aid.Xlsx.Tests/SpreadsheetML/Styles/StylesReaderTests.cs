@@ -979,9 +979,9 @@ internal class StylesReaderTests
             """;
         AssertFormat(styles =>
         {
-            Assert.AreEqual("Arial", styles.DefaultCellFormat.Font.Name);
-            Assert.AreEqual(15.0, styles.DefaultCellFormat.Font.Size);
-            Assert.IsTrue(styles.DefaultCellFormat.Font.Bold);
+            Assert.AreEqual("Arial", styles.DefaultFormat.Font.Name);
+            Assert.AreEqual(15.0, styles.DefaultFormat.Font.Size);
+            Assert.IsTrue(styles.DefaultFormat.Font.Bold);
         }, xml);
     }
 

@@ -206,7 +206,7 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
 
     internal XlsxCellFormatValue GetFormat()
     {
-        return FormatValue ?? Workbook.Styles.DefaultCellFormat;
+        return FormatValue ?? Workbook.Styles.DefaultFormat;
     }
 
     #endregion
@@ -1906,7 +1906,7 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
         if (sheetFormat is not null)
             return sheetFormat;
 
-        return Workbook.Styles.DefaultCellFormat;
+        return Workbook.Styles.DefaultFormat;
     }
 
     /// <summary>

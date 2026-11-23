@@ -218,6 +218,10 @@ public partial class XlsxColor
         return FromColor(Color.FromName(name));
     }
 
+    /// <summary>
+    /// Creates a color from hexadecimal RGB or ARGB, with an optional leading <c>#</c>.
+    /// </summary>
+    /// <param name="htmlColor">Three or six hexadecimal RGB digits, or eight hexadecimal ARGB digits.</param>
     public static XlsxColor FromHtml(String htmlColor)
     {
         return FromColor(ColorStringParser.ParseFromHtml(htmlColor));

@@ -4,6 +4,7 @@ using Aid.Xlsx.Model.PivotTables;
 using Aid.Xlsx.Model.Styles.Colors;
 using Aid.Xlsx.Model.Styles.Formatting;
 using Aid.Xlsx.Model.Tables;
+using Aid.Xlsx.Model.Workbooks;
 
 namespace Aid.Xlsx.Model.Styles;
 
@@ -104,14 +105,6 @@ internal class XlsxWorkbookStyles
         IncludedComponents = CellFormatComponents.All
     };
 
-    /// <summary>
-    /// A cell format that is used when an element doesn't explicitly define formatting. This
-    /// format must be saved at index 0 in a file. The likely reason is that when an element
-    /// (e.g., a cell) in a XML doesn't explicitly define index of a format, the default value
-    /// is 0 = this format.
-    /// </summary>
-    internal XlsxCellFormatValue DefaultCellFormat => _cellFormats[0];
-
     internal XlsxWorkbookStyles()
     {
         _numberFormats = new BiDictionary<int, XlsxNumberFormat>();
@@ -172,12 +165,10 @@ internal class XlsxWorkbookStyles
     internal IReadOnlyList<XlsxColor> MruColors => _mruColors;
 
     /// <summary>
-    /// A default format values used when format doesn't have a value in a property. All props in
-    /// the default format must have a value. The default is set on load and not changed later.
-    /// Nearly all props are equivalent of "zero", except things that can't be like that, e.g. font
-    /// name or font size.
+    /// The format inherited in the absence of an explicit format. It is initialized from cell
+    /// format index zero on load and can be changed through <see cref="XlsxWorkbook.Style"/>.
+    /// The current default is written at index zero on save.
     /// </summary>
-    // TODO: Make private and use GetDefaultFormat
     internal XlsxCellFormatValue DefaultFormat { get; set; } = new()
     {
         Font = new XlsxFontFormatValue

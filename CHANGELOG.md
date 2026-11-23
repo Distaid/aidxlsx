@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Show the package icon, target .NET version, release and NuGet versions, download count, CI status, and license in the README.
+- Document migration API replacements and regression coverage for template exports.
 
 ### Fixed
 
 - Download release assets from the release packaging job and verify their checksums before creating a GitHub Release.
+- Honor workbook defaults when setting `workbook.Style` before adding worksheets and retain the style after saving.
 
 ## [1.0.0]
 
