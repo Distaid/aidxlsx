@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Show the package icon, target .NET version, release and NuGet versions, download count, CI status, and license in the README.
+
 ### Fixed
 
 - Download release assets from the release packaging job and verify their checksums before creating a GitHub Release.

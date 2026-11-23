@@ -1,5 +1,14 @@
 # Aid.Xlsx
 
+![Aid.Xlsx icon](https://raw.githubusercontent.com/Distaid/aidxlsx/main/assets/icon.png)
+
+[![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+[![Latest GitHub release](https://img.shields.io/github/v/release/Distaid/aidxlsx?label=GitHub%20release)](https://github.com/Distaid/aidxlsx/releases/latest)
+[![NuGet version](https://img.shields.io/nuget/v/Aid.Xlsx?logo=nuget&label=NuGet)](https://www.nuget.org/packages/Aid.Xlsx)
+[![NuGet downloads](https://img.shields.io/nuget/dt/Aid.Xlsx?label=NuGet%20downloads)](https://www.nuget.org/packages/Aid.Xlsx)
+[![CI status](https://img.shields.io/github/actions/workflow/status/Distaid/aidxlsx/ci.yml?branch=main&logo=githubactions&label=CI)](https://github.com/Distaid/aidxlsx/actions/workflows/ci.yml?query=branch%3Amain)
+[![MIT license](https://img.shields.io/badge/license-MIT-blue)](https://github.com/Distaid/aidxlsx/blob/main/LICENSE)
+
 Aid.Xlsx is a .NET library for reading, creating and editing `.xlsx` and `.xlsm`
 workbooks. It targets `net10.0` and uses its own OPC/XML layer. The Open XML SDK is
 used by the tests for schema validation.
