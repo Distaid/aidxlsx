@@ -3,8 +3,8 @@
 ![Aid.Xlsx icon](https://raw.githubusercontent.com/Distaid/aidxlsx/main/assets/icon.png)
 
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
-[![GitHub release v1.0.0](https://img.shields.io/badge/GitHub%20release-v1.0.0-blue?logo=github)](https://github.com/Distaid/aidxlsx/releases/tag/v1.0.0)
-[![NuGet version 1.0.0](https://img.shields.io/badge/NuGet-1.0.0-004880?logo=nuget)](https://www.nuget.org/packages/Aid.Xlsx/1.0.0)
+[![GitHub release v1.0.1](https://img.shields.io/badge/GitHub%20release-v1.0.1-blue?logo=github)](https://github.com/Distaid/aidxlsx/releases/tag/v1.0.1)
+[![NuGet version 1.0.1](https://img.shields.io/badge/NuGet-1.0.1-004880?logo=nuget)](https://www.nuget.org/packages/Aid.Xlsx/1.0.1)
 [![NuGet downloads](https://img.shields.io/nuget/dt/Aid.Xlsx?label=NuGet%20downloads)](https://www.nuget.org/packages/Aid.Xlsx)
 [![CI status](https://img.shields.io/github/actions/workflow/status/Distaid/aidxlsx/ci.yml?branch=main&logo=githubactions&label=CI)](https://github.com/Distaid/aidxlsx/actions/workflows/ci.yml?query=branch%3Amain)
 [![MIT license](https://img.shields.io/badge/license-MIT-blue)](https://github.com/Distaid/aidxlsx/blob/main/LICENSE)
@@ -13,7 +13,7 @@ Aid.Xlsx is a .NET library for reading, creating and editing `.xlsx` and `.xlsm`
 workbooks. It targets `net10.0` and uses its own OPC/XML layer. The Open XML SDK is
 used by the tests for schema validation.
 
-The `1.x` release line targets .NET 10. The move to .NET 11 is planned for `2.0.0`.
+The `1.x` release line targets .NET 10. Aid.Xlsx `2.0.0` targets .NET 11.
 
 ## Documentation
 
@@ -103,10 +103,10 @@ dotnet build Aid.Xlsx.slnx -c Release
 The first restore needs network access. See the [migration guide](docs/migration-from-closedxml.md),
 [compatibility notes](docs/compatibility.md), and [NativeAOT guide](docs/native-aot.md).
 
-For `1.0.0`, run the GitHub `release` workflow on `main` with `version` set to `1.0.0`.
+For `1.0.1`, run the GitHub `release` workflow on `release/1.x` with `version` set to `1.0.1`.
 This dry run uploads the NuGet and symbol packages, a CycloneDX dependency SBOM, and
 SHA-256 checksums. After it passes, publication is triggered by the owner pushing
-`v1.0.0` on the verified commit. The publish job uses the `nuget-production` environment.
+`v1.0.1` on the verified commit. The publish job uses the `nuget-production` environment.
 
 ## License
 

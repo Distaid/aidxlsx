@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resolve the nullability mismatch in `Reference.RangeOp`, where a list of nullable
   worksheets was assigned to a non-nullable collection.
 - Call `GC.SuppressFinalize` from `MceXmlReader.Dispose`.
-- Point the GitHub release and NuGet version badges to Aid.Xlsx 1.0.0 on the 1.x branch.
+- Point the GitHub release and NuGet version badges at the released 1.x version on this branch.
 - Download release assets from the release packaging job and verify their checksums before creating a GitHub Release.
 - Honor workbook defaults when setting `workbook.Style` before adding worksheets and retain the style after saving.
 
