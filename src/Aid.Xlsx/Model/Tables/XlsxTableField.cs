@@ -246,7 +246,7 @@ internal class XlsxTableField(XlsxTable table, String name) : IXlsxTableField
             var modifiedName = Name;
             QuotedTableFieldCharacters.ForEach(c => modifiedName = modifiedName.Replace(c, "'" + c));
 
-            if (modifiedName.StartsWith(" ") || modifiedName.EndsWith(" "))
+            if (modifiedName.StartsWith(' ') || modifiedName.EndsWith(' '))
             {
                 modifiedName = "[" + modifiedName + "]";
             }

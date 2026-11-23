@@ -42,7 +42,7 @@ internal static class ArgumentsExtensions
     /// all values are treated same. Make sure the method is static lambda to avoid useless allocations.
     /// </param>
     public static OneOf<TValue, XlsxError> Aggregate<TValue>(
-         this Span<AnyValue> args,
+         this ReadOnlySpan<AnyValue> args,
          CalcContext ctx,
          TValue initialValue,
          OneOf<TValue, XlsxError> noElementsResult,

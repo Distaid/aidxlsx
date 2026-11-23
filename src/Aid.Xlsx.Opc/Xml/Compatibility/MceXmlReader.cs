@@ -192,6 +192,8 @@ public class MceXmlReader : IXmlReader
     {
         if (!_leaveOpen)
             _reader.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private bool IsIgnored()

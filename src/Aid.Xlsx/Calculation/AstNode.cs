@@ -286,7 +286,7 @@ internal class NameNode(PrefixNode? prefix, string name) : ValueNode
 
         // Parser needs an equal sign for a union of ranges (or braces around formula)
         var nameFormula = definedName.RefersTo;
-        nameFormula = nameFormula.StartsWith("=") ? nameFormula : "=" + nameFormula;
+        nameFormula = nameFormula.StartsWith('=') ? nameFormula : "=" + nameFormula;
         return engine.EvaluateName(nameFormula, ctxWs);
     }
 

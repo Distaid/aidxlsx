@@ -417,7 +417,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         {
             var split = name.Split('!');
             var first = split[0];
-            var wsName = first.StartsWith("'") ? first[1..^1] : first;
+            var wsName = first.StartsWith('\'') ? first[1..^1] : first;
             var sheetlessName = split[1];
             if (TryGetWorksheet(wsName, out XlsxWorksheet ws))
             {
@@ -1343,7 +1343,6 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
 
     private void ThrowIfDisposed()
     {
-        if (_disposed)
-            throw new ObjectDisposedException(nameof(XlsxWorkbook));
+        ObjectDisposedException.ThrowIf(_disposed, this);
     }
 }

@@ -1517,7 +1517,7 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
             return Range(new XlsxRangeAddress(Worksheet, rangeAddressStr));
 
         if (rangeAddressStr.Contains('['))
-            return Table(rangeAddressStr[..rangeAddressStr.IndexOf("[")]) as XlsxRange;
+            return Table(rangeAddressStr[..rangeAddressStr.IndexOf('[')]) as XlsxRange;
 
         if (DefinedNames.TryGetValue(rangeAddressStr, out var sheetDefinedName))
             return sheetDefinedName.Ranges.First().CastTo<XlsxRange>();

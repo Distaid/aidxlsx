@@ -410,7 +410,7 @@ public partial class XlsxWorkbook
             if (opacity != null)
             {
                 String opacityVal = opacity.Value;
-                if (opacityVal.EndsWith("f"))
+                if (opacityVal.EndsWith('f'))
                     drawing.Style.ColorsAndLines.FillTransparency =
                         Double.Parse(opacityVal[..^1], CultureInfo.InvariantCulture) / 65536.0;
                 else
@@ -425,7 +425,7 @@ public partial class XlsxWorkbook
             if (opacity != null)
             {
                 String opacityVal = opacity.Value;
-                if (opacityVal.EndsWith("f"))
+                if (opacityVal.EndsWith('f'))
                     drawing.Style.ColorsAndLines.LineTransparency =
                         Double.Parse(opacityVal[..^1], CultureInfo.InvariantCulture) / 65536.0;
                 else
@@ -562,7 +562,7 @@ public partial class XlsxWorkbook
         }
     }
 
-    private void LoadClientData<T>(IXlsxDrawing<T> drawing, XElement clientData)
+    private static void LoadClientData<T>(IXlsxDrawing<T> drawing, XElement clientData)
     {
         var anchor = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "Anchor");
         if (anchor != null) LoadClientDataAnchor<T>(drawing, anchor);

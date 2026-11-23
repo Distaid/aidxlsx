@@ -20,9 +20,8 @@ internal class XlsxIdManager
         Int32 id = 1;
         while (true)
         {
-            if (!_hash.Contains(id))
+            if (_hash.Add(id))
             {
-                _hash.Add(id);
                 return id;
             }
             id++;

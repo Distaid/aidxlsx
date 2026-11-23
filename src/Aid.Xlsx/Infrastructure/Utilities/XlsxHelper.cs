@@ -275,8 +275,8 @@ public static partial class XlsxHelper
     private static String ReplaceGroup(String value, String item)
     {
         var split = value.Split(':');
-        String ret1 = split[0].StartsWith("$") ? split[0] : item;
-        String ret2 = split[1].StartsWith("$") ? split[1] : item;
+        String ret1 = split[0].StartsWith('$') ? split[0] : item;
+        String ret2 = split[1].StartsWith('$') ? split[1] : item;
         return ret1 + ":" + ret2;
     }
 

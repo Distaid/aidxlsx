@@ -43,11 +43,11 @@ internal sealed partial class XlsxCell : IXlsxCell, IXlsxFormatContainer
 , RegexOptions.Compiled)]
     private static partial Regex A1RowRegex { get; }
 
-    private static readonly Regex A1ColumnRegex = new(
-        @"(\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})" // A:A
-        , RegexOptions.Compiled);
+    [GeneratedRegex(@"(\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})")] // A:A
+    private static partial Regex A1ColumnRegex { get; }
 
-    private static readonly Regex utfPattern = new(@"(?<!_x005F)_x(?!005F)([0-9A-F]{4})_", RegexOptions.Compiled);
+    [GeneratedRegex(@"(?<!_x005F)_x(?!005F)([0-9A-F]{4})_")]
+    private static partial Regex utfPattern { get; }
 
 
     private readonly XlsxCellsCollection _cellsCollection;
@@ -1229,7 +1229,7 @@ internal sealed partial class XlsxCell : IXlsxCell, IXlsxFormatContainer
             return defaultWorksheet.Cell(target);
 
         var wsName = pair[0];
-        if (wsName.StartsWith("'"))
+        if (wsName.StartsWith('\''))
             wsName = wsName[1..^1];
         return defaultWorksheet.Workbook.Worksheet(wsName).Cell(pair[1]);
     }

@@ -348,7 +348,6 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
 
     private void ThrowIfDisposed()
     {
-        if (_disposed)
-            throw new ObjectDisposedException(nameof(XlsxPicture));
+        ObjectDisposedException.ThrowIf(_disposed, this);
     }
 }

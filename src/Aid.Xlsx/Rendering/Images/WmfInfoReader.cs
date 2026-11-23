@@ -117,7 +117,7 @@ internal class WmfInfoReader : ImageInfoReader
         public ushort Inch { get; }
         public ushort CheckSum { get; }
 
-        public PlaceableHeader(Span<byte> s)
+        public PlaceableHeader(ReadOnlySpan<byte> s)
         {
             _key = GetU32LE(s, 0);
             _resourceHandle = GetU16LE(s, 4);

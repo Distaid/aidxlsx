@@ -218,7 +218,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
             _name = value;
 
             // Some totals row formula depend on the table name. Update them.
-            if (_fieldNames?.Any() ?? false)
+            if ((_fieldNames?.Count ?? 0) > 0)
                 this.Fields.ForEach(f => (f as XlsxTableField).UpdateTableFieldTotalsRowFormula());
 
             if (!String.IsNullOrWhiteSpace(oldname) && !String.Equals(oldname, _name, StringComparison.OrdinalIgnoreCase))

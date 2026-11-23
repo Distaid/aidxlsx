@@ -162,9 +162,8 @@ public partial class XlsxWorkbook
             while (true)
             {
                 var relId = String.Concat("rId", id);
-                if (!set.Contains(relId))
+                if (set.Add(relId))
                 {
-                    set.Add(relId);
                     return relId;
                 }
                 id++;
