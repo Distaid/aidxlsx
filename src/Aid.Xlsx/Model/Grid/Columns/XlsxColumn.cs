@@ -462,7 +462,7 @@ internal class XlsxColumn : XlsxRangeBase, IXlsxColumn, IXlsxFormatContainer
 
     private XlsxCellFormatValue GetFormat()
     {
-        return FormatValue ?? Worksheet.Workbook.Styles.DefaultCellFormat;
+        return FormatValue ?? Worksheet.Workbook.Styles.DefaultFormat;
     }
 
     #endregion

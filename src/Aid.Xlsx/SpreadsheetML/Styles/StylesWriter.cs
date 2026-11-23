@@ -63,7 +63,7 @@ internal class StylesWriter
         // Determine which format components are used and thus should be saved.
         var usedCellFormats = new HashSet<XlsxCellFormatValue>(ReferenceEqualityComparer<XlsxCellFormatValue>.Instance)
         {
-            styles.DefaultCellFormat
+            styles.DefaultFormat
         };
         foreach (var sheet in workbook.WorksheetsInternal)
         {

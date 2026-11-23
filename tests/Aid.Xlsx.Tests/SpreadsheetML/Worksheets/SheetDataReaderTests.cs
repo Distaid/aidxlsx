@@ -482,7 +482,7 @@ internal class SheetDataReaderTests
                 Assert.AreEqual(2, row.OutlineLevel);
                 Assert.True(row.ShowPhonetic);
                 Assert.AreEqual(0.25, row.DyDescent);
-                Assert.AreSame(ws.Workbook.Styles.DefaultCellFormat, row.FormatValue);
+                Assert.AreSame(ws.Workbook.Styles.DefaultFormat, row.FormatValue);
             });
     }
 
@@ -514,7 +514,7 @@ internal class SheetDataReaderTests
             (_, ws) =>
             {
                 var cell = ws.Cell("A1")!;
-                Assert.AreSame(ws.Workbook.Styles.DefaultCellFormat, cell.FormatValue);
+                Assert.AreSame(ws.Workbook.Styles.DefaultFormat, cell.FormatValue);
                 Assert.True(cell.ShowPhonetic);
                 Assert.AreEqual(3u, cell.CellMetaIndex);
                 Assert.AreEqual(4u, cell.ValueMetaIndex);
@@ -554,7 +554,7 @@ internal class SheetDataReaderTests
         var dateTimeFormat = wb.Styles.NumberFormats[(int)XlsxPredefinedFormat.DateTime.DayMonthYear4WithSlashes];
         var ws = wb.AddWorksheet();
         var dateFormat = wb.Styles.GetRegisteredCellFormat(
-            wb.Styles.DefaultCellFormat,
+            wb.Styles.DefaultFormat,
             f => f with { NumberFormat = dateTimeFormat });
         var xfId = wb.Styles.CellFormats[dateFormat];
 
@@ -580,7 +580,7 @@ internal class SheetDataReaderTests
         var timeSpanFormat = wb.Styles.NumberFormats[(int)XlsxPredefinedFormat.DateTime.Hour24MinutesSeconds];
         var ws = wb.AddWorksheet();
         var timeFormat = wb.Styles.GetRegisteredCellFormat(
-            wb.Styles.DefaultCellFormat,
+            wb.Styles.DefaultFormat,
             f => f with { NumberFormat = timeSpanFormat });
         var xfId = wb.Styles.CellFormats[timeFormat];
 

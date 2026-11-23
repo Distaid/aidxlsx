@@ -99,8 +99,14 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <param name="options">The options to determine whether a cell is used.</param>
     IXlsxCells CellsUsed(XlsxCellsUsedOptions options);
 
+    /// <summary>
+    /// Returns cells considered used by <see cref="XlsxCellsUsedOptions.AllContents"/> that match the predicate.
+    /// </summary>
     IXlsxCells CellsUsed(Func<IXlsxCell, Boolean> predicate);
 
+    /// <summary>
+    /// Returns cells considered used by <paramref name="options"/> that match the predicate.
+    /// </summary>
     IXlsxCells CellsUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, Boolean> predicate);
 
     /// <summary>

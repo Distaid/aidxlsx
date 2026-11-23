@@ -731,7 +731,7 @@ internal partial class XlsxCellFormat
             _point = point;
         }
 
-        private XlsxCellFormatValue DefaultFormat => _workbook.Styles.DefaultCellFormat;
+        private XlsxCellFormatValue DefaultFormat => _workbook.Styles.DefaultFormat;
 
         internal XlsxCellFormatValue Resolve()
         {

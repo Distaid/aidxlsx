@@ -50,6 +50,15 @@ in `tests/Aid.Xlsx.ApiCompat/Baselines/PublicApi.txt`. Run the compatibility pro
 The tests also compare loading and reopening the ten saved workbooks against checked-in
 reference snapshots. Open XML SDK schema validation checks the saved packages independently.
 
+## Template export regression tests
+
+| Scenario | Test coverage |
+| --- | --- |
+| Insert rows below a bounded range near merges | The template round-trip checks that a merge fully inside the shifted columns moves with its content and that merges outside those columns stay in place. `RangeShiftDownBreaksMerges` covers partial overlaps, where an insertion removes the affected merge. [Template tests](../tests/Aid.Xlsx.Tests/SpreadsheetML/Workbooks/TemplateExportTests.cs) · [Partial overlap test](../tests/Aid.Xlsx.Tests/Model/Grid/Ranges/MergedRangesTests.cs) |
+| Assign a source style to a column range | The template round-trip checks the copied border, fill, and number format after saving and reopening. [Template tests](../tests/Aid.Xlsx.Tests/SpreadsheetML/Workbooks/TemplateExportTests.cs) |
+| Preserve row height | The template round-trip checks the height of a full row after it shifts and the height explicitly set on an inserted row. Use a whole-row insertion when the row itself needs to move. [Template tests](../tests/Aid.Xlsx.Tests/SpreadsheetML/Workbooks/TemplateExportTests.cs) |
+| Preserve unknown package parts | Tests compare the bytes of a custom binary part and a VBA project, confirm that a disconnected part remains present, and check internal and external relationship targets. These checks compare part payloads and links, independent of ZIP entry order. [OPC round-trip tests](../tests/Aid.Xlsx.Tests/SpreadsheetML/Workbooks/WorkbookOpcRoundTripTests.cs) |
+
 ## Migration differences
 
 - Package and DrawingML helpers that exposed SDK types are absent from the workbook API.
@@ -58,3 +67,6 @@ reference snapshots. Open XML SDK schema validation checks the saved packages in
   range collections, sparkline state and picture disposal.
 - Aid.Xlsx adds compiled table mapping, the BIFF8 converter, load options and automatic
   colors. It also records nullable annotations on a few existing members.
+
+See the [migration guide](migration-from-closedxml.md#known-gaps-and-replacements) for
+specific replacements and examples.
