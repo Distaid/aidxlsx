@@ -12,7 +12,7 @@ internal class TableNameGenerator
     /// <returns>Name for the table</returns>
     internal static string GetNewTableName(IXlsxWorkbook workbook, string baseTableName = "Table")
     {
-        var existingTableNames = new HashSet<String>(
+        var existingTableNames = new HashSet<string>(
             workbook.Worksheets
                 .SelectMany(ws => ws.Tables)
                 .Select(t => t.Name),

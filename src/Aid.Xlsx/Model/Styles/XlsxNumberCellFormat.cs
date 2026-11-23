@@ -18,12 +18,12 @@ internal sealed partial class XlsxNumberCellFormat
     {
         get
         {
-            var numberFormat = _parent.Resolve(static x => x.NumberFormat);
+            XlsxNumberFormat numberFormat = _parent.Resolve(static x => x.NumberFormat);
             return XlsxPredefinedFormat.NumberFormatIds.GetValueOrDefault(numberFormat, -1);
         }
         set
         {
-            if (!XlsxPredefinedFormat.FormatCodes.TryGetValue(value, out var format))
+            if (!XlsxPredefinedFormat.FormatCodes.TryGetValue(value, out XlsxNumberFormat format))
                 throw new ArgumentOutOfRangeException(nameof(value), value, $"Only predefined format is permitted. Use nested enums/members of {nameof(XlsxPredefinedFormat)}.");
 
             Format = format;

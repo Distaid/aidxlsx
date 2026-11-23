@@ -92,7 +92,7 @@ internal static class Financial
         if (period < 1 || period > numberOfPayments)
             return XlsxError.NumberInvalid;
 
-        double ipmt = FvInternal(rate, period - 1, PmtInternal(rate, numberOfPayments, presentValue, futureValue, type), presentValue, type) * rate;
+        var ipmt = FvInternal(rate, period - 1, PmtInternal(rate, numberOfPayments, presentValue, futureValue, type), presentValue, type) * rate;
 
         if (type != 0.0)
             ipmt /= (1 + rate);

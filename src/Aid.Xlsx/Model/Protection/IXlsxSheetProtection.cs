@@ -11,5 +11,5 @@ public interface IXlsxSheetProtection : IXlsxElementProtection<XlsxSheetProtecti
 
     IXlsxSheetProtection Protect(Algorithm algorithm, XlsxSheetProtectionElements allowedElements);
 
-    IXlsxSheetProtection Protect(String password, Algorithm algorithm = DefaultProtectionAlgorithm, XlsxSheetProtectionElements allowedElements = XlsxSheetProtectionElements.SelectEverything);
+    IXlsxSheetProtection Protect(string password, Algorithm algorithm = DefaultProtectionAlgorithm, XlsxSheetProtectionElements allowedElements = XlsxSheetProtectionElements.SelectEverything);
 }

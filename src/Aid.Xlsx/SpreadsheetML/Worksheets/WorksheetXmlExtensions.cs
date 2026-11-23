@@ -19,7 +19,7 @@ internal sealed partial class WorksheetXml
     internal void UpdateConditionalFormats(XlsxWorksheet sheet, XlsxWorkbook.SaveContext context)
     {
         var pivotFormats = sheet.PivotTables.SelectMany<XlsxPivotTable, XlsxConditionalFormat>(pivot => pivot.ConditionalFormats.Select(format => format.Format)).ToHashSet();
-        var formats = sheet.ConditionalFormats.Cast<XlsxConditionalFormat>().Concat(pivotFormats).OrderBy(format => format.Priority).ToArray();
+        XlsxConditionalFormat[] formats = [.. sheet.ConditionalFormats.Cast<XlsxConditionalFormat>().Concat(pivotFormats).OrderBy(format => format.Priority)];
         for (var i = 0; i < formats.Length; i++)
             formats[i].Priority = i + 1;
 
@@ -28,7 +28,7 @@ internal sealed partial class WorksheetXml
             IsPivot: pivotFormats.Contains(format)))
             .Select(group => ConditionalFormattingXml.WriteGroup(group.Key.References, group.Key.IsPivot, [.. group], context)));
 
-        var dataBars = sheet.ConditionalFormats.Cast<XlsxConditionalFormat>().Where(format => format.ConditionalFormatType == XlsxConditionalFormatType.DataBar).ToArray();
+        XlsxConditionalFormat[] dataBars = [.. sheet.ConditionalFormats.Cast<XlsxConditionalFormat>().Where(format => format.ConditionalFormatType == XlsxConditionalFormatType.DataBar)];
         if (dataBars.Length == 0)
         {
             RemoveExtensionPayload(ConditionalFormattingXml.DataBarsExtensionUri, Extended + "conditionalFormattings");
@@ -40,15 +40,15 @@ internal sealed partial class WorksheetXml
 
     internal void UpdateSparklines(XlsxWorksheet sheet)
     {
-        var groups = sheet.SparklineGroupsInternal.Where<XlsxSparklineGroup>(group => group.Sparklines.Any()).ToArray();
+        XlsxSparklineGroup[] groups = [.. sheet.SparklineGroupsInternal.Where<XlsxSparklineGroup>(group => group.Sparklines.Any())];
         if (groups.Length == 0)
         {
             RemoveExtensionPayload(SparklineUri, Extended + "sparklineGroups");
             return;
         }
 
-        var container = UpdateExtensionPayload(SparklineUri, Extended + "sparklineGroups");
-        foreach (var group in groups)
+        XElement container = UpdateExtensionPayload(SparklineUri, Extended + "sparklineGroups");
+        foreach (XlsxSparklineGroup? group in groups)
         {
             XNamespace revision = "http://schemas.microsoft.com/office/spreadsheetml/2015/revision2";
             var element = new XElement(Extended + "sparklineGroup",
@@ -80,7 +80,7 @@ internal sealed partial class WorksheetXml
             Flag(element, "rightToLeft", group.HorizontalAxis.RightToLeft);
             Flag(element, "dateAxis", group.HorizontalAxis.DateAxis);
 
-            var axis = group.VerticalAxis;
+            IXlsxSparklineVerticalAxis axis = group.VerticalAxis;
             element.SetAttributeValue("minAxisType", AxisType(axis.MinAxisType));
             element.SetAttributeValue("maxAxisType", AxisType(axis.MaxAxisType));
             if (axis.MinAxisType == XlsxSparklineAxisMinMax.Custom)
@@ -123,10 +123,10 @@ internal sealed partial class WorksheetXml
         var standard = new List<XElement>();
         var extended = new List<XElement>();
         var hasStandardValidation = false;
-        foreach (var rule in sheet.DataValidations)
+        foreach (XlsxDataValidation rule in sheet.DataValidations)
         {
-            var (minExternal, min) = ResolveFormula(rule.MinValue);
-            var (maxExternal, max) = ResolveFormula(rule.MaxValue);
+            (var minExternal, var min) = ResolveFormula(rule.MinValue);
+            (var maxExternal, var max) = ResolveFormula(rule.MaxValue);
             if (minExternal || maxExternal)
             {
                 extended.Add(WriteValidation(rule, min, max, Extended));
@@ -140,7 +140,7 @@ internal sealed partial class WorksheetXml
 
         if (hasStandardValidation)
         {
-            var element = GetOrAdd("dataValidations");
+            XElement element = GetOrAdd("dataValidations");
             element.Elements(Main + "dataValidation").Remove();
             element.Add(standard);
             element.SetAttributeValue("count", standard.Count);
@@ -152,7 +152,7 @@ internal sealed partial class WorksheetXml
 
         if (extended.Count > 0)
         {
-            var element = UpdateExtensionPayload(ValidationUri, Extended + "dataValidations");
+            XElement element = UpdateExtensionPayload(ValidationUri, Extended + "dataValidations");
             element.Add(extended);
             element.SetAttributeValue("count", extended.Count);
         }
@@ -253,8 +253,8 @@ internal sealed partial class WorksheetXml
 
     private XElement UpdateExtensionPayload(string uri, XName name)
     {
-        var extension = GetOrAddExtension(uri);
-        var payload = extension.Element(name);
+        XElement extension = GetOrAddExtension(uri);
+        XElement? payload = extension.Element(name);
         if (payload is null)
         {
             payload = new XElement(name, new XAttribute(XNamespace.Xmlns + "xm", Excel));
@@ -277,7 +277,7 @@ internal sealed partial class WorksheetXml
         if (extension.Nodes().Any())
             return;
 
-        var extensions = extension.Parent!;
+        XElement extensions = extension.Parent!;
         extension.Remove();
         if (!extensions.Nodes().Any())
             extensions.Remove();

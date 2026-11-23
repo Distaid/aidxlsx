@@ -20,10 +20,10 @@ internal static class TimeSpanExtensions
     /// Excel can convert time span string back to a number, but only if it doesn't has days in the string, only hours.
     /// It's an opposite of <see cref="TimeSpanParser"/>.
     /// </remarks>
-    public static String ToExcelString(this TimeSpan ts, CultureInfo culture)
+    public static string ToExcelString(this TimeSpan ts, CultureInfo culture)
     {
         var timeSep = culture.DateTimeFormat.TimeSeparator;
-        var sb = new StringBuilder()
+        StringBuilder sb = new StringBuilder()
             .Append(ts.Hours + 24 * ts.Days).Append(timeSep)
             .AppendFormat("{0:D2}", ts.Minutes).Append(timeSep)
             .AppendFormat("{0:D2}", ts.Seconds);

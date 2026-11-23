@@ -175,9 +175,9 @@ internal sealed class CalcContext
     internal ScalarValue GetCellValue(XlsxWorksheet? sheet, int rowNumber, int columnNumber)
     {
         sheet ??= Worksheet;
-        var valueSlice = sheet.Internals.CellsCollection.ValueSlice;
+        ValueSlice valueSlice = sheet.Internals.CellsCollection.ValueSlice;
         var point = new Point(rowNumber, columnNumber);
-        var formula = sheet.Internals.CellsCollection.FormulaSlice.Get(point);
+        XlsxCellFormula? formula = sheet.Internals.CellsCollection.FormulaSlice.Get(point);
 
         if (formula is null)
             return valueSlice.GetCellValue(point);
@@ -194,7 +194,7 @@ internal sealed class CalcContext
         // for them doesn't make sense.
         if (_recursive)
         {
-            var cell = sheet.GetCell(point);
+            XlsxCell? cell = sheet.GetCell(point);
             return cell?.Value ?? Blank.Value;
         }
 
@@ -208,17 +208,17 @@ internal sealed class CalcContext
     /// </summary>
     internal IEnumerable<ScalarValue> GetNonBlankValues(Reference reference)
     {
-        foreach (var area in reference.Areas)
+        foreach (XlsxRangeAddress area in reference.Areas)
         {
-            var sheet = area.Worksheet ?? Worksheet;
+            XlsxWorksheet sheet = area.Worksheet ?? Worksheet;
             var range = Area.FromRangeAddress(area);
 
             // A value can be either in a non-empty value slice or a empty cell with a formula.
-            var enumerator = sheet.Internals.CellsCollection.ForValuesAndFormulas(range);
+            XlsxCellsCollection.SlicesEnumerator enumerator = sheet.Internals.CellsCollection.ForValuesAndFormulas(range);
             while (enumerator.MoveNext())
             {
-                var point = enumerator.Current;
-                var scalarValue = GetCellValue(sheet, point.Row, point.Column);
+                Point point = enumerator.Current;
+                ScalarValue scalarValue = GetCellValue(sheet, point.Row, point.Column);
                 if (!scalarValue.IsBlank)
                     yield return scalarValue;
             }
@@ -230,7 +230,7 @@ internal sealed class CalcContext
     /// </summary>
     internal IEnumerable<Point> GetCriteriaPoints(XlsxRangeAddress areaReference, Criteria criteria)
     {
-        var sheet = areaReference.Worksheet ?? Worksheet;
+        XlsxWorksheet sheet = areaReference.Worksheet ?? Worksheet;
         var area = Area.FromRangeAddress(areaReference);
 
         // This is a performance optimization when user specifies a whole column
@@ -239,9 +239,9 @@ internal sealed class CalcContext
         {
             // Criteria can match blank cells, thus it's not possible to use optimized
             // used enumerators and we have to check value of each cell.
-            foreach (var point in area)
+            foreach (Point point in area)
             {
-                var scalarValue = GetCellValue(sheet, point.Row, point.Column);
+                ScalarValue scalarValue = GetCellValue(sheet, point.Row, point.Column);
                 if (criteria.Match(scalarValue))
                     yield return point;
             }
@@ -250,11 +250,11 @@ internal sealed class CalcContext
         {
             // The criteria can never match blank cells. That means we can skip all blank
             // cells entirely and use optimized used enumerators.
-            var enumerator = sheet.Internals.CellsCollection.ForValuesAndFormulas(area);
+            XlsxCellsCollection.SlicesEnumerator enumerator = sheet.Internals.CellsCollection.ForValuesAndFormulas(area);
             while (enumerator.MoveNext())
             {
-                var point = enumerator.Current;
-                var scalarValue = GetCellValue(sheet, point.Row, point.Column);
+                Point point = enumerator.Current;
+                ScalarValue scalarValue = GetCellValue(sheet, point.Row, point.Column);
                 if (criteria.Match(scalarValue))
                     yield return point;
             }
@@ -265,18 +265,18 @@ internal sealed class CalcContext
     {
         // Allocate one per call, because visitor holds info whether function was found in a formula.
         var visitor = new FunctionVisitor(function);
-        foreach (var area in reference.Areas)
+        foreach (XlsxRangeAddress area in reference.Areas)
         {
-            var sheet = area.Worksheet ?? Worksheet;
+            XlsxWorksheet sheet = area.Worksheet ?? Worksheet;
             var range = Area.FromRangeAddress(area);
             var currentRow = 0;
             var rowIsHidden = true;
 
             // A value can be either in a non-empty value slice or a empty cell with a formula.
-            var enumerator = sheet.Internals.CellsCollection.ForValuesAndFormulas(range);
+            XlsxCellsCollection.SlicesEnumerator enumerator = sheet.Internals.CellsCollection.ForValuesAndFormulas(range);
             while (enumerator.MoveNext())
             {
-                var point = enumerator.Current;
+                Point point = enumerator.Current;
 
                 if (skipHiddenRows)
                 {
@@ -284,18 +284,18 @@ internal sealed class CalcContext
                     if (currentRow != point.Row)
                     {
                         currentRow = point.Row;
-                        rowIsHidden = sheet.Internals.RowsCollection.TryGetValue(currentRow, out var row) && row.IsHidden;
+                        rowIsHidden = sheet.Internals.RowsCollection.TryGetValue(currentRow, out XlsxRow? row) && row.IsHidden;
                     }
 
                     if (rowIsHidden)
                         continue;
                 }
 
-                var formula = sheet.Internals.CellsCollection.FormulaSlice.Get(point);
+                XlsxCellFormula? formula = sheet.Internals.CellsCollection.FormulaSlice.Get(point);
                 if (CallsFunction(formula, visitor))
                     continue;
 
-                var scalarValue = GetCellValue(sheet, point.Row, point.Column);
+                ScalarValue scalarValue = GetCellValue(sheet, point.Row, point.Column);
                 if (!scalarValue.IsBlank)
                     yield return scalarValue;
             }
@@ -327,7 +327,7 @@ internal sealed class CalcContext
     /// </summary>
     internal IEnumerable<ScalarValue> GetNonBlankValues(AnyValue value)
     {
-        if (value.TryPickScalar(out var scalar, out var collection))
+        if (value.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> collection))
         {
             if (scalar.IsBlank)
                 return [];
@@ -335,7 +335,7 @@ internal sealed class CalcContext
             return new ScalarArray(scalar, 1, 1);
         }
 
-        if (collection.TryPickT0(out var array, out var reference))
+        if (collection.TryPickT0(out Array? array, out Reference? reference))
             return array.Where(x => !x.IsBlank);
 
         return GetNonBlankValues(reference);
@@ -343,10 +343,10 @@ internal sealed class CalcContext
 
     internal IEnumerable<ScalarValue> GetAllValues(AnyValue value)
     {
-        if (value.TryPickScalar(out var scalar, out var collection))
+        if (value.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> collection))
             return new ScalarArray(scalar, 1, 1);
 
-        if (collection.TryPickT0(out var array, out var reference))
+        if (collection.TryPickT0(out Array? array, out Reference? reference))
             return array;
 
         return GetAllCellValues(reference);
@@ -354,10 +354,10 @@ internal sealed class CalcContext
 
     internal IEnumerable<ScalarValue> GetAllCellValues(Reference reference)
     {
-        foreach (var area in reference.Areas)
+        foreach (XlsxRangeAddress area in reference.Areas)
         {
-            var sheet = area.Worksheet;
-            foreach (var point in Area.FromRangeAddress(area))
+            XlsxWorksheet? sheet = area.Worksheet;
+            foreach (Point point in Area.FromRangeAddress(area))
             {
                 yield return GetCellValue(sheet, point.Row, point.Column);
             }

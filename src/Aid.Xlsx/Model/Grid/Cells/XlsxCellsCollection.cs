@@ -25,7 +25,7 @@ internal class XlsxCellsCollection : IWorkbookListener
         get
         {
             var set = new HashSet<int>();
-            foreach (var slice in _slices)
+            foreach (ISlice slice in _slices)
                 set.UnionWith(slice.UsedColumns);
 
             return set;
@@ -34,24 +34,24 @@ internal class XlsxCellsCollection : IWorkbookListener
 
     internal bool IsEmpty => _slices.All(slice => slice.IsEmpty);
 
-    internal Int32 MaxColumnUsed
+    internal int MaxColumnUsed
     {
         get
         {
             var max = int.MinValue;
-            foreach (var slice in _slices)
+            foreach (ISlice slice in _slices)
                 max = Math.Max(max, slice.MaxColumn);
 
             return Math.Max(1, max);
         }
     }
 
-    internal Int32 MaxRowUsed
+    internal int MaxRowUsed
     {
         get
         {
             var max = int.MinValue;
-            foreach (var slice in _slices)
+            foreach (ISlice slice in _slices)
                 max = Math.Max(max, slice.MaxRow);
 
             return Math.Max(1, max);
@@ -63,7 +63,7 @@ internal class XlsxCellsCollection : IWorkbookListener
         get
         {
             var set = new HashSet<int>();
-            foreach (var slice in _slices)
+            foreach (ISlice slice in _slices)
                 set.UnionWith(slice.UsedRows);
 
             return set;
@@ -87,19 +87,19 @@ internal class XlsxCellsCollection : IWorkbookListener
 
     internal void Clear(Area clearRange)
     {
-        foreach (var slice in _slices)
+        foreach (ISlice slice in _slices)
             slice.Clear(clearRange);
     }
 
     internal void DeleteAreaAndShiftLeft(Area rangeToDelete)
     {
-        foreach (var slice in _slices)
+        foreach (ISlice slice in _slices)
             slice.DeleteAreaAndShiftLeft(rangeToDelete);
     }
 
     internal void DeleteAreaAndShiftUp(Area rangeToDelete)
     {
-        foreach (var slice in _slices)
+        foreach (ISlice slice in _slices)
             slice.DeleteAreaAndShiftUp(rangeToDelete);
     }
 
@@ -119,7 +119,7 @@ internal class XlsxCellsCollection : IWorkbookListener
     /// <summary>
     /// Get all used cells in the worksheet that satisfy the predicate.
     /// </summary>
-    internal IEnumerable<XlsxCell> GetCells(Func<XlsxCell, Boolean> predicate)
+    internal IEnumerable<XlsxCell> GetCells(Func<XlsxCell, bool> predicate)
     {
         return GetCells(Area.Full, predicate);
     }
@@ -127,9 +127,9 @@ internal class XlsxCellsCollection : IWorkbookListener
     /// <summary>
     /// Get all used cells in the range that satisfy the predicate.
     /// </summary>
-    internal IEnumerable<XlsxCell> GetCells(Int32 rowStart, Int32 columnStart,
-                                        Int32 rowEnd, Int32 columnEnd,
-                                        Func<XlsxCell, Boolean>? predicate = null)
+    internal IEnumerable<XlsxCell> GetCells(int rowStart, int columnStart,
+                                        int rowEnd, int columnEnd,
+                                        Func<XlsxCell, bool>? predicate = null)
     {
         return GetCells(new Area(rowStart, columnStart, rowEnd, columnEnd), predicate);
     }
@@ -137,25 +137,25 @@ internal class XlsxCellsCollection : IWorkbookListener
     /// <summary>
     /// Get all used cells in the range that satisfy the predicate.
     /// </summary>
-    internal IEnumerable<XlsxCell> GetCells(Area range, Func<XlsxCell, Boolean>? predicate = null)
+    internal IEnumerable<XlsxCell> GetCells(Area range, Func<XlsxCell, bool>? predicate = null)
     {
         var enumerator = new SlicesEnumerator(range, this);
 
         while (enumerator.MoveNext())
         {
-            var cellAddress = enumerator.Current;
-            var cell = GetCell(cellAddress);
+            Point cellAddress = enumerator.Current;
+            XlsxCell cell = GetCell(cellAddress);
             if (predicate == null || predicate(cell))
                 yield return cell;
         }
     }
 
-    internal IEnumerable<XlsxCell> GetCellsInColumn(Int32 column)
+    internal IEnumerable<XlsxCell> GetCellsInColumn(int column)
     {
         return GetCells(1, column, XlsxHelper.MaxRowNumber, column);
     }
 
-    internal IEnumerable<XlsxCell> GetCellsInRow(Int32 row)
+    internal IEnumerable<XlsxCell> GetCellsInRow(int row)
     {
         return GetCells(row, 1, row, XlsxHelper.MaxColumnNumber);
     }
@@ -171,34 +171,34 @@ internal class XlsxCellsCollection : IWorkbookListener
         return GetCell(address);
     }
 
-    internal int FirstColumnUsed(Area searchRange, XlsxCellsUsedOptions options, Func<IXlsxCell, Boolean>? predicate = null)
+    internal int FirstColumnUsed(Area searchRange, XlsxCellsUsedOptions options, Func<IXlsxCell, bool>? predicate = null)
     {
         return FindUsedColumn(searchRange, options, predicate, false);
     }
 
-    internal int FirstRowUsed(Area searchRange, XlsxCellsUsedOptions options, Func<IXlsxCell, Boolean>? predicate = null)
+    internal int FirstRowUsed(Area searchRange, XlsxCellsUsedOptions options, Func<IXlsxCell, bool>? predicate = null)
     {
         return FindUsedRow(searchRange, options, predicate, false);
     }
 
     internal void InsertAreaAndShiftDown(Area insertedRange)
     {
-        foreach (var slice in _slices)
+        foreach (ISlice slice in _slices)
             slice.InsertAreaAndShiftDown(insertedRange);
     }
 
     internal void InsertAreaAndShiftRight(Area insertedRange)
     {
-        foreach (var slice in _slices)
+        foreach (ISlice slice in _slices)
             slice.InsertAreaAndShiftRight(insertedRange);
     }
 
-    internal int LastColumnUsed(Area searchRange, XlsxCellsUsedOptions options, Func<IXlsxCell, Boolean>? predicate = null)
+    internal int LastColumnUsed(Area searchRange, XlsxCellsUsedOptions options, Func<IXlsxCell, bool>? predicate = null)
     {
         return FindUsedColumn(searchRange, options, predicate, true);
     }
 
-    internal int LastRowUsed(Area searchRange, XlsxCellsUsedOptions options, Func<IXlsxCell, Boolean>? predicate = null)
+    internal int LastRowUsed(Area searchRange, XlsxCellsUsedOptions options, Func<IXlsxCell, bool>? predicate = null)
     {
         return FindUsedRow(searchRange, options, predicate, true);
     }
@@ -297,10 +297,10 @@ internal class XlsxCellsCollection : IWorkbookListener
         }
     }
 
-    private int FindUsedColumn(Area range, XlsxCellsUsedOptions options, Func<IXlsxCell, Boolean>? predicate, bool descending)
+    private int FindUsedColumn(Area range, XlsxCellsUsedOptions options, Func<IXlsxCell, bool>? predicate, bool descending)
     {
-        var usedColumns = Enumerable.Empty<int>();
-        foreach (var slice in _slices)
+        IEnumerable<int> usedColumns = [];
+        foreach (ISlice slice in _slices)
             usedColumns = usedColumns.Concat(slice.UsedColumns);
 
         usedColumns = usedColumns
@@ -327,14 +327,14 @@ internal class XlsxCellsCollection : IWorkbookListener
         return 0;
     }
 
-    private int FindUsedRow(Area searchRange, XlsxCellsUsedOptions options, Func<IXlsxCell, Boolean>? predicate, bool reverse)
+    private int FindUsedRow(Area searchRange, XlsxCellsUsedOptions options, Func<IXlsxCell, bool>? predicate, bool reverse)
     {
         var enumerator = new SlicesEnumerator(searchRange, this, reverse);
 
         while (enumerator.MoveNext())
         {
-            var cellAddress = enumerator.Current;
-            var cell = GetCell(cellAddress);
+            Point cellAddress = enumerator.Current;
+            XlsxCell cell = GetCell(cellAddress);
             if (!cell.IsEmpty(options)
                 && (predicate == null || predicate(cell)))
                 return cellAddress.Row;
@@ -347,7 +347,7 @@ internal class XlsxCellsCollection : IWorkbookListener
     {
         // This is different from XlsxCellUsedOptions, which uses a business logic (e.g. empty string is considered not-used).
         // Here, we ask whether any slice contains a used elements which might differ from cell used logic.
-        foreach (var slice in _slices)
+        foreach (ISlice slice in _slices)
         {
             if (slice.IsUsed(address))
                 return true;
@@ -369,8 +369,8 @@ internal class XlsxCellsCollection : IWorkbookListener
     /// </summary>
     internal SlicesEnumerator ForValuesAndFormulas(Area range)
     {
-        var valueEnumerator = ValueSlice.GetEnumerator(range);
-        var formulaEnumerator = FormulaSlice.GetEnumerator(range);
+        IEnumerator<Point> valueEnumerator = ValueSlice.GetEnumerator(range);
+        IEnumerator<Point> formulaEnumerator = FormulaSlice.GetEnumerator(range);
         return new SlicesEnumerator(false, valueEnumerator, formulaEnumerator);
     }
 
@@ -399,11 +399,11 @@ internal class XlsxCellsCollection : IWorkbookListener
     /// <param name="modififyBorder">Return a modified border of a format. Must be deterministic.</param>
     internal void ApplyFormatOnAll(Area area, Func<XlsxBorderFormatValue, XlsxBorderFormatValue> modififyBorder)
     {
-        var styles = Worksheet.Workbook.Styles;
+        XlsxWorkbookStyles styles = Worksheet.Workbook.Styles;
         XlsxCellFormatValue modifyFormat(XlsxCellFormatValue format)
         {
-            var modifiedBorder = styles.GetRegisteredBorderFormat(format.Border, modififyBorder);
-            var modifiedFormat = format with
+            XlsxBorderFormatValue modifiedBorder = styles.GetRegisteredBorderFormat(format.Border, modififyBorder);
+            XlsxCellFormatValue modifiedFormat = format with
             {
                 Border = modifiedBorder,
                 CustomFormat = format.CustomFormat | CellFormatComponents.Border
@@ -419,7 +419,7 @@ internal class XlsxCellsCollection : IWorkbookListener
     /// <inheritdoc cref="ApplyFormatOnUsed"/>
     internal void ApplyFormatOnAll(Area area, Func<XlsxCellFormatValue, XlsxCellFormatValue> modification, Func<Point, XlsxCellFormatValue> resolver)
     {
-        using var areaEnumerator = area.GetEnumerator();
+        using IEnumerator<Point> areaEnumerator = area.GetEnumerator();
         var enumerator = new SlicesEnumerator(false, areaEnumerator);
         ApplyFormat(enumerator, modification, resolver);
     }
@@ -429,9 +429,9 @@ internal class XlsxCellsCollection : IWorkbookListener
         var cache = new Dictionary<XlsxCellFormatValue, XlsxCellFormatValue>(ReferenceEqualityComparer<XlsxCellFormatValue>.Instance);
         while (enumerator.MoveNext())
         {
-            var point = enumerator.Current;
-            var format = FormatSlice.GetFormat(point) ?? resolver(point);
-            if (!cache.TryGetValue(format, out var modifiedFormat))
+            Point point = enumerator.Current;
+            XlsxCellFormatValue format = FormatSlice.GetFormat(point) ?? resolver(point);
+            if (!cache.TryGetValue(format, out XlsxCellFormatValue? modifiedFormat))
             {
                 modifiedFormat = modification(format);
                 cache.Add(format, modifiedFormat);
@@ -465,7 +465,7 @@ internal class XlsxCellsCollection : IWorkbookListener
             Current = new Point(1, 1);
             _reverse = reverse;
             _enumerators = [];
-            foreach (var enumerator in enumerators)
+            foreach (IEnumerator<Point> enumerator in enumerators)
             {
                 if (enumerator.MoveNext())
                     _enumerators.Add(enumerator);
@@ -479,7 +479,7 @@ internal class XlsxCellsCollection : IWorkbookListener
             Point? current = null;
             for (var i = 0; i < _enumerators.Count; ++i)
             {
-                var enumerator = _enumerators[i];
+                IEnumerator<Point> enumerator = _enumerators[i];
                 if (current is null || (
                         _reverse
                             ? enumerator.Current.CompareTo(current.Value) > 0
@@ -495,7 +495,7 @@ internal class XlsxCellsCollection : IWorkbookListener
 
             for (var i = _enumerators.Count - 1; i >= 0; --i)
             {
-                var enumerator = _enumerators[i];
+                IEnumerator<Point> enumerator = _enumerators[i];
                 if (enumerator.Current == current)
                 {
                     var isDone = !enumerator.MoveNext();
@@ -512,11 +512,11 @@ internal class XlsxCellsCollection : IWorkbookListener
 
     void IWorkbookListener.OnSheetRenamed(string oldSheetName, string newSheetName)
     {
-        using var enumerator = FormulaSlice.GetForwardEnumerator(Area.Full);
+        using Slice<XlsxCellFormula>.Enumerator enumerator = FormulaSlice.GetForwardEnumerator(Area.Full);
         while (enumerator.MoveNext())
         {
             ref readonly XlsxCellFormula cellFormula = ref enumerator.Current;
-            var currentPoint = enumerator.Point;
+            Point currentPoint = enumerator.Point;
             if (cellFormula.Type != FormulaType.Normal)
             {
                 // Array or data formula. Only change name once, on master cell.

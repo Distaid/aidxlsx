@@ -181,27 +181,27 @@ public enum XlsxFontScheme
 
 public interface IXlsxFont : IXlsxFontBase, IEquatable<IXlsxFont>
 {
-    IXlsxStyle SetBold(); IXlsxStyle SetBold(Boolean value);
+    IXlsxStyle SetBold(); IXlsxStyle SetBold(bool value);
 
-    IXlsxStyle SetItalic(); IXlsxStyle SetItalic(Boolean value);
+    IXlsxStyle SetItalic(); IXlsxStyle SetItalic(bool value);
 
     IXlsxStyle SetUnderline(); IXlsxStyle SetUnderline(XlsxFontUnderlineValues value);
 
-    IXlsxStyle SetStrikethrough(); IXlsxStyle SetStrikethrough(Boolean value);
+    IXlsxStyle SetStrikethrough(); IXlsxStyle SetStrikethrough(bool value);
 
     IXlsxStyle SetVerticalAlignment(XlsxFontVerticalTextAlignmentValues value);
 
-    IXlsxStyle SetShadow(); IXlsxStyle SetShadow(Boolean value);
+    IXlsxStyle SetShadow(); IXlsxStyle SetShadow(bool value);
 
     /// <summary>
     /// Set font size in points.
     /// </summary>
     /// <inheritdoc cref="IXlsxFontBase.FontSize"/>
-    IXlsxStyle SetFontSize(Double value);
+    IXlsxStyle SetFontSize(double value);
 
     IXlsxStyle SetFontColor(XlsxColor value);
 
-    IXlsxStyle SetFontName(String value);
+    IXlsxStyle SetFontName(string value);
 
     IXlsxStyle SetFontFamilyNumbering(XlsxFontFamilyNumberingValues value);
 

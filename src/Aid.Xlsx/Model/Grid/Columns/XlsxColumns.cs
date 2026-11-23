@@ -48,7 +48,7 @@ internal class XlsxColumns(XlsxWorkbook workbook, XlsxWorksheet? worksheet, Xlsx
         return GetEnumerator();
     }
 
-    public Double Width
+    public double Width
     {
         set
         {
@@ -70,10 +70,10 @@ internal class XlsxColumns(XlsxWorkbook workbook, XlsxWorksheet? worksheet, Xlsx
         }
         else
         {
-            var toDelete = new Dictionary<IXlsxWorksheet, List<Int32>>();
+            var toDelete = new Dictionary<IXlsxWorksheet, List<int>>();
             foreach (XlsxColumn c in Columns)
             {
-                if (!toDelete.TryGetValue(c.Worksheet, out List<Int32>? list))
+                if (!toDelete.TryGetValue(c.Worksheet, out List<int>? list))
                 {
                     list = [];
                     toDelete.Add(c.Worksheet, list);
@@ -84,7 +84,7 @@ internal class XlsxColumns(XlsxWorkbook workbook, XlsxWorksheet? worksheet, Xlsx
 
             foreach (KeyValuePair<IXlsxWorksheet, List<int>> kp in toDelete)
             {
-                foreach (int c in kp.Value.OrderByDescending(c => c))
+                foreach (var c in kp.Value.OrderByDescending(c => c))
                     kp.Key.Column(c).Delete();
             }
         }
@@ -96,31 +96,31 @@ internal class XlsxColumns(XlsxWorkbook workbook, XlsxWorksheet? worksheet, Xlsx
         return this;
     }
 
-    public IXlsxColumns AdjustToContents(Int32 startRow)
+    public IXlsxColumns AdjustToContents(int startRow)
     {
         Columns.ForEach(c => c.AdjustToContents(startRow));
         return this;
     }
 
-    public IXlsxColumns AdjustToContents(Int32 startRow, Int32 endRow)
+    public IXlsxColumns AdjustToContents(int startRow, int endRow)
     {
         Columns.ForEach(c => c.AdjustToContents(startRow, endRow));
         return this;
     }
 
-    public IXlsxColumns AdjustToContents(Double minWidth, Double maxWidth)
+    public IXlsxColumns AdjustToContents(double minWidth, double maxWidth)
     {
         Columns.ForEach(c => c.AdjustToContents(minWidth, maxWidth));
         return this;
     }
 
-    public IXlsxColumns AdjustToContents(Int32 startRow, Double minWidth, Double maxWidth)
+    public IXlsxColumns AdjustToContents(int startRow, double minWidth, double maxWidth)
     {
         Columns.ForEach(c => c.AdjustToContents(startRow, minWidth, maxWidth));
         return this;
     }
 
-    public IXlsxColumns AdjustToContents(Int32 startRow, Int32 endRow, Double minWidth, Double maxWidth)
+    public IXlsxColumns AdjustToContents(int startRow, int endRow, double minWidth, double maxWidth)
     {
         Columns.ForEach(c => c.AdjustToContents(startRow, endRow, minWidth, maxWidth));
         return this;
@@ -141,7 +141,7 @@ internal class XlsxColumns(XlsxWorkbook workbook, XlsxWorksheet? worksheet, Xlsx
         Group(false);
     }
 
-    public void Group(Int32 outlineLevel)
+    public void Group(int outlineLevel)
     {
         Group(outlineLevel, false);
     }
@@ -151,17 +151,17 @@ internal class XlsxColumns(XlsxWorkbook workbook, XlsxWorksheet? worksheet, Xlsx
         Ungroup(false);
     }
 
-    public void Group(Boolean collapse)
+    public void Group(bool collapse)
     {
         Columns.ForEach(c => c.Group(collapse));
     }
 
-    public void Group(Int32 outlineLevel, Boolean collapse)
+    public void Group(int outlineLevel, bool collapse)
     {
         Columns.ForEach(c => c.Group(outlineLevel, collapse));
     }
 
-    public void Ungroup(Boolean ungroupFromAll)
+    public void Ungroup(bool ungroupFromAll)
     {
         Columns.ForEach(c => c.Ungroup(ungroupFromAll));
     }
@@ -192,7 +192,7 @@ internal class XlsxColumns(XlsxWorkbook workbook, XlsxWorksheet? worksheet, Xlsx
         return cells;
     }
 
-    public IXlsxCells CellsUsed(Boolean includeFormats)
+    public IXlsxCells CellsUsed(bool includeFormats)
     {
         return CellsUsed(includeFormats
             ? XlsxCellsUsedOptions.All
@@ -257,7 +257,7 @@ internal class XlsxColumns(XlsxWorkbook workbook, XlsxWorksheet? worksheet, Xlsx
 
     public void Select()
     {
-        foreach (var range in this)
+        foreach (IXlsxColumn range in this)
             range.Select();
     }
 

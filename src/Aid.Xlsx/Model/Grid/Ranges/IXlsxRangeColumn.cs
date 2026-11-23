@@ -13,21 +13,21 @@ public interface IXlsxRangeColumn : IXlsxRangeBase
     /// Gets the cell in the specified row.
     /// </summary>
     /// <param name="rowNumber">The cell's row.</param>
-    IXlsxCell Cell(Int32 rowNumber);
+    IXlsxCell Cell(int rowNumber);
 
     /// <summary>
     /// Returns the specified group of cells, separated by commas.
     /// <para>e.g. Cells("1"), Cells("1:5"), Cells("1:2,4:5")</para>
     /// </summary>
     /// <param name="cellsInColumn">The column cells to return.</param>
-    new IXlsxCells Cells(String cellsInColumn);
+    new IXlsxCells Cells(string cellsInColumn);
 
     /// <summary>
     /// Returns the specified group of cells.
     /// </summary>
     /// <param name="firstRow">The first row in the group of cells to return.</param>
     /// <param name="lastRow">The last row in the group of cells to return.</param>
-    IXlsxCells Cells(Int32 firstRow, Int32 lastRow);
+    IXlsxCells Cells(int firstRow, int lastRow);
 
     /// <summary>
     /// Inserts X number of columns to the right of this range.
@@ -36,7 +36,7 @@ public interface IXlsxRangeColumn : IXlsxRangeBase
     /// <param name="numberOfColumns">Number of columns to insert.</param>
     IXlsxRangeColumns InsertColumnsAfter(int numberOfColumns);
 
-    IXlsxRangeColumns InsertColumnsAfter(int numberOfColumns, Boolean expandRange);
+    IXlsxRangeColumns InsertColumnsAfter(int numberOfColumns, bool expandRange);
 
     /// <summary>
     /// Inserts X number of columns to the left of this range.
@@ -45,7 +45,7 @@ public interface IXlsxRangeColumn : IXlsxRangeBase
     /// <param name="numberOfColumns">Number of columns to insert.</param>
     IXlsxRangeColumns InsertColumnsBefore(int numberOfColumns);
 
-    IXlsxRangeColumns InsertColumnsBefore(int numberOfColumns, Boolean expandRange);
+    IXlsxRangeColumns InsertColumnsBefore(int numberOfColumns, bool expandRange);
 
     /// <summary>
     /// Inserts X number of cells on top of this column.
@@ -54,7 +54,7 @@ public interface IXlsxRangeColumn : IXlsxRangeBase
     /// <param name="numberOfRows">Number of cells to insert.</param>
     IXlsxCells InsertCellsAbove(int numberOfRows);
 
-    IXlsxCells InsertCellsAbove(int numberOfRows, Boolean expandRange);
+    IXlsxCells InsertCellsAbove(int numberOfRows, bool expandRange);
 
     /// <summary>
     /// Inserts X number of cells below this range.
@@ -63,7 +63,7 @@ public interface IXlsxRangeColumn : IXlsxRangeBase
     /// <param name="numberOfRows">Number of cells to insert.</param>
     IXlsxCells InsertCellsBelow(int numberOfRows);
 
-    IXlsxCells InsertCellsBelow(int numberOfRows, Boolean expandRange);
+    IXlsxCells InsertCellsBelow(int numberOfRows, bool expandRange);
 
     /// <summary>
     /// Deletes this range and shifts the cells at the right.
@@ -79,44 +79,44 @@ public interface IXlsxRangeColumn : IXlsxRangeBase
     /// <summary>
     /// Gets this column's number in the range
     /// </summary>
-    Int32 ColumnNumber();
+    int ColumnNumber();
 
     /// <summary>
     /// Gets this column's letter in the range
     /// </summary>
-    String ColumnLetter();
+    string ColumnLetter();
 
-    Int32 CellCount();
+    int CellCount();
 
     IXlsxRangeColumn CopyTo(IXlsxCell target);
 
     IXlsxRangeColumn CopyTo(IXlsxRangeBase target);
 
-    IXlsxRangeColumn Sort(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true);
+    IXlsxRangeColumn Sort(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true);
 
-    IXlsxRangeColumn Column(Int32 start, Int32 end);
+    IXlsxRangeColumn Column(int start, int end);
 
     IXlsxRangeColumn Column(IXlsxCell start, IXlsxCell end);
 
-    IXlsxRangeColumns Columns(String columns);
+    IXlsxRangeColumns Columns(string columns);
 
     IXlsxRangeColumn ColumnLeft();
 
-    IXlsxRangeColumn ColumnLeft(Int32 step);
+    IXlsxRangeColumn ColumnLeft(int step);
 
     IXlsxRangeColumn ColumnRight();
 
-    IXlsxRangeColumn ColumnRight(Int32 step);
+    IXlsxRangeColumn ColumnRight(int step);
 
     IXlsxColumn WorksheetColumn();
 
     IXlsxTable AsTable();
 
-    IXlsxTable AsTable(String name);
+    IXlsxTable AsTable(string name);
 
     IXlsxTable CreateTable();
 
-    IXlsxTable CreateTable(String name);
+    IXlsxTable CreateTable(string name);
 
     /// <summary>
     /// Clears the contents of this column.

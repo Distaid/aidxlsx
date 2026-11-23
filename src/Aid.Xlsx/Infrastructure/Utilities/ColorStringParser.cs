@@ -78,7 +78,7 @@ internal static class ColorStringParser
     /// </summary>
     internal static Color ParseFromRgb6(string rgbColor)
     {
-        if (!TryParseRgb6(rgbColor.AsSpan(), out var color))
+        if (!TryParseRgb6(rgbColor.AsSpan(), out Color color))
             throw new FormatException($"Unable to parse {rgbColor}.");
 
         return color;

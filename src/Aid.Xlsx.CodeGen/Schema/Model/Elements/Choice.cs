@@ -156,7 +156,7 @@ public class Choice : IElementGroup
     {
         // Go over each choice and return first one that parser was able to parse.
         var isFirst = true;
-        foreach (var child in Children)
+        foreach (IElementGroup child in Children)
         {
             if (child is ElementType elementChild)
             {

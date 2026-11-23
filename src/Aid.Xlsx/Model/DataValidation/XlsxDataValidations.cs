@@ -31,7 +31,7 @@ internal class XlsxDataValidations(XlsxWorksheet worksheet) : IXlsxDataValidatio
         {
             // Adding a range can split current one -> clear existing DVs so new one can be
             // added and "one DV per cell" is kept.
-            foreach (var area in dv.Areas)
+            foreach (Area area in dv.Areas)
                 AdjustDataValidationAreas(_worksheet, area, static (dataValidationAreas, areaOfNewValidation) => dataValidationAreas.DeleteWithoutShift(areaOfNewValidation));
 
             _dataValidations.Add(dv);
@@ -40,10 +40,10 @@ internal class XlsxDataValidations(XlsxWorksheet worksheet) : IXlsxDataValidatio
         return dv;
     }
 
-    public Boolean ContainsSingle(IXlsxRange range)
+    public bool ContainsSingle(IXlsxRange range)
     {
-        Int32 count = 0;
-        foreach (var xlDataValidation in _dataValidations.Where(dv => dv.Ranges.Contains(range)))
+        var count = 0;
+        foreach (XlsxDataValidation? xlDataValidation in _dataValidations.Where(dv => dv.Ranges.Contains(range)))
         {
             count++;
             if (count > 1) return false;
@@ -72,9 +72,9 @@ internal class XlsxDataValidations(XlsxWorksheet worksheet) : IXlsxDataValidatio
             yield break;
 
         var intersectingArea = Area.FromRangeAddress(rangeAddress);
-        foreach (var dataValidation in _dataValidations)
+        foreach (XlsxDataValidation dataValidation in _dataValidations)
         {
-            foreach (var area in dataValidation.Areas)
+            foreach (Area area in dataValidation.Areas)
             {
                 if (intersectingArea.Intersects(area))
                 {
@@ -118,9 +118,9 @@ internal class XlsxDataValidations(XlsxWorksheet worksheet) : IXlsxDataValidatio
         }
 
         var coveredArea = Area.FromRangeAddress(rangeAddress);
-        foreach (var dataValidation in _dataValidations)
+        foreach (XlsxDataValidation dataValidation in _dataValidations)
         {
-            foreach (var area in dataValidation.Areas)
+            foreach (Area area in dataValidation.Areas)
             {
                 if (area.Covers(coveredArea))
                 {
@@ -162,8 +162,8 @@ internal class XlsxDataValidations(XlsxWorksheet worksheet) : IXlsxDataValidatio
     {
         for (var i = _dataValidations.Count - 1; i >= 0; --i)
         {
-            var dataValidation = _dataValidations[i];
-            foreach (var dataValidationArea in dataValidation.Areas)
+            XlsxDataValidation dataValidation = _dataValidations[i];
+            foreach (Area dataValidationArea in dataValidation.Areas)
             {
                 if (dataValidationArea.Intersects(areaToDelete))
                 {
@@ -205,13 +205,13 @@ internal class XlsxDataValidations(XlsxWorksheet worksheet) : IXlsxDataValidatio
 
         while (rules.Count != 0)
         {
-            var consRule = rules.First();
+            XlsxDataValidation consRule = rules.First();
             _dataValidations.Add(consRule);
             var similarRules = rules.Where(r => areEqual(consRule, r)).ToList();
             similarRules.ForEach(r => rules.Remove(r));
 
             IXlsxRanges consolidatedRanges = new XlsxRanges(_worksheet);
-            foreach (var similarRuleArea in similarRules.SelectMany(dv => dv.Areas))
+            foreach (Area similarRuleArea in similarRules.SelectMany(dv => dv.Areas))
                 consolidatedRanges.Add(_worksheet.Range(XlsxRangeAddress.FromSheetRange(_worksheet, similarRuleArea)));
 
             consolidatedRanges = consolidatedRanges.Consolidate();
@@ -235,7 +235,7 @@ internal class XlsxDataValidations(XlsxWorksheet worksheet) : IXlsxDataValidatio
         // to the area and remove DVs without any cells.
         for (var i = _dataValidations.Count - 1; i >= 0; --i)
         {
-            var dataValidation = _dataValidations[i];
+            XlsxDataValidation dataValidation = _dataValidations[i];
 
             // Area could cover whole modifiedDataValidation and could remove the modifiedDV
             // before the addedArea could be added to the modifiedDV. To avoid this, it is not
@@ -282,8 +282,8 @@ internal class XlsxDataValidations(XlsxWorksheet worksheet) : IXlsxDataValidatio
 
         for (var i = _dataValidations.Count - 1; i >= 0; --i)
         {
-            var dataValidation = _dataValidations[i];
-            var modifiedAreaList = adjustAreas(dataValidation.Areas, affectedRange);
+            XlsxDataValidation dataValidation = _dataValidations[i];
+            XlsxAreaList modifiedAreaList = adjustAreas(dataValidation.Areas, affectedRange);
             if (modifiedAreaList.Count == 0)
             {
                 _dataValidations.RemoveAt(i);

@@ -8,11 +8,11 @@ public abstract class XlsxException : Exception
         : base()
     { }
 
-    protected XlsxException(String message)
+    protected XlsxException(string message)
         : base(message)
     { }
 
-    protected XlsxException(String message, Exception innerException)
+    protected XlsxException(string message, Exception innerException)
         : base(message, innerException)
     { }
 }

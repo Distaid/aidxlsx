@@ -110,7 +110,7 @@ internal class XlsxPivotDataField : IXlsxPivotValue
     {
         get
         {
-            var sourceNames = _pivotTable.PivotCache.FieldNames;
+            IReadOnlyList<string> sourceNames = _pivotTable.PivotCache.FieldNames;
             if (_baseField < 0 || _baseField >= sourceNames.Count)
                 return null;
 
@@ -124,7 +124,7 @@ internal class XlsxPivotDataField : IXlsxPivotValue
                 return;
             }
 
-            if (!_pivotTable.TryGetSourceNameFieldIndex(value, out var index))
+            if (!_pivotTable.TryGetSourceNameFieldIndex(value, out FieldIndex index))
             {
                 throw new ArgumentOutOfRangeException($"Source name '{value}' not found.");
             }
@@ -151,8 +151,8 @@ internal class XlsxPivotDataField : IXlsxPivotValue
             if (_baseItem == BaseItemNextValue)
                 return Blank.Value;
 
-            var baseField = _pivotTable.PivotFields[_baseField];
-            var fieldItem = baseField.Items[checked((int)BaseItem)];
+            XlsxPivotTableField baseField = _pivotTable.PivotFields[_baseField];
+            XlsxPivotFieldItem fieldItem = baseField.Items[checked((int)BaseItem)];
             return fieldItem.GetValue() ?? Blank.Value;
         }
         set
@@ -160,8 +160,8 @@ internal class XlsxPivotDataField : IXlsxPivotValue
             if (_baseField == BaseItemDefaultValue)
                 throw new InvalidOperationException("Base field not specified for the field.");
 
-            var pivotField = _pivotTable.PivotFields[_baseField];
-            var fieldItem = pivotField.GetOrAddItem(value);
+            XlsxPivotTableField pivotField = _pivotTable.PivotFields[_baseField];
+            XlsxPivotFieldItem fieldItem = pivotField.GetOrAddItem(value);
             var itemIndex = fieldItem.ItemIndex ?? BaseFieldDefaultValue;
             _baseItem = checked((uint)itemIndex);
         }

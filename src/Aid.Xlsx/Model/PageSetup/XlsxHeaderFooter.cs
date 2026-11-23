@@ -34,26 +34,26 @@ internal class XlsxHeaderFooter : IXlsxHeaderFooter
     public IXlsxHFItem Center { get; private set; }
     public IXlsxHFItem Right { get; private set; }
 
-    public String GetText(XlsxHFOccurrence occurrence)
+    public string GetText(XlsxHFOccurrence occurrence)
     {
         //if (innerTexts.ContainsKey(occurrence)) return innerTexts[occurrence];
 
-        var retVal = String.Empty;
+        var retVal = string.Empty;
         var leftText = Left.GetText(occurrence);
         var centerText = Center.GetText(occurrence);
         var rightText = Right.GetText(occurrence);
-        retVal += leftText.Length > 0 ? "&L" + leftText : String.Empty;
-        retVal += centerText.Length > 0 ? "&C" + centerText : String.Empty;
-        retVal += rightText.Length > 0 ? "&R" + rightText : String.Empty;
+        retVal += leftText.Length > 0 ? "&L" + leftText : string.Empty;
+        retVal += centerText.Length > 0 ? "&C" + centerText : string.Empty;
+        retVal += rightText.Length > 0 ? "&R" + rightText : string.Empty;
         if (retVal.Length > 255)
             throw new ArgumentOutOfRangeException(null, "Headers and footers cannot be longer than 255 characters (including style markup).");
         return retVal;
     }
 
-    private readonly Dictionary<XlsxHFOccurrence, String> innerTexts = [];
-    internal void SetInnerText(XlsxHFOccurrence occurrence, String text)
+    private readonly Dictionary<XlsxHFOccurrence, string> innerTexts = [];
+    internal void SetInnerText(XlsxHFOccurrence occurrence, string text)
     {
-        var parsedElements = ParseFormattedHeaderFooterText(text);
+        List<ParsedHeaderFooterElement> parsedElements = ParseFormattedHeaderFooterText(text);
 
         if (parsedElements.Any(e => e.Position == 'L'))
             this.Left.AddText(string.Join("\r\n", parsedElements.Where(e => e.Position == 'L').Select(e => e.Text).ToArray()), occurrence);
@@ -81,7 +81,7 @@ internal class XlsxHeaderFooter : IXlsxHeaderFooter
         var currentPosition = 'L'; // default is LEFT
         var hfElement = "";
 
-        for (int i = 0; i < text.Length; i++)
+        for (var i = 0; i < text.Length; i++)
         {
             if (IsAtPositionIndicator(i))
             {
@@ -114,10 +114,10 @@ internal class XlsxHeaderFooter : IXlsxHeaderFooter
         return parsedElements;
     }
 
-    private Dictionary<XlsxHFOccurrence, String> _initialTexts;
+    private Dictionary<XlsxHFOccurrence, string> _initialTexts;
 
-    private Boolean _changed;
-    internal Boolean Changed
+    private bool _changed;
+    internal bool Changed
     {
         get
         {
@@ -131,7 +131,7 @@ internal class XlsxHeaderFooter : IXlsxHeaderFooter
     internal void SetAsInitial()
     {
         _initialTexts = [];
-        foreach (var o in Enum.GetValues<XlsxHFOccurrence>())
+        foreach (XlsxHFOccurrence o in Enum.GetValues<XlsxHFOccurrence>())
         {
             _initialTexts.Add(o, GetText(o));
         }

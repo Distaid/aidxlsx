@@ -83,7 +83,7 @@ internal readonly struct Point : IEquatable<Point>, IComparable<Point>
     /// <exception cref="FormatException">If the input doesn't match expected grammar.</exception>
     public static Point Parse(ReadOnlySpan<char> input)
     {
-        if (!TryParse(input, out var point))
+        if (!TryParse(input, out Point point))
             throw new FormatException($"Sheet point doesn't have correct format: '{input}'.");
 
         return point;

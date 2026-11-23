@@ -50,7 +50,7 @@ internal static partial class DateTimeParser
             // but every single format from CultureInfo.DateTimeFormat requires AM/PM. and two digits for minutes (thus
             // the input couldn't match in any format => excel has likely it's own logic, independent of region setting).
             var timePatterns = stringArray;
-            var longDatePatterns = shortDatePatterns
+            IEnumerable<string> longDatePatterns = shortDatePatterns
                 .SelectMany(datePattern => timePatterns.Select(timePattern => FormattableString.Invariant($"{datePattern} {timePattern}")));
 
             // ISO8601 should be parseable in all cultures, not sure if Excel does. Be more forgiving, M,d instead MM,dd.

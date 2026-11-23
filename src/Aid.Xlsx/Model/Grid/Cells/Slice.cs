@@ -51,7 +51,7 @@ internal partial class Slice<TElement> : ISlice
     {
         get
         {
-            var rowLut = _data.Get(row - 1);
+            Lut<TElement> rowLut = _data.Get(row - 1);
             if (rowLut is null)
                 return ref _defaultValue;
 
@@ -105,11 +105,11 @@ internal partial class Slice<TElement> : ISlice
             return;
 
         var shiftDistance = areaToDelete.Width;
-        var shiftRange = areaToDelete.RightRange();
+        Area shiftRange = areaToDelete.RightRange();
         var cellEnumerator = new Enumerator(this, shiftRange);
         while (cellEnumerator.MoveNext())
         {
-            var srcPoint = cellEnumerator.Point;
+            Point srcPoint = cellEnumerator.Point;
             var dstPoint = new Point(srcPoint.Row, srcPoint.Column - shiftDistance);
             Set(dstPoint, in cellEnumerator.Current);
             Set(srcPoint, in _defaultValue);
@@ -126,7 +126,7 @@ internal partial class Slice<TElement> : ISlice
             return;
 
         var shiftDistance = areaToDelete.Height;
-        var shiftRange = areaToDelete.BelowRange();
+        Area shiftRange = areaToDelete.BelowRange();
 
         // Fast path for deleting full rows
         if (areaToDelete.HasFullRowWidth)
@@ -149,7 +149,7 @@ internal partial class Slice<TElement> : ISlice
         var cellEnumerator = new Enumerator(this, shiftRange);
         while (cellEnumerator.MoveNext())
         {
-            var srcPoint = cellEnumerator.Point;
+            Point srcPoint = cellEnumerator.Point;
             var dstPoint = new Point(srcPoint.Row - shiftDistance, srcPoint.Column);
             Set(dstPoint, in cellEnumerator.Current);
             Set(srcPoint, in _defaultValue);
@@ -188,7 +188,7 @@ internal partial class Slice<TElement> : ISlice
         var cellEnumerator = new ReverseEnumerator(this, shiftedRange);
         while (cellEnumerator.MoveNext())
         {
-            var srcPoint = cellEnumerator.Point;
+            Point srcPoint = cellEnumerator.Point;
             var dstPoint = new Point(srcPoint.Row + shiftDistance, srcPoint.Column);
             Set(dstPoint, in cellEnumerator.Current);
             Set(srcPoint, in _defaultValue);
@@ -219,7 +219,7 @@ internal partial class Slice<TElement> : ISlice
         var enumerator = new ReverseEnumerator(this, shiftedRange);
         while (enumerator.MoveNext())
         {
-            var srcPoint = enumerator.Point;
+            Point srcPoint = enumerator.Point;
             var dstPoint = new Point(srcPoint.Row, srcPoint.Column + shiftDistance);
             Set(dstPoint, in enumerator.Current);
             Set(srcPoint, in _defaultValue);
@@ -228,7 +228,7 @@ internal partial class Slice<TElement> : ISlice
 
     public bool IsUsed(Point address)
     {
-        var rowLut = _data.Get(address.Row - 1);
+        Lut<TElement> rowLut = _data.Get(address.Row - 1);
         if (rowLut is null)
             return false;
 
@@ -237,15 +237,15 @@ internal partial class Slice<TElement> : ISlice
 
     public void Swap(Point sp1, Point sp2)
     {
-        var value1 = this[sp1];
-        var value2 = this[sp2];
+        TElement value1 = this[sp1];
+        TElement value2 = this[sp2];
         Set(sp1, in value2);
         Set(sp2, in value1);
     }
 
     internal void SetAll(Area range, in TElement value)
     {
-        foreach (var point in range)
+        foreach (Point point in range)
         {
             Set(point, in value);
         }
@@ -256,7 +256,7 @@ internal partial class Slice<TElement> : ISlice
 
     internal void Set(int row, int column, in TElement value)
     {
-        var rowLut = _data.Get(row - 1);
+        Lut<TElement> rowLut = _data.Get(row - 1);
         if (rowLut is null)
         {
             rowLut = new Lut<TElement>();

@@ -15,14 +15,14 @@ internal class XlsxWorkbookProtection(XlsxProtectionAlgorithm.Algorithm algorith
 
     public Algorithm Algorithm { get; internal set; } = algorithm;
     public XlsxWorkbookProtectionElements AllowedElements { get; set; } = allowedElements;
-    public bool IsPasswordProtected => this.IsProtected && !String.IsNullOrEmpty(PasswordHash);
+    public bool IsPasswordProtected => this.IsProtected && !string.IsNullOrEmpty(PasswordHash);
     public bool IsProtected { get; internal set; }
 
-    internal String Base64EncodedSalt { get; set; }
-    internal String PasswordHash { get; set; }
-    internal UInt32 SpinCount { get; set; } = 100000;
+    internal string Base64EncodedSalt { get; set; }
+    internal string PasswordHash { get; set; }
+    internal uint SpinCount { get; set; } = 100000;
 
-    public IXlsxWorkbookProtection AllowElement(XlsxWorkbookProtectionElements element, Boolean allowed = true)
+    public IXlsxWorkbookProtection AllowElement(XlsxWorkbookProtectionElements element, bool allowed = true)
     {
         if (allowed)
             AllowedElements |= element;
@@ -76,7 +76,7 @@ internal class XlsxWorkbookProtection(XlsxProtectionAlgorithm.Algorithm algorith
 
     public IXlsxWorkbookProtection Protect(Algorithm algorithm = DefaultProtectionAlgorithm)
     {
-        return Protect(String.Empty, algorithm);
+        return Protect(string.Empty, algorithm);
     }
 
     public IXlsxWorkbookProtection Protect(XlsxWorkbookProtectionElements allowedElements)
@@ -85,7 +85,7 @@ internal class XlsxWorkbookProtection(XlsxProtectionAlgorithm.Algorithm algorith
     public IXlsxWorkbookProtection Protect(Algorithm algorithm, XlsxWorkbookProtectionElements allowedElements)
         => Protect(string.Empty, algorithm, allowedElements);
 
-    public IXlsxWorkbookProtection Protect(String password, Algorithm algorithm = DefaultProtectionAlgorithm, XlsxWorkbookProtectionElements allowedElements = XlsxWorkbookProtectionElements.Windows)
+    public IXlsxWorkbookProtection Protect(string password, Algorithm algorithm = DefaultProtectionAlgorithm, XlsxWorkbookProtectionElements allowedElements = XlsxWorkbookProtectionElements.Windows)
     {
         if (IsProtected)
         {
@@ -109,10 +109,10 @@ internal class XlsxWorkbookProtection(XlsxProtectionAlgorithm.Algorithm algorith
 
     public IXlsxWorkbookProtection Unprotect()
     {
-        return Unprotect(String.Empty);
+        return Unprotect(string.Empty);
     }
 
-    public IXlsxWorkbookProtection Unprotect(String password)
+    public IXlsxWorkbookProtection Unprotect(string password)
     {
         if (IsProtected)
         {
@@ -125,8 +125,8 @@ internal class XlsxWorkbookProtection(XlsxProtectionAlgorithm.Algorithm algorith
             else
             {
                 IsProtected = false;
-                PasswordHash = String.Empty;
-                this.Base64EncodedSalt = String.Empty;
+                PasswordHash = string.Empty;
+                this.Base64EncodedSalt = string.Empty;
             }
         }
 
@@ -135,7 +135,7 @@ internal class XlsxWorkbookProtection(XlsxProtectionAlgorithm.Algorithm algorith
 
     #region IXlsxProtectable interface
 
-    IXlsxElementProtection<XlsxWorkbookProtectionElements> IXlsxElementProtection<XlsxWorkbookProtectionElements>.AllowElement(XlsxWorkbookProtectionElements element, Boolean allowed) => AllowElement(element, allowed);
+    IXlsxElementProtection<XlsxWorkbookProtectionElements> IXlsxElementProtection<XlsxWorkbookProtectionElements>.AllowElement(XlsxWorkbookProtectionElements element, bool allowed) => AllowElement(element, allowed);
 
     IXlsxElementProtection<XlsxWorkbookProtectionElements> IXlsxElementProtection<XlsxWorkbookProtectionElements>.AllowEverything() => AllowEverything();
 
@@ -145,17 +145,17 @@ internal class XlsxWorkbookProtection(XlsxProtectionAlgorithm.Algorithm algorith
 
     IXlsxElementProtection<XlsxWorkbookProtectionElements> IXlsxElementProtection<XlsxWorkbookProtectionElements>.Protect(Algorithm algorithm) => Protect(algorithm);
 
-    IXlsxElementProtection<XlsxWorkbookProtectionElements> IXlsxElementProtection<XlsxWorkbookProtectionElements>.Protect(String password, Algorithm algorithm) => Protect(password, algorithm);
+    IXlsxElementProtection<XlsxWorkbookProtectionElements> IXlsxElementProtection<XlsxWorkbookProtectionElements>.Protect(string password, Algorithm algorithm) => Protect(password, algorithm);
 
     IXlsxWorkbookProtection IXlsxWorkbookProtection.Protect(XlsxWorkbookProtectionElements allowedElements) => Protect(allowedElements);
 
     IXlsxWorkbookProtection IXlsxWorkbookProtection.Protect(Algorithm algorithm, XlsxWorkbookProtectionElements allowedElements) => Protect(algorithm, allowedElements);
 
-    IXlsxWorkbookProtection IXlsxWorkbookProtection.Protect(String password, Algorithm algorithm, XlsxWorkbookProtectionElements allowedElements) => Protect(password, algorithm, allowedElements);
+    IXlsxWorkbookProtection IXlsxWorkbookProtection.Protect(string password, Algorithm algorithm, XlsxWorkbookProtectionElements allowedElements) => Protect(password, algorithm, allowedElements);
 
     IXlsxElementProtection<XlsxWorkbookProtectionElements> IXlsxElementProtection<XlsxWorkbookProtectionElements>.Unprotect() => Unprotect();
 
-    IXlsxElementProtection<XlsxWorkbookProtectionElements> IXlsxElementProtection<XlsxWorkbookProtectionElements>.Unprotect(String password) => Unprotect(password);
+    IXlsxElementProtection<XlsxWorkbookProtectionElements> IXlsxElementProtection<XlsxWorkbookProtectionElements>.Unprotect(string password) => Unprotect(password);
 
     IXlsxElementProtection<XlsxWorkbookProtectionElements> IXlsxElementProtection<XlsxWorkbookProtectionElements>.CopyFrom(IXlsxElementProtection<XlsxWorkbookProtectionElements> protectable) => CopyFrom(protectable);
 

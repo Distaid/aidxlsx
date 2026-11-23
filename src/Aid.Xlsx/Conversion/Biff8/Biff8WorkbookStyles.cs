@@ -17,7 +17,7 @@ internal sealed partial class Biff8WorkbookReader
         var height = U16(record);
         var flags = U16(record[2..]);
         var name = ReadCharacters(record[16..], record[14], (record[15] & 1) != 0);
-        var font = XlsxFontFormatValue.Default with
+        XlsxFontFormatValue font = XlsxFontFormatValue.Default with
         {
             Name = string.IsNullOrWhiteSpace(name) || name.Length > 31 ? XlsxFontFormatValue.Default.Name : (XlsxFontName)name,
             Size = height == 0 ? XlsxFontFormatValue.Default.Size : XlsxFontSize.FromPoints(height / 20d),
@@ -57,7 +57,7 @@ internal sealed partial class Biff8WorkbookReader
         _palette = new XlsxColor[count];
         for (var i = 0; i < count; i++)
         {
-            var rgb = record[(2 + 4 * i)..];
+            ReadOnlySpan<byte> rgb = record[(2 + 4 * i)..];
             _palette[i] = XlsxColor.FromArgb(rgb[0], rgb[1], rgb[2]);
         }
     }
@@ -81,16 +81,16 @@ internal sealed partial class Biff8WorkbookReader
     {
         // BIFF skips font index four. Each XF stores the current values, including values inherited from a named style.
         var fontIndex = source.Font > 4 ? source.Font - 1 : source.Font;
-        var font = styles.DefaultFormat.Font;
+        XlsxFontFormatValue font = styles.DefaultFormat.Font;
         if (source.Font != 4 && fontIndex < _fonts.Count)
         {
-            var (definition, color) = _fonts[fontIndex];
+            (XlsxFontFormatValue? definition, var color) = _fonts[fontIndex];
             font = definition with { Color = GetColor(color) };
         }
 
-        var numberFormat = _customFormats.TryGetValue(source.NumberFormat, out var custom)
+        XlsxNumberFormat numberFormat = _customFormats.TryGetValue(source.NumberFormat, out var custom)
             ? XlsxNumberFormat.Parse(custom)
-            : styles.NumberFormats.TryGetValue(source.NumberFormat, out var builtIn)
+            : styles.NumberFormats.TryGetValue(source.NumberFormat, out XlsxNumberFormat builtIn)
                 ? builtIn
                 : styles.DefaultFormat.NumberFormat;
 
@@ -100,7 +100,7 @@ internal sealed partial class Biff8WorkbookReader
             <= 180 => 90 - source.Rotation,
             _ => 0
         };
-        var alignment = XlsxAlignmentFormatValue.Default with
+        XlsxAlignmentFormatValue alignment = XlsxAlignmentFormatValue.Default with
         {
             Horizontal = HorizontalAlignments[source.Alignment & 7],
             Vertical = VerticalAlignments[Math.Min((source.Alignment >> 4) & 7, 5)],
@@ -130,7 +130,7 @@ internal sealed partial class Biff8WorkbookReader
             DiagonalUp = (lines & 0x80000000) != 0,
         };
         var patternIndex = extra >> 26;
-        var fill = patternIndex > 0 && patternIndex < FillPatterns.Length
+        XlsxFillFormatValue fill = patternIndex > 0 && patternIndex < FillPatterns.Length
             ? new XlsxFillFormatValue(new XlsxPatternFill
             {
                 PatternType = FillPatterns[patternIndex],

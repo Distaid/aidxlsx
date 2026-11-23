@@ -55,18 +55,18 @@ internal class FormulaReferences
     internal XlsxRanges GetExternalRanges(XlsxWorkbook workbook, Point anchor)
     {
         var list = new XlsxRanges(workbook);
-        foreach (var reference in SheetReferences)
+        foreach (XlsxSheetReference reference in SheetReferences)
         {
             if (workbook.TryGetWorksheet(reference.Sheet, out XlsxWorksheet sheet))
             {
-                var rangeAddress = reference.Reference.ToRangeAddress(sheet, anchor);
+                XlsxRangeAddress rangeAddress = reference.Reference.ToRangeAddress(sheet, anchor);
                 list.Add(sheet.Range(rangeAddress));
             }
         }
 
-        foreach (var (tableName, column, _) in StructuredReferences)
+        foreach ((var tableName, var column, var _) in StructuredReferences)
         {
-            if (workbook.TryGetTable(tableName, out var table))
+            if (workbook.TryGetTable(tableName, out XlsxTable? table))
                 list.Add(table.DataRange.Column(column));
         }
 

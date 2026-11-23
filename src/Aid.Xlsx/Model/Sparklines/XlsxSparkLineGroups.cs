@@ -82,7 +82,7 @@ internal class XlsxSparklineGroups(XlsxWorksheet worksheet) : IXlsxSparklineGrou
     /// <param name="targetSheet">The worksheet to copy the sparkline group to</param>
     public void CopyTo(IXlsxWorksheet targetSheet)
     {
-        foreach (var slg in this)
+        foreach (XlsxSparklineGroup slg in this)
         {
             slg.CopyTo((XlsxWorksheet)targetSheet);
         }
@@ -99,9 +99,9 @@ internal class XlsxSparklineGroups(XlsxWorksheet worksheet) : IXlsxSparklineGrou
             return null;
 
         var location = Point.FromCell(cell);
-        foreach (var sparklineGroup in _sparklineGroups)
+        foreach (XlsxSparklineGroup sparklineGroup in _sparklineGroups)
         {
-            if (sparklineGroup.TryGetSparkline(location, out var sparkline))
+            if (sparklineGroup.TryGetSparkline(location, out XlsxSparkline? sparkline))
                 return sparkline;
         }
 

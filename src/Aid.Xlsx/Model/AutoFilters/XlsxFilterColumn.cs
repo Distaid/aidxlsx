@@ -4,10 +4,10 @@ using Aid.Xlsx.Model.Grid.Ranges;
 
 namespace Aid.Xlsx.Model.AutoFilters;
 
-internal class XlsxFilterColumn(XlsxAutoFilter autoFilter, Int32 column) : IXlsxFilterColumn, IXlsxFilteredColumn, IEnumerable<XlsxFilter>
+internal class XlsxFilterColumn(XlsxAutoFilter autoFilter, int column) : IXlsxFilterColumn, IXlsxFilteredColumn, IEnumerable<XlsxFilter>
 {
     private readonly XlsxAutoFilter _autoFilter = autoFilter;
-    private readonly Int32 _column = column;
+    private readonly int _column = column;
     private readonly List<XlsxFilter> _filters = [];
 
     #region IXlsxFilterColumn Members
@@ -34,12 +34,12 @@ internal class XlsxFilterColumn(XlsxAutoFilter autoFilter, Int32 column) : IXlsx
         return this;
     }
 
-    public void Top(Int32 value, XlsxTopBottomType type, bool reapply)
+    public void Top(int value, XlsxTopBottomType type, bool reapply)
     {
         SetTopBottom(value, type, takeTop: true, reapply);
     }
 
-    public void Bottom(Int32 value, XlsxTopBottomType type, bool reapply)
+    public void Bottom(int value, XlsxTopBottomType type, bool reapply)
     {
         SetTopBottom(value, type, takeTop: false, reapply);
     }
@@ -54,79 +54,79 @@ internal class XlsxFilterColumn(XlsxAutoFilter autoFilter, Int32 column) : IXlsx
         SetAverage(aboveAverage: false, reapply);
     }
 
-    public IXlsxFilterConnector EqualTo(XlsxCellValue value, Boolean reapply)
+    public IXlsxFilterConnector EqualTo(XlsxCellValue value, bool reapply)
     {
         return AddCustomFilter(value.ToString(), true, reapply);
     }
 
-    public IXlsxFilterConnector NotEqualTo(XlsxCellValue value, Boolean reapply)
+    public IXlsxFilterConnector NotEqualTo(XlsxCellValue value, bool reapply)
     {
         return AddCustomFilter(value.ToString(), false, reapply);
     }
 
-    public IXlsxFilterConnector GreaterThan(XlsxCellValue value, Boolean reapply)
+    public IXlsxFilterConnector GreaterThan(XlsxCellValue value, bool reapply)
     {
         return AddCustomFilter(value, XlsxFilterOperator.GreaterThan, reapply);
     }
 
-    public IXlsxFilterConnector LessThan(XlsxCellValue value, Boolean reapply)
+    public IXlsxFilterConnector LessThan(XlsxCellValue value, bool reapply)
     {
         return AddCustomFilter(value, XlsxFilterOperator.LessThan, reapply);
     }
 
-    public IXlsxFilterConnector EqualOrGreaterThan(XlsxCellValue value, Boolean reapply)
+    public IXlsxFilterConnector EqualOrGreaterThan(XlsxCellValue value, bool reapply)
     {
         return AddCustomFilter(value, XlsxFilterOperator.EqualOrGreaterThan, reapply);
     }
 
-    public IXlsxFilterConnector EqualOrLessThan(XlsxCellValue value, Boolean reapply)
+    public IXlsxFilterConnector EqualOrLessThan(XlsxCellValue value, bool reapply)
     {
         return AddCustomFilter(value, XlsxFilterOperator.EqualOrLessThan, reapply);
     }
 
-    public void Between(XlsxCellValue minValue, XlsxCellValue maxValue, Boolean reapply)
+    public void Between(XlsxCellValue minValue, XlsxCellValue maxValue, bool reapply)
     {
         EqualOrGreaterThan(minValue, false).And.EqualOrLessThan(maxValue, reapply);
     }
 
-    public void NotBetween(XlsxCellValue minValue, XlsxCellValue maxValue, Boolean reapply)
+    public void NotBetween(XlsxCellValue minValue, XlsxCellValue maxValue, bool reapply)
     {
         LessThan(minValue, false).Or.GreaterThan(maxValue, reapply);
     }
 
-    public IXlsxFilterConnector BeginsWith(String value, Boolean reapply)
+    public IXlsxFilterConnector BeginsWith(string value, bool reapply)
     {
         return AddCustomFilter(value + "*", true, reapply);
     }
 
-    public IXlsxFilterConnector NotBeginsWith(String value, Boolean reapply)
+    public IXlsxFilterConnector NotBeginsWith(string value, bool reapply)
     {
         return AddCustomFilter(value + "*", false, reapply);
     }
 
-    public IXlsxFilterConnector EndsWith(String value, Boolean reapply)
+    public IXlsxFilterConnector EndsWith(string value, bool reapply)
     {
         return AddCustomFilter("*" + value, true, reapply);
     }
 
-    public IXlsxFilterConnector NotEndsWith(String value, Boolean reapply)
+    public IXlsxFilterConnector NotEndsWith(string value, bool reapply)
     {
         return AddCustomFilter("*" + value, false, reapply);
     }
 
-    public IXlsxFilterConnector Contains(String value, Boolean reapply)
+    public IXlsxFilterConnector Contains(string value, bool reapply)
     {
         return AddCustomFilter("*" + value + "*", true, reapply);
     }
 
-    public IXlsxFilterConnector NotContains(String value, Boolean reapply)
+    public IXlsxFilterConnector NotContains(string value, bool reapply)
     {
         return AddCustomFilter("*" + value + "*", false, reapply);
     }
 
     public XlsxFilterType FilterType { get; set; }
 
-    public Int32 TopBottomValue { get; set; }
+    public int TopBottomValue { get; set; }
     public XlsxTopBottomType TopBottomType { get; set; }
     public XlsxTopBottomPart TopBottomPart { get; set; }
 
@@ -135,7 +135,7 @@ internal class XlsxFilterColumn(XlsxAutoFilter autoFilter, Int32 column) : IXlsx
     /// <summary>
     /// Basically average for dynamic filters. Value is refreshed during filter reapply.
     /// </summary>
-    public Double DynamicValue { get; set; } = double.NaN;
+    public double DynamicValue { get; set; } = double.NaN;
 
     #endregion IXlsxFilterColumn Members
 
@@ -148,7 +148,7 @@ internal class XlsxFilterColumn(XlsxAutoFilter autoFilter, Int32 column) : IXlsx
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    private void SetTopBottom(Int32 percentOrItemCount, XlsxTopBottomType type, Boolean takeTop, Boolean reapply)
+    private void SetTopBottom(int percentOrItemCount, XlsxTopBottomType type, bool takeTop, bool reapply)
     {
         if (percentOrItemCount is < 1 or > 500)
             throw new ArgumentOutOfRangeException(nameof(percentOrItemCount), "Value must be between 1 and 500.");
@@ -163,10 +163,10 @@ internal class XlsxFilterColumn(XlsxAutoFilter autoFilter, Int32 column) : IXlsx
 
     private double GetTopBottomFilterValue(XlsxTopBottomType type, int value, bool takeTop)
     {
-        var column = _autoFilter.Range.Column(_column);
-        var subColumn = column.Column(2, column.CellCount());
-        var columnNumbers = subColumn.CellsUsed(c => c.CachedValue.IsUnifiedNumber).Select(c => c.CachedValue.GetUnifiedNumber());
-        var comparer = takeTop
+        IXlsxRangeColumn column = _autoFilter.Range.Column(_column);
+        IXlsxRangeColumn subColumn = column.Column(2, column.CellCount());
+        IEnumerable<double> columnNumbers = subColumn.CellsUsed(c => c.CachedValue.IsUnifiedNumber).Select(c => c.CachedValue.GetUnifiedNumber());
+        Comparer<double> comparer = takeTop
             ? Comparer<double>.Create((x, y) => -x.CompareTo(y))
             : Comparer<double>.Create((x, y) => x.CompareTo(y));
 
@@ -181,13 +181,13 @@ internal class XlsxFilterColumn(XlsxAutoFilter autoFilter, Int32 column) : IXlsx
 
                 // Ceiling, so there is always at least one item.
                 var itemCountByPercents = (int)Math.Ceiling(materializedNumbers.Length * (double)percent / 100);
-                return materializedNumbers.OrderBy(d => d, comparer).Take(itemCountByPercents).DefaultIfEmpty(Double.NaN).LastOrDefault();
+                return materializedNumbers.OrderBy(d => d, comparer).Take(itemCountByPercents).DefaultIfEmpty(double.NaN).LastOrDefault();
             default:
                 throw new NotSupportedException();
         }
     }
 
-    private void SetAverage(Boolean aboveAverage, Boolean reapply)
+    private void SetAverage(bool aboveAverage, bool reapply)
     {
         ResetFilter(XlsxFilterType.Dynamic);
         DynamicType = aboveAverage
@@ -201,15 +201,15 @@ internal class XlsxFilterColumn(XlsxAutoFilter autoFilter, Int32 column) : IXlsx
 
     private double GetAverageFilterValue()
     {
-        var column = _autoFilter.Range.Column(_column);
-        var subColumn = column.Column(2, column.CellCount());
+        IXlsxRangeColumn column = _autoFilter.Range.Column(_column);
+        IXlsxRangeColumn subColumn = column.Column(2, column.CellCount());
         return subColumn.CellsUsed(c => c.CachedValue.IsUnifiedNumber)
             .Select(c => c.CachedValue.GetUnifiedNumber())
-            .DefaultIfEmpty(Double.NaN)
+            .DefaultIfEmpty(double.NaN)
             .Average();
     }
 
-    private IXlsxFilterConnector AddCustomFilter(XlsxCellValue value, XlsxFilterOperator op, Boolean reapply)
+    private IXlsxFilterConnector AddCustomFilter(XlsxCellValue value, XlsxFilterOperator op, bool reapply)
     {
         ResetFilter(XlsxFilterType.Custom);
         AddFilter(XlsxFilter.CreateCustomFilter(value, op, XlsxConnector.Or), reapply);
@@ -287,7 +287,7 @@ internal class XlsxFilterColumn(XlsxAutoFilter autoFilter, Int32 column) : IXlsx
         // All filter conditions are connected by a single type of logical condition. Regular
         // filters use 'Or', custom has up to two clauses connected by 'And'/'Or' and rest is
         // single clause.
-        var connector = _filters[1].Connector;
+        XlsxConnector connector = _filters[1].Connector;
         return connector switch
         {
             XlsxConnector.And => _filters.All(filter => filter.Condition(cell, this)),

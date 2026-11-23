@@ -13,12 +13,12 @@ internal static partial class StringExtensions
     [GeneratedRegex(@"((?<!\r)\n|\r\n)", RegexOptions.Compiled)]
     private static partial Regex RegexNewLine { get; }
 
-    public static String RemoveSpecialCharacters(this String str)
+    public static string RemoveSpecialCharacters(this string str)
     {
         StringBuilder sb = new();
-        foreach (char c in str)
+        foreach (var c in str)
         {
-            if (Char.IsLetterOrDigit(c) || c == '.' || c == '_')
+            if (char.IsLetterOrDigit(c) || c == '.' || c == '_')
             {
                 sb.Append(c);
             }
@@ -26,17 +26,17 @@ internal static partial class StringExtensions
         return sb.ToString();
     }
 
-    internal static string EscapeSheetName(this String sheetName)
+    internal static string EscapeSheetName(this string sheetName)
     {
-        if (String.IsNullOrEmpty(sheetName)) return sheetName;
+        if (string.IsNullOrEmpty(sheetName)) return sheetName;
 
-        var needEscape = (!Char.IsLetter(sheetName[0]) && sheetName[0] != '_') ||
+        var needEscape = (!char.IsLetter(sheetName[0]) && sheetName[0] != '_') ||
                          XlsxHelper.IsValidA1Address(sheetName) ||
                          XlsxHelper.IsValidRCAddress(sheetName) ||
-                         sheetName.Any(c => (Char.IsPunctuation(c) && c != '.' && c != '_') ||
-                                            Char.IsSeparator(c) ||
-                                            Char.IsControl(c) ||
-                                            Char.IsSymbol(c));
+                         sheetName.Any(c => (char.IsPunctuation(c) && c != '.' && c != '_') ||
+                                            char.IsSeparator(c) ||
+                                            char.IsControl(c) ||
+                                            char.IsSymbol(c));
         if (needEscape)
             return AlwaysEscapeSheetName(sheetName);
         else
@@ -45,7 +45,7 @@ internal static partial class StringExtensions
 
     internal static string AlwaysEscapeSheetName(this string sheetName)
     {
-        return String.Concat('\'', sheetName.Replace("'", "''"), '\'');
+        return string.Concat('\'', sheetName.Replace("'", "''"), '\'');
     }
 
     internal static string GetSheetDefinedName(this string name, string sheet)
@@ -55,17 +55,17 @@ internal static partial class StringExtensions
         return escapedSheetName + '!' + name;
     }
 
-    internal static String FixNewLines(this String value)
+    internal static string FixNewLines(this string value)
     {
         return value.Contains('\n') ? RegexNewLine.Replace(value, Environment.NewLine) : value;
     }
 
-    internal static Boolean PreserveSpaces(this String value)
+    internal static bool PreserveSpaces(this string value)
     {
         return value.StartsWith(' ') || value.EndsWith(' ') || value.AsSpan().IndexOfAny('\n', '\r', '\t') >= 0;
     }
 
-    internal static String ToCamel(this String value)
+    internal static string ToCamel(this string value)
     {
         if (value.Length == 0)
             return value;
@@ -76,7 +76,7 @@ internal static partial class StringExtensions
         return value[..1].ToLower() + value[1..];
     }
 
-    internal static String ToProper(this String value)
+    internal static string ToProper(this string value)
     {
         if (value.Length == 0)
             return value;
@@ -87,7 +87,7 @@ internal static partial class StringExtensions
         return value[..1].ToUpper() + value[1..];
     }
 
-    internal static string UnescapeSheetName(this String sheetName)
+    internal static string UnescapeSheetName(this string sheetName)
     {
         return sheetName
             .Trim('\'')
@@ -147,7 +147,7 @@ internal static partial class StringExtensions
     /// <summary>
     /// Convert a magic text to a number, where the first letter is in the highest byte of the number.
     /// </summary>
-    internal static UInt32 ToMagicNumber(this string magic)
+    internal static uint ToMagicNumber(this string magic)
     {
         if (magic.Length > 4)
         {
@@ -157,9 +157,9 @@ internal static partial class StringExtensions
         return Encoding.ASCII.GetBytes(magic).Select(x => (uint)x).Aggregate((acc, cur) => acc * 256 + cur);
     }
 
-    internal static String TrimFormulaEqual(this String text)
+    internal static string TrimFormulaEqual(this string text)
     {
-        var trimmed = text.AsSpan().Trim();
+        ReadOnlySpan<char> trimmed = text.AsSpan().Trim();
         if (trimmed.Length >= 1 && trimmed[0] == '=')
             return trimmed[1..].TrimStart().ToString();
 

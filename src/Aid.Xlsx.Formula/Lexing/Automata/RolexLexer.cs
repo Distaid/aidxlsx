@@ -29,7 +29,7 @@ internal class RolexLexer
         var tokens = new List<Token>();
         for (var i = 0; i < formula.Length;)
         {
-            var (symbolId, length) = GetToken(formula, i, lexerDfa);
+            (var symbolId, var length) = GetToken(formula, i, lexerDfa);
             tokens.Add(new Token(symbolId, i, length));
             if (symbolId < 0)
             {
@@ -62,7 +62,7 @@ internal class RolexLexer
 
     private static (int SymbolId, int Length) GetToken(ReadOnlySpan<char> input, int startIdx, DfaEntry[] dfaTable)
     {
-        int dfaState = 0;
+        var dfaState = 0;
 
         // Best token and its length found so far
         var symbolId = Token.ErrorSymbolId;
@@ -74,16 +74,16 @@ internal class RolexLexer
 
             // We are at some state and are looking for another state
             // That is indicated by a `found` flag.
-            int nextDfaState = -1;
+            var nextDfaState = -1;
             for (var i = 0; i < dfaTable[dfaState].Transitions.Length; ++i)
             {
                 DfaTransitionEntry entry = dfaTable[dfaState].Transitions[i];
-                bool found = false;
+                var found = false;
                 for (var j = 0; j < entry.PackedRanges.Length; ++j)
                 {
-                    int first = entry.PackedRanges[j];
+                    var first = entry.PackedRanges[j];
                     j++;
-                    int last = entry.PackedRanges[j];
+                    var last = entry.PackedRanges[j];
                     if (ch <= last)
                     {
                         if (first <= ch)

@@ -32,7 +32,7 @@ public class MceXmlReader : IXmlReader
     private readonly Tracker<string> _ignorable = new(ReferenceEqualityComparer.Instance, static (state, ns) => state.ContainsKey(ns));
     private readonly Tracker<NamePair> _processContent = new(EqualityComparer<NamePair>.Default, static (state, pair) =>
     {
-        foreach (var namePair in state.Keys)
+        foreach (NamePair namePair in state.Keys)
         {
             if (namePair.Matches(pair))
                 return true;
@@ -74,7 +74,7 @@ public class MceXmlReader : IXmlReader
         const string mceNs = "http://schemas.openxmlformats.org/markup-compatibility/2006";
 
         _reader = reader;
-        var nameTable = _reader.NameTable ?? throw new ArgumentException("XmlReader must use name table.");
+        XmlNameTable nameTable = _reader.NameTable ?? throw new ArgumentException("XmlReader must use name table.");
         _mce = nameTable.Add(mceNs);
         _alternateContent = XmlName.Atomize("AlternateContent", mceNs, nameTable);
         _choice = XmlName.Atomize("Choice", mceNs, nameTable);
@@ -585,13 +585,13 @@ public class MceXmlReader : IXmlReader
                 return;
 
             var itemsToRemove = new List<T>();
-            foreach (var (item, depth) in _state)
+            foreach ((T? item, var depth) in _state)
             {
                 if (depthToClear == depth)
                     itemsToRemove.Add(item);
             }
 
-            foreach (var item in itemsToRemove)
+            foreach (T item in itemsToRemove)
                 _state.Remove(item);
         }
     }

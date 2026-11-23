@@ -74,7 +74,7 @@ internal class FormatSlice : ISlice
 
     internal void AddUsedFormat(HashSet<XlsxCellFormatValue> usedCellFormats)
     {
-        var enumerator = GetEnumerator(Area.Full);
+        IEnumerator<Point> enumerator = GetEnumerator(Area.Full);
         while (enumerator.MoveNext())
         {
             if (_slice[enumerator.Current] is { } format)

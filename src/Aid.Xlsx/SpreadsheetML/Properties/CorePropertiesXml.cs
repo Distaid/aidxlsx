@@ -14,7 +14,7 @@ internal static class CorePropertiesXml
 
     internal static void Read(Stream stream, XlsxWorkbookProperties properties)
     {
-        var root = XDocumentExtensions.Load(stream)?.Root;
+        XElement? root = XDocumentExtensions.Load(stream)?.Root;
         if (root?.Name != Core + "coreProperties")
             return;
 
@@ -26,15 +26,15 @@ internal static class CorePropertiesXml
         properties.Status = (string?)root.Element(Core + "contentStatus");
         properties.Subject = (string?)root.Element(DublinCore + "subject");
         properties.Title = (string?)root.Element(DublinCore + "title");
-        if (TryReadDate(root, "created", out var created))
+        if (TryReadDate(root, "created", out DateTime created))
             properties.Created = created;
-        if (TryReadDate(root, "modified", out var modified))
+        if (TryReadDate(root, "modified", out DateTime modified))
             properties.Modified = modified;
     }
 
     internal static XDocument Update(Stream? existing, XlsxWorkbookProperties properties)
     {
-        var document = existing is null ? null : XDocumentExtensions.Load(existing);
+        XDocument? document = existing is null ? null : XDocumentExtensions.Load(existing);
         if (document?.Root is not { } root || root.Name != Core + "coreProperties")
         {
             root = new XElement(Core + "coreProperties");
@@ -63,9 +63,9 @@ internal static class CorePropertiesXml
 
     private static void WriteDate(XElement root, string name, DateTime value)
     {
-        var utc = value == DateTime.MinValue ? DateTime.UtcNow : value.Kind == DateTimeKind.Local
+        DateTime utc = value == DateTime.MinValue ? DateTime.UtcNow : value.Kind == DateTimeKind.Local
             ? value.ToUniversalTime() : DateTime.SpecifyKind(value, DateTimeKind.Utc);
-        var elementName = Terms + name;
+        XName elementName = Terms + name;
         root.SetElementValue(elementName, utc.ToString("O", CultureInfo.InvariantCulture));
         root.Element(elementName)!.SetAttributeValue(SchemaInstance + "type", "dcterms:W3CDTF");
     }

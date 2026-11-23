@@ -35,7 +35,7 @@ using Drawings;
 
 public partial class XlsxWorkbook
 {
-    private void Load(String file)
+    private void Load(string file)
     {
         LoadSheets(file);
     }
@@ -45,9 +45,9 @@ public partial class XlsxWorkbook
         LoadSheets(stream);
     }
 
-    private void LoadSheets(String fileName)
+    private void LoadSheets(string fileName)
     {
-        using var stream = File.OpenRead(fileName);
+        using FileStream stream = File.OpenRead(fileName);
         LoadSheets(stream);
     }
 
@@ -66,7 +66,7 @@ public partial class XlsxWorkbook
         LoadWorkbook(new WorkbookPackage(opc));
     }
 
-    private void LoadSheetsFromTemplate(String fileName)
+    private void LoadSheetsFromTemplate(string fileName)
     {
         LoadSheets(fileName);
         _spreadsheetDocumentType = WorkbookPackageType.Workbook;
@@ -79,26 +79,26 @@ public partial class XlsxWorkbook
 
     private void ResetAllRelIds()
     {
-        foreach (var pc in PivotCachesInternal)
+        foreach (XlsxPivotCache pc in PivotCachesInternal)
             pc.WorkbookCacheRelId = null;
 
         var sheetId = 1u;
-        foreach (var ws in WorksheetsInternal)
+        foreach (XlsxWorksheet ws in WorksheetsInternal)
         {
             // Ensure unique sheetId for each sheet.
             ws.SheetId = sheetId++;
             ws.RelId = null;
 
-            foreach (var pt in ws.PivotTables.Cast<XlsxPivotTable>())
+            foreach (XlsxPivotTable pt in ws.PivotTables.Cast<XlsxPivotTable>())
             {
                 pt.CacheDefinitionRelId = null;
                 pt.RelId = null;
             }
 
-            foreach (var picture in ws.Pictures.Cast<XlsxPicture>())
+            foreach (XlsxPicture picture in ws.Pictures.Cast<XlsxPicture>())
                 picture.RelId = null;
 
-            foreach (var table in ws.Tables.Cast<XlsxTable>())
+            foreach (XlsxTable table in ws.Tables.Cast<XlsxTable>())
                 table.RelId = null;
         }
     }
@@ -108,24 +108,24 @@ public partial class XlsxWorkbook
         var context = new LoadContext();
         ShapeIdManager = new XlsxIdManager();
 
-        var workbookPart = package.WorkbookPart ?? throw new InvalidDataException("The package has no workbook part.");
+        OpcPart workbookPart = package.WorkbookPart ?? throw new InvalidDataException("The package has no workbook part.");
 
         if (package.FirstRelatedPart(workbookPart, "theme").Part is { } themePart)
         {
-            using var themeStream = themePart.OpenRead();
+            using Stream themeStream = themePart.OpenRead();
             ThemeXml.Read(themeStream, Theme);
         }
 
         XElement workbook;
-        using (var workbookStream = workbookPart.OpenRead())
+        using (Stream workbookStream = workbookPart.OpenRead())
             workbook = WorkbookXml.ReadRoot(workbookStream);
         WorkbookXml.LoadSettings(workbook, this);
 
         // Styles part is optional and each workbook must have a default style
-        var stylesPart = package.FirstRelatedPart(workbookPart, "styles").Part;
+        OpcPart stylesPart = package.FirstRelatedPart(workbookPart, "styles").Part;
         if (stylesPart is not null)
         {
-            using var xmlReader = CreateTreeReader(stylesPart);
+            using XmlTreeReader xmlReader = CreateTreeReader(stylesPart);
             var stylesReader = new StylesReader(xmlReader, Styles);
             stylesReader.Load();
         }
@@ -136,10 +136,10 @@ public partial class XlsxWorkbook
 
         // Spec says each package must have exactly one SST part, but some packages don't have that.
         List<OneOf<string, XlsxImmutableRichText>> sst = [];
-        var sstPart = package.FirstRelatedPart(workbookPart, "sharedStrings").Part;
+        OpcPart sstPart = package.FirstRelatedPart(workbookPart, "sharedStrings").Part;
         if (sstPart is not null)
         {
-            using var sstXmlReader = CreateTreeReader(sstPart);
+            using XmlTreeReader sstXmlReader = CreateTreeReader(sstPart);
             var sstReader = new SstReader(sstXmlReader, Styles);
             sst = sstReader.ParseSst();
         }
@@ -151,10 +151,10 @@ public partial class XlsxWorkbook
         // We do this mainly because it skips a very costly calculation invalidation step, but it also make things more consistent,
         // e.g. when reading calculations that reference other sheets, we know that those sheets always already exist.
         // That consistency point isn't required yet but could be taken advantage of in the future.
-        var ns = workbook.Name.Namespace;
-        var sheets = workbook.Element(ns + "sheets")?.Elements(ns + "sheet").Select(WorkbookXml.ReadSheet).ToArray() ?? [];
-        Int32 position = 0;
-        foreach (var dSheet in sheets)
+        XNamespace ns = workbook.Name.Namespace;
+        WorkbookXml.Sheet[] sheets = workbook.Element(ns + "sheets")?.Elements(ns + "sheet").Select(WorkbookXml.ReadSheet).ToArray() ?? [];
+        var position = 0;
+        foreach (WorkbookXml.Sheet dSheet in sheets)
         {
             position++;
             var sheetName = dSheet.Name;
@@ -163,7 +163,7 @@ public partial class XlsxWorkbook
             if (string.IsNullOrEmpty(dSheet.Id))
             {
                 // Some non-Excel producers create sheets with empty relId.
-                var emptySheet = WorksheetsInternal.Add(sheetName, position, sheetId);
+                XlsxWorksheet emptySheet = WorksheetsInternal.Add(sheetName, position, sheetId);
                 emptySheet.Visibility = dSheet.Visibility;
 
                 continue;
@@ -172,21 +172,21 @@ public partial class XlsxWorkbook
             // Although relationship to worksheet is most common, there can be other types
             // than worksheet, e.g. chartSheet. Since we can't load them, add them to list
             // of unsupported sheets and copy them when saving. See Codeplex #6932.
-            var worksheetPart = package.RelatedPart(workbookPart, dSheet.Id, "worksheet");
+            OpcPart worksheetPart = package.RelatedPart(workbookPart, dSheet.Id, "worksheet");
             if (worksheetPart == null)
             {
                 UnsupportedSheets.Add(new UnsupportedSheet { SheetId = sheetId, Position = position });
                 continue;
             }
 
-            var ws = WorksheetsInternal.Add(sheetName, position, sheetId);
+            XlsxWorksheet ws = WorksheetsInternal.Add(sheetName, position, sheetId);
             ws.RelId = dSheet.Id;
 
             ws.Visibility = dSheet.Visibility;
         }
 
         position = 0;
-        foreach (var dSheet in sheets)
+        foreach (WorkbookXml.Sheet dSheet in sheets)
         {
             position++;
             var sheetName = dSheet.Name;
@@ -200,19 +200,19 @@ public partial class XlsxWorkbook
             // Although relationship to worksheet is most common, there can be other types
             // than worksheet, e.g. chartSheet. Since we can't load them, add them to list
             // of unsupported sheets and copy them when saving. See Codeplex #6932.
-            var worksheetPart = package.RelatedPart(workbookPart, dSheet.Id, "worksheet");
+            OpcPart worksheetPart = package.RelatedPart(workbookPart, dSheet.Id, "worksheet");
             if (worksheetPart == null)
             {
                 continue;
             }
 
-            if (!WorksheetsInternal.TryGetWorksheet(sheetName, out var ws))
+            if (!WorksheetsInternal.TryGetWorksheet(sheetName, out XlsxWorksheet ws))
             {
                 // This shouldn't be possible, as all worksheets should have already been added in the loop before this loop
                 continue;
             }
 
-            using (var worksheetStream = worksheetPart.OpenRead())
+            using (Stream worksheetStream = worksheetPart.OpenRead())
             {
                 var hyperlinks = worksheetPart.Relationships.Where(rel => WorkbookPackage.IsOfficeRelationship(rel, "hyperlink"))
                     .ToDictionary(rel => rel.Id, rel => new Uri(rel.Target, UriKind.RelativeOrAbsolute));
@@ -223,9 +223,9 @@ public partial class XlsxWorkbook
 
             #region LoadTables
 
-            foreach (var (id, tableDefinitionPart) in package.RelatedParts(worksheetPart, "table"))
+            foreach ((var id, OpcPart tableDefinitionPart) in package.RelatedParts(worksheetPart, "table"))
             {
-                using var tableStream = tableDefinitionPart.OpenRead();
+                using Stream tableStream = tableDefinitionPart.OpenRead();
                 TableDefinitionXml.Load(tableStream, ws, id);
             }
 
@@ -237,8 +237,8 @@ public partial class XlsxWorkbook
 
             if (package.FirstRelatedPart(worksheetPart, "comments").Part is { } commentsPart)
             {
-                var shapes = GetCommentShapes(package, worksheetPart);
-                using var commentsStream = commentsPart.OpenRead();
+                IList<XElement> shapes = GetCommentShapes(package, worksheetPart);
+                using Stream commentsStream = commentsPart.OpenRead();
                 CommentPartReader.Load(commentsStream, ws,
                     index => GetCommentShapeId(index < shapes.Count ? shapes[index] : null),
                     (index, comment) =>
@@ -260,12 +260,12 @@ public partial class XlsxWorkbook
             else
             {
                 UnsupportedSheet unsupportedSheet =
-                    UnsupportedSheets.FirstOrDefault(us => us.Position == (Int32)(activeTab + 1));
+                    UnsupportedSheets.FirstOrDefault(us => us.Position == (int)(activeTab + 1));
                 if (unsupportedSheet != null)
                     unsupportedSheet.IsActive = true;
                 else
                 {
-                    Worksheet((Int32)(activeTab + 1)).SetTabActive();
+                    Worksheet((int)(activeTab + 1)).SetTabActive();
                 }
             }
         }
@@ -273,21 +273,21 @@ public partial class XlsxWorkbook
 
         // Read cache definition before table definition
         var cacheRelationships = package.RelatedParts(workbookPart, "pivotCacheDefinition").ToList();
-        foreach (var (id, pivotTableCacheDefinitionPart) in cacheRelationships)
+        foreach ((var id, OpcPart pivotTableCacheDefinitionPart) in cacheRelationships)
         {
-            using var definitionStream = pivotTableCacheDefinitionPart.OpenRead();
-            var definition = PivotCacheDefinitionXml.Read(definitionStream);
-            var pivotCache = PivotCacheDefinitionXml.Load(definition, id, this);
+            using Stream definitionStream = pivotTableCacheDefinitionPart.OpenRead();
+            XElement definition = PivotCacheDefinitionXml.Read(definitionStream);
+            XlsxPivotCache pivotCache = PivotCacheDefinitionXml.Load(definition, id, this);
             if (package.FirstRelatedPart(pivotTableCacheDefinitionPart, "pivotCacheRecords").Part is { } recordsPart)
             {
-                using var reader = CreateTreeReader(recordsPart);
+                using XmlTreeReader reader = CreateTreeReader(recordsPart);
                 var recordsReader = new PivotCacheRecordsReader(reader, pivotCache);
                 recordsReader.ReadRecordsToCache();
             }
         }
 
         // Delay loading of pivot tables until all sheets have been loaded
-        foreach (var dSheet in sheets)
+        foreach (WorkbookXml.Sheet dSheet in sheets)
         {
             if (string.IsNullOrEmpty(dSheet.Id))
             {
@@ -296,31 +296,31 @@ public partial class XlsxWorkbook
             }
 
             // The referenced sheet can also be ChartsheetPart. Only look for pivot tables in normal sheet parts.
-            var worksheetPart = package.RelatedPart(workbookPart, dSheet.Id, "worksheet");
+            OpcPart worksheetPart = package.RelatedPart(workbookPart, dSheet.Id, "worksheet");
 
             if (worksheetPart is not null)
             {
                 var ws = (XlsxWorksheet)WorksheetsInternal.Worksheet(dSheet.Name);
 
-                foreach (var (id, pivotTablePart) in package.RelatedParts(worksheetPart, "pivotTable"))
+                foreach ((var id, OpcPart pivotTablePart) in package.RelatedParts(worksheetPart, "pivotTable"))
                 {
-                    var (definitionId, cachePart) = package.FirstRelatedPart(pivotTablePart, "pivotCacheDefinition");
+                    (var definitionId, OpcPart cachePart) = package.FirstRelatedPart(pivotTablePart, "pivotCacheDefinition");
                     if (cachePart is null)
                         continue;
 
                     var cacheId = cacheRelationships.FirstOrDefault(pair => pair.Part == cachePart).Id;
-                    var cache = PivotCachesInternal.FirstOrDefault<XlsxPivotCache>(candidate => candidate.WorkbookCacheRelId == cacheId);
+                    XlsxPivotCache cache = PivotCachesInternal.FirstOrDefault<XlsxPivotCache>(candidate => candidate.WorkbookCacheRelId == cacheId);
                     if (cache is null)
                     {
                         // A producer may use distinct caches for the same source range or table.
-                        using var cacheStream = cachePart.OpenRead();
-                        var source = PivotCacheDefinitionXml.ReadSource(PivotCacheDefinitionXml.Read(cacheStream));
+                        using Stream cacheStream = cachePart.OpenRead();
+                        IXlsxPivotSource source = PivotCacheDefinitionXml.ReadSource(PivotCacheDefinitionXml.Read(cacheStream));
                         cache = PivotCachesInternal.FirstOrDefault<XlsxPivotCache>(candidate => candidate.Source.Equals(source));
                     }
 
                     if (cache is not null)
                     {
-                        using var partStream = pivotTablePart.OpenRead();
+                        using Stream partStream = pivotTablePart.OpenRead();
                         PivotTableXml.Load(PivotTableXml.Read(partStream), ws, cache, id, definitionId, context);
                     }
                 }
@@ -333,7 +333,7 @@ public partial class XlsxWorkbook
         if (package.FirstRelatedPart(worksheetPart, "drawing").Part is not { } part)
             return;
 
-        using var stream = part.OpenRead();
+        using Stream stream = part.OpenRead();
         DrawingXml.LoadPictures(DrawingXml.Read(stream), sheet,
             id => package.RelatedPart(part, id, "image")?.OpenRead());
     }
@@ -363,14 +363,14 @@ public partial class XlsxWorkbook
 
     private static IList<XElement> GetCommentShapes(WorkbookPackage package, OpcPart worksheetPart)
     {
-        foreach (var (_, vmlPart) in package.RelatedParts(worksheetPart, "vmlDrawing"))
+        foreach ((var _, OpcPart vmlPart) in package.RelatedParts(worksheetPart, "vmlDrawing"))
         {
-            using var stream = vmlPart.OpenRead();
-            var xdoc = XDocumentExtensions.Load(stream);
+            using Stream stream = vmlPart.OpenRead();
+            XDocument xdoc = XDocumentExtensions.Load(stream);
             if (xdoc == null)
                 continue;
 
-            var root = xdoc.Root.Element("xml") ?? xdoc.Root;
+            XElement root = xdoc.Root.Element("xml") ?? xdoc.Root;
 
             if (root == null)
                 continue;
@@ -391,54 +391,54 @@ public partial class XlsxWorkbook
 
     private void LoadColorsAndLines<T>(IXlsxDrawing<T> drawing, XElement shape)
     {
-        var strokeColor = shape.Attribute(@"strokecolor");
+        XAttribute strokeColor = shape.Attribute(@"strokecolor");
         if (strokeColor is not null)
             drawing.Style.ColorsAndLines.LineColor = XlsxColor.FromVmlColor(strokeColor.Value);
 
-        var strokeWeight = shape.Attribute(@"strokeweight");
+        XAttribute strokeWeight = shape.Attribute(@"strokeweight");
         if (strokeWeight != null && TryGetPtValue(strokeWeight.Value, out var lineWeight))
             drawing.Style.ColorsAndLines.LineWeight = lineWeight;
 
-        var fillColor = shape.Attribute(@"fillcolor");
+        XAttribute fillColor = shape.Attribute(@"fillcolor");
         if (fillColor is not null)
             drawing.Style.ColorsAndLines.FillColor = XlsxColor.FromVmlColor(fillColor.Value);
 
-        var fill = shape.Elements().FirstOrDefault(e => e.Name.LocalName == "fill");
+        XElement fill = shape.Elements().FirstOrDefault(e => e.Name.LocalName == "fill");
         if (fill != null)
         {
-            var opacity = fill.Attribute("opacity");
+            XAttribute opacity = fill.Attribute("opacity");
             if (opacity != null)
             {
-                String opacityVal = opacity.Value;
+                var opacityVal = opacity.Value;
                 if (opacityVal.EndsWith('f'))
                     drawing.Style.ColorsAndLines.FillTransparency =
-                        Double.Parse(opacityVal[..^1], CultureInfo.InvariantCulture) / 65536.0;
+                        double.Parse(opacityVal[..^1], CultureInfo.InvariantCulture) / 65536.0;
                 else
-                    drawing.Style.ColorsAndLines.FillTransparency = Double.Parse(opacityVal, CultureInfo.InvariantCulture);
+                    drawing.Style.ColorsAndLines.FillTransparency = double.Parse(opacityVal, CultureInfo.InvariantCulture);
             }
         }
 
-        var stroke = shape.Elements().FirstOrDefault(e => e.Name.LocalName == "stroke");
+        XElement stroke = shape.Elements().FirstOrDefault(e => e.Name.LocalName == "stroke");
         if (stroke != null)
         {
-            var opacity = stroke.Attribute("opacity");
+            XAttribute opacity = stroke.Attribute("opacity");
             if (opacity != null)
             {
-                String opacityVal = opacity.Value;
+                var opacityVal = opacity.Value;
                 if (opacityVal.EndsWith('f'))
                     drawing.Style.ColorsAndLines.LineTransparency =
-                        Double.Parse(opacityVal[..^1], CultureInfo.InvariantCulture) / 65536.0;
+                        double.Parse(opacityVal[..^1], CultureInfo.InvariantCulture) / 65536.0;
                 else
-                    drawing.Style.ColorsAndLines.LineTransparency = Double.Parse(opacityVal, CultureInfo.InvariantCulture);
+                    drawing.Style.ColorsAndLines.LineTransparency = double.Parse(opacityVal, CultureInfo.InvariantCulture);
             }
 
-            var dashStyle = stroke.Attribute("dashstyle");
+            XAttribute dashStyle = stroke.Attribute("dashstyle");
             if (dashStyle != null)
             {
-                String dashStyleVal = dashStyle.Value.ToLower();
+                var dashStyleVal = dashStyle.Value.ToLower();
                 if (dashStyleVal == "1 1" || dashStyleVal == "shortdot")
                 {
-                    var endCap = stroke.Attribute("endcap");
+                    XAttribute endCap = stroke.Attribute("endcap");
                     if (endCap != null && endCap.Value == "round")
                         drawing.Style.ColorsAndLines.LineDash = XlsxDashStyle.RoundDot;
                     else
@@ -457,10 +457,10 @@ public partial class XlsxWorkbook
                 }
             }
 
-            var lineStyle = stroke.Attribute("linestyle");
+            XAttribute lineStyle = stroke.Attribute("linestyle");
             if (lineStyle != null)
             {
-                String lineStyleVal = lineStyle.Value.ToLower();
+                var lineStyleVal = lineStyle.Value.ToLower();
                 switch (lineStyleVal)
                 {
                     case "single": drawing.Style.ColorsAndLines.LineStyle = XlsxLineStyle.Single; break;
@@ -475,10 +475,10 @@ public partial class XlsxWorkbook
 
     private void LoadTextBox<T>(IXlsxDrawing<T> xlDrawing, XElement textBox)
     {
-        var attStyle = textBox.Attribute("style");
+        XAttribute attStyle = textBox.Attribute("style");
         if (attStyle != null) LoadTextBoxStyle(xlDrawing, attStyle);
 
-        var attInset = textBox.Attribute("inset");
+        XAttribute attInset = textBox.Attribute("inset");
         if (attInset != null) LoadTextBoxInset(xlDrawing, attInset);
     }
 
@@ -520,11 +520,11 @@ public partial class XlsxWorkbook
     private static double GetInsetInInches(string value, double dpi)
     {
         var unit = value.Trim();
-        foreach (var (unitName, conversion) in VmlLengthUnits)
+        foreach ((var unitName, Func<double, double, Emu?> conversion) in VmlLengthUnits)
         {
-            if (unit.EndsWith(unitName) && Double.TryParse(unit[..^unitName.Length], NumberStyles.Float, CultureInfo.InvariantCulture, out var unitValue))
+            if (unit.EndsWith(unitName) && double.TryParse(unit[..^unitName.Length], NumberStyles.Float, CultureInfo.InvariantCulture, out var unitValue))
             {
-                var insetEmu = conversion(unitValue, dpi) ?? Emu.ZeroPt;
+                Emu insetEmu = conversion(unitValue, dpi) ?? Emu.ZeroPt;
                 return insetEmu.To(AbsLengthUnit.Inch);
             }
         }
@@ -537,14 +537,14 @@ public partial class XlsxWorkbook
     {
         var style = attStyle.Value;
         var attributes = style.Split(';');
-        foreach (String pair in attributes)
+        foreach (var pair in attributes)
         {
             var split = pair.Split(':');
             if (split.Length != 2) continue;
 
             var attribute = split[0].Trim().ToLower();
             var value = split[1].Trim();
-            Boolean isVertical = false;
+            var isVertical = false;
             switch (attribute)
             {
                 case "mso-fit-shape-to-text": xlDrawing.Style.Size.SetAutomaticSize(value.Equals("t")); break;
@@ -564,13 +564,13 @@ public partial class XlsxWorkbook
 
     private static void LoadClientData<T>(IXlsxDrawing<T> drawing, XElement clientData)
     {
-        var anchor = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "Anchor");
+        XElement anchor = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "Anchor");
         if (anchor != null) LoadClientDataAnchor<T>(drawing, anchor);
 
         LoadDrawingPositioning<T>(drawing, clientData);
         LoadDrawingProtection(drawing, clientData);
 
-        var visible = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "Visible");
+        XElement visible = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "Visible");
         drawing.Visible = visible != null &&
                           (string.IsNullOrEmpty(visible.Value) ||
                            visible.Value.StartsWith("t", StringComparison.OrdinalIgnoreCase));
@@ -581,34 +581,34 @@ public partial class XlsxWorkbook
 
     private static void LoadDrawingHAlignment<T>(IXlsxDrawing<T> drawing, XElement clientData)
     {
-        var textHAlign = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "TextHAlign");
+        XElement textHAlign = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "TextHAlign");
         if (textHAlign != null)
             drawing.Style.Alignment.Horizontal = Enum.Parse<XlsxDrawingHorizontalAlignment>(textHAlign.Value.ToProper());
     }
 
     private static void LoadDrawingVAlignment<T>(IXlsxDrawing<T> drawing, XElement clientData)
     {
-        var textVAlign = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "TextVAlign");
+        XElement textVAlign = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "TextVAlign");
         if (textVAlign != null)
             drawing.Style.Alignment.Vertical = Enum.Parse<XlsxDrawingVerticalAlignment>(textVAlign.Value.ToProper());
     }
 
     private static void LoadDrawingProtection<T>(IXlsxDrawing<T> drawing, XElement clientData)
     {
-        var lockedElement = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "Locked");
-        var lockTextElement = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "LockText");
-        Boolean locked = lockedElement != null && lockedElement.Value.Equals("true", StringComparison.CurrentCultureIgnoreCase);
-        Boolean lockText = lockTextElement != null && lockTextElement.Value.Equals("true", StringComparison.CurrentCultureIgnoreCase);
+        XElement lockedElement = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "Locked");
+        XElement lockTextElement = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "LockText");
+        var locked = lockedElement != null && lockedElement.Value.Equals("true", StringComparison.CurrentCultureIgnoreCase);
+        var lockText = lockTextElement != null && lockTextElement.Value.Equals("true", StringComparison.CurrentCultureIgnoreCase);
         drawing.Style.Protection.Locked = locked;
         drawing.Style.Protection.LockText = lockText;
     }
 
     private static void LoadDrawingPositioning<T>(IXlsxDrawing<T> drawing, XElement clientData)
     {
-        var moveWithCellsElement = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "MoveWithCells");
-        var sizeWithCellsElement = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "SizeWithCells");
-        Boolean moveWithCells = !(moveWithCellsElement != null && moveWithCellsElement.Value.Equals("true", StringComparison.CurrentCultureIgnoreCase));
-        Boolean sizeWithCells = !(sizeWithCellsElement != null && sizeWithCellsElement.Value.Equals("true", StringComparison.CurrentCultureIgnoreCase));
+        XElement moveWithCellsElement = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "MoveWithCells");
+        XElement sizeWithCellsElement = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "SizeWithCells");
+        var moveWithCells = !(moveWithCellsElement != null && moveWithCellsElement.Value.Equals("true", StringComparison.CurrentCultureIgnoreCase));
+        var sizeWithCells = !(sizeWithCellsElement != null && sizeWithCellsElement.Value.Equals("true", StringComparison.CurrentCultureIgnoreCase));
         if (moveWithCells && !sizeWithCells)
             drawing.Style.Properties.Positioning = XlsxDrawingAnchor.MoveWithCells;
         else if (moveWithCells && sizeWithCells)
@@ -621,9 +621,9 @@ public partial class XlsxWorkbook
     {
         var location = anchor.Value.Split(',');
         drawing.Position.Column = int.Parse(location[0]) + 1;
-        drawing.Position.ColumnOffset = Double.Parse(location[1], CultureInfo.InvariantCulture) / 7.5;
+        drawing.Position.ColumnOffset = double.Parse(location[1], CultureInfo.InvariantCulture) / 7.5;
         drawing.Position.Row = int.Parse(location[2]) + 1;
-        drawing.Position.RowOffset = Double.Parse(location[3], CultureInfo.InvariantCulture);
+        drawing.Position.RowOffset = double.Parse(location[3], CultureInfo.InvariantCulture);
     }
 
     private void LoadShapeProperties<T>(IXlsxDrawing<T> xlDrawing, XElement shape)
@@ -657,7 +657,7 @@ public partial class XlsxWorkbook
                     break;
 
                 case "z-index":
-                    if (Int32.TryParse(value, out var zOrder))
+                    if (int.TryParse(value, out var zOrder))
                     {
                         xlDrawing.ZOrder = zOrder;
                     }
@@ -675,14 +675,14 @@ public partial class XlsxWorkbook
 
     private bool TryGetPtValue(string value, out double result)
     {
-        var knownUnit = knownUnits.FirstOrDefault(ku => value.Contains(ku.Key));
+        KeyValuePair<string, double> knownUnit = knownUnits.FirstOrDefault(ku => value.Contains(ku.Key));
 
         if (knownUnit.Key == null)
-            return Double.TryParse(value, out result);
+            return double.TryParse(value, out result);
 
-        value = value.Replace(knownUnit.Key, String.Empty);
+        value = value.Replace(knownUnit.Key, string.Empty);
 
-        if (Double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
+        if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
         {
             result *= knownUnit.Value;
             return true;
@@ -694,12 +694,12 @@ public partial class XlsxWorkbook
 
     private void LoadDefinedNames(XElement workbook)
     {
-        var ns = workbook.Name.Namespace;
-        var definedNames = workbook.Element(ns + "definedNames");
+        XNamespace ns = workbook.Name.Namespace;
+        XElement definedNames = workbook.Element(ns + "definedNames");
         if (definedNames is null)
             return;
 
-        foreach (var definedName in definedNames.Elements(ns + "definedName"))
+        foreach (XElement definedName in definedNames.Elements(ns + "definedName"))
         {
             var name = (string)definedName.Attribute("name");
             var visible = !((bool?)definedName.Attribute("hidden") ?? false);
@@ -709,17 +709,17 @@ public partial class XlsxWorkbook
 
             if (name == "_xlnm.Print_Area")
             {
-                var fixedNames = ValidateDefinedNames(text.Split(','));
-                foreach (string area in fixedNames)
+                IEnumerable<string> fixedNames = ValidateDefinedNames(text.Split(','));
+                foreach (var area in fixedNames)
                 {
                     if (area.Contains('['))
                     {
-                        var ws = WorksheetsInternal.FirstOrDefault<XlsxWorksheet>(w => w.SheetId == (localSheetId + 1));
+                        XlsxWorksheet ws = WorksheetsInternal.FirstOrDefault<XlsxWorksheet>(w => w.SheetId == (localSheetId + 1));
                         ws?.PageSetup.PrintAreas.Add(area);
                     }
                     else
                     {
-                        ParseReference(area, out String sheetName, out String sheetArea);
+                        ParseReference(area, out var sheetName, out var sheetArea);
                         if (!(sheetArea.Equals("#REF") || sheetArea.EndsWith("#REF!") || sheetArea.Length == 0 || sheetName.Length == 0))
                             WorksheetsInternal.Worksheet(sheetName).PageSetup.PrintAreas.Add(sheetArea);
                     }
@@ -749,10 +749,10 @@ public partial class XlsxWorkbook
     [GeneratedRegex(@"\A('?).*\1!.*\z", RegexOptions.Compiled)]
     private static partial Regex definedNameRegex { get; }
 
-    private static IEnumerable<String> ValidateDefinedNames(IEnumerable<String> definedNames)
+    private static IEnumerable<string> ValidateDefinedNames(IEnumerable<string> definedNames)
     {
         var sb = new StringBuilder();
-        foreach (string testName in definedNames)
+        foreach (var testName in definedNames)
         {
             if (sb.Length > 0)
                 sb.Append(',');
@@ -773,7 +773,7 @@ public partial class XlsxWorkbook
 
     private void LoadPrintTitles(string definition)
     {
-        var areas = ValidateDefinedNames(definition.Split(','));
+        IEnumerable<string> areas = ValidateDefinedNames(definition.Split(','));
         foreach (var item in areas)
         {
             if (this.Range(item) != null)
@@ -783,7 +783,7 @@ public partial class XlsxWorkbook
 
     private void SetColumnsOrRowsToRepeat(string area)
     {
-        ParseReference(area, out String sheetName, out String sheetArea);
+        ParseReference(area, out var sheetName, out var sheetArea);
         sheetArea = sheetArea.Replace("$", "");
 
         if (sheetArea.Equals("#REF")) return;
@@ -822,7 +822,7 @@ public partial class XlsxWorkbook
 
     private XmlTreeReader CreateTreeReader(OpcPart part)
     {
-        var stream = part.OpenRead();
+        Stream stream = part.OpenRead();
         return new XmlTreeReader(stream, XmlToEnumMapper.Instance, StrictAttributeParsing);
     }
 }

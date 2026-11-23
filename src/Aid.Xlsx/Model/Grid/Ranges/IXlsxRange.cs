@@ -76,35 +76,35 @@ public interface IXlsxRange : IXlsxRangeBase
     /// <summary>
     /// Gets the first column of the range.
     /// </summary>
-    IXlsxRangeColumn FirstColumn(Func<IXlsxRangeColumn, Boolean> predicate = null);
+    IXlsxRangeColumn FirstColumn(Func<IXlsxRangeColumn, bool> predicate = null);
 
     /// <summary>
     /// Gets the first non-empty column of the range that contains a cell with a value.
     /// </summary>
     /// <param name="options">The options to determine whether a cell is used.</param>
     /// <param name="predicate">The predicate to choose cells.</param>
-    IXlsxRangeColumn FirstColumnUsed(XlsxCellsUsedOptions options, Func<IXlsxRangeColumn, Boolean> predicate = null);
+    IXlsxRangeColumn FirstColumnUsed(XlsxCellsUsedOptions options, Func<IXlsxRangeColumn, bool> predicate = null);
 
-    IXlsxRangeColumn FirstColumnUsed(Func<IXlsxRangeColumn, Boolean> predicate = null);
+    IXlsxRangeColumn FirstColumnUsed(Func<IXlsxRangeColumn, bool> predicate = null);
 
     /// <summary>
     /// Gets the last column of the range.
     /// </summary>
-    IXlsxRangeColumn LastColumn(Func<IXlsxRangeColumn, Boolean> predicate = null);
+    IXlsxRangeColumn LastColumn(Func<IXlsxRangeColumn, bool> predicate = null);
 
     /// <summary>
     /// Gets the last non-empty column of the range that contains a cell with a value.
     /// </summary>
     /// <param name="options">The options to determine whether a cell is used.</param>
     /// <param name="predicate">The predicate to choose cells.</param>
-    IXlsxRangeColumn LastColumnUsed(XlsxCellsUsedOptions options, Func<IXlsxRangeColumn, Boolean> predicate = null);
+    IXlsxRangeColumn LastColumnUsed(XlsxCellsUsedOptions options, Func<IXlsxRangeColumn, bool> predicate = null);
 
-    IXlsxRangeColumn LastColumnUsed(Func<IXlsxRangeColumn, Boolean> predicate = null);
+    IXlsxRangeColumn LastColumnUsed(Func<IXlsxRangeColumn, bool> predicate = null);
 
     /// <summary>
     /// Gets a collection of all columns in this range.
     /// </summary>
-    IXlsxRangeColumns Columns(Func<IXlsxRangeColumn, Boolean> predicate = null);
+    IXlsxRangeColumns Columns(Func<IXlsxRangeColumn, bool> predicate = null);
 
     /// <summary>
     /// Gets a collection of the specified columns in this range.
@@ -131,40 +131,40 @@ public interface IXlsxRange : IXlsxRangeBase
     /// <summary>
     /// Returns the first row that matches the given predicate
     /// </summary>
-    IXlsxRangeColumn FindColumn(Func<IXlsxRangeColumn, Boolean> predicate);
+    IXlsxRangeColumn FindColumn(Func<IXlsxRangeColumn, bool> predicate);
 
     /// <summary>
     /// Returns the first row that matches the given predicate
     /// </summary>
-    IXlsxRangeRow FindRow(Func<IXlsxRangeRow, Boolean> predicate);
+    IXlsxRangeRow FindRow(Func<IXlsxRangeRow, bool> predicate);
 
     /// <summary>
     /// Gets the first row of the range.
     /// </summary>
-    IXlsxRangeRow FirstRow(Func<IXlsxRangeRow, Boolean> predicate = null);
+    IXlsxRangeRow FirstRow(Func<IXlsxRangeRow, bool> predicate = null);
 
     /// <summary>
     /// Gets the first non-empty row of the range that contains a cell with a value.
     /// </summary>
     /// <param name="options">The options to determine whether a cell is used.</param>
     /// <param name="predicate">The predicate to choose cells.</param>
-    IXlsxRangeRow FirstRowUsed(XlsxCellsUsedOptions options, Func<IXlsxRangeRow, Boolean> predicate = null);
+    IXlsxRangeRow FirstRowUsed(XlsxCellsUsedOptions options, Func<IXlsxRangeRow, bool> predicate = null);
 
-    IXlsxRangeRow FirstRowUsed(Func<IXlsxRangeRow, Boolean> predicate = null);
+    IXlsxRangeRow FirstRowUsed(Func<IXlsxRangeRow, bool> predicate = null);
 
     /// <summary>
     /// Gets the last row of the range.
     /// </summary>
-    IXlsxRangeRow LastRow(Func<IXlsxRangeRow, Boolean> predicate = null);
+    IXlsxRangeRow LastRow(Func<IXlsxRangeRow, bool> predicate = null);
 
     /// <summary>
     /// Gets the last non-empty row of the range that contains a cell with a value.
     /// </summary>
     /// <param name="options">The options to determine whether a cell is used.</param>
     /// <param name="predicate">The predicate to choose cells.</param>
-    IXlsxRangeRow LastRowUsed(XlsxCellsUsedOptions options, Func<IXlsxRangeRow, Boolean> predicate = null);
+    IXlsxRangeRow LastRowUsed(XlsxCellsUsedOptions options, Func<IXlsxRangeRow, bool> predicate = null);
 
-    IXlsxRangeRow LastRowUsed(Func<IXlsxRangeRow, Boolean> predicate = null);
+    IXlsxRangeRow LastRowUsed(Func<IXlsxRangeRow, bool> predicate = null);
 
     /// <summary>
     /// Gets the specified row of the range.
@@ -173,7 +173,7 @@ public interface IXlsxRange : IXlsxRangeBase
     /// <returns>The relevant row</returns>
     IXlsxRangeRow Row(int row);
 
-    IXlsxRangeRows Rows(Func<IXlsxRangeRow, Boolean> predicate = null);
+    IXlsxRangeRows Rows(Func<IXlsxRangeRow, bool> predicate = null);
 
     /// <summary>
     /// Gets a collection of the specified rows in this range.
@@ -241,7 +241,7 @@ public interface IXlsxRange : IXlsxRangeBase
     /// <param name="numberOfColumns">Number of columns to insert.</param>
     IXlsxRangeColumns InsertColumnsAfter(int numberOfColumns);
 
-    IXlsxRangeColumns InsertColumnsAfter(int numberOfColumns, Boolean expandRange);
+    IXlsxRangeColumns InsertColumnsAfter(int numberOfColumns, bool expandRange);
 
     /// <summary>
     /// Inserts X number of columns to the left of this range.
@@ -250,7 +250,7 @@ public interface IXlsxRange : IXlsxRangeBase
     /// <param name="numberOfColumns">Number of columns to insert.</param>
     IXlsxRangeColumns InsertColumnsBefore(int numberOfColumns);
 
-    IXlsxRangeColumns InsertColumnsBefore(int numberOfColumns, Boolean expandRange);
+    IXlsxRangeColumns InsertColumnsBefore(int numberOfColumns, bool expandRange);
 
     /// <summary>
     /// Inserts X number of rows on top of this range.
@@ -259,7 +259,7 @@ public interface IXlsxRange : IXlsxRangeBase
     /// <param name="numberOfRows">Number of rows to insert.</param>
     IXlsxRangeRows InsertRowsAbove(int numberOfRows);
 
-    IXlsxRangeRows InsertRowsAbove(int numberOfRows, Boolean expandRange);
+    IXlsxRangeRows InsertRowsAbove(int numberOfRows, bool expandRange);
 
     /// <summary>
     /// Inserts X number of rows below this range.
@@ -268,7 +268,7 @@ public interface IXlsxRange : IXlsxRangeBase
     /// <param name="numberOfRows">Number of rows to insert.</param>
     IXlsxRangeRows InsertRowsBelow(int numberOfRows);
 
-    IXlsxRangeRows InsertRowsBelow(int numberOfRows, Boolean expandRange);
+    IXlsxRangeRows InsertRowsBelow(int numberOfRows, bool expandRange);
 
     /// <summary>
     /// Deletes this range and shifts the surrounding cells accordingly.
@@ -301,11 +301,11 @@ public interface IXlsxRange : IXlsxRangeBase
     ///     The AsTable method will use the first row of the range as a header row.<br/>
     ///     If this range contains only one row, then an empty data row will be inserted into the returned table.
     /// </remarks>
-    IXlsxTable AsTable(String name);
+    IXlsxTable AsTable(string name);
 
     IXlsxTable CreateTable();
 
-    IXlsxTable CreateTable(String name);
+    IXlsxTable CreateTable(string name);
 
     IXlsxRange RangeUsed();
 
@@ -320,8 +320,8 @@ public interface IXlsxRange : IXlsxRangeBase
     IXlsxSortElements SortRows { get; }
 
     /// <summary>
-    /// Columns used for sorting rows. Automatically updated each time a <see cref="Sort(String, XlsxSortOrder, bool, bool)"/>
-    /// or <see cref="Sort(Int32, XlsxSortOrder, bool, bool)"/>.
+    /// Columns used for sorting rows. Automatically updated each time a <see cref="Sort(string, XlsxSortOrder, bool, bool)"/>
+    /// or <see cref="Sort(int, XlsxSortOrder, bool, bool)"/>.
     /// </summary>
     /// <remarks>
     /// User can set desired sorting order here and then call <see cref="Sort()"/> method.
@@ -369,26 +369,26 @@ public interface IXlsxRange : IXlsxRangeBase
     /// <see cref="XlsxDataType.Text"/>.
     /// </param>
     /// <returns>This range.</returns>
-    IXlsxRange Sort(String columnsToSortBy, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true);
+    IXlsxRange Sort(string columnsToSortBy, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true);
 
     /// <summary>
     /// Sort rows of the range according to values in <paramref name="columnToSortBy"/> column.
     /// </summary>
     /// <param name="columnToSortBy">Column number that will be used to sort the range rows.</param>
     /// <param name="sortOrder">Sorting order used by <paramref name="columnToSortBy"/>.</param>
-    /// <param name="matchCase"><inheritdoc cref="Sort(String, XlsxSortOrder, bool, bool)"/></param>
-    /// <param name="ignoreBlanks"><inheritdoc cref="Sort(String, XlsxSortOrder, bool, bool)"/></param>
+    /// <param name="matchCase"><inheritdoc cref="Sort(string, XlsxSortOrder, bool, bool)"/></param>
+    /// <param name="ignoreBlanks"><inheritdoc cref="Sort(string, XlsxSortOrder, bool, bool)"/></param>
     /// <returns>This range.</returns>
-    IXlsxRange Sort(Int32 columnToSortBy, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true);
+    IXlsxRange Sort(int columnToSortBy, XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true);
 
     /// <summary>
     /// Sort columns in a range. The sorting is done using the values in each column of the range.
     /// </summary>
     /// <param name="sortOrder">In what order should columns be sorted</param>
-    /// <param name="matchCase"><inheritdoc cref="Sort(String, XlsxSortOrder, bool, bool)"/></param>
-    /// <param name="ignoreBlanks"><inheritdoc cref="Sort(String, XlsxSortOrder, bool, bool)"/></param>
+    /// <param name="matchCase"><inheritdoc cref="Sort(string, XlsxSortOrder, bool, bool)"/></param>
+    /// <param name="ignoreBlanks"><inheritdoc cref="Sort(string, XlsxSortOrder, bool, bool)"/></param>
     /// <returns>This range.</returns>
-    IXlsxRange SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true);
+    IXlsxRange SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true);
 
     /// <summary>
     /// Clears the contents of this range.
@@ -396,11 +396,11 @@ public interface IXlsxRange : IXlsxRangeBase
     /// <param name="clearOptions">Specify what you want to clear.</param>
     new IXlsxRange Clear(XlsxClearOptions clearOptions = XlsxClearOptions.All);
 
-    IXlsxRangeRows RowsUsed(XlsxCellsUsedOptions options, Func<IXlsxRangeRow, Boolean> predicate = null);
+    IXlsxRangeRows RowsUsed(XlsxCellsUsedOptions options, Func<IXlsxRangeRow, bool> predicate = null);
 
-    IXlsxRangeRows RowsUsed(Func<IXlsxRangeRow, Boolean> predicate = null);
+    IXlsxRangeRows RowsUsed(Func<IXlsxRangeRow, bool> predicate = null);
 
-    IXlsxRangeColumns ColumnsUsed(XlsxCellsUsedOptions options, Func<IXlsxRangeColumn, Boolean> predicate = null);
+    IXlsxRangeColumns ColumnsUsed(XlsxCellsUsedOptions options, Func<IXlsxRangeColumn, bool> predicate = null);
 
-    IXlsxRangeColumns ColumnsUsed(Func<IXlsxRangeColumn, Boolean> predicate = null);
+    IXlsxRangeColumns ColumnsUsed(Func<IXlsxRangeColumn, bool> predicate = null);
 }

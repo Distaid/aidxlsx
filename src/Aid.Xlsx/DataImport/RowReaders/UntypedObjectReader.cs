@@ -28,7 +28,7 @@ internal class UntypedObjectReader : IInsertDataReader
 
             foreach (var item in _data)
             {
-                var currentType = item?.GetType();
+                Type currentType = item?.GetType();
 
                 if (previousType != currentType && itemsOfSameType.Count > 0)
                 {
@@ -61,9 +61,9 @@ internal class UntypedObjectReader : IInsertDataReader
 
     public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()
     {
-        foreach (var reader in _readers)
+        foreach (IInsertDataReader reader in _readers)
         {
-            foreach (var item in reader.GetRecords())
+            foreach (IEnumerable<XlsxCellValue> item in reader.GetRecords())
             {
                 yield return item;
             }

@@ -5,7 +5,7 @@ namespace Aid.Xlsx.Infrastructure.Extensions;
 
 internal static class ObjectExtensions
 {
-    public static T CastTo<T>(this Object o)
+    public static T CastTo<T>(this object o)
     {
         return (T)Convert.ChangeType(o, typeof(T));
     }

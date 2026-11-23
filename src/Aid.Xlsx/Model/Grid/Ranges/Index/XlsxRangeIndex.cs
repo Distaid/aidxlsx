@@ -58,7 +58,7 @@ internal abstract class XlsxRangeIndex : IXlsxRangeIndex
 
         if (_quadTree == null)
         {
-            var addr = address;
+            XlsxAddress addr = address;
             return _rangeList.Any(r => r.RangeAddress.Contains(addr));
         }
 
@@ -105,7 +105,7 @@ internal abstract class XlsxRangeIndex : IXlsxRangeIndex
 
         if (_quadTree == null)
         {
-            var addr = rangeAddress;
+            XlsxRangeAddress addr = rangeAddress;
             return _rangeList.Any(r => r.RangeAddress.Intersects(addr));
         }
 
@@ -213,7 +213,7 @@ internal class XlsxRangeIndex<T>(IXlsxWorksheet worksheet) : XlsxRangeIndex(work
 
     public override bool MatchesType(XlsxRangeType rangeType)
     {
-        var innerType = typeof(T);
+        Type innerType = typeof(T);
 
         if (innerType == typeof(IXlsxRangeBase) ||
             innerType == typeof(XlsxRangeBase))

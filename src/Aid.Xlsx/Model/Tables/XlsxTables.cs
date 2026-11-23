@@ -9,21 +9,21 @@ using System.Collections;
 
 internal class XlsxTables : IXlsxTables, IEnumerable<XlsxTable>
 {
-    private readonly Dictionary<String, XlsxTable> _tables;
+    private readonly Dictionary<string, XlsxTable> _tables;
 
     public XlsxTables()
     {
         _tables = [with(StringComparer.OrdinalIgnoreCase)];
-        Deleted = new HashSet<String>();
+        Deleted = new HashSet<string>();
     }
 
-    internal ICollection<String> Deleted { get; }
+    internal ICollection<string> Deleted { get; }
 
     #region IXlsxTables Members
 
     bool IXlsxTables.TryGetTable(string tableName, out IXlsxTable table)
     {
-        if (TryGetTable(tableName, out var foundTable))
+        if (TryGetTable(tableName, out XlsxTable foundTable))
         {
             table = foundTable;
             return true;
@@ -46,7 +46,7 @@ internal class XlsxTables : IXlsxTables, IEnumerable<XlsxTable>
         return this;
     }
 
-    public Boolean Contains(String name)
+    public bool Contains(string name)
     {
         return _tables.ContainsKey(name);
     }
@@ -62,14 +62,14 @@ internal class XlsxTables : IXlsxTables, IEnumerable<XlsxTable>
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public void Remove(Int32 index)
+    public void Remove(int index)
     {
         this.Remove(_tables.ElementAt(index).Key);
     }
 
-    public void Remove(String name)
+    public void Remove(string name)
     {
-        if (!_tables.TryGetValue(name, out var table))
+        if (!_tables.TryGetValue(name, out XlsxTable table))
             throw new ArgumentOutOfRangeException(nameof(name), $"Unable to delete table because the table name {name} could not be found.");
 
         _tables.Remove(name);
@@ -80,12 +80,12 @@ internal class XlsxTables : IXlsxTables, IEnumerable<XlsxTable>
             Deleted.Add(relId);
     }
 
-    public IXlsxTable Table(Int32 index)
+    public IXlsxTable Table(int index)
     {
         return _tables.ElementAt(index).Value;
     }
 
-    public IXlsxTable Table(String name)
+    public IXlsxTable Table(string name)
     {
         if (TryGetTable(name, out XlsxTable table))
             return table;

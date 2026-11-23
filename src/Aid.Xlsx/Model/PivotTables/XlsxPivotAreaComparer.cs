@@ -37,7 +37,7 @@ internal class XlsxPivotAreaComparer : IEqualityComparer<XlsxPivotArea>
     public int GetHashCode(XlsxPivotArea obj)
     {
         var hashCode = new HashCode();
-        foreach (var reference in obj.References)
+        foreach (XlsxPivotReference reference in obj.References)
             hashCode.Add(reference, _referenceComparer);
 
         hashCode.Add(obj.Field);
@@ -87,7 +87,7 @@ internal class XlsxPivotAreaComparer : IEqualityComparer<XlsxPivotArea>
             hashCode.Add(obj.ByPosition);
             hashCode.Add(obj.Relative);
 
-            foreach (var subtotal in obj.Subtotals)
+            foreach (XlsxSubtotalFunction subtotal in obj.Subtotals)
                 hashCode.Add(subtotal);
 
             return hashCode.ToHashCode();

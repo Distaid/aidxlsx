@@ -44,7 +44,7 @@ internal class XlsxPivotTableAxisField : IXlsxPivotField
                 return;
             }
 
-            if (_pivotTable.TryGetCustomNameFieldIndex(value, out var idx) && idx != _index)
+            if (_pivotTable.TryGetCustomNameFieldIndex(value, out FieldIndex idx) && idx != _index)
                 throw new ArgumentException($"Custom name '{value}' is already used by another field.");
 
             _pivotTable.PivotFields[_index].Name = value;
@@ -61,7 +61,7 @@ internal class XlsxPivotTableAxisField : IXlsxPivotField
     {
         get
         {
-            var subtotal = GetField().Subtotals;
+            HashSet<XlsxSubtotalFunction> subtotal = GetField().Subtotals;
             var isCustomSubtotal = subtotal.Count > 1 || (subtotal.Count > 0 && !subtotal.Contains(XlsxSubtotalFunction.Automatic));
             if (isCustomSubtotal)
             {
@@ -129,7 +129,7 @@ internal class XlsxPivotTableAxisField : IXlsxPivotField
         }
         set
         {
-            foreach (var item in GetField().Items)
+            foreach (XlsxPivotFieldItem item in GetField().Items)
                 item.ShowDetails = !value;
         }
     }
@@ -239,7 +239,7 @@ internal class XlsxPivotTableAxisField : IXlsxPivotField
     {
         get
         {
-            var axis = IsOnColumnAxis ? _pivotTable.ColumnAxis : _pivotTable.RowAxis;
+            XlsxPivotTableAxis axis = IsOnColumnAxis ? _pivotTable.ColumnAxis : _pivotTable.RowAxis;
             var position = axis.IndexOf(_index);
             if (position == -1)
                 throw new InvalidOperationException("Field is not on the axis.");
@@ -260,7 +260,7 @@ internal class XlsxPivotTableAxisField : IXlsxPivotField
     {
         if (_index.IsDataField)
             return dataFieldValue;
-        var field = _pivotTable.PivotFields[_index];
+        XlsxPivotTableField field = _pivotTable.PivotFields[_index];
         return getter(field);
     }
 }

@@ -47,14 +47,14 @@ internal class XlsxDataValidation : IXlsxDataValidation
         MaxValue = dataValidation.MaxValue;
     }
 
-    public Boolean IsDirty()
+    public bool IsDirty()
     {
         return
             AllowedValues != XlsxAllowedValues.AnyValue
             || (ShowInputMessage &&
-               (!String.IsNullOrWhiteSpace(InputTitle) || !String.IsNullOrWhiteSpace(InputMessage)))
+               (!string.IsNullOrWhiteSpace(InputTitle) || !string.IsNullOrWhiteSpace(InputMessage)))
             || (ShowErrorMessage &&
-               (!String.IsNullOrWhiteSpace(ErrorTitle) || !String.IsNullOrWhiteSpace(ErrorMessage)));
+               (!string.IsNullOrWhiteSpace(ErrorTitle) || !string.IsNullOrWhiteSpace(ErrorMessage)));
     }
 
     [MemberNotNull(nameof(minValue), nameof(maxValue), nameof(InputTitle), nameof(InputMessage), nameof(ErrorTitle), nameof(ErrorMessage))]
@@ -65,21 +65,21 @@ internal class XlsxDataValidation : IXlsxDataValidation
         ShowErrorMessage = true;
         ShowInputMessage = true;
         InCellDropdown = true;
-        InputTitle = String.Empty;
-        InputMessage = String.Empty;
-        ErrorTitle = String.Empty;
-        ErrorMessage = String.Empty;
+        InputTitle = string.Empty;
+        InputMessage = string.Empty;
+        ErrorTitle = string.Empty;
+        ErrorMessage = string.Empty;
         ErrorStyle = XlsxErrorStyle.Stop;
         Operator = XlsxOperator.Between;
-        Value = String.Empty;
-        minValue = String.Empty;
-        maxValue = String.Empty;
+        Value = string.Empty;
+        minValue = string.Empty;
+        maxValue = string.Empty;
     }
 
     #region IXlsxDataValidation Members
 
-    private String maxValue;
-    private String minValue;
+    private string maxValue;
+    private string minValue;
     public XlsxAllowedValues AllowedValues { get; set; }
 
     public XlsxDateCriteria Date
@@ -100,15 +100,15 @@ internal class XlsxDataValidation : IXlsxDataValidation
         }
     }
 
-    public String ErrorMessage { get; set; }
+    public string ErrorMessage { get; set; }
     public XlsxErrorStyle ErrorStyle { get; set; }
-    public String ErrorTitle { get; set; }
-    public Boolean IgnoreBlanks { get; set; }
-    public Boolean InCellDropdown { get; set; }
-    public String InputMessage { get; set; }
-    public String InputTitle { get; set; }
-    public String MaxValue { get => maxValue; set { Validate(value); maxValue = value; } }
-    public String MinValue { get => minValue; set { Validate(value); minValue = value; } }
+    public string ErrorTitle { get; set; }
+    public bool IgnoreBlanks { get; set; }
+    public bool InCellDropdown { get; set; }
+    public string InputMessage { get; set; }
+    public string InputTitle { get; set; }
+    public string MaxValue { get => maxValue; set { Validate(value); maxValue = value; } }
+    public string MinValue { get => minValue; set { Validate(value); minValue = value; } }
     public XlsxOperator Operator { get; set; }
 
     public IEnumerable<IXlsxRange> Ranges
@@ -116,9 +116,9 @@ internal class XlsxDataValidation : IXlsxDataValidation
         get
         {
             var ranges = new XlsxRanges(Worksheet);
-            foreach (var area in Areas)
+            foreach (Area area in Areas)
             {
-                var range = _worksheet.Range(XlsxRangeAddress.FromSheetRange(_worksheet, area));
+                XlsxRange range = _worksheet.Range(XlsxRangeAddress.FromSheetRange(_worksheet, area));
                 ranges.Add(range);
             }
 
@@ -126,9 +126,9 @@ internal class XlsxDataValidation : IXlsxDataValidation
         }
     }
 
-    public Boolean ShowErrorMessage { get; set; }
+    public bool ShowErrorMessage { get; set; }
 
-    public Boolean ShowInputMessage { get; set; }
+    public bool ShowInputMessage { get; set; }
 
     public XlsxTextLengthCriteria TextLength
     {
@@ -148,7 +148,7 @@ internal class XlsxDataValidation : IXlsxDataValidation
         }
     }
 
-    public String Value
+    public string Value
     {
         get { return MinValue; }
         set { MinValue = value; }
@@ -193,7 +193,7 @@ internal class XlsxDataValidation : IXlsxDataValidation
     {
         ranges ??= [];
 
-        foreach (var range in ranges)
+        foreach (IXlsxRange range in ranges)
         {
             AddRange(range);
         }
@@ -207,18 +207,18 @@ internal class XlsxDataValidation : IXlsxDataValidation
         Areas = XlsxAreaList.Empty;
     }
 
-    public void Custom(String customValidation)
+    public void Custom(string customValidation)
     {
         AllowedValues = XlsxAllowedValues.Custom;
         Value = customValidation;
     }
 
-    public void List(String list)
+    public void List(string list)
     {
         List(list, true);
     }
 
-    public void List(String list, Boolean inCellDropdown)
+    public void List(string list, bool inCellDropdown)
     {
         AllowedValues = XlsxAllowedValues.List;
         InCellDropdown = inCellDropdown;
@@ -230,7 +230,7 @@ internal class XlsxDataValidation : IXlsxDataValidation
         List(range, true);
     }
 
-    public void List(IXlsxRange range, Boolean inCellDropdown)
+    public void List(IXlsxRange range, bool inCellDropdown)
     {
         List(range.RangeAddress.ToStringFixed(XlsxReferenceStyle.A1, true));
     }
@@ -244,8 +244,8 @@ internal class XlsxDataValidation : IXlsxDataValidation
         if (range == null)
             return false;
 
-        var areaToDelete = SheetArea.From(range).Area;
-        var originalAreas = Areas;
+        Area areaToDelete = SheetArea.From(range).Area;
+        XlsxAreaList originalAreas = Areas;
         Areas = Areas.Without(areaToDelete);
         var deleted = originalAreas.Count > Areas.Count;
         return deleted;
@@ -253,7 +253,7 @@ internal class XlsxDataValidation : IXlsxDataValidation
 
     #endregion IXlsxDataValidation Members
 
-    private static void Validate(String value)
+    private static void Validate(string value)
     {
         if (value.Length > 255)
             throw new ArgumentOutOfRangeException(nameof(value), "The maximum allowed length of the value is 255 characters.");

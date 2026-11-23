@@ -9,49 +9,49 @@ namespace Aid.Xlsx.Model.Hyperlinks;
 public partial class XlsxHyperlink
 {
     private Uri _externalAddress;
-    private String _internalAddress;
+    private string _internalAddress;
 
-    public XlsxHyperlink(String address)
+    public XlsxHyperlink(string address)
     {
-        SetValues(address, String.Empty);
+        SetValues(address, string.Empty);
     }
 
-    public XlsxHyperlink(String address, String tooltip)
+    public XlsxHyperlink(string address, string tooltip)
     {
         SetValues(address, tooltip);
     }
 
     public XlsxHyperlink(IXlsxCell cell)
     {
-        SetValues(cell, String.Empty);
+        SetValues(cell, string.Empty);
     }
 
-    public XlsxHyperlink(IXlsxCell cell, String tooltip)
+    public XlsxHyperlink(IXlsxCell cell, string tooltip)
     {
         SetValues(cell, tooltip);
     }
 
     public XlsxHyperlink(IXlsxRangeBase range)
     {
-        SetValues(range, String.Empty);
+        SetValues(range, string.Empty);
     }
 
-    public XlsxHyperlink(IXlsxRangeBase range, String tooltip)
+    public XlsxHyperlink(IXlsxRangeBase range, string tooltip)
     {
         SetValues(range, tooltip);
     }
 
     public XlsxHyperlink(Uri uri)
     {
-        SetValues(uri, String.Empty);
+        SetValues(uri, string.Empty);
     }
 
-    public XlsxHyperlink(Uri uri, String tooltip)
+    public XlsxHyperlink(Uri uri, string tooltip)
     {
         SetValues(uri, tooltip);
     }
 
-    public Boolean IsExternal { get; set; }
+    public bool IsExternal { get; set; }
 
     public Uri ExternalAddress
     {
@@ -83,7 +83,7 @@ public partial class XlsxHyperlink
     }
 #nullable disable
 
-    public String InternalAddress
+    public string InternalAddress
     {
         get
         {
@@ -92,7 +92,7 @@ public partial class XlsxHyperlink
             if (_internalAddress.Contains('!'))
             {
                 return _internalAddress[0] != '\''
-                           ? String.Concat(
+                           ? string.Concat(
                                 _internalAddress
 [.._internalAddress.IndexOf('!')]
                                     .EscapeSheetName(),
@@ -105,7 +105,7 @@ public partial class XlsxHyperlink
                 throw new InvalidOperationException("Hyperlink is not attached to a worksheet.");
 
             var sheetName = Container.WorksheetName;
-            return String.Concat(
+            return string.Concat(
                 sheetName.EscapeSheetName(),
                 '!',
                 _internalAddress);
@@ -121,7 +121,7 @@ public partial class XlsxHyperlink
     /// Tooltip displayed when user hovers over the hyperlink range. If not specified,
     /// the link target is displayed in the tooltip.
     /// </summary>
-    public String Tooltip { get; set; }
+    public string Tooltip { get; set; }
 
     /// <inheritdoc cref="IXlsxHyperlinks.Delete(XlsxHyperlink)"/>
     public void Delete()

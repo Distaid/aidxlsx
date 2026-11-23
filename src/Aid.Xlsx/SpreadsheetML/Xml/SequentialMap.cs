@@ -30,9 +30,9 @@ internal class SequentialMap<TKey, T>(IReadOnlyBiDictionary<TKey, T> fullMap)
         var map = new SequentialMap<TKey, T>(allValuesMap);
         if (firstValues is not null)
         {
-            foreach (var (firstValue, savedId) in firstValues)
+            foreach ((T? firstValue, var savedId) in firstValues)
             {
-                var actualId = allValuesMap[firstValue];
+                TKey actualId = allValuesMap[firstValue];
                 map.Add(actualId, savedId);
             }
         }
@@ -41,7 +41,7 @@ internal class SequentialMap<TKey, T>(IReadOnlyBiDictionary<TKey, T> fullMap)
         // formats start at 164 and the 0-164 is reserved for predefined formats.
         // Number formats is the only table that can have gaps in the ids.
         var usedSaveId = Math.Max(map.Count, usedStart);
-        foreach (var (actualId, value) in allValuesMap)
+        foreach ((TKey actualId, T? value) in allValuesMap)
         {
             if (firstValues is not null && firstValues.ContainsKey(value))
                 continue;
@@ -82,7 +82,7 @@ internal class SequentialMap<TKey, T>(IReadOnlyBiDictionary<TKey, T> fullMap)
 
     public int GetSavedId(T item)
     {
-        var actualId = _fullMap[item];
+        TKey actualId = _fullMap[item];
         return GetSavedId(actualId);
     }
 

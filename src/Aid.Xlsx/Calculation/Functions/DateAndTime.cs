@@ -13,8 +13,8 @@ internal static class DateAndTime
 
     public static void Register(FunctionRegistry ce)
     {
-        var dateValue = DateValue;
-        var timeValue = TimeValue;
+        Func<CalcContext, ScalarValue, ScalarValue> dateValue = DateValue;
+        Func<CalcContext, ScalarValue, ScalarValue> timeValue = TimeValue;
         ce.RegisterFunction("DATE", 3, 3, Adapt(Date), FunctionFlags.Scalar); // Returns the serial number of a particular date
         ce.RegisterFunction("DATEDIF", 3, 3, Adapt(DateDif), FunctionFlags.Scalar); // Calculates the number of days, months, or years between two dates
         ce.RegisterFunction("DATEVALUE", 1, 1, Adapt(dateValue), FunctionFlags.Scalar); // Converts a date in the form of text to a serial number
@@ -158,7 +158,7 @@ internal static class DateAndTime
             if (endDate.Day >= startDate.Day)
                 return endDate.Day - startDate.Day;
 
-            var adjacentStartDate = startDate with
+            DateParts adjacentStartDate = startDate with
             {
                 Month = (endDate.Month - 2 + 12) % 12 + 1,
                 Year = endDate.Month > 1 ? endDate.Year : endDate.Year - 1
@@ -178,7 +178,7 @@ internal static class DateAndTime
         {
             var endFollowsStart = endDate.Month > startDate.Month || (endDate.Month == startDate.Month && endDate.Day >= startDate.Day);
             var newEndYear = startDate.Year + (endFollowsStart ? 0 : 1);
-            var newEndDate = endDate with { Year = newEndYear };
+            DateParts newEndDate = endDate with { Year = newEndYear };
             var daysDiff = newEndDate.SerialDate - startSerialDate;
 
             // If start date is in 1900 jan/feb, there are sometimes errors. I couldn't decipher actual logic,
@@ -194,7 +194,7 @@ internal static class DateAndTime
 
     private static ScalarValue DateValue(CalcContext ctx, ScalarValue value)
     {
-        if (!value.TryPickText(out var text, out var error))
+        if (!value.TryPickText(out var text, out XlsxError error))
             return error;
 
         if (!ScalarValue.ToSerialDateTime(text, ctx.Culture, out var serialDateTime))
@@ -236,8 +236,8 @@ internal static class DateAndTime
     private static int Days360(CalcContext ctx, int startSerialDate, int endSerialDate, bool isEuropean)
     {
         var startDate = DateParts.From(ctx, startSerialDate);
-        var (startYear, startMonth, startDay) = startDate;
-        var (endYear, endMonth, endDay) = DateParts.From(ctx, endSerialDate);
+        (var startYear, var startMonth, var startDay) = startDate;
+        (var endYear, var endMonth, var endDay) = DateParts.From(ctx, endSerialDate);
 
         if (isEuropean)
         {
@@ -270,7 +270,7 @@ internal static class DateAndTime
             return XlsxError.NumberInvalid;
 
         var startDate = DateParts.From(ctx, startSerial);
-        var endDate = startDate.AddMonths(months);
+        DateParts endDate = startDate.AddMonths(months);
         return endDate.ToSerialDate()
             .Match<ScalarValue>(d => d, e => e);
     }
@@ -284,8 +284,8 @@ internal static class DateAndTime
             return XlsxError.NumberInvalid;
 
         var startDate = DateParts.From(ctx, startSerial);
-        var endDate = startDate.AddMonths(months);
-        var endOfMonth = endDate.EndOfMonth();
+        DateParts endDate = startDate.AddMonths(months);
+        DateParts endOfMonth = endDate.EndOfMonth();
         return endOfMonth.ToSerialDate()
             .Match<ScalarValue>(d => d, e => e);
     }
@@ -355,18 +355,18 @@ internal static class DateAndTime
 
     private static ScalarValue NetWorkDays(CalcContext ctx, ScalarValue startDate, ScalarValue endDate, AnyValue holidays)
     {
-        if (!TryGetDate(ctx, startDate, out var startSerialDate, out var startDateError))
+        if (!TryGetDate(ctx, startDate, out var startSerialDate, out XlsxError startDateError))
             return startDateError;
 
-        if (!TryGetDate(ctx, endDate, out var endSerialDate, out var endDateError))
+        if (!TryGetDate(ctx, endDate, out var endSerialDate, out XlsxError endDateError))
             return endDateError;
 
         // Use set to skip duplicate values
         var allHolidays = new HashSet<int>();
-        foreach (var holidayValue in ctx.GetNonBlankValues(holidays))
+        foreach (ScalarValue holidayValue in ctx.GetNonBlankValues(holidays))
         {
             ctx.ThrowIfCancelled();
-            if (!TryGetDate(ctx, holidayValue, out var holidayDate, out var error))
+            if (!TryGetDate(ctx, holidayValue, out var holidayDate, out XlsxError error))
                 return error;
 
             allHolidays.Add(holidayDate);
@@ -415,7 +415,7 @@ internal static class DateAndTime
 
     private static ScalarValue TimeValue(CalcContext ctx, ScalarValue value)
     {
-        if (!value.TryPickText(out var text, out var error))
+        if (!value.TryPickText(out var text, out XlsxError error))
             return error;
 
         if (!ScalarValue.ToSerialDateTime(text, ctx.Culture, out var serialDateTime))
@@ -431,20 +431,20 @@ internal static class DateAndTime
 
     private static ScalarValue Weekday(CalcContext ctx, ScalarValue date, ScalarValue flag)
     {
-        if (!TryGetDate(ctx, date, out var serialDate, out var dateError, acceptLogical: true))
+        if (!TryGetDate(ctx, date, out var serialDate, out XlsxError dateError, acceptLogical: true))
             return dateError;
 
         var flagValue = 1d;
         if (!flag.IsBlank)
         {
             // Caller provided a value for optional parameter
-            if (!flag.ToNumber(ctx.Culture).TryPickT0(out flagValue, out var flagError))
+            if (!flag.ToNumber(ctx.Culture).TryPickT0(out flagValue, out XlsxError flagError))
                 return flagError;
         }
 
-        var result = Weekday(serialDate, (int)Math.Truncate(flagValue));
+        OneOf<int, XlsxError> result = Weekday(serialDate, (int)Math.Truncate(flagValue));
 
-        if (!result.TryPickT0(out var weekday, out var weekdayError))
+        if (!result.TryPickT0(out var weekday, out XlsxError weekdayError))
             return weekdayError;
 
         return weekday;
@@ -494,7 +494,7 @@ internal static class DateAndTime
             return XlsxError.NumberInvalid;
 
         var flag = (int)weekStartFlag;
-        var firstDayOfWeek = flag switch
+        DayOfWeek firstDayOfWeek = flag switch
         {
             1 => DayOfWeek.Sunday,
             2 => DayOfWeek.Monday,
@@ -538,10 +538,10 @@ internal static class DateAndTime
 
     private static ScalarValue Workday(CalcContext ctx, ScalarValue startDateScalar, ScalarValue dayOffsetValue, AnyValue holidays)
     {
-        if (!TryGetDate(ctx, startDateScalar, out var startDate, out var startDateError))
+        if (!TryGetDate(ctx, startDateScalar, out var startDate, out XlsxError startDateError))
             return startDateError;
 
-        if (!dayOffsetValue.ToNumber(ctx.Culture).TryPickT0(out var dayOffsetDouble, out var dayOffsetError))
+        if (!dayOffsetValue.ToNumber(ctx.Culture).TryPickT0(out var dayOffsetDouble, out XlsxError dayOffsetError))
             return dayOffsetError;
 
         var dayOffset = (int)Math.Truncate(dayOffsetDouble);
@@ -550,10 +550,10 @@ internal static class DateAndTime
         if (dayOffset == 0)
             return startDate;
 
-        var cmp = dayOffset > 0 ? Comparer<int>.Default : Comparer<int>.Create(static (x, y) => y.CompareTo(x));
+        Comparer<int> cmp = dayOffset > 0 ? Comparer<int>.Default : Comparer<int>.Create(static (x, y) => y.CompareTo(x));
         var oneDay = dayOffset > 0 ? 1 : -1; // One day in a specified direction
 
-        if (!GetHolidays(cmp).TryPickT0(out var orderedHolidays, out var holidaysError))
+        if (!GetHolidays(cmp).TryPickT0(out List<int>? orderedHolidays, out XlsxError holidaysError))
             return holidaysError;
 
         // The algorithm should count workdays for each segment between holiday days
@@ -624,10 +624,10 @@ internal static class DateAndTime
         {
             // Use set to skip duplicate values
             var distinctHolidays = new HashSet<int>();
-            foreach (var holidayValue in ctx.GetNonBlankValues(holidays))
+            foreach (ScalarValue holidayValue in ctx.GetNonBlankValues(holidays))
             {
                 ctx.ThrowIfCancelled();
-                if (!TryGetDate(ctx, holidayValue, out var holidayDate, out var error))
+                if (!TryGetDate(ctx, holidayValue, out var holidayDate, out XlsxError error))
                     return error;
 
                 if (comparer.Compare(holidayDate, startDate) < 0)

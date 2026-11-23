@@ -25,7 +25,7 @@ internal class CalculationVisitor(FunctionRegistry functions) : IFormulaVisitor<
 
     public AnyValue Visit(CalcContext context, UnaryNode node)
     {
-        var arg = node.Expression.Accept(context, this);
+        AnyValue arg = node.Expression.Accept(context, this);
 
         return node.Operation switch
         {
@@ -40,8 +40,8 @@ internal class CalculationVisitor(FunctionRegistry functions) : IFormulaVisitor<
 
     public AnyValue Visit(CalcContext context, BinaryNode node)
     {
-        var leftArg = node.LeftExpression.Accept(context, this);
-        var rightArg = node.RightExpression.Accept(context, this);
+        AnyValue leftArg = node.LeftExpression.Accept(context, this);
+        AnyValue rightArg = node.RightExpression.Accept(context, this);
 
         return node.Operation switch
         {
@@ -66,11 +66,11 @@ internal class CalculationVisitor(FunctionRegistry functions) : IFormulaVisitor<
 
     public AnyValue Visit(CalcContext context, FunctionNode functionNode)
     {
-        if (!_functions.TryGetFunc(functionNode.Name, out var fn))
+        if (!_functions.TryGetFunc(functionNode.Name, out FunctionDefinition? fn))
             return XlsxError.NameNotRecognized;
 
-        var parameters = functionNode.Parameters;
-        var pool = _argsPool.Rent(parameters.Count);
+        IReadOnlyList<ValueNode> parameters = functionNode.Parameters;
+        AnyValue[] pool = _argsPool.Rent(parameters.Count);
         var args = new Span<AnyValue>(pool, 0, parameters.Count);
         try
         {
@@ -106,10 +106,10 @@ internal class CalculationVisitor(FunctionRegistry functions) : IFormulaVisitor<
         if (node.Prefix is not null)
             return XlsxError.CellReference;
 
-        if (!TryGetTable(context, node.Table, out var table))
+        if (!TryGetTable(context, node.Table, out XlsxTable? table))
             return XlsxError.CellReference;
 
-        var area = table.Area;
+        Area area = table.Area;
         if (!TryGetColumn(table, node.FirstColumn, area.LeftColumn, out var colStart))
             return XlsxError.CellReference;
 
@@ -121,7 +121,7 @@ internal class CalculationVisitor(FunctionRegistry functions) : IFormulaVisitor<
 
         // Row range is always continuous, so the result is an area. [[#Header],[#Totals]] is
         // not allowed by grammar.
-        if (!TryGetRows(context, table, node.Area, out var rowStart, out var rowEnd, out var error))
+        if (!TryGetRows(context, table, node.Area, out var rowStart, out var rowEnd, out XlsxError error))
             return error;
 
         var range = new Area(rowStart, colStart, rowEnd, colEnd);
@@ -137,8 +137,8 @@ internal class CalculationVisitor(FunctionRegistry functions) : IFormulaVisitor<
             }
 
             // Avoid LINQ allocation.
-            var formulaPoint = context.FormulaPoint;
-            foreach (var sheetTable in context.Worksheet.Tables)
+            Point formulaPoint = context.FormulaPoint;
+            foreach (XlsxTable? sheetTable in context.Worksheet.Tables)
             {
                 if (sheetTable.Area.Contains(formulaPoint))
                 {
@@ -159,7 +159,7 @@ internal class CalculationVisitor(FunctionRegistry functions) : IFormulaVisitor<
                 return true;
             }
 
-            if (!table.FieldNames.TryGetValue(column, out var field))
+            if (!table.FieldNames.TryGetValue(column, out XlsxTableField? field))
             {
                 columnNo = default;
                 return false;
@@ -172,7 +172,7 @@ internal class CalculationVisitor(FunctionRegistry functions) : IFormulaVisitor<
         static bool TryGetRows(CalcContext context, XlsxTable table, StructuredReferenceArea tableArea,
             out int rowStartNo, out int rowEndNo, out XlsxError error)
         {
-            var area = table.Area;
+            Area area = table.Area;
             var dataEndRowNo = table.ShowTotalsRow ? area.BottomRow - 1 : area.BottomRow;
             switch (tableArea)
             {

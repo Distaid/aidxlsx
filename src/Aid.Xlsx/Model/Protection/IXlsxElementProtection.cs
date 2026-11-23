@@ -19,7 +19,7 @@ public interface IXlsxElementProtection<T> : IXlsxElementProtection
     /// <param name="element">The element to add</param>
     /// <param name="allowed">Set to <c>true</c> to allow the element or <c>false</c> to disallow the element</param>
     /// <returns>The current protection instance</returns>
-    IXlsxElementProtection<T> AllowElement(T element, Boolean allowed = true);
+    IXlsxElementProtection<T> AllowElement(T element, bool allowed = true);
 
     /// <summary>Allows all elements to be edited.</summary>
     IXlsxElementProtection<T> AllowEverything();
@@ -46,14 +46,14 @@ public interface IXlsxElementProtection<T> : IXlsxElementProtection
     /// <summary>Protects this instance using the specified password and password hash algorithm.</summary>
     /// <param name="password">The password.</param>
     /// <param name="algorithm">The algorithm.</param>
-    IXlsxElementProtection<T> Protect(String password, Algorithm algorithm = DefaultProtectionAlgorithm);
+    IXlsxElementProtection<T> Protect(string password, Algorithm algorithm = DefaultProtectionAlgorithm);
 
     /// <summary>Unprotects this instance without a password.</summary>
     IXlsxElementProtection<T> Unprotect();
 
     /// <summary>Unprotects this instance using the specified password.</summary>
     /// <param name="password">The password.</param>
-    IXlsxElementProtection<T> Unprotect(String password);
+    IXlsxElementProtection<T> Unprotect(string password);
 }
 
 public interface IXlsxElementProtection : ICloneable
@@ -66,11 +66,11 @@ public interface IXlsxElementProtection : ICloneable
     /// <value>
     ///   <c>true</c> if this instance is password protected; otherwise, <c>false</c>.
     /// </value>
-    Boolean IsPasswordProtected { get; }
+    bool IsPasswordProtected { get; }
 
     /// <summary>Gets a value indicating whether this instance is protected, either with or without a password.</summary>
     /// <value>
     ///   <c>true</c> if this instance is protected; otherwise, <c>false</c>.
     /// </value>
-    Boolean IsProtected { get; }
+    bool IsProtected { get; }
 }

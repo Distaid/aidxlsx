@@ -19,15 +19,15 @@ internal class XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ra
         if (_allRanges.Count == 0)
             return _allRanges;
 
-        var worksheets = _allRanges.Select<XlsxRange, XlsxWorksheet>(r => r.Worksheet).Distinct().OrderBy(ws => ws.Position);
+        IOrderedEnumerable<XlsxWorksheet> worksheets = _allRanges.Select<XlsxRange, XlsxWorksheet>(r => r.Worksheet).Distinct().OrderBy(ws => ws.Position);
 
         var retVal = new XlsxRanges(_workbook);
-        foreach (var ws in worksheets)
+        foreach (XlsxWorksheet? ws in worksheets)
         {
             var areaList = new XlsxAreaList(_allRanges.Where<XlsxRange>(r => r.Worksheet == ws).Select(r => r.SheetRange).ToList());
             var matrix = new XlsxRangeConsolidationMatrix(areaList);
-            var consRanges = matrix.GetConsolidatedRanges();
-            foreach (var consArea in consRanges)
+            IEnumerable<Area> consRanges = matrix.GetConsolidatedRanges();
+            foreach (Area consArea in consRanges)
             {
                 retVal.Add(ws.Range(consArea));
             }
@@ -71,14 +71,14 @@ internal class XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ra
         public IEnumerable<Area> GetConsolidatedRanges()
         {
             var rowNumbers = _bitMatrix.Keys.OrderBy(k => k).ToArray();
-            for (int i = 0; i < rowNumbers.Length; i++)
+            for (var i = 0; i < rowNumbers.Length; i++)
             {
                 var startRow = rowNumbers[i];
-                var startings = GetRangesBoundariesStartingByRow(_bitMatrix[startRow]);
+                IEnumerable<Tuple<int, int>> startings = GetRangesBoundariesStartingByRow(_bitMatrix[startRow]);
 
-                foreach (var starting in startings)
+                foreach (Tuple<int, int> starting in startings)
                 {
-                    int j = i + 1;
+                    var j = i + 1;
                     while (j < rowNumbers.Length && RowIncludesRange(_bitMatrix[rowNumbers[j]], starting)) j++;
 
                     var endRow = rowNumbers[j - 1];
@@ -98,7 +98,7 @@ internal class XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ra
 
         private void AddToBitMatrix(Area area)
         {
-            var rows = _bitMatrix.Keys
+            IEnumerable<int> rows = _bitMatrix.Keys
                 .Where(k => k >= area.TopRow &&
                             k <= area.BottomRow);
 
@@ -107,7 +107,7 @@ internal class XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ra
 
             foreach (var rowNum in rows)
             {
-                for (int i = minIndex; i <= maxIndex; i++)
+                for (var i = minIndex; i <= maxIndex; i++)
                 {
                     _bitMatrix[rowNum][i] = true;
                 }
@@ -116,7 +116,7 @@ internal class XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ra
 
         private static void ClearRangeInRow(BitArray rowArray, Tuple<int, int> rangeBoundaries)
         {
-            for (int i = rangeBoundaries.Item1; i <= rangeBoundaries.Item2; i++)
+            for (var i = rangeBoundaries.Item1; i <= rangeBoundaries.Item2; i++)
             {
                 rowArray[i] = false;
             }
@@ -124,7 +124,7 @@ internal class XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ra
 
         private void FillBitMatrix(IEnumerable<Area> areas)
         {
-            foreach (var area in areas)
+            foreach (Area area in areas)
             {
                 AddToBitMatrix(area);
             }
@@ -135,8 +135,8 @@ internal class XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ra
 
         private static IEnumerable<Tuple<int, int>> GetRangesBoundariesStartingByRow(BitArray rowArray)
         {
-            int startIdx = 0;
-            for (int i = 1; i < rowArray.Length - 1; i++)
+            var startIdx = 0;
+            for (var i = 1; i < rowArray.Length - 1; i++)
             {
                 if (!rowArray[i - 1] && rowArray[i])
                     startIdx = i;
@@ -149,7 +149,7 @@ internal class XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ra
         {
             var minColumn = XlsxHelper.MaxColumnNumber + 1;
             var maxColumn = 0;
-            foreach (var area in areas)
+            foreach (Area area in areas)
             {
                 minColumn = (minColumn <= area.LeftColumn)
                     ? minColumn
@@ -161,7 +161,7 @@ internal class XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ra
 
             var bitMaskSize = maxColumn - minColumn + 3;
             var bitMatrix = new Dictionary<int, BitArray>();
-            foreach (var area in areas)
+            foreach (Area area in areas)
             {
                 AddRowBitmask(bitMatrix, area.TopRow, bitMaskSize);
                 AddRowBitmask(bitMatrix, area.BottomRow, bitMaskSize);
@@ -179,7 +179,7 @@ internal class XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ra
 
         private static bool RowIncludesRange(BitArray rowArray, Tuple<int, int> rangeBoundaries)
         {
-            for (int i = rangeBoundaries.Item1; i <= rangeBoundaries.Item2; i++)
+            for (var i = rangeBoundaries.Item1; i <= rangeBoundaries.Item2; i++)
             {
                 if (!rowArray[i])
                     return false;

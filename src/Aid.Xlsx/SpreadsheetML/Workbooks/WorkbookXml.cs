@@ -21,7 +21,7 @@ internal static class WorkbookXml
 
     internal static void LoadSettings(XElement root, XlsxWorkbook workbook)
     {
-        var ns = root.Name.Namespace;
+        XNamespace ns = root.Name.Namespace;
         workbook.Use1904DateSystem = (bool?)root.Element(ns + "workbookPr")?.Attribute("date1904") ?? false;
 
         if (root.Element(ns + "fileSharing") is { } sharing)
@@ -59,7 +59,7 @@ internal static class WorkbookXml
     {
         var relation = (string?)sheet.Attribute(XName.Get("id", OpenXmlConst.RelationshipsNs))
             ?? (string?)sheet.Attribute(XName.Get("id", OpenXmlConst.StrictRelationshipsNs));
-        var visibility = (string?)sheet.Attribute("state") switch
+        XlsxWorksheetVisibility visibility = (string?)sheet.Attribute("state") switch
         {
             "hidden" => XlsxWorksheetVisibility.Hidden,
             "veryHidden" => XlsxWorksheetVisibility.VeryHidden,
@@ -72,7 +72,7 @@ internal static class WorkbookXml
 
     private static void LoadProtection(XElement element, XlsxWorkbook workbook)
     {
-        var protection = workbook.Protection;
+        XlsxWorkbookProtection protection = workbook.Protection;
         protection.IsProtected = true;
         var algorithm = (string?)element.Attribute("workbookAlgorithmName");
         if (string.IsNullOrEmpty(algorithm))
@@ -80,7 +80,7 @@ internal static class WorkbookXml
             protection.PasswordHash = (string?)element.Attribute("workbookPassword") ?? string.Empty;
             protection.Base64EncodedSalt = string.Empty;
         }
-        else if (XlsxProtectionAlgorithm.TryParseDescription(algorithm, out var parsedAlgorithm))
+        else if (XlsxProtectionAlgorithm.TryParseDescription(algorithm, out XlsxProtectionAlgorithm.Algorithm parsedAlgorithm))
         {
             protection.Algorithm = parsedAlgorithm;
             protection.PasswordHash = (string?)element.Attribute("workbookHashValue") ?? string.Empty;

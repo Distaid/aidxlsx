@@ -92,9 +92,9 @@ internal readonly struct ScalarValue
         };
     }
 
-    public Boolean GetLogical() => IsLogical ? _logical : throw new InvalidCastException();
+    public bool GetLogical() => IsLogical ? _logical : throw new InvalidCastException();
 
-    public Double GetNumber() => IsNumber ? _number : throw new InvalidCastException();
+    public double GetNumber() => IsNumber ? _number : throw new InvalidCastException();
 
     public string GetText() => IsText ? _text : throw new InvalidCastException();
 
@@ -207,7 +207,7 @@ internal readonly struct ScalarValue
     {
         if (text is null)
             return Blank;
-        if (text == String.Empty)
+        if (text == string.Empty)
             return Blank;
         if (StringComparer.OrdinalIgnoreCase.Equals("TRUE", text))
             return true;
@@ -215,7 +215,7 @@ internal readonly struct ScalarValue
             return false;
         if (TextToNumber(text, culture).TryPickT0(out var number, out _))
             return number;
-        if (XlsxErrorParser.TryParseError(text, out var error))
+        if (XlsxErrorParser.TryParseError(text, out XlsxError error))
             return error;
 
         return text;
@@ -239,13 +239,13 @@ internal readonly struct ScalarValue
         // Percents. Percent sign can be at both sides.
         // Format 9 '0%'
         //       10 '0.00%'
-        var textSpan = text.AsSpan(); // Avoid extra allocations for trimming/substrings if not match
-        var textSpanTrimmedEnd = textSpan.TrimEnd();
-        var percentSymbol = culture.NumberFormat.PercentSymbol.AsSpan();
+        ReadOnlySpan<char> textSpan = text.AsSpan(); // Avoid extra allocations for trimming/substrings if not match
+        ReadOnlySpan<char> textSpanTrimmedEnd = textSpan.TrimEnd();
+        ReadOnlySpan<char> percentSymbol = culture.NumberFormat.PercentSymbol.AsSpan();
         if (textSpanTrimmedEnd.EndsWith(percentSymbol))
             return ParsePercent(text, 0, textSpanTrimmedEnd.Length - percentSymbol.Length, culture);
 
-        var textSpanTrimmedStart = textSpan.TrimStart();
+        ReadOnlySpan<char> textSpanTrimmedStart = textSpan.TrimStart();
         if (textSpanTrimmedStart.StartsWith(percentSymbol))
         {
             var newStart = text.Length - textSpanTrimmedStart.Length + percentSymbol.Length;
@@ -283,21 +283,21 @@ internal readonly struct ScalarValue
         // This date varies by the culture. Keep first before other standard patterns. Must be for both yy and yyyy.
         // Format 14 : short date (for en 'm/d/yyyy')
         // Format 22 : short date + hours (for en 'm/d/yyyy h:mm')
-        if (DateTimeParser.TryParseCultureDate(text, culture, out var dateFormat14Or22))
+        if (DateTimeParser.TryParseCultureDate(text, culture, out DateTime dateFormat14Or22))
         {
             return ToSerialDate(dateFormat14Or22, out serialDateTime);
         }
 
         // Date with names of months. The names of months differ across cultures.
         // Format 15 'd-mmm-yy'
-        if (DateTime.TryParseExact(text, ["d-MMM-yyyy", "d-MMMM-yyyy", "d-MMM-yy", "d-MMMM-yy"], culture, dateStyle, out var dateFormat15))
+        if (DateTime.TryParseExact(text, ["d-MMM-yyyy", "d-MMMM-yyyy", "d-MMM-yy", "d-MMMM-yy"], culture, dateStyle, out DateTime dateFormat15))
         {
             return ToSerialDate(dateFormat15, out serialDateTime);
         }
 
         // Since format doesn't have a year, it uses current year
         // Format 16 'd-mmm'
-        if (DateTime.TryParseExact(text, ["d-MMM", "d-MMMM"], culture, dateStyle, out var dateFormat16))
+        if (DateTime.TryParseExact(text, ["d-MMM", "d-MMMM"], culture, dateStyle, out DateTime dateFormat16))
         {
             return ToSerialDate(dateFormat16, out serialDateTime);
         }
@@ -305,7 +305,7 @@ internal readonly struct ScalarValue
         // Month and a number. In some cultures, the culture date parsing will interpret this pattern as MMM-dd, but
         // that depends on culture date patterns above. Use MMM and MMMM to encompass both abbreviation and full name.
         // Format 17 'mmm-yy'
-        if (DateTime.TryParseExact(text, ["MMM-y", "MMMM-y"], culture, dateStyle, out var dateFormat17))
+        if (DateTime.TryParseExact(text, ["MMM-y", "MMMM-y"], culture, dateStyle, out DateTime dateFormat17))
         {
             if (dateFormat17.Year != DateTime.Now.Year && dateFormat17.Year >= 2030)
                 dateFormat17 = dateFormat17.AddYears(-100);
@@ -315,7 +315,7 @@ internal readonly struct ScalarValue
 
         // Format 18 'h:mm AM/PM', works for both localized and AM/PM literal
         // Format 19 'h:mm:ss AM/PM'
-        if (DateTimeParser.TryParseTimeOfDay(text, culture, out var dateFormat18Or19))
+        if (DateTimeParser.TryParseTimeOfDay(text, culture, out DateTime dateFormat18Or19))
         {
             serialDateTime = dateFormat18Or19.ToOADate();
             return true;
@@ -325,7 +325,7 @@ internal readonly struct ScalarValue
         // Format 20 'h:mm'
         //        21 'h:mm:ss'
         //        47 'mm:ss.0'
-        if (TimeSpanParser.TryParseTime(text, culture, out var timeSpan))
+        if (TimeSpanParser.TryParseTime(text, culture, out TimeSpan timeSpan))
         {
             serialDateTime = timeSpan.ToSerialDateTime();
             return true;
@@ -443,7 +443,7 @@ internal readonly struct ScalarValue
     /// Get the logical value, if it is either blank (false), logical or number (0 = false, otherwise true)a text <c>TRUE</c> or <c>FALSE</c> (case insensitive).
     /// </summary>
     /// <remarks>Used for coercion in functions.</remarks>
-    public bool TryCoerceLogicalOrBlankOrNumberOrText(out Boolean value, out XlsxError error)
+    public bool TryCoerceLogicalOrBlankOrNumberOrText(out bool value, out XlsxError error)
     {
         switch (_index)
         {

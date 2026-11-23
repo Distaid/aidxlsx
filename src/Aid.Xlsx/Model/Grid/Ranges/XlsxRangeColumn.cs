@@ -30,7 +30,7 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
     {
         var retVal = new XlsxCells(Worksheet, false, XlsxCellsUsedOptions.AllContents);
         var rangePairs = cellsInColumn.Split(',');
-        foreach (string pair in rangePairs)
+        foreach (var pair in rangePairs)
             retVal.Add(Range(pair.Trim()).RangeAddress);
         return retVal;
     }
@@ -45,7 +45,7 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
         Delete(true);
     }
 
-    internal void Delete(Boolean deleteTableField)
+    internal void Delete(bool deleteTableField)
     {
         if (deleteTableField && IsTableColumn())
         {
@@ -56,7 +56,7 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
             if (!table.FieldNames.ContainsKey(firstCellValue))
                 throw new InvalidOperationException($"Field {firstCellValue} not found.");
 
-            var field = table.Fields.Cast<XlsxTableField>().Single(f => f.Name == firstCellValue);
+            XlsxTableField field = table.Fields.Cast<XlsxTableField>().Single(f => f.Name == firstCellValue);
             field.Delete(false);
         }
 
@@ -88,7 +88,7 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
         return RangeAddress.LastAddress.RowNumber - RangeAddress.FirstAddress.RowNumber + 1;
     }
 
-    public IXlsxRangeColumn Sort(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true)
+    public IXlsxRangeColumn Sort(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true)
     {
         base.Sort(1, sortOrder, matchCase, ignoreBlanks);
         return this;
@@ -98,10 +98,10 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
     {
         base.CopyTo((XlsxCell)target);
 
-        int lastRowNumber = target.Address.RowNumber + RowCount() - 1;
+        var lastRowNumber = target.Address.RowNumber + RowCount() - 1;
         if (lastRowNumber > XlsxHelper.MaxRowNumber)
             lastRowNumber = XlsxHelper.MaxRowNumber;
-        int lastColumnNumber = target.Address.ColumnNumber + ColumnCount() - 1;
+        var lastColumnNumber = target.Address.ColumnNumber + ColumnCount() - 1;
         if (lastColumnNumber > XlsxHelper.MaxColumnNumber)
             lastColumnNumber = XlsxHelper.MaxColumnNumber;
 
@@ -117,10 +117,10 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
     {
         base.CopyTo(target);
 
-        int lastRowNumber = target.RangeAddress.FirstAddress.RowNumber + RowCount() - 1;
+        var lastRowNumber = target.RangeAddress.FirstAddress.RowNumber + RowCount() - 1;
         if (lastRowNumber > XlsxHelper.MaxRowNumber)
             lastRowNumber = XlsxHelper.MaxRowNumber;
-        int lastColumnNumber = target.RangeAddress.FirstAddress.ColumnNumber + ColumnCount() - 1;
+        var lastColumnNumber = target.RangeAddress.FirstAddress.ColumnNumber + ColumnCount() - 1;
         if (lastColumnNumber > XlsxHelper.MaxColumnNumber)
             lastColumnNumber = XlsxHelper.MaxColumnNumber;
 
@@ -146,7 +146,7 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
     {
         var retVal = new XlsxRangeColumns(Worksheet);
         var rowPairs = columns.Split(',');
-        foreach (string trimmedPair in rowPairs.Select(pair => pair.Trim()))
+        foreach (var trimmedPair in rowPairs.Select(pair => pair.Trim()))
         {
             string firstRow;
             string lastRow;
@@ -210,8 +210,8 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
                 rangeAddressStr = rangeAddressStr.Replace('-', ':');
 
             var arrRange = rangeAddressStr.Split(':');
-            string firstPart = arrRange[0];
-            string secondPart = arrRange[1];
+            var firstPart = arrRange[0];
+            var secondPart = arrRange[1];
             rangeAddressToUse = FixColumnAddress(firstPart) + ":" + FixColumnAddress(secondPart);
         }
         else
@@ -225,11 +225,11 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
     {
         foreach (IXlsxSortElement e in rowsToSort)
         {
-            var thisCell = Cell(e.ElementNumber);
-            var otherCell = otherColumn.Cell(e.ElementNumber);
+            XlsxCell thisCell = Cell(e.ElementNumber);
+            XlsxCell otherCell = otherColumn.Cell(e.ElementNumber);
             int comparison;
-            bool thisCellIsBlank = thisCell.IsEmpty();
-            bool otherCellIsBlank = otherCell.IsEmpty();
+            var thisCellIsBlank = thisCell.IsEmpty();
+            var otherCellIsBlank = otherCell.IsEmpty();
             if (e.IgnoreBlanks && (thisCellIsBlank || otherCellIsBlank))
             {
                 if (thisCellIsBlank && otherCellIsBlank)
@@ -254,7 +254,7 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
                     {
                         comparison = e.MatchCase
                                          ? thisCell.GetText().CompareTo(otherCell.GetText())
-                                         : String.Compare(thisCell.GetText(), otherCell.GetText(), true);
+                                         : string.Compare(thisCell.GetText(), otherCell.GetText(), true);
                     }
                     else if (thisCell.DataType == XlsxDataType.Error)
                         comparison = 0; // Errors are incomparable
@@ -262,7 +262,7 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
                         comparison = thisCell.CachedValue.GetUnifiedNumber().CompareTo(thisCell.CachedValue.GetUnifiedNumber());
                 }
                 else if (e.MatchCase)
-                    comparison = String.Compare(thisCell.GetString(), otherCell.GetString(), true);
+                    comparison = string.Compare(thisCell.GetString(), otherCell.GetString(), true);
                 else
                     comparison = thisCell.GetString().CompareTo(otherCell.GetString());
             }
@@ -274,9 +274,9 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
         return 0;
     }
 
-    private XlsxRangeColumn ColumnShift(Int32 columnsToShift)
+    private XlsxRangeColumn ColumnShift(int columnsToShift)
     {
-        Int32 columnNumber = ColumnNumber() + columnsToShift;
+        var columnNumber = ColumnNumber() + columnsToShift;
         return Worksheet.Range(
             RangeAddress.FirstAddress.RowNumber,
             columnNumber,
@@ -291,7 +291,7 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
         return ColumnLeft();
     }
 
-    IXlsxRangeColumn IXlsxRangeColumn.ColumnLeft(Int32 step)
+    IXlsxRangeColumn IXlsxRangeColumn.ColumnLeft(int step)
     {
         return ColumnLeft(step);
     }
@@ -301,7 +301,7 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
         return ColumnLeft(1);
     }
 
-    public XlsxRangeColumn ColumnLeft(Int32 step)
+    public XlsxRangeColumn ColumnLeft(int step)
     {
         return ColumnShift(step * -1);
     }
@@ -315,7 +315,7 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
         return ColumnRight();
     }
 
-    IXlsxRangeColumn IXlsxRangeColumn.ColumnRight(Int32 step)
+    IXlsxRangeColumn IXlsxRangeColumn.ColumnRight(int step)
     {
         return ColumnRight(step);
     }
@@ -325,7 +325,7 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
         return ColumnRight(1);
     }
 
-    public XlsxRangeColumn ColumnRight(Int32 step)
+    public XlsxRangeColumn ColumnRight(int step)
     {
         return ColumnShift(step);
     }
@@ -379,7 +379,7 @@ internal class XlsxRangeColumn(XlsxRangeAddress rangeAddress) : XlsxRangeBase(ra
 
     internal IXlsxTable Table { get; set; }
 
-    public Boolean IsTableColumn()
+    public bool IsTableColumn()
     {
         return Table != null;
     }

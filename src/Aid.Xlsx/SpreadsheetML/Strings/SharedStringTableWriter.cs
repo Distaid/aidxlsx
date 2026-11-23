@@ -30,8 +30,8 @@ internal class SharedStringTableWriter
         // Attributes count and uniqueCount are optional thus are omitted.
         xml.WriteStartElement("x", "sst", Main2006SsNs);
 
-        var sst = workbook.SharedStringTable;
-        var map = sst.GetConsecutiveMap();
+        SharedStringTable sst = workbook.SharedStringTable;
+        List<int> map = sst.GetConsecutiveMap();
         context.SstMap = map;
         for (var sharedStringId = 0; sharedStringId < map.Count; ++sharedStringId)
         {
@@ -39,7 +39,7 @@ internal class SharedStringTableWriter
             if (continuousId < 0)
                 continue;
 
-            var richText = sst.GetRichText(sharedStringId);
+            XlsxImmutableRichText? richText = sst.GetRichText(sharedStringId);
             if (richText is not null)
             {
                 xml.WriteStartElement("si", Main2006SsNs);

@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using Aid.Xlsx.Calculation.Visitors;
 using Aid.Xlsx.Formulas.References.Transforms;
 using Aid.Xlsx.Infrastructure.Extensions;
@@ -16,7 +17,7 @@ namespace Aid.Xlsx.Model.DefinedNames;
 /// </summary>
 internal class XlsxDefinedNames(XlsxWorkbook workbook) : IXlsxDefinedNames, IEnumerable<XlsxDefinedName>, ISheetListener
 {
-    private readonly Dictionary<String, XlsxDefinedName> _namedRanges = [with(XlsxHelper.NameComparer)];
+    private readonly Dictionary<string, XlsxDefinedName> _namedRanges = [with(XlsxHelper.NameComparer)];
 
     internal XlsxWorkbook Workbook { get; } = workbook;
 
@@ -34,11 +35,11 @@ internal class XlsxDefinedNames(XlsxWorkbook workbook) : IXlsxDefinedNames, IEnu
     #region IXlsxNamedRanges Members
 
     [Obsolete]
-    IXlsxDefinedName IXlsxDefinedNames.NamedRange(String name) => DefinedName(name);
+    IXlsxDefinedName IXlsxDefinedNames.NamedRange(string name) => DefinedName(name);
 
-    IXlsxDefinedName IXlsxDefinedNames.DefinedName(String name) => DefinedName(name);
+    IXlsxDefinedName IXlsxDefinedNames.DefinedName(string name) => DefinedName(name);
 
-    internal XlsxDefinedName DefinedName(String name)
+    internal XlsxDefinedName DefinedName(string name)
     {
         if (_namedRanges.TryGetValue(name, out XlsxDefinedName? range))
             return range;
@@ -46,22 +47,22 @@ internal class XlsxDefinedNames(XlsxWorkbook workbook) : IXlsxDefinedNames, IEnu
         throw new KeyNotFoundException($"Name {name} not found.");
     }
 
-    public IXlsxDefinedName Add(String name, String rangeAddress)
+    public IXlsxDefinedName Add(string name, string rangeAddress)
     {
         return Add(name, rangeAddress, null);
     }
 
-    public IXlsxDefinedName Add(String name, IXlsxRange range)
+    public IXlsxDefinedName Add(string name, IXlsxRange range)
     {
         return Add(name, range, null);
     }
 
-    public IXlsxDefinedName Add(String name, IXlsxRanges ranges)
+    public IXlsxDefinedName Add(string name, IXlsxRanges ranges)
     {
         return Add(name, ranges, null);
     }
 
-    public IXlsxDefinedName Add(String name, String rangeAddress, String? comment)
+    public IXlsxDefinedName Add(string name, string rangeAddress, string? comment)
     {
         return Add(name, rangeAddress, comment, validateName: true, validateRangeAddress: true);
     }
@@ -78,12 +79,12 @@ internal class XlsxDefinedNames(XlsxWorkbook workbook) : IXlsxDefinedNames, IEnu
     /// <exception cref="ArgumentException">
     /// For named ranges in the workbook scope, specify the sheet name in the reference.
     /// </exception>
-    internal IXlsxDefinedName Add(String name, String rangeAddress, String? comment, Boolean validateName, Boolean validateRangeAddress)
+    internal IXlsxDefinedName Add(string name, string rangeAddress, string? comment, bool validateName, bool validateRangeAddress)
     {
         // When loading named ranges from an existing file, we do not validate the range address or name.
         if (validateRangeAddress)
         {
-            var match = XlsxHelper.NamedRangeReferenceRegex.Match(rangeAddress);
+            Match match = XlsxHelper.NamedRangeReferenceRegex.Match(rangeAddress);
 
             if (!match.Success)
             {
@@ -116,13 +117,13 @@ internal class XlsxDefinedNames(XlsxWorkbook workbook) : IXlsxDefinedNames, IEnu
         return namedRange;
     }
 
-    public IXlsxDefinedName Add(String name, IXlsxRange range, String? comment)
+    public IXlsxDefinedName Add(string name, IXlsxRange range, string? comment)
     {
         var ranges = new XlsxRanges(Workbook) { range };
         return Add(name, ranges, comment);
     }
 
-    public IXlsxDefinedName Add(String name, IXlsxRanges ranges, String? comment)
+    public IXlsxDefinedName Add(string name, IXlsxRanges ranges, string? comment)
     {
         var formula = string.Join(",", ranges.Select(r => r.RangeAddress.ToStringFixed(XlsxReferenceStyle.A1, true)));
         var namedRange = new XlsxDefinedName(this, name, true, formula, comment);
@@ -130,18 +131,18 @@ internal class XlsxDefinedNames(XlsxWorkbook workbook) : IXlsxDefinedNames, IEnu
         return namedRange;
     }
 
-    internal XlsxDefinedName Add(String name, XlsxDefinedName namedRange)
+    internal XlsxDefinedName Add(string name, XlsxDefinedName namedRange)
     {
         _namedRanges.Add(name, namedRange);
         return namedRange;
     }
 
-    public void Delete(String rangeName)
+    public void Delete(string rangeName)
     {
         _namedRanges.Remove(rangeName);
     }
 
-    public void Delete(Int32 rangeIndex)
+    public void Delete(int rangeIndex)
     {
         _namedRanges.Remove(_namedRanges.ElementAt(rangeIndex).Key);
     }
@@ -187,9 +188,9 @@ internal class XlsxDefinedNames(XlsxWorkbook workbook) : IXlsxDefinedNames, IEnu
 
     #endregion IEnumerable Members
 
-    public Boolean TryGetValue(String name, [NotNullWhen(true)] out IXlsxDefinedName? definedName)
+    public bool TryGetValue(string name, [NotNullWhen(true)] out IXlsxDefinedName? definedName)
     {
-        if (TryGetScopedValue(name, out var sheetDefinedName))
+        if (TryGetScopedValue(name, out XlsxDefinedName? sheetDefinedName))
         {
             definedName = sheetDefinedName;
             return true;
@@ -202,7 +203,7 @@ internal class XlsxDefinedNames(XlsxWorkbook workbook) : IXlsxDefinedNames, IEnu
         return definedName is not null;
     }
 
-    internal Boolean TryGetScopedValue(String name, [NotNullWhen(true)] out XlsxDefinedName? definedName)
+    internal bool TryGetScopedValue(string name, [NotNullWhen(true)] out XlsxDefinedName? definedName)
     {
         if (_namedRanges.TryGetValue(name, out definedName))
         {
@@ -212,7 +213,7 @@ internal class XlsxDefinedNames(XlsxWorkbook workbook) : IXlsxDefinedNames, IEnu
         return false;
     }
 
-    public Boolean Contains(String name)
+    public bool Contains(string name)
     {
         if (_namedRanges.ContainsKey(name)) return true;
 
@@ -260,7 +261,7 @@ internal class XlsxDefinedNames(XlsxWorkbook workbook) : IXlsxDefinedNames, IEnu
 
     private void ShiftReferences(CopyVisitor refMod)
     {
-        foreach (var definedName in _namedRanges.Values)
+        foreach (XlsxDefinedName definedName in _namedRanges.Values)
         {
             var nameFormula = definedName.RefersTo;
 

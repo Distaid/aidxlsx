@@ -65,7 +65,7 @@ internal class XlsxTableRows(XlsxWorksheet worksheet) : IXlsxTableRows
         return cells;
     }
 
-    public IXlsxCells CellsUsed(Boolean includeFormats)
+    public IXlsxCells CellsUsed(bool includeFormats)
     {
         return CellsUsed(includeFormats
             ? XlsxCellsUsedOptions.All
@@ -82,7 +82,7 @@ internal class XlsxTableRows(XlsxWorksheet worksheet) : IXlsxTableRows
 
     public void Select()
     {
-        foreach (var range in this)
+        foreach (IXlsxTableRow range in this)
             range.Select();
     }
 
@@ -92,7 +92,7 @@ internal class XlsxTableRows(XlsxWorksheet worksheet) : IXlsxTableRows
     {
         get
         {
-            var rowAreas = _ranges.Select(x => SheetArea.From(x.RangeAddress)).ToArray();
+            SheetArea[] rowAreas = [.. _ranges.Select(x => SheetArea.From(x.RangeAddress))];
             return XlsxCellFormat.ForTableRows(_worksheet, rowAreas);
         }
     }

@@ -36,7 +36,7 @@ internal class XlsxHyperlinks : IXlsxHyperlinks, ISheetListener
     {
         RepositionOnChange(sheet, hyperlinkArea =>
         {
-            var success = hyperlinkArea.TryInsertAreaAndShiftDown(insertedArea, out var newHlArea);
+            var success = hyperlinkArea.TryInsertAreaAndShiftDown(insertedArea, out Area? newHlArea);
             return (success, newHlArea);
         });
     }
@@ -45,7 +45,7 @@ internal class XlsxHyperlinks : IXlsxHyperlinks, ISheetListener
     {
         RepositionOnChange(sheet, hyperlinkArea =>
         {
-            var success = hyperlinkArea.TryInsertAreaAndShiftRight(insertedArea, out var newHlArea);
+            var success = hyperlinkArea.TryInsertAreaAndShiftRight(insertedArea, out Area? newHlArea);
             return (success, newHlArea);
         });
     }
@@ -54,7 +54,7 @@ internal class XlsxHyperlinks : IXlsxHyperlinks, ISheetListener
     {
         RepositionOnChange(sheet, hyperlinkArea =>
         {
-            var success = hyperlinkArea.TryDeleteAreaAndShiftLeft(deletedArea, out var newHlArea);
+            var success = hyperlinkArea.TryDeleteAreaAndShiftLeft(deletedArea, out Area? newHlArea);
             return (success, newHlArea);
         });
     }
@@ -63,7 +63,7 @@ internal class XlsxHyperlinks : IXlsxHyperlinks, ISheetListener
     {
         RepositionOnChange(sheet, hyperlinkArea =>
         {
-            var success = hyperlinkArea.TryDeleteAreaAndShiftUp(deletedArea, out var newHlArea);
+            var success = hyperlinkArea.TryDeleteAreaAndShiftUp(deletedArea, out Area? newHlArea);
             return (success, newHlArea);
         });
     }
@@ -74,9 +74,9 @@ internal class XlsxHyperlinks : IXlsxHyperlinks, ISheetListener
             return;
 
         // Styles are responsibility of style slice => only shift areas
-        foreach (var (link, linkArea) in _hyperlinks.ToArray())
+        foreach ((XlsxHyperlink? link, Area linkArea) in _hyperlinks.ToArray())
         {
-            var (success, newLinkArea) = reposition(linkArea);
+            (var success, Area? newLinkArea) = reposition(linkArea);
             if (!success)
                 continue; // Partial cover, don't move.
 
@@ -105,7 +105,7 @@ internal class XlsxHyperlinks : IXlsxHyperlinks, ISheetListener
     /// <inheritdoc />
     public bool Delete(XlsxHyperlink hyperlink)
     {
-        if (!Remove(hyperlink, out var linkArea))
+        if (!Remove(hyperlink, out Area linkArea))
             return false;
 
         ClearHyperlinkStyle(linkArea);
@@ -119,7 +119,7 @@ internal class XlsxHyperlinks : IXlsxHyperlinks, ISheetListener
             return false;
 
         var cellPoint = Point.FromAddress(address);
-        if (!TryGet(cellPoint, out var cellLink))
+        if (!TryGet(cellPoint, out XlsxHyperlink? cellLink))
             return false;
 
         Remove(cellLink);
@@ -134,7 +134,7 @@ internal class XlsxHyperlinks : IXlsxHyperlinks, ISheetListener
             throw new KeyNotFoundException("Address is for a different sheet.");
 
         var point = Point.FromAddress(address);
-        if (!TryGet(point, out var link))
+        if (!TryGet(point, out XlsxHyperlink? link))
             throw new KeyNotFoundException($"No hyperlink is defined for cell {point}.");
 
         return link;
@@ -168,7 +168,7 @@ internal class XlsxHyperlinks : IXlsxHyperlinks, ISheetListener
         // We only care about links defined for individual cell, not any link that covers the cell
         var pointNodes = new List<RTree<XlsxHyperlink>.Node>();
         _areaIndex.GetNodes(point, pointNodes);
-        foreach (var existingLink in pointNodes)
+        foreach (RTree<XlsxHyperlink>.Node existingLink in pointNodes)
             Remove(existingLink.Data);
 
         if (link is null)
@@ -205,7 +205,7 @@ internal class XlsxHyperlinks : IXlsxHyperlinks, ISheetListener
 
     internal XlsxCell? GetCell(XlsxHyperlink hyperlink)
     {
-        if (!_linkIndex.TryGetValue(hyperlink, out var area))
+        if (!_linkIndex.TryGetValue(hyperlink, out Area area))
             return null;
 
         return new XlsxCell(_worksheet, area.FirstPoint);
@@ -247,12 +247,12 @@ internal class XlsxHyperlinks : IXlsxHyperlinks, ISheetListener
 
     private void ClearHyperlinkStyle(Area range)
     {
-        var worksheetFont = _worksheet.GetFormat().Font;
-        var sheetColor = worksheetFont.Color;
-        var sheetUnderline = worksheetFont.Underline;
-        foreach (var point in range)
+        XlsxFontFormatValue worksheetFont = _worksheet.GetFormat().Font;
+        XlsxColor sheetColor = worksheetFont.Color;
+        XlsxFontUnderlineValues sheetUnderline = worksheetFont.Underline;
+        foreach (Point point in range)
         {
-            var cell = _worksheet.GetCell(point);
+            XlsxCell? cell = _worksheet.GetCell(point);
             if (cell is null)
                 continue;
 

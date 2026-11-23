@@ -120,7 +120,7 @@ internal record XlsxFontFormatValue
         if (dxf.IsEmpty())
             return this;
 
-        var result = this;
+        XlsxFontFormatValue result = this;
         if (dxf.Name is { } name)
             result = result with { Name = name };
 

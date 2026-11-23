@@ -45,10 +45,10 @@ internal class TallyCriteria : ITally
         // All criteria functions permit only area reference arguments. Excel ensures this
         // invariant by grammar, we just check the the argument value.
         var talliedAreas = new List<XlsxRangeAddress>(args.Length);
-        foreach (var arg in args)
+        foreach (AnyValue arg in args)
         {
             ctx.ThrowIfCancelled();
-            if (!arg.TryPickArea(out var tallyArea, out var error))
+            if (!arg.TryPickArea(out XlsxRangeAddress tallyArea, out XlsxError error))
                 return error;
 
             talliedAreas.Add(tallyArea);
@@ -56,26 +56,26 @@ internal class TallyCriteria : ITally
 
         // For each selection area and its criteria, get list of points that satisfy the criteria.
         var criteriaPoints = new List<(Point Origin, IEnumerable<Point> Enumerable)>();
-        foreach (var (area, criteria) in _criteriaRanges)
+        foreach ((XlsxRangeAddress area, Criteria? criteria) in _criteriaRanges)
         {
             // This is a lazy IEnumerable, it's not yet evaluated.
-            var areaCriteriaPoints = ctx.GetCriteriaPoints(area, criteria);
-            var origin = Area.FromRangeAddress(area).FirstPoint;
+            IEnumerable<Point> areaCriteriaPoints = ctx.GetCriteriaPoints(area, criteria);
+            Point origin = Area.FromRangeAddress(area).FirstPoint;
             criteriaPoints.Add((origin, areaCriteriaPoints));
         }
 
         // Get list of points that satisfy all criteria
-        var talliedCoordinates = GetCombinedCoordinates(criteriaPoints);
+        IEnumerable<XlsxSheetOffset> talliedCoordinates = GetCombinedCoordinates(criteriaPoints);
 
-        var state = initialState;
-        foreach (var (rowOfs, colOfs) in talliedCoordinates)
+        T state = initialState;
+        foreach ((var rowOfs, var colOfs) in talliedCoordinates)
         {
-            foreach (var area in talliedAreas)
+            foreach (XlsxRangeAddress area in talliedAreas)
             {
                 ctx.ThrowIfCancelled();
-                var origin = area.FirstAddress;
+                XlsxAddress origin = area.FirstAddress;
                 var shifted = new Point(origin.RowNumber + rowOfs, origin.ColumnNumber + colOfs);
-                var cellValue = ctx.GetCellValue(area.Worksheet, shifted.Row, shifted.Column);
+                ScalarValue cellValue = ctx.GetCellValue(area.Worksheet, shifted.Row, shifted.Column);
                 var number = _toNumber(cellValue);
                 if (number is not null)
                     state = state.Tally(number.Value);
@@ -91,7 +91,7 @@ internal class TallyCriteria : ITally
         try
         {
             // Move to the first element
-            foreach (var enumerator in enumerators)
+            foreach (IEnumerator<Point>? enumerator in enumerators)
             {
                 if (!enumerator.MoveNext())
                     yield break;
@@ -102,10 +102,10 @@ internal class TallyCriteria : ITally
             {
                 // Do all enumerators have same offset?
                 var allSame = true;
-                var minOfs = GetOffset(0);
+                XlsxSheetOffset minOfs = GetOffset(0);
                 for (var i = 1; i < enumerables.Count; ++i)
                 {
-                    var currentOfs = GetOffset(i);
+                    XlsxSheetOffset currentOfs = GetOffset(i);
                     var comparison = currentOfs.CompareTo(minOfs);
                     if (minOfs != currentOfs)
                         allSame = false;
@@ -123,7 +123,7 @@ internal class TallyCriteria : ITally
                 // to the next element.
                 for (var i = 0; i < enumerables.Count; ++i)
                 {
-                    var currentOfs = GetOffset(i);
+                    XlsxSheetOffset currentOfs = GetOffset(i);
                     if (currentOfs.CompareTo(minOfs) <= 0)
                     {
                         if (!enumerators[i].MoveNext())
@@ -134,14 +134,14 @@ internal class TallyCriteria : ITally
         }
         finally
         {
-            foreach (var enumerator in enumerators)
+            foreach (IEnumerator<Point>? enumerator in enumerators)
                 enumerator.Dispose();
         }
 
         XlsxSheetOffset GetOffset(int i)
         {
-            var origin = enumerables[i].Origin;
-            var point = enumerators[i].Current;
+            Point origin = enumerables[i].Origin;
+            Point point = enumerators[i].Current;
             return point - origin;
         }
     }

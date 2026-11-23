@@ -50,26 +50,26 @@ internal partial class PivotCacheRecordsReader(XmlTreeReader reader, XlsxPivotCa
 
     partial void OnMissingParsed(bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b)
     {
-        var fieldValues = GetFieldValues();
+        XlsxPivotCacheValues fieldValues = GetFieldValues();
         fieldValues.AddMissing();
     }
 
     partial void OnNumberParsed(double v, bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b)
     {
-        var fieldValues = GetFieldValues();
+        XlsxPivotCacheValues fieldValues = GetFieldValues();
         fieldValues.AddNumber(v);
     }
 
     partial void OnBooleanParsed(bool v, bool? u, bool? f, string? c, uint? cp)
     {
-        var fieldValues = GetFieldValues();
+        XlsxPivotCacheValues fieldValues = GetFieldValues();
         fieldValues.AddBoolean(v);
     }
 
     partial void OnErrorParsed(string v, bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b)
     {
-        var fieldValues = GetFieldValues();
-        if (!XlsxErrorParser.TryParseError(v, out var error))
+        XlsxPivotCacheValues fieldValues = GetFieldValues();
+        if (!XlsxErrorParser.TryParseError(v, out XlsxError error))
             throw PartStructureException.InvalidAttributeFormat();
 
         fieldValues.AddError(error);
@@ -77,19 +77,19 @@ internal partial class PivotCacheRecordsReader(XmlTreeReader reader, XlsxPivotCa
 
     partial void OnStringParsed(string v, bool? u, bool? f, string? c, uint? cp, uint? @in, uint? bc, uint? fc, bool i, bool un, bool st, bool b)
     {
-        var fieldValues = GetFieldValues();
+        XlsxPivotCacheValues fieldValues = GetFieldValues();
         fieldValues.AddString(v);
     }
 
     partial void OnDateTimeParsed(DateTime v, bool? u, bool? f, string? c, uint? cp)
     {
-        var fieldValues = GetFieldValues();
+        XlsxPivotCacheValues fieldValues = GetFieldValues();
         fieldValues.AddDateTime(v);
     }
 
     partial void OnIndexParsed(uint v)
     {
-        var fieldValues = GetFieldValues();
+        XlsxPivotCacheValues fieldValues = GetFieldValues();
         if (v >= fieldValues.SharedCount)
             throw PartStructureException.InvalidAttributeValue();
 

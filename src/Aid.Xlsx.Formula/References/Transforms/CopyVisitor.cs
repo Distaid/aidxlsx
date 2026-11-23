@@ -335,7 +335,7 @@ public class CopyVisitor : IAstFactory<TransformedSymbol, TransformedSymbol, Mod
     /// <inheritdoc />
     public virtual TransformedSymbol BinaryNode(ModContext ctx, SymbolRange range, BinaryOperation operation, TransformedSymbol leftNode, TransformedSymbol rightNode)
     {
-        var sb = new StringBuilder(leftNode.Length + rightNode.OriginalRange.Start - leftNode.OriginalRange.End + rightNode.Length)
+        StringBuilder sb = new StringBuilder(leftNode.Length + rightNode.OriginalRange.Start - leftNode.OriginalRange.End + rightNode.Length)
             .AppendStartFragment(ctx, range, leftNode)
             .Append(leftNode.AsSpan())
             .AppendMiddleFragment(ctx, leftNode, rightNode)
@@ -349,7 +349,7 @@ public class CopyVisitor : IAstFactory<TransformedSymbol, TransformedSymbol, Mod
     /// <inheritdoc />
     public virtual TransformedSymbol Unary(ModContext ctx, SymbolRange range, UnaryOperation operation, TransformedSymbol node)
     {
-        var sb = new StringBuilder(node.Length + 1)
+        StringBuilder sb = new StringBuilder(node.Length + 1)
             .AppendStartFragment(ctx, range, node)
             .Append(node.AsSpan())
             .AppendEndFragment(ctx, range, node);

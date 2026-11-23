@@ -34,7 +34,7 @@ internal abstract class XlsxPivotStyleFormatBase(XlsxPivotTable pivotTable) : IX
     private IEnumerable<XlsxPivotFormat> GetFormats()
     {
         var exists = false;
-        foreach (var format in PivotTable.Formats)
+        foreach (XlsxPivotFormat? format in PivotTable.Formats)
         {
             if (format.Action == XlsxPivotFormatAction.Formatting && Filter(format.PivotArea))
             {

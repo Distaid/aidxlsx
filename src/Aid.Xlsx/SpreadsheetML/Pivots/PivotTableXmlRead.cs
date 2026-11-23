@@ -31,8 +31,8 @@ internal static partial class PivotTableXml
 
     internal static void Load(XElement definition, XlsxWorksheet sheet, XlsxPivotCache cache, string relId, string cacheRelId, LoadContext context)
     {
-        var pivot = LoadPivotTableDefinition(definition, sheet, cache, context);
-        var area = pivot.Area;
+        XlsxPivotTable pivot = LoadPivotTableDefinition(definition, sheet, cache, context);
+        Area area = pivot.Area;
         sheet.Range(area.TopRow, area.LeftColumn, area.BottomRow, area.RightColumn).Clear(XlsxClearOptions.All);
         sheet.PivotTables.Add(pivot);
         pivot.RelId = relId;
@@ -49,13 +49,13 @@ internal static partial class PivotTableXml
 
     private static XlsxPivotTable LoadPivotTableDefinition(XElement pivotTable, XlsxWorksheet sheet, XlsxPivotCache cache, LoadContext context)
     {
-        var styles = sheet.Workbook.Styles;
+        XlsxWorkbookStyles styles = sheet.Workbook.Styles;
 
         // Load base attributes
-        var xlPivotTable = LoadPivotTableAttributes(pivotTable, sheet, cache);
+        XlsxPivotTable xlPivotTable = LoadPivotTableAttributes(pivotTable, sheet, cache);
 
         // Load location
-        var location = Child(pivotTable, "location") ?? throw PartStructureException.ExpectedElementNotFound();
+        XElement location = Child(pivotTable, "location") ?? throw PartStructureException.ExpectedElementNotFound();
         var referenceText = (string?)location.Attribute("ref") ?? throw PartStructureException.MissingAttribute();
         xlPivotTable.Area = Area.Parse(referenceText);
         xlPivotTable.FirstHeaderRow = (uint?)location.Attribute("firstHeaderRow") ?? throw PartStructureException.MissingAttribute();
@@ -65,10 +65,10 @@ internal static partial class PivotTableXml
         // Skip `rowPageCount` and `colPageCount`, because they are derived from filterAreaOrder, filterFieldsPageWrap and pageField count
 
         // Load pivot fields
-        var pivotFields = Child(pivotTable, "pivotFields");
+        XElement? pivotFields = Child(pivotTable, "pivotFields");
         if (pivotFields is not null)
         {
-            foreach (var pivotField in Children(pivotFields, "pivotField"))
+            foreach (XElement pivotField in Children(pivotFields, "pivotField"))
                 xlPivotTable.AddField(LoadPivotField(pivotField, xlPivotTable, styles));
         }
 
@@ -81,10 +81,10 @@ internal static partial class PivotTableXml
         LoadAxisItems(Child(pivotTable, "colItems"), xlPivotTable.ColumnAxis);
 
         // Load page fields, i.e. the filters region.
-        var pageFields = Child(pivotTable, "pageFields");
+        XElement? pageFields = Child(pivotTable, "pageFields");
         if (pageFields is not null)
         {
-            foreach (var pageField in Children(pageFields, "pageField"))
+            foreach (XElement pageField in Children(pageFields, "pageField"))
             {
                 var field = (int?)pageField.Attribute("fld") ?? throw PartStructureException.MissingAttribute();
                 var itemIndex = checked((int?)(uint?)pageField.Attribute("item"));
@@ -103,19 +103,19 @@ internal static partial class PivotTableXml
         }
 
         // Load data fields.
-        var dataFields = Child(pivotTable, "dataFields");
+        XElement? dataFields = Child(pivotTable, "dataFields");
         if (dataFields is not null)
         {
-            foreach (var dataField in Children(dataFields, "dataField"))
+            foreach (XElement dataField in Children(dataFields, "dataField"))
             {
                 var name = (string?)dataField.Attribute("name");
                 var field = (uint?)dataField.Attribute("fld") ?? throw PartStructureException.MissingAttribute();
-                var subtotal = ParseSummary((string?)dataField.Attribute("subtotal")) ?? XlsxPivotSummary.Sum;
-                var showDataAsFormat = ParseCalculation((string?)dataField.Attribute("showDataAs")) ?? XlsxPivotCalculation.Normal;
+                XlsxPivotSummary subtotal = ParseSummary((string?)dataField.Attribute("subtotal")) ?? XlsxPivotSummary.Sum;
+                XlsxPivotCalculation showDataAsFormat = ParseCalculation((string?)dataField.Attribute("showDataAs")) ?? XlsxPivotCalculation.Normal;
                 var baseField = (int?)dataField.Attribute("baseField") ?? -1;
                 var baseItem = (uint?)dataField.Attribute("baseItem") ?? 1048832;
                 var numberFormatId = checked((int?)(uint?)dataField.Attribute("numFmtId"));
-                var numberFormat = numberFormatId is not null ? styles.NumberFormats[numberFormatId.Value] : (XlsxNumberFormat?)null;
+                XlsxNumberFormat? numberFormat = numberFormatId is not null ? styles.NumberFormats[numberFormatId.Value] : (XlsxNumberFormat?)null;
                 var xlDataField = new XlsxPivotDataField(xlPivotTable, checked((int)field))
                 {
                     DataFieldName = name,
@@ -130,17 +130,17 @@ internal static partial class PivotTableXml
         }
 
         // Load formats
-        var formats = Child(pivotTable, "formats");
+        XElement? formats = Child(pivotTable, "formats");
         if (formats is not null)
         {
-            foreach (var format in Children(formats, "format"))
+            foreach (XElement format in Children(formats, "format"))
             {
-                var action = ParseFormatAction((string?)format.Attribute("action")) ?? XlsxPivotFormatAction.Formatting;
-                var dxf = (uint?)format.Attribute("dxfId") is { } dxfId
+                XlsxPivotFormatAction action = ParseFormatAction((string?)format.Attribute("action")) ?? XlsxPivotFormatAction.Formatting;
+                XlsxDxfValue? dxf = (uint?)format.Attribute("dxfId") is { } dxfId
                     ? sheet.Workbook.Styles.DifferentialFormats[checked((int)dxfId)]
                     : null;
-                var pivotArea = Child(format, "pivotArea") ?? throw PartStructureException.ExpectedElementNotFound();
-                var xlPivotArea = LoadPivotArea(pivotArea);
+                XElement pivotArea = Child(format, "pivotArea") ?? throw PartStructureException.ExpectedElementNotFound();
+                XlsxPivotArea xlPivotArea = LoadPivotArea(pivotArea);
                 var xlFormat = new XlsxPivotFormat(xlPivotArea)
                 {
                     Action = action,
@@ -150,26 +150,26 @@ internal static partial class PivotTableXml
             }
         }
 
-        var conditionalFormats = Child(pivotTable, "conditionalFormats");
+        XElement? conditionalFormats = Child(pivotTable, "conditionalFormats");
         if (conditionalFormats is not null)
         {
-            foreach (var conditionalFormat in Children(conditionalFormats, "conditionalFormat"))
+            foreach (XElement conditionalFormat in Children(conditionalFormats, "conditionalFormat"))
             {
-                var scope = ParseCfScope((string?)conditionalFormat.Attribute("scope")) ?? XlsxPivotCfScope.SelectedCells;
-                var type = ParseCfRuleType((string?)conditionalFormat.Attribute("type")) ?? XlsxPivotCfRuleType.None;
+                XlsxPivotCfScope scope = ParseCfScope((string?)conditionalFormat.Attribute("scope")) ?? XlsxPivotCfScope.SelectedCells;
+                XlsxPivotCfRuleType type = ParseCfRuleType((string?)conditionalFormat.Attribute("type")) ?? XlsxPivotCfRuleType.None;
                 var priority = (uint?)conditionalFormat.Attribute("priority") ?? throw PartStructureException.MissingAttribute();
-                var format = context.GetPivotCf(sheet.Name, checked((int)priority));
+                XlsxConditionalFormat format = context.GetPivotCf(sheet.Name, checked((int)priority));
                 var xlConditionalFormat = new XlsxPivotConditionalFormat(format)
                 {
                     Scope = scope,
                     Type = type,
                 };
-                var pivotAreas = Child(conditionalFormat, "pivotAreas");
+                XElement? pivotAreas = Child(conditionalFormat, "pivotAreas");
                 if (pivotAreas is not null)
                 {
-                    foreach (var pivotArea in Children(pivotAreas, "pivotArea"))
+                    foreach (XElement pivotArea in Children(pivotAreas, "pivotArea"))
                     {
-                        var xlPivotArea = LoadPivotArea(pivotArea);
+                        XlsxPivotArea xlPivotArea = LoadPivotArea(pivotArea);
                         xlConditionalFormat.AddArea(xlPivotArea);
                     }
                 }
@@ -180,7 +180,7 @@ internal static partial class PivotTableXml
 
         // TODO: chartFormats
         // pivotHierarchies is OLAP and thus for now out of scope.
-        var pivotTableStyle = Child(pivotTable, "pivotTableStyleInfo");
+        XElement? pivotTableStyle = Child(pivotTable, "pivotTableStyleInfo");
         LoadPivotTableStyle(pivotTableStyle, xlPivotTable);
 
         // TODO: filters
@@ -343,7 +343,7 @@ internal static partial class PivotTableXml
     private static XlsxPivotTableField LoadPivotField(XElement pivotField, XlsxPivotTable xlPivotTable, XlsxWorkbookStyles styles)
     {
         var customName = (string?)pivotField.Attribute("name");
-        var axis = ParseAxis((string?)pivotField.Attribute("axis"));
+        XlsxPivotAxis? axis = ParseAxis((string?)pivotField.Attribute("axis"));
         var dataField = (bool?)pivotField.Attribute("dataField") ?? false;
         var subtotalCaption = (string?)pivotField.Attribute("subtotalCaption");
         var showDropDowns = (bool?)pivotField.Attribute("showDropDowns") ?? true;
@@ -352,7 +352,7 @@ internal static partial class PivotTableXml
         var compact = (bool?)pivotField.Attribute("compact") ?? true;
         var allDrilled = (bool?)pivotField.Attribute("allDrilled") ?? false;
         var numberFormatId = checked((int?)(uint?)pivotField.Attribute("numFmtId"));
-        var numberFormat = numberFormatId is not null ? styles.NumberFormats[numberFormatId.Value] : (XlsxNumberFormat?)null;
+        XlsxNumberFormat? numberFormat = numberFormatId is not null ? styles.NumberFormats[numberFormatId.Value] : (XlsxNumberFormat?)null;
         var outline = (bool?)pivotField.Attribute("outline") ?? true;
         var subtotalTop = (bool?)pivotField.Attribute("subtotalTop") ?? true;
         var dragToRow = (bool?)pivotField.Attribute("dragToRow") ?? true;
@@ -371,7 +371,7 @@ internal static partial class PivotTableXml
         var measureFilter = (bool?)pivotField.Attribute("measureFilter") ?? false;
         var includeNewItemsInFilter = (bool?)pivotField.Attribute("includeNewItemsInFilter") ?? false;
         var itemPageCount = (uint?)pivotField.Attribute("itemPageCount") ?? 10u;
-        var sortType = ParseSortType((string?)pivotField.Attribute("sortType")) ?? XlsxPivotSortType.Default;
+        XlsxPivotSortType sortType = ParseSortType((string?)pivotField.Attribute("sortType")) ?? XlsxPivotSortType.Default;
         var dataSourceSort = (bool?)pivotField.Attribute("dataSourceSort");
         var nonAutoSortDefault = (bool?)pivotField.Attribute("nonAutoSortDefault") ?? false;
         var rankBy = (uint?)pivotField.Attribute("rankBy");
@@ -470,10 +470,10 @@ internal static partial class PivotTableXml
             DefaultAttributeDrillState = defaultAttributeDrillState,
         };
 
-        var items = Child(pivotField, "items");
+        XElement? items = Child(pivotField, "items");
         if (items is not null)
         {
-            foreach (var item in Children(items, "item"))
+            foreach (XElement item in Children(items, "item"))
             {
                 // Attributes `sd` and `d` were swapped in spec.
                 var approximatelyHasChildren = (bool?)item.Attribute("c") ?? false;
@@ -486,7 +486,7 @@ internal static partial class PivotTableXml
                 var valueIsString = (bool?)item.Attribute("s") ?? false;
                 var showDetails = (bool?)item.Attribute("sd") ?? true;
                 var itemIndex = (uint?)item.Attribute("x");
-                var itemType = ParseItemType((string?)item.Attribute("t")) ?? XlsxPivotItemType.Data;
+                XlsxPivotItemType itemType = ParseItemType((string?)item.Attribute("t")) ?? XlsxPivotItemType.Data;
                 var xlItem = new XlsxPivotFieldItem(xlField, itemIndex is null ? null : checked((int)itemIndex.Value))
                 {
                     ApproximatelyHasChildren = approximatelyHasChildren,
@@ -508,7 +508,7 @@ internal static partial class PivotTableXml
         // TODO: autoSortScope
 
         // extLst
-        var field2010 = Extension(pivotField, "pivotField");
+        XElement? field2010 = Extension(pivotField, "pivotField");
         xlField.RepeatItemLabels = (bool?)field2010?.Attribute("fillDownLabels") ?? false;
 
         return xlField;
@@ -518,7 +518,7 @@ internal static partial class PivotTableXml
     {
         if (fields is not null)
         {
-            foreach (var field in Children(fields, "field"))
+            foreach (XElement field in Children(fields, "field"))
             {
                 // Axis can contain 'data' field.
                 var fieldIndex = (int?)field.Attribute("x") ?? throw PartStructureException.MissingAttribute();
@@ -536,13 +536,13 @@ internal static partial class PivotTableXml
         {
             // Both row and column use RowItem type for axis item.
             var previous = new List<int>();
-            foreach (var axisItem in Children(axisItems, "i"))
+            foreach (XElement axisItem in Children(axisItems, "i"))
             {
-                var xlItemType = ParseItemType((string?)axisItem.Attribute("t")) ?? XlsxPivotItemType.Data;
+                XlsxPivotItemType xlItemType = ParseItemType((string?)axisItem.Attribute("t")) ?? XlsxPivotItemType.Data;
                 var dataFieldIndex = checked((int)((uint?)axisItem.Attribute("i") ?? 0)); // This is used by 'data' field
                 var repeatedCount = (uint?)axisItem.Attribute("r") ?? 0;
                 var fieldIndexes = new List<int>();
-                foreach (var dataIndex in Children(axisItem, "x"))
+                foreach (XElement dataIndex in Children(axisItem, "x"))
                     fieldIndexes.Add((int?)dataIndex.Attribute("v") ?? 0);
 
                 var allFieldIndexes = previous.Take((int)repeatedCount).Concat(fieldIndexes).ToList();
@@ -555,16 +555,16 @@ internal static partial class PivotTableXml
     private static XlsxPivotArea LoadPivotArea(XElement pivotArea)
     {
         var field = (int?)pivotArea.Attribute("field");
-        var type = ParseAreaType((string?)pivotArea.Attribute("type")) ?? XlsxPivotAreaType.Normal;
+        XlsxPivotAreaType type = ParseAreaType((string?)pivotArea.Attribute("type")) ?? XlsxPivotAreaType.Normal;
         var dataOnly = (bool?)pivotArea.Attribute("dataOnly") ?? true;
         var labelOnly = (bool?)pivotArea.Attribute("labelOnly") ?? false;
         var grandRow = (bool?)pivotArea.Attribute("grandRow") ?? false;
         var grandCol = (bool?)pivotArea.Attribute("grandCol") ?? false;
         var cacheIndex = (bool?)pivotArea.Attribute("cacheIndex") ?? false;
         var outline = (bool?)pivotArea.Attribute("outline") ?? true;
-        var offset = (string?)pivotArea.Attribute("offset") is { } offsetRefText ? Area.Parse(offsetRefText) : (Area?)null;
+        Area? offset = (string?)pivotArea.Attribute("offset") is { } offsetRefText ? Area.Parse(offsetRefText) : (Area?)null;
         var collapsedLevelsAreSubtotals = (bool?)pivotArea.Attribute("collapsedLevelsAreSubtotals") ?? false;
-        var axis = ParseAxis((string?)pivotArea.Attribute("axis"));
+        XlsxPivotAxis? axis = ParseAxis((string?)pivotArea.Attribute("axis"));
         var fieldPosition = (uint?)pivotArea.Attribute("fieldPosition");
         var xlPivotArea = new XlsxPivotArea
         {
@@ -583,10 +583,10 @@ internal static partial class PivotTableXml
         };
 
         // Can contain extensions, in theory at least.
-        var references = Child(pivotArea, "references");
+        XElement? references = Child(pivotArea, "references");
         if (references is not null)
         {
-            foreach (var reference in Children(references, "reference"))
+            foreach (XElement reference in Children(references, "reference"))
                 xlPivotArea.AddReference(LoadPivotReference(reference));
         }
 
@@ -659,7 +659,7 @@ internal static partial class PivotTableXml
         };
 
         // Add indexes after the reference is initialized, so it can check values by cacheIndex/byPosition.
-        foreach (var fieldItem in Children(reference, "x"))
+        foreach (XElement fieldItem in Children(reference, "x"))
         {
             var fieldItemValue = (uint?)fieldItem.Attribute("v") ?? throw PartStructureException.MissingAttribute();
             xlReference.AddFieldItem(fieldItemValue);
@@ -672,7 +672,7 @@ internal static partial class PivotTableXml
     {
         if (pivotTableStyle is not null)
         {
-            xlPivotTable.Theme = Enum.TryParse<XlsxPivotTableTheme>((string?)pivotTableStyle.Attribute("name"), out var xlPivotTableTheme)
+            xlPivotTable.Theme = Enum.TryParse<XlsxPivotTableTheme>((string?)pivotTableStyle.Attribute("name"), out XlsxPivotTableTheme xlPivotTableTheme)
                 ? xlPivotTableTheme
                 : XlsxPivotTableTheme.None;
             xlPivotTable.ShowRowHeaders = (bool?)pivotTableStyle.Attribute("showRowHeaders") ?? false;
@@ -685,7 +685,7 @@ internal static partial class PivotTableXml
 
     private static void LoadExtensionList(XElement pivotTable, XlsxPivotTable xlPivotTable)
     {
-        var ptExt2010 = Extension(pivotTable, "pivotTableDefinition");
+        XElement? ptExt2010 = Extension(pivotTable, "pivotTableDefinition");
         if (ptExt2010 is not null)
         {
             xlPivotTable.EnableCellEditing = (bool?)ptExt2010.Attribute("enableEdit") ?? false;

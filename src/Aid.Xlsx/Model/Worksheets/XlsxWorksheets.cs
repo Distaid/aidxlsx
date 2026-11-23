@@ -15,12 +15,12 @@ internal class XlsxWorksheets(XlsxWorkbook workbook) : IXlsxWorksheets, IEnumera
 {
     private readonly XlsxWorkbook _workbook = workbook;
     private readonly Dictionary<string, XlsxWorksheet> _worksheets = [with(XlsxHelper.SheetComparer)];
-    internal ICollection<String> Deleted { get; private set; } = new HashSet<String>();
+    internal ICollection<string> Deleted { get; private set; } = new HashSet<string>();
 
     /// <summary>
     /// SheetId that will be assigned to next created sheet.
     /// </summary>
-    private UInt32 _nextSheetId = 1;
+    private uint _nextSheetId = 1;
 
     #region Constructor
 
@@ -43,14 +43,14 @@ internal class XlsxWorksheets(XlsxWorkbook workbook) : IXlsxWorksheets, IEnumera
         get { return _worksheets.Count; }
     }
 
-    public Boolean Contains(String sheetName)
+    public bool Contains(string sheetName)
     {
         return _worksheets.ContainsKey(sheetName);
     }
 
     bool IXlsxWorksheets.TryGetWorksheet(string sheetName, [NotNullWhen(true)] out IXlsxWorksheet? worksheet)
     {
-        if (TryGetWorksheet(sheetName, out var foundSheet))
+        if (TryGetWorksheet(sheetName, out XlsxWorksheet? foundSheet))
         {
             worksheet = foundSheet;
             return true;
@@ -67,15 +67,15 @@ internal class XlsxWorksheets(XlsxWorkbook workbook) : IXlsxWorksheets, IEnumera
 
     public IXlsxWorksheet Worksheet(string sheetName)
     {
-        if (!_worksheets.TryGetValue(sheetName, out var foundSheet))
+        if (!_worksheets.TryGetValue(sheetName, out XlsxWorksheet? foundSheet))
             throw new KeyNotFoundException($"There isn't a worksheet named '{sheetName}'.");
 
         return foundSheet;
     }
 
-    public IXlsxWorksheet Worksheet(Int32 position)
+    public IXlsxWorksheet Worksheet(int position)
     {
-        int wsCount = _worksheets.Values.Count(w => w.Position == position);
+        var wsCount = _worksheets.Values.Count(w => w.Position == position);
         if (wsCount == 0)
             throw new ArgumentException("There isn't a worksheet associated with that position.");
 
@@ -93,12 +93,12 @@ internal class XlsxWorksheets(XlsxWorkbook workbook) : IXlsxWorksheets, IEnumera
         return Add(GetNextWorksheetName());
     }
 
-    public IXlsxWorksheet Add(Int32 position)
+    public IXlsxWorksheet Add(int position)
     {
         return Add(GetNextWorksheetName(), position);
     }
 
-    public IXlsxWorksheet Add(String sheetName)
+    public IXlsxWorksheet Add(string sheetName)
     {
         var sheet = new XlsxWorksheet(sheetName, _workbook, GetNextSheetId());
         Add(sheetName, sheet);
@@ -106,12 +106,12 @@ internal class XlsxWorksheets(XlsxWorkbook workbook) : IXlsxWorksheets, IEnumera
         return sheet;
     }
 
-    public IXlsxWorksheet Add(String sheetName, Int32 position)
+    public IXlsxWorksheet Add(string sheetName, int position)
     {
         return Add(sheetName, position, GetNextSheetId());
     }
 
-    internal XlsxWorksheet Add(String sheetName, Int32 position, UInt32 sheetId)
+    internal XlsxWorksheet Add(string sheetName, int position, uint sheetId)
     {
         _worksheets.Values.Where(w => w._position >= position).ForEach(w => w._position += 1);
         _workbook.UnsupportedSheets.Where(w => w.Position >= position).ForEach(w => w.Position += 1);
@@ -124,24 +124,24 @@ internal class XlsxWorksheets(XlsxWorkbook workbook) : IXlsxWorksheets, IEnumera
         return sheet;
     }
 
-    private void Add(String sheetName, XlsxWorksheet sheet)
+    private void Add(string sheetName, XlsxWorksheet sheet)
     {
         if (_worksheets.ContainsKey(sheetName))
-            throw new ArgumentException(String.Format("A worksheet with the same name ({0}) has already been added.", sheetName), nameof(sheetName));
+            throw new ArgumentException(string.Format("A worksheet with the same name ({0}) has already been added.", sheetName), nameof(sheetName));
 
         _worksheets.Add(sheetName, sheet);
 
         _workbook.NotifyWorksheetAdded(sheet);
     }
 
-    public void Delete(String sheetName)
+    public void Delete(string sheetName)
     {
         Delete(_worksheets[sheetName].Position);
     }
 
-    public void Delete(Int32 position)
+    public void Delete(int position)
     {
-        int wsCount = _worksheets.Values.Count(w => w.Position == position);
+        var wsCount = _worksheets.Values.Count(w => w.Position == position);
         if (wsCount == 0)
             throw new ArgumentException("There isn't a worksheet associated with that index.");
 
@@ -149,8 +149,8 @@ internal class XlsxWorksheets(XlsxWorkbook workbook) : IXlsxWorksheets, IEnumera
             throw new ArgumentException(
                 "Can't delete the worksheet because there are multiple worksheets associated with that index.");
 
-        var ws = _worksheets.Values.Single(w => w.Position == position);
-        if (!String.IsNullOrWhiteSpace(ws.RelId) && !Deleted.Contains(ws.RelId))
+        XlsxWorksheet ws = _worksheets.Values.Single(w => w.Position == position);
+        if (!string.IsNullOrWhiteSpace(ws.RelId) && !Deleted.Contains(ws.RelId))
             Deleted.Add(ws.RelId);
 
         _worksheets.RemoveAll(w => w.Position == position);
@@ -175,14 +175,14 @@ internal class XlsxWorksheets(XlsxWorkbook workbook) : IXlsxWorksheets, IEnumera
         return Add(dataTable, dataTable.TableName);
     }
 
-    public IXlsxWorksheet Add(DataTable dataTable, String sheetName)
+    public IXlsxWorksheet Add(DataTable dataTable, string sheetName)
     {
         return Add(dataTable, sheetName, TableNameGenerator.GetNewTableName(_workbook));
     }
 
-    public IXlsxWorksheet Add(DataTable dataTable, String sheetName, string tableName)
+    public IXlsxWorksheet Add(DataTable dataTable, string sheetName, string tableName)
     {
-        var ws = Add(sheetName);
+        IXlsxWorksheet ws = Add(sheetName);
         ws.Cell(1, 1).InsertTable(dataTable, tableName);
         return ws;
     }
@@ -195,18 +195,18 @@ internal class XlsxWorksheets(XlsxWorkbook workbook) : IXlsxWorksheets, IEnumera
 
     #endregion IXlsxWorksheets Members
 
-    public void Rename(String oldSheetName, String newSheetName)
+    public void Rename(string oldSheetName, string newSheetName)
     {
-        if (String.IsNullOrWhiteSpace(oldSheetName) || !_worksheets.TryGetValue(oldSheetName, out XlsxWorksheet? ws)) return;
+        if (string.IsNullOrWhiteSpace(oldSheetName) || !_worksheets.TryGetValue(oldSheetName, out XlsxWorksheet? ws)) return;
 
         if (!oldSheetName.Equals(newSheetName, StringComparison.OrdinalIgnoreCase)
             && _worksheets.ContainsKey(newSheetName))
-            throw new ArgumentException(String.Format("A worksheet with the same name ({0}) has already been added.", newSheetName), nameof(newSheetName));
+            throw new ArgumentException(string.Format("A worksheet with the same name ({0}) has already been added.", newSheetName), nameof(newSheetName));
 
         _worksheets.Remove(oldSheetName);
         Add(newSheetName, ws);
 
-        foreach (var listener in GetWorkbookListeners())
+        foreach (IWorkbookListener listener in GetWorkbookListeners())
             listener.OnSheetRenamed(oldSheetName, newSheetName);
     }
 
@@ -218,24 +218,24 @@ internal class XlsxWorksheets(XlsxWorkbook workbook) : IXlsxWorksheets, IEnumera
         // be enumerated here.
         yield return _workbook.CalcEngine;
 
-        foreach (var sheet in _worksheets.Values)
+        foreach (XlsxWorksheet sheet in _worksheets.Values)
         {
             yield return sheet.Internals.CellsCollection;
         }
 
-        foreach (var definedName in _workbook.DefinedNamesInternal)
+        foreach (XlsxDefinedName definedName in _workbook.DefinedNamesInternal)
             yield return definedName;
 
-        foreach (var sheet in _worksheets.Values)
+        foreach (XlsxWorksheet sheet in _worksheets.Values)
         {
-            foreach (var definedName in sheet.DefinedNames)
+            foreach (XlsxDefinedName definedName in sheet.DefinedNames)
             {
                 yield return definedName;
             }
         }
     }
 
-    private String GetNextWorksheetName()
+    private string GetNextWorksheetName()
     {
         var worksheetNumber = this.Count + 1;
         var sheetName = $"Sheet{worksheetNumber}";
@@ -247,7 +247,7 @@ internal class XlsxWorksheets(XlsxWorkbook workbook) : IXlsxWorksheets, IEnumera
         return sheetName;
     }
 
-    private UInt32 GetNextSheetId() => _nextSheetId++;
+    private uint GetNextSheetId() => _nextSheetId++;
 
     #endregion Private members
 }

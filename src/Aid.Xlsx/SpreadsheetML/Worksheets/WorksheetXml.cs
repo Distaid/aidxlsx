@@ -55,7 +55,7 @@ internal sealed partial class WorksheetXml(XElement root)
             {
                 do
                 {
-                    var name = reader.Name == "xmlns" ? XName.Get("xmlns") : XName.Get(reader.LocalName, reader.NamespaceURI);
+                    XName name = reader.Name == "xmlns" ? XName.Get("xmlns") : XName.Get(reader.LocalName, reader.NamespaceURI);
                     root.Add(new XAttribute(name, reader.Value));
                 } while (reader.MoveToNextAttribute());
                 reader.MoveToElement();
@@ -73,7 +73,7 @@ internal sealed partial class WorksheetXml(XElement root)
                     }
                     else if (reader.NodeType == XmlNodeType.Element)
                     {
-                        using (var subtree = reader.ReadSubtree())
+                        using (XmlReader subtree = reader.ReadSubtree())
                             root.Add(XElement.Load(subtree, LoadOptions.PreserveWhitespace));
                         reader.Read();
                     }
@@ -119,11 +119,11 @@ internal sealed partial class WorksheetXml(XElement root)
 
     private static void NormalizeStrictNamespaces(XElement root)
     {
-        foreach (var element in root.DescendantsAndSelf())
+        foreach (XElement element in root.DescendantsAndSelf())
         {
             if (element.Name.NamespaceName == StrictSpreadsheetNs)
                 element.Name = Main + element.Name.LocalName;
-            foreach (var attribute in element.Attributes().ToArray())
+            foreach (XAttribute? attribute in element.Attributes().ToArray())
             {
                 if (attribute.IsNamespaceDeclaration)
                 {
@@ -143,7 +143,7 @@ internal sealed partial class WorksheetXml(XElement root)
 
     private XElement GetOrAdd(string name)
     {
-        var existing = Root.Element(Main + name);
+        XElement? existing = Root.Element(Main + name);
         if (existing is not null)
             return existing;
 
@@ -155,14 +155,14 @@ internal sealed partial class WorksheetXml(XElement root)
     private void Replace(string name, IEnumerable<XElement> replacements)
     {
         Root.Elements(Main + name).Remove();
-        foreach (var replacement in replacements)
+        foreach (XElement replacement in replacements)
             Insert(replacement);
     }
 
     private void Insert(XElement element)
     {
         var index = Order(element);
-        var next = Root.Elements().FirstOrDefault(child => Order(child) > index);
+        XElement? next = Root.Elements().FirstOrDefault(child => Order(child) > index);
         if (next is null)
             Root.Add(element);
         else
@@ -187,11 +187,11 @@ internal sealed partial class WorksheetXml(XElement root)
             return;
         }
 
-        var hyperlinks = GetOrAdd("hyperlinks");
+        XElement hyperlinks = GetOrAdd("hyperlinks");
         hyperlinks.Elements(Main + "hyperlink").Remove();
-        foreach (var link in sheet.Hyperlinks)
+        foreach (XlsxHyperlink link in sheet.Hyperlinks)
         {
-            var cell = link.Cell ?? throw new InvalidOperationException("A worksheet hyperlink must be attached to a cell.");
+            IXlsxCell cell = link.Cell ?? throw new InvalidOperationException("A worksheet hyperlink must be attached to a cell.");
             var element = new XElement(Main + "hyperlink", new XAttribute("ref", cell.Address.ToStringRelative()));
             if (link.IsExternal)
             {
@@ -210,7 +210,7 @@ internal sealed partial class WorksheetXml(XElement root)
 
     internal void UpdateTableReferences(IEnumerable<string> ids)
     {
-        var tables = GetOrAdd("tableParts");
+        XElement tables = GetOrAdd("tableParts");
         tables.RemoveNodes();
         tables.Add(ids.Select(id => new XElement(Main + "tablePart", new XAttribute(Relationships + "id", id))));
         tables.SetAttributeValue("count", tables.Elements().Count());
@@ -218,7 +218,7 @@ internal sealed partial class WorksheetXml(XElement root)
 
     internal void UpdateDrawingReferences(string? previousDrawingId, string? drawingId, string? legacyDrawingId)
     {
-        var drawing = previousDrawingId is null ? null : Root.Elements(Main + "drawing")
+        XElement? drawing = previousDrawingId is null ? null : Root.Elements(Main + "drawing")
             .FirstOrDefault(element => (string?)element.Attribute(Relationships + "id") == previousDrawingId);
         if (drawingId is not null)
             (drawing ?? GetOrAdd("drawing")).SetAttributeValue(Relationships + "id", drawingId);
@@ -232,12 +232,12 @@ internal sealed partial class WorksheetXml(XElement root)
 
     internal void Write(XmlWriter writer, Action writeData)
     {
-        using var reader = Root.CreateReader();
+        using XmlReader reader = Root.CreateReader();
         reader.MoveToContent();
         writer.WriteStartDocument(true);
         writer.WriteStartElement(reader.Prefix, reader.LocalName, reader.NamespaceURI);
         writer.WriteAttributes(reader, defattr: false);
-        foreach (var node in Root.Nodes())
+        foreach (XNode node in Root.Nodes())
         {
             if (node is XElement data && data.Name == Main + "sheetData")
                 writeData();
@@ -250,12 +250,12 @@ internal sealed partial class WorksheetXml(XElement root)
 
     internal void UpdateSettings(XlsxWorksheet sheet)
     {
-        var properties = GetOrAdd("sheetPr");
+        XElement properties = GetOrAdd("sheetPr");
         properties.Element(Main + "tabColor")?.Remove();
         if (sheet.TabColor.HasValue)
             properties.AddFirst(SpreadsheetColorXml.Write(Main + "tabColor", sheet.TabColor));
 
-        var outline = properties.Element(Main + "outlinePr");
+        XElement? outline = properties.Element(Main + "outlinePr");
         if (outline is null)
         {
             outline = new XElement(Main + "outlinePr");
@@ -269,15 +269,15 @@ internal sealed partial class WorksheetXml(XElement root)
         if (properties.Element(Main + "pageSetUpPr") is null && (sheet.PageSetup.PagesTall > 0 || sheet.PageSetup.PagesWide > 0))
             properties.Add(new XElement(Main + "pageSetUpPr", new XAttribute("fitToPage", "1")));
 
-        var dimension = GetOrAdd("dimension");
+        XElement dimension = GetOrAdd("dimension");
         if (dimension.Attribute("ref") is null)
         {
-            var cells = sheet.Internals.CellsCollection;
+            XlsxCellsCollection cells = sheet.Internals.CellsCollection;
             dimension.SetAttributeValue("ref", cells.IsEmpty ? "A1" : "A1:" + XlsxHelper.GetColumnLetterFromNumber(cells.MaxColumnUsed) + cells.MaxRowUsed.ToInvariantString());
         }
 
         UpdateView(GetOrAdd("sheetViews"), sheet);
-        var format = GetOrAdd("sheetFormatPr");
+        XElement format = GetOrAdd("sheetFormatPr");
         format.SetAttributeValue("defaultRowHeight", sheet.RowHeight.SaveRound());
         Flag(format, "customHeight", sheet.RowHeightChanged, false);
         format.SetAttributeValue("defaultColWidth", sheet.ColumnWidthChanged ? ColumnWidth(sheet.ColumnWidth) : (double?)null);
@@ -292,9 +292,9 @@ internal sealed partial class WorksheetXml(XElement root)
 
         if (sheet.Internals.MergedRanges.Count > 0)
         {
-            var merges = GetOrAdd("mergeCells");
+            XElement merges = GetOrAdd("mergeCells");
             merges.Elements(Main + "mergeCell").Remove();
-            foreach (var range in sheet.Internals.MergedRanges)
+            foreach (XlsxRange range in sheet.Internals.MergedRanges)
                 merges.Add(new XElement(Main + "mergeCell", new XAttribute("ref", $"{range.RangeAddress.FirstAddress}:{range.RangeAddress.LastAddress}")));
             merges.SetAttributeValue("count", merges.Elements().Count());
         }
@@ -306,7 +306,7 @@ internal sealed partial class WorksheetXml(XElement root)
 
     private static void UpdateView(XElement sheetViews, XlsxWorksheet sheet)
     {
-        var view = sheetViews.Element(Main + "sheetView");
+        XElement? view = sheetViews.Element(Main + "sheetView");
         if (view is null)
         {
             view = new XElement(Main + "sheetView", new XAttribute("workbookViewId", 0));
@@ -323,7 +323,7 @@ internal sealed partial class WorksheetXml(XElement root)
         Flag(view, "showWhiteSpace", sheet.ShowWhiteSpace, true);
         Flag(view, "showZeros", sheet.ShowZeros, true);
 
-        var settings = sheet.SheetView;
+        XlsxSheetView settings = sheet.SheetView;
         view.SetAttributeValue("view", settings.View switch
         {
             XlsxSheetViewOptions.Normal => null,
@@ -332,7 +332,7 @@ internal sealed partial class WorksheetXml(XElement root)
             _ => throw new ArgumentOutOfRangeException(nameof(sheet)),
         });
 
-        var pane = view.Element(Main + "pane");
+        XElement? pane = view.Element(Main + "pane");
         var columns = settings.SplitColumn;
         var rows = settings.SplitRow;
         string? split = null;
@@ -356,14 +356,14 @@ internal sealed partial class WorksheetXml(XElement root)
             pane.SetAttributeValue("topLeftCell", XlsxHelper.GetColumnLetterFromNumber(columns + 1) + (rows + 1).ToInvariantString());
         }
 
-        var topLeft = settings.TopLeftCellAddress;
+        XlsxAddress topLeft = settings.TopLeftCellAddress;
         view.SetAttributeValue("topLeftCell", !topLeft.IsValid || topLeft == new XlsxAddress(1, 1, false, false) ? null : topLeft.ToString());
-        var first = sheet.SelectedRanges.FirstOrDefault();
+        IXlsxRange? first = sheet.SelectedRanges.FirstOrDefault();
         if (first is not null || sheet.ActiveCell is not null)
         {
             view.Elements(Main + "selection").Remove();
             var activeCell = sheet.ActiveCell?.ToString() ?? first!.RangeAddress.FirstAddress.ToStringRelative(false);
-            var references = sheet.SelectedRanges.Select(range => range.RangeAddress.FirstAddress.Equals(range.RangeAddress.LastAddress)
+            IEnumerable<string> references = sheet.SelectedRanges.Select(range => range.RangeAddress.FirstAddress.Equals(range.RangeAddress.LastAddress)
                 ? range.RangeAddress.FirstAddress.ToStringRelative(false)
                 : range.RangeAddress.ToStringRelative(false));
             var sequence = string.Join(" ", references.Prepend(activeCell).Distinct());
@@ -390,14 +390,14 @@ internal sealed partial class WorksheetXml(XElement root)
 
     private void UpdateProtection(XlsxWorksheet sheet)
     {
-        var protection = sheet.Protection;
+        XlsxSheetProtection protection = sheet.Protection;
         if (!protection.IsProtected)
         {
             Replace("sheetProtection", []);
             return;
         }
 
-        var element = GetOrAdd("sheetProtection");
+        XElement element = GetOrAdd("sheetProtection");
         Flag(element, "sheet", true);
         var simpleHash = protection.Algorithm == XlsxProtectionAlgorithm.Algorithm.SimpleHash;
         element.SetAttributeValue("password", simpleHash && !string.IsNullOrWhiteSpace(protection.PasswordHash) ? protection.PasswordHash : null);

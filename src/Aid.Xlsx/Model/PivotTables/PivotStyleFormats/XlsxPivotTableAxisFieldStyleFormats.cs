@@ -30,7 +30,7 @@ internal class XlsxPivotTableAxisFieldStyleFormats(XlsxPivotTable pivotTable, Xl
             // contain correct position of the field on the axis. If table is compact, there is
             // only one header and its position is first in axis, because it's the only one.
             var fieldPosition = _pivotTable.Compact ? 0 : _axisField.Position;
-            var fieldAxis = _axisField.Axis;
+            XlsxPivotAxis fieldAxis = _axisField.Axis;
             var headerArea = new XlsxPivotArea
             {
                 Field = _axisField.Offset,

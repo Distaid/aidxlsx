@@ -14,13 +14,13 @@ internal sealed partial class WorkbookPackage
         var checkedParts = new HashSet<OpcPart>();
         var pending = new Stack<(OpcPart Part, string Type)>();
         pending.Push((workbook, "officeDocument"));
-        while (pending.TryPop(out var item))
+        while (pending.TryPop(out (OpcPart Part, string Type) item))
         {
             if (!checkedParts.Add(item.Part))
                 continue;
 
             ValidateXml(item.Part, item.Type);
-            foreach (var relationship in item.Part.Relationships)
+            foreach (OpcRelationship relationship in item.Part.Relationships)
             {
                 if (!TryGetOfficeType(relationship.Type, out var type) ||
                     !(type is "worksheet" or "chartsheet" or "dialogsheet" or "styles" or "sharedStrings" or "theme" or "calcChain" ||
@@ -50,7 +50,7 @@ internal sealed partial class WorkbookPackage
         if (root is null)
             return;
 
-        using var stream = part.OpenRead();
+        using Stream stream = part.OpenRead();
         using var reader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
         try
         {
@@ -71,7 +71,7 @@ internal sealed partial class WorkbookPackage
                     reader.LocalName == "sheet" && reader.NamespaceURI is Main2006SsNs or StrictSpreadsheetNs)
                 {
                     var id = reader.GetAttribute("id", RelationshipsNs) ?? reader.GetAttribute("id", StrictRelationships.TrimEnd('/'));
-                    if (id is null || !part.Relationships.TryGet(id, out var relationship) || Resolve(relationship) is null)
+                    if (id is null || !part.Relationships.TryGet(id, out OpcRelationship? relationship) || Resolve(relationship) is null)
                         throw new InvalidDataException($"Part '{part.PartName}' contains a sheet without an internal relationship.");
                 }
             }

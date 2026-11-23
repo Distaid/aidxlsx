@@ -24,9 +24,9 @@ internal class CommentPartWriter
         using var xml = XmlWriter.Create(partStream, settings);
 
         var commentCells = new List<XlsxCell>();
-        var authorsDict = new Dictionary<String, Int32>();
+        var authorsDict = new Dictionary<string, int>();
         xml.WriteStartElement("x", "comments", Main2006SsNs);
-        foreach (var c in xlWorksheet.Internals.CellsCollection.GetCells(c => c.HasComment))
+        foreach (XlsxCell c in xlWorksheet.Internals.CellsCollection.GetCells(c => c.HasComment))
         {
             var authorName = c.GetComment().Author;
 
@@ -40,16 +40,16 @@ internal class CommentPartWriter
         }
 
         xml.WriteStartElement("authors", Main2006SsNs);
-        foreach (var author in authorsDict)
+        foreach (KeyValuePair<string, int> author in authorsDict)
             xml.WriteElementString("author", Main2006SsNs, author.Key);
 
         xml.WriteEndElement(); // authors
 
         var refBuffer = new char[10];
         xml.WriteStartElement("commentList", Main2006SsNs);
-        foreach (var commentCell in commentCells)
+        foreach (XlsxCell commentCell in commentCells)
         {
-            var comment = commentCell.GetComment();
+            XlsxComment comment = commentCell.GetComment();
             xml.WriteStartElement("comment", Main2006SsNs);
 
             var refLen = commentCell.Point.Format(refBuffer);
@@ -65,7 +65,7 @@ internal class CommentPartWriter
 
             xml.WriteStartElement("text", Main2006SsNs);
             var richText = XlsxImmutableRichText.Create(comment);
-            foreach (var run in richText.Runs)
+            foreach (XlsxImmutableRichText.RichTextRun run in richText.Runs)
                 TextSerializer.WriteRun(xml, richText, run);
 
             xml.WriteEndElement(); // text

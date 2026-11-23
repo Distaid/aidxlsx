@@ -36,8 +36,8 @@ public static class XlsxConstants
     /// <remarks>
     /// Up to date for MS-XLSX 26.1 from 2024-12-11.
     /// </remarks>
-    internal static readonly Lazy<IReadOnlyList<string>> FutureFunctions = new(() => new[]
-    {
+    internal static readonly Lazy<IReadOnlyList<string>> FutureFunctions = new(() =>
+    [
         "ACOT",
         "ACOTH",
         "AGGREGATE",
@@ -190,7 +190,7 @@ public static class XlsxConstants
         "XLOOKUP",
         "XOR",
         "Z.TEST",
-    });
+    ]);
 
     /// <summary>
     /// Functions that are marked with a prefix <c>_xlfn._xlws</c> in formulas, but not GUI. They
@@ -201,12 +201,12 @@ public static class XlsxConstants
     /// <remarks>
     /// Up to date for MS-XLSX 26.1 from 2024-12-11.
     /// </remarks>
-    internal static readonly Lazy<IReadOnlyList<string>> WorksheetOnlyFunctions = new(() => new[]
-    {
+    internal static readonly Lazy<IReadOnlyList<string>> WorksheetOnlyFunctions = new(() =>
+    [
         "FILTER",
         "PY",
         "SORT",
-    });
+    ]);
 
     /// <summary>
     /// Key: GUI name of future function, Value: prefixed name of future function. This doesn't

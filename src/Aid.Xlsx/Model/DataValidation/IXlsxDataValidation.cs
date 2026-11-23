@@ -19,23 +19,23 @@ public interface IXlsxDataValidation
 
     XlsxDecimalCriteria Decimal { get; }
 
-    String ErrorMessage { get; set; }
+    string ErrorMessage { get; set; }
 
     XlsxErrorStyle ErrorStyle { get; set; }
 
-    String ErrorTitle { get; set; }
+    string ErrorTitle { get; set; }
 
-    Boolean IgnoreBlanks { get; set; }
+    bool IgnoreBlanks { get; set; }
 
-    Boolean InCellDropdown { get; set; }
+    bool InCellDropdown { get; set; }
 
-    String InputMessage { get; set; }
+    string InputMessage { get; set; }
 
-    String InputTitle { get; set; }
+    string InputTitle { get; set; }
 
-    String MaxValue { get; set; }
+    string MaxValue { get; set; }
 
-    String MinValue { get; set; }
+    string MinValue { get; set; }
 
     XlsxOperator Operator { get; set; }
 
@@ -44,17 +44,17 @@ public interface IXlsxDataValidation
     /// </summary>
     IEnumerable<IXlsxRange> Ranges { get; }
 
-    Boolean ShowErrorMessage { get; set; }
+    bool ShowErrorMessage { get; set; }
 
     //void Delete();
     //void CopyFrom(IXlsxDataValidation dataValidation);
-    Boolean ShowInputMessage { get; set; }
+    bool ShowInputMessage { get; set; }
 
     XlsxTextLengthCriteria TextLength { get; }
 
     XlsxTimeCriteria Time { get; }
 
-    String Value { get; set; }
+    string Value { get; set; }
 
     XlsxWholeNumberCriteria WholeNumber { get; }
 
@@ -81,17 +81,17 @@ public interface IXlsxDataValidation
     /// </summary>
     void ClearRanges();
 
-    void Custom(String customValidation);
+    void Custom(string customValidation);
 
-    Boolean IsDirty();
+    bool IsDirty();
 
-    void List(String list);
+    void List(string list);
 
-    void List(String list, Boolean inCellDropdown);
+    void List(string list, bool inCellDropdown);
 
     void List(IXlsxRange range);
 
-    void List(IXlsxRange range, Boolean inCellDropdown);
+    void List(IXlsxRange range, bool inCellDropdown);
 
     /// <summary>
     /// Remove the specified range from the collection of range this rule applies to.

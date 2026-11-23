@@ -4,10 +4,10 @@ namespace Aid.Xlsx.Model.Drawings.Styles;
 
 public interface IXlsxDrawingProtection
 {
-    Boolean Locked { get; set; }
-    Boolean LockText { get; set; }
+    bool Locked { get; set; }
+    bool LockText { get; set; }
 
-    IXlsxDrawingStyle SetLocked(); IXlsxDrawingStyle SetLocked(Boolean value);
-    IXlsxDrawingStyle SetLockText(); IXlsxDrawingStyle SetLockText(Boolean value);
+    IXlsxDrawingStyle SetLocked(); IXlsxDrawingStyle SetLocked(bool value);
+    IXlsxDrawingStyle SetLockText(); IXlsxDrawingStyle SetLockText(bool value);
 
 }

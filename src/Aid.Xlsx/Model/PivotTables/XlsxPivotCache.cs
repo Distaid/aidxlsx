@@ -12,8 +12,8 @@ namespace Aid.Xlsx.Model.PivotTables;
 internal class XlsxPivotCache : IXlsxPivotCache
 {
     private readonly XlsxWorkbook _workbook;
-    private readonly Dictionary<String, Int32> _fieldIndexes = [with(XlsxHelper.NameComparer)];
-    private readonly List<String> _fieldNames = [];
+    private readonly Dictionary<string, int> _fieldIndexes = [with(XlsxHelper.NameComparer)];
+    private readonly List<string> _fieldNames = [];
 
     /// <summary>
     /// Length is a number of fields, in same order as <see cref="_fieldNames"/>.
@@ -30,13 +30,13 @@ internal class XlsxPivotCache : IXlsxPivotCache
 
     #region IXlsxPivotCache members
 
-    public IReadOnlyList<String> FieldNames => _fieldNames;
+    public IReadOnlyList<string> FieldNames => _fieldNames;
 
     public XlsxItemsToRetain ItemsToRetainPerField { get; set; }
 
-    public Boolean RefreshDataOnOpen { get; set; }
+    public bool RefreshDataOnOpen { get; set; }
 
-    public Boolean SaveSourceData { get; set; }
+    public bool SaveSourceData { get; set; }
 
     /// <summary>
     /// Number of fields in the cache.
@@ -48,7 +48,7 @@ internal class XlsxPivotCache : IXlsxPivotCache
     public IXlsxPivotCache Refresh()
     {
         // Refresh can only happen if the reference is valid.
-        if (!Source.TryGetSource(_workbook, out var sheet, out var foundArea))
+        if (!Source.TryGetSource(_workbook, out XlsxWorksheet? sheet, out Area? foundArea))
             throw new InvalidReferenceException();
 
         Debug.Assert(sheet is not null && foundArea is not null);
@@ -57,8 +57,8 @@ internal class XlsxPivotCache : IXlsxPivotCache
         _fieldNames.Clear();
         _values.Clear();
 
-        var valueSlice = sheet.Internals.CellsCollection.ValueSlice;
-        var area = foundArea.Value;
+        ValueSlice valueSlice = sheet.Internals.CellsCollection.ValueSlice;
+        Area area = foundArea.Value;
         for (var column = area.LeftColumn; column <= area.RightColumn; ++column)
         {
             var header = sheet.Cell(area.TopRow, column).GetFormattedString();
@@ -73,9 +73,9 @@ internal class XlsxPivotCache : IXlsxPivotCache
 
         void UpdatePivotTables()
         {
-            foreach (var worksheet in _workbook.WorksheetsInternal)
+            foreach (XlsxWorksheet worksheet in _workbook.WorksheetsInternal)
             {
-                foreach (var pivotTable in worksheet.PivotTables)
+                foreach (XlsxPivotTable? pivotTable in worksheet.PivotTables)
                 {
                     if (pivotTable.PivotCache == this)
                         pivotTable.UpdateCacheFields(oldFieldNames);
@@ -88,11 +88,11 @@ internal class XlsxPivotCache : IXlsxPivotCache
 
     public IXlsxPivotCache SetRefreshDataOnOpen() => SetRefreshDataOnOpen(true);
 
-    public IXlsxPivotCache SetRefreshDataOnOpen(Boolean value) { RefreshDataOnOpen = value; return this; }
+    public IXlsxPivotCache SetRefreshDataOnOpen(bool value) { RefreshDataOnOpen = value; return this; }
 
     public IXlsxPivotCache SetSaveSourceData() => SetSaveSourceData(true);
 
-    public IXlsxPivotCache SetSaveSourceData(Boolean value) { SaveSourceData = value; return this; }
+    public IXlsxPivotCache SetSaveSourceData(bool value) { SaveSourceData = value; return this; }
 
     #endregion
 
@@ -109,9 +109,9 @@ internal class XlsxPivotCache : IXlsxPivotCache
     /// </summary>
     internal IXlsxPivotSource Source { get; set; }
 
-    internal String? WorkbookCacheRelId { get; set; }
+    internal string? WorkbookCacheRelId { get; set; }
 
-    internal XlsxPivotCache AddCachedField(String fieldName, XlsxPivotCacheValues fieldValues)
+    internal XlsxPivotCache AddCachedField(string fieldName, XlsxPivotCacheValues fieldValues)
     {
         if (_fieldNames.Contains(fieldName, StringComparer.OrdinalIgnoreCase))
         {
@@ -128,12 +128,12 @@ internal class XlsxPivotCache : IXlsxPivotCache
     /// <param name="fieldName">Name of the field.</param>
     /// <param name="index">The found index, start at 0.</param>
     /// <returns>True if source contains the field.</returns>
-    internal bool TryGetFieldIndex(String fieldName, out int index)
+    internal bool TryGetFieldIndex(string fieldName, out int index)
     {
         return _fieldIndexes.TryGetValue(fieldName, out index);
     }
 
-    internal bool ContainsField(String fieldName) => _fieldIndexes.ContainsKey(fieldName);
+    internal bool ContainsField(string fieldName) => _fieldIndexes.ContainsKey(fieldName);
 
     internal XlsxPivotCacheValues GetFieldValues(int fieldIndex)
     {
@@ -147,13 +147,13 @@ internal class XlsxPivotCache : IXlsxPivotCache
 
     internal void AllocateRecordCapacity(int recordCount)
     {
-        foreach (var fieldValues in _values)
+        foreach (XlsxPivotCacheValues fieldValues in _values)
         {
             fieldValues.AllocateCapacity(recordCount);
         }
     }
 
-    private String AdjustedFieldName(String header)
+    private string AdjustedFieldName(string header)
     {
         var modifiedHeader = header;
         var i = 1;
@@ -166,7 +166,7 @@ internal class XlsxPivotCache : IXlsxPivotCache
         return modifiedHeader;
     }
 
-    private void AddField(String fieldName, XlsxPivotCacheValues fieldValues)
+    private void AddField(string fieldName, XlsxPivotCacheValues fieldValues)
     {
         _fieldIndexes.Add(fieldName, _fieldNames.Count);
         _fieldNames.Add(fieldName);

@@ -11,7 +11,7 @@ internal static class ThemeXml
 
     internal static void Read(Stream stream, IXlsxTheme theme)
     {
-        var scheme = GetScheme(XDocumentExtensions.Load(stream));
+        XElement? scheme = GetScheme(XDocumentExtensions.Load(stream));
         if (scheme is null)
             return;
 
@@ -31,10 +31,10 @@ internal static class ThemeXml
 
     internal static void WriteDefault(Stream stream, IXlsxTheme theme)
     {
-        using var template = typeof(ThemeXml).Assembly.GetManifestResourceStream("Aid.Xlsx.DefaultTheme.xml")
+        using Stream template = typeof(ThemeXml).Assembly.GetManifestResourceStream("Aid.Xlsx.DefaultTheme.xml")
             ?? throw new InvalidOperationException("The default workbook theme is missing.");
         var xml = XDocument.Load(template);
-        var scheme = GetScheme(xml)!;
+        XElement scheme = GetScheme(xml)!;
 
         SetColor("dk1", theme.Text1, "sysClr", "lastClr");
         SetColor("lt1", theme.Background1, "sysClr", "lastClr");
@@ -62,7 +62,7 @@ internal static class ThemeXml
 
     private static XlsxColor? ReadColor(XElement scheme, string name)
     {
-        var slot = scheme.Element(Drawing + name);
+        XElement? slot = scheme.Element(Drawing + name);
         var rgb = (string?)slot?.Element(Drawing + "srgbClr")?.Attribute("val")
             ?? (string?)slot?.Element(Drawing + "sysClr")?.Attribute("lastClr");
         return string.IsNullOrEmpty(rgb) ? null : XlsxColor.FromHexRgb(rgb);

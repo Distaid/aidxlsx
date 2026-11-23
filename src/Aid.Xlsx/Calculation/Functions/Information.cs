@@ -30,7 +30,7 @@ internal static class Information
 
     private static AnyValue ErrorType(CalcContext ctx, ScalarValue value)
     {
-        if (!value.TryPickError(out var error))
+        if (!value.TryPickError(out XlsxError error))
             return XlsxError.NoValueAvailable;
 
         return (int)error + 1;
@@ -43,7 +43,7 @@ internal static class Information
 
     private static AnyValue IsErr(CalcContext ctx, ScalarValue value)
     {
-        return value.TryPickError(out var error) && error != XlsxError.NoValueAvailable;
+        return value.TryPickError(out XlsxError error) && error != XlsxError.NoValueAvailable;
     }
 
     private static AnyValue IsError(CalcContext ctx, ScalarValue value)
@@ -58,7 +58,7 @@ internal static class Information
             if (scalar.IsLogical)
                 return XlsxError.IncompatibleValue;
 
-            if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out var error))
+            if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out XlsxError error))
                 return error;
 
             return Math.Truncate(number) % 2 == 0;
@@ -72,7 +72,7 @@ internal static class Information
 
     private static AnyValue IsNa(CalcContext ctx, ScalarValue value)
     {
-        return value.TryPickError(out var error) && error == XlsxError.NoValueAvailable;
+        return value.TryPickError(out XlsxError error) && error == XlsxError.NoValueAvailable;
     }
 
     private static AnyValue IsNonText(CalcContext ctx, ScalarValue value)
@@ -92,7 +92,7 @@ internal static class Information
             if (scalar.IsLogical)
                 return XlsxError.IncompatibleValue;
 
-            if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out var error))
+            if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out XlsxError error))
                 return error;
 
             return Math.Truncate(number) % 2 != 0;
@@ -111,14 +111,14 @@ internal static class Information
 
     private static AnyValue N(CalcContext ctx, AnyValue value)
     {
-        if (value.TryPickScalar(out var scalar, out var collection))
+        if (value.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> collection))
             return ToNumber(scalar).ToAnyValue();
 
-        if (collection.TryPickT0(out var array, out var reference))
+        if (collection.TryPickT0(out Array array, out Reference reference))
             return array.Apply(static v => ToNumber(v), ctx);
 
-        var area = reference.Areas[0];
-        var referenceValue = ctx.GetCellValue(area.Worksheet, area.FirstAddress.RowNumber, area.FirstAddress.RowNumber);
+        XlsxRangeAddress area = reference.Areas[0];
+        ScalarValue referenceValue = ctx.GetCellValue(area.Worksheet, area.FirstAddress.RowNumber, area.FirstAddress.RowNumber);
         return ToNumber(referenceValue).ToAnyValue();
 
         static ScalarValue ToNumber(ScalarValue scalar)
@@ -127,7 +127,7 @@ internal static class Information
                 return number;
             if (scalar.TryPickLogical(out var logical))
                 return logical ? 1 : 0;
-            if (scalar.TryPickError(out var error))
+            if (scalar.TryPickError(out XlsxError error))
                 return error;
 
             return 0; // Blank, text
@@ -141,9 +141,9 @@ internal static class Information
 
     private static AnyValue Type(CalcContext ctx, AnyValue value)
     {
-        if (!value.TryPickScalar(out var scalar, out var collection))
+        if (!value.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> collection))
         {
-            var isArray = collection.TryPickT0(out _, out var reference);
+            var isArray = collection.TryPickT0(out _, out Reference reference);
             if (isArray)
                 return 64;
             if (reference.Areas.Count > 1)
@@ -169,7 +169,7 @@ internal static class Information
     {
         // IsOdd/IsEven has very strange semantic that is different for pretty much every other function
         // Array behaves differently for multi-cell references, in-place blank vs cell blank give different value...
-        if (value.TryPickScalar(out var scalar, out var coll))
+        if (value.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> coll))
         {
             if (scalar.IsBlank)
                 return XlsxError.NoValueAvailable;
@@ -177,10 +177,10 @@ internal static class Information
             return f(scalar, ctx).ToAnyValue();
         }
 
-        if (coll.TryPickT0(out var array, out var reference))
+        if (coll.TryPickT0(out Array array, out Reference reference))
             return array.Apply(x => f(x, ctx), ctx);
 
-        if (!reference.TryGetSingleCellValue(out var cellValue, ctx))
+        if (!reference.TryGetSingleCellValue(out ScalarValue cellValue, ctx))
             return XlsxError.IncompatibleValue;
 
         return f(cellValue, ctx).ToAnyValue();

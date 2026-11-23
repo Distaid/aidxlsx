@@ -4,7 +4,7 @@ using Aid.Xlsx.Infrastructure.Extensions;
 
 namespace Aid.Xlsx.Infrastructure.Utilities;
 
-public class XlsxDictionary<T> : Dictionary<Int32, T>
+public class XlsxDictionary<T> : Dictionary<int, T>
 {
     public XlsxDictionary()
     {
@@ -31,7 +31,7 @@ public class XlsxDictionary<T> : Dictionary<Int32, T>
     internal XlsxDictionary<T> CopyDictionary()
     {
         var copy = new XlsxDictionary<T>();
-        foreach (var (key, value) in this)
+        foreach ((var key, T value) in this)
             copy.Add(key, value);
 
         return copy;

@@ -4,6 +4,7 @@ using Aid.Xlsx.Infrastructure.Utilities;
 using Aid.Xlsx.Model.Grid.Ranges;
 using Aid.Xlsx.Model.Tables;
 using Aid.Xlsx.Model.Worksheets;
+using Aid.Xlsx.Model.Styles.Formatting;
 
 namespace Aid.Xlsx.SpreadsheetML.Tables;
 
@@ -13,21 +14,21 @@ internal static class TableDefinitionXml
     {
         using var reader = XmlReader.Create(input, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
         var root = XElement.Load(reader);
-        var ns = root.Name.Namespace;
+        XNamespace ns = root.Name.Namespace;
         var reference = (string?)root.Attribute("ref");
         var name = (string?)root.Attribute("name") ?? (string?)root.Attribute("displayName");
         if (string.IsNullOrWhiteSpace(name))
             throw new InvalidDataException("The table name is missing.");
 
-        var range = (reference is null ? null : worksheet.Range(reference)) ?? throw new InvalidDataException($"Invalid table range '{reference}'.");
+        XlsxRange range = (reference is null ? null : worksheet.Range(reference)) ?? throw new InvalidDataException($"Invalid table range '{reference}'.");
         var table = (XlsxTable)range.CreateTable(name, false);
         table.RelId = relationshipId;
-        var formats = worksheet.Workbook.Styles.DifferentialFormats;
+        IReadOnlyBiDictionary<int, XlsxDxfValue> formats = worksheet.Workbook.Styles.DifferentialFormats;
 
-        var columns = root.Element(ns + "tableColumns") ?? throw new InvalidDataException("The table columns are missing.");
-        foreach (var column in columns.Elements(ns + "tableColumn"))
+        XElement columns = root.Element(ns + "tableColumns") ?? throw new InvalidDataException("The table columns are missing.");
+        foreach (XElement column in columns.Elements(ns + "tableColumn"))
         {
-            var field = table.AddField(ReadColumnName(column));
+            XlsxTableField field = table.AddField(ReadColumnName(column));
 
             if ((uint?)column.Attribute("headerRowDxfId") is { } header)
                 field.HeaderFormatValue = formats[checked((int)header)];
@@ -54,16 +55,16 @@ internal static class TableDefinitionXml
             table.Theme = theme is null ? XlsxTableTheme.None : XlsxTableTheme.FromName(theme) ?? new XlsxTableTheme(theme);
         }
 
-        var filter = root.Element(ns + "autoFilter");
+        XElement? filter = root.Element(ns + "autoFilter");
         table.ShowAutoFilter = filter is not null;
         if (filter is not null)
             AutoFilterXml.ReadColumns(filter, table.AutoFilter);
 
         if (table.ShowTotalsRow)
         {
-            foreach (var column in columns.Elements(ns + "tableColumn"))
+            foreach (XElement column in columns.Elements(ns + "tableColumn"))
             {
-                var field = table.Field(ReadColumnName(column));
+                IXlsxTableField field = table.Field(ReadColumnName(column));
                 if ((string?)column.Attribute("totalsRowFunction") is { } function)
                     field.TotalsRowFunction = ParseTotalsFunction(function);
                 if (column.Element(ns + "totalsRowFormula") is { } formula)

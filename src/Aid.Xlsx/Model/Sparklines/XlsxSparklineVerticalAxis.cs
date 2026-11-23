@@ -7,13 +7,13 @@ internal class XlsxSparklineVerticalAxis(IXlsxSparklineGroup sparklineGroup) : I
 {
     #region Public Properties
 
-    public Double? ManualMax
+    public double? ManualMax
     {
         get => _manualMax;
         set => SetManualMax(value);
     }
 
-    public Double? ManualMin
+    public double? ManualMin
     {
         get => _manualMin;
         set => SetManualMin(value);
@@ -35,7 +35,7 @@ internal class XlsxSparklineVerticalAxis(IXlsxSparklineGroup sparklineGroup) : I
 
     #region Public Methods
 
-    public IXlsxSparklineVerticalAxis SetManualMax(Double? manualMax)
+    public IXlsxSparklineVerticalAxis SetManualMax(double? manualMax)
     {
         if (manualMax != null)
             MaxAxisType = XlsxSparklineAxisMinMax.Custom;
@@ -44,7 +44,7 @@ internal class XlsxSparklineVerticalAxis(IXlsxSparklineGroup sparklineGroup) : I
         return this;
     }
 
-    public IXlsxSparklineVerticalAxis SetManualMin(Double? manualMin)
+    public IXlsxSparklineVerticalAxis SetManualMin(double? manualMin)
     {
         if (manualMin != null)
             MinAxisType = XlsxSparklineAxisMinMax.Custom;
@@ -75,8 +75,8 @@ internal class XlsxSparklineVerticalAxis(IXlsxSparklineGroup sparklineGroup) : I
 
     #region Private Fields
 
-    private Double? _manualMax;
-    private Double? _manualMin;
+    private double? _manualMax;
+    private double? _manualMin;
     private XlsxSparklineAxisMinMax _maxAxisType;
     private XlsxSparklineAxisMinMax _minAxisType;
 

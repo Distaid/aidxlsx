@@ -16,19 +16,19 @@ internal class XlsxHFItem(XlsxHeaderFooter headerFooter) : IXlsxHFItem
         defaultHFItem.texts.ForEach(kp => texts.Add(kp.Key, kp.Value));
     }
     private readonly Dictionary<XlsxHFOccurrence, List<XlsxHFText>> texts = [];
-    public String GetText(XlsxHFOccurrence occurrence)
+    public string GetText(XlsxHFOccurrence occurrence)
     {
         var sb = new StringBuilder();
         if (texts.TryGetValue(occurrence, out List<XlsxHFText> hfTexts))
         {
-            foreach (var hfText in hfTexts)
+            foreach (XlsxHFText hfText in hfTexts)
                 sb.Append(hfText.GetHFText(sb.ToString()));
         }
 
         return sb.ToString();
     }
 
-    public IXlsxRichString AddText(String text)
+    public IXlsxRichString AddText(string text)
     {
         return AddText(text, XlsxHFOccurrence.AllPages);
     }
@@ -37,7 +37,7 @@ internal class XlsxHFItem(XlsxHeaderFooter headerFooter) : IXlsxHFItem
         return AddText(predefinedText, XlsxHFOccurrence.AllPages);
     }
 
-    public IXlsxRichString AddText(String text, XlsxHFOccurrence occurrence)
+    public IXlsxRichString AddText(string text, XlsxHFOccurrence occurrence)
     {
         // TODO Styles: This doesn't update source when API object changes
         var richText = new XlsxRichString(text, HeaderFooter.Worksheet.GetFormat().Font, this, HeaderFooter.Worksheet.Workbook.Styles, null);
@@ -62,7 +62,7 @@ internal class XlsxHFItem(XlsxHeaderFooter headerFooter) : IXlsxHFItem
         return AddText(Environment.NewLine);
     }
 
-    public IXlsxRichString AddImage(String imagePath, XlsxHFOccurrence occurrence = XlsxHFOccurrence.AllPages)
+    public IXlsxRichString AddImage(string imagePath, XlsxHFOccurrence occurrence = XlsxHFOccurrence.AllPages)
     {
         throw new NotImplementedException();
     }
@@ -79,7 +79,7 @@ internal class XlsxHFItem(XlsxHeaderFooter headerFooter) : IXlsxHFItem
 
     public IXlsxRichString AddText(XlsxHFPredefinedText predefinedText, XlsxHFOccurrence occurrence)
     {
-        string hfText = predefinedText switch
+        var hfText = predefinedText switch
         {
             XlsxHFPredefinedText.PageNumber => "&P",
             XlsxHFPredefinedText.NumberOfPages => "&N",

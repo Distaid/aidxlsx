@@ -47,11 +47,11 @@ public interface IXlsxSparklineGroup : IEnumerable<IXlsxSparkline>
 
     XlsxDisplayBlanksAsValues DisplayEmptyCellsAs { get; set; }
 
-    Boolean DisplayHidden { get; set; }
+    bool DisplayHidden { get; set; }
 
     IXlsxSparklineHorizontalAxis HorizontalAxis { get; }
 
-    Double LineWeight { get; set; }
+    double LineWeight { get; set; }
 
     XlsxSparklineMarkers ShowMarkers { get; set; }
 
@@ -91,9 +91,9 @@ public interface IXlsxSparklineGroup : IEnumerable<IXlsxSparkline>
 
     IXlsxSparklineGroup SetDisplayEmptyCellsAs(XlsxDisplayBlanksAsValues value);
 
-    IXlsxSparklineGroup SetDisplayHidden(Boolean value);
+    IXlsxSparklineGroup SetDisplayHidden(bool value);
 
-    IXlsxSparklineGroup SetLineWeight(Double value);
+    IXlsxSparklineGroup SetLineWeight(double value);
 
     IXlsxSparklineGroup SetShowMarkers(XlsxSparklineMarkers value);
 

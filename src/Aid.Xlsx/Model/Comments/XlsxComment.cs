@@ -21,7 +21,7 @@ internal class XlsxComment : XlsxFormattedText<IXlsxComment>, IXlsxComment
         get
         {
             // MS Excel uses Tahoma 9 Swiss no matter what current style font
-            var defaultCommentFont = XlsxFontFormatValue.Default with
+            XlsxFontFormatValue defaultCommentFont = XlsxFontFormatValue.Default with
             {
                 Name = "Tahoma",
                 Size = XlsxFontSize.FromPoints(9),
@@ -45,9 +45,9 @@ internal class XlsxComment : XlsxFormattedText<IXlsxComment>, IXlsxComment
 
     #region IXlsxComment Members
 
-    public String Author { get; set; }
+    public string Author { get; set; }
 
-    public IXlsxComment SetAuthor(String value)
+    public IXlsxComment SetAuthor(string value)
     {
         Author = value;
         return this;
@@ -68,16 +68,16 @@ internal class XlsxComment : XlsxFormattedText<IXlsxComment>, IXlsxComment
 
     #region IXlsxDrawing
 
-    public String Name { get; set; }
-    public String Description { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
     public XlsxDrawingAnchor Anchor { get; set; }
-    public Boolean HorizontalFlip { get; set; }
-    public Boolean VerticalFlip { get; set; }
-    public Int32 Rotation { get; set; }
-    public Int32 ExtentLength { get; set; }
-    public Int32 ExtentWidth { get; set; }
-    public Int32 ShapeId { get; internal set; }
-    public Boolean Visible { get; set; }
+    public bool HorizontalFlip { get; set; }
+    public bool VerticalFlip { get; set; }
+    public int Rotation { get; set; }
+    public int ExtentLength { get; set; }
+    public int ExtentWidth { get; set; }
+    public int ShapeId { get; internal set; }
+    public bool Visible { get; set; }
 
     public IXlsxComment SetVisible()
     {
@@ -85,7 +85,7 @@ internal class XlsxComment : XlsxFormattedText<IXlsxComment>, IXlsxComment
         return Container;
     }
 
-    public IXlsxComment SetVisible(Boolean hidden)
+    public IXlsxComment SetVisible(bool hidden)
     {
         Visible = hidden;
         return Container;
@@ -93,9 +93,9 @@ internal class XlsxComment : XlsxFormattedText<IXlsxComment>, IXlsxComment
 
     public IXlsxDrawingPosition Position { get; private set; }
 
-    public Int32 ZOrder { get; set; }
+    public int ZOrder { get; set; }
 
-    public IXlsxComment SetZOrder(Int32 zOrder)
+    public IXlsxComment SetZOrder(int zOrder)
     {
         ZOrder = zOrder;
         return Container;
@@ -103,13 +103,13 @@ internal class XlsxComment : XlsxFormattedText<IXlsxComment>, IXlsxComment
 
     public IXlsxDrawingStyle Style { get; private set; }
 
-    public IXlsxComment SetName(String name)
+    public IXlsxComment SetName(string name)
     {
         Name = name;
         return Container;
     }
 
-    public IXlsxComment SetDescription(String description)
+    public IXlsxComment SetDescription(string description)
     {
         Description = description;
         return Container;
@@ -121,7 +121,7 @@ internal class XlsxComment : XlsxFormattedText<IXlsxComment>, IXlsxComment
         return Container;
     }
 
-    public IXlsxComment SetHorizontalFlip(Boolean horizontalFlip)
+    public IXlsxComment SetHorizontalFlip(bool horizontalFlip)
     {
         HorizontalFlip = horizontalFlip;
         return Container;
@@ -133,25 +133,25 @@ internal class XlsxComment : XlsxFormattedText<IXlsxComment>, IXlsxComment
         return Container;
     }
 
-    public IXlsxComment SetVerticalFlip(Boolean verticalFlip)
+    public IXlsxComment SetVerticalFlip(bool verticalFlip)
     {
         VerticalFlip = verticalFlip;
         return Container;
     }
 
-    public IXlsxComment SetRotation(Int32 rotation)
+    public IXlsxComment SetRotation(int rotation)
     {
         Rotation = rotation;
         return Container;
     }
 
-    public IXlsxComment SetExtentLength(Int32 extentLength)
+    public IXlsxComment SetExtentLength(int extentLength)
     {
         ExtentLength = extentLength;
         return Container;
     }
 
-    public IXlsxComment SetExtentWidth(Int32 extentWidth)
+    public IXlsxComment SetExtentWidth(int extentWidth)
     {
         ExtentWidth = extentWidth;
         return Container;
@@ -161,8 +161,8 @@ internal class XlsxComment : XlsxFormattedText<IXlsxComment>, IXlsxComment
 
     internal static XlsxComment Create(XlsxCell cell, int? shapeId)
     {
-        var styles = cell.Worksheet.Workbook.Styles;
-        var defaultFont = styles.RegisterFontFormat(DefaultCommentFont);
+        XlsxWorkbookStyles styles = cell.Worksheet.Workbook.Styles;
+        XlsxFontFormatValue defaultFont = styles.RegisterFontFormat(DefaultCommentFont);
         var comment = new XlsxComment(defaultFont, styles, null);
         comment.Initialize(cell, shapeId: shapeId);
         return comment;
@@ -171,9 +171,9 @@ internal class XlsxComment : XlsxFormattedText<IXlsxComment>, IXlsxComment
     internal static XlsxComment CreateAsCopy(XlsxCell targetCell, XlsxCell sourceCell, XlsxComment originalComment)
     {
         // source cell could be from different workbook, so register formats
-        var styles = targetCell.Worksheet.Workbook.Styles;
-        var defaultFont = styles.RegisterFontFormat(sourceCell.GetFormat().Font);
-        var phoneticsFont = originalComment.HasPhonetics
+        XlsxWorkbookStyles styles = targetCell.Worksheet.Workbook.Styles;
+        XlsxFontFormatValue defaultFont = styles.RegisterFontFormat(sourceCell.GetFormat().Font);
+        XlsxFontFormatValue phoneticsFont = originalComment.HasPhonetics
             ? styles.RegisterFontFormat(XlsxFontFormatValue.FromFontBase(originalComment.Phonetics, styles))
             : null;
         var comment = new XlsxComment(defaultFont, styles, phoneticsFont);
@@ -194,8 +194,8 @@ internal class XlsxComment : XlsxFormattedText<IXlsxComment>, IXlsxComment
         Container = this;
         Anchor = XlsxDrawingAnchor.MoveAndSizeWithCells;
         Style = new XlsxDrawingStyle();
-        Int32 previousRowNumber = cell.Address.RowNumber;
-        Double previousRowOffset = 0;
+        var previousRowNumber = cell.Address.RowNumber;
+        double previousRowOffset = 0;
 
         if (previousRowNumber > 1)
         {

@@ -106,7 +106,7 @@ internal static class Statistical
         if (args.Length < 1)
             return XlsxError.IncompatibleValue;
 
-        if (!tally.Tally(ctx, args, new SumState()).TryPickT0(out var state, out var error))
+        if (!tally.Tally(ctx, args, new SumState()).TryPickT0(out SumState state, out XlsxError error))
             return error;
 
         if (state.Count == 0)
@@ -130,8 +130,8 @@ internal static class Statistical
             var cdf = 0d;
             for (var y = 0; y <= numberSuccesses; ++y)
             {
-                var result = BinomDist(ctx, y, numberTrials, successProbability);
-                if (!result.TryPickT0(out var pf, out var error))
+                OneOf<double, XlsxError> result = BinomDist(ctx, y, numberTrials, successProbability);
+                if (!result.TryPickT0(out var pf, out XlsxError error))
                     return error;
 
                 cdf += pf;
@@ -144,8 +144,8 @@ internal static class Statistical
         }
         else
         {
-            var result = BinomDist(ctx, numberSuccesses, numberTrials, successProbability);
-            if (!result.TryPickT0(out var binomDist, out var error))
+            OneOf<double, XlsxError> result = BinomDist(ctx, numberSuccesses, numberTrials, successProbability);
+            if (!result.TryPickT0(out var binomDist, out XlsxError error))
                 return error;
 
             return binomDist;
@@ -154,7 +154,7 @@ internal static class Statistical
 
     private static OneOf<double, XlsxError> BinomDist(CalcContext ctx, double x, double n, double p)
     {
-        if (!XlsxMath.CombinChecked(ctx, n, x).TryPickT0(out var combinations, out var error))
+        if (!XlsxMath.CombinChecked(ctx, n, x).TryPickT0(out var combinations, out XlsxError error))
             return error;
 
         x = Math.Floor(x);
@@ -176,8 +176,8 @@ internal static class Statistical
         if (args.Length < 1)
             return XlsxError.IncompatibleValue;
 
-        var result = tally.Tally(ctx, args, new CountState(0));
-        if (!result.TryPickT0(out var state, out var error))
+        OneOf<CountState, XlsxError> result = tally.Tally(ctx, args, new CountState(0));
+        if (!result.TryPickT0(out CountState state, out XlsxError error))
             return error;
 
         return state.Count;
@@ -190,13 +190,13 @@ internal static class Statistical
 
     private static AnyValue CountBlank(CalcContext ctx, AnyValue arg)
     {
-        if (!arg.TryPickArea(out var area, out var error))
+        if (!arg.TryPickArea(out XlsxRangeAddress area, out XlsxError error))
             return error;
 
         // To be efficient for cases like whole sheet with only few values, calculate
         // the blank count as number of total area size without non-blank cells.
         var nonBlankCount = 0L;
-        foreach (var value in ctx.GetNonBlankValues(new Reference(area)))
+        foreach (ScalarValue value in ctx.GetNonBlankValues(new Reference(area)))
         {
             ctx.ThrowIfCancelled();
             if (!value.IsBlank && !(value.IsText && value.GetText().Length == 0))
@@ -209,7 +209,7 @@ internal static class Statistical
     private static AnyValue CountIf(CalcContext ctx, AnyValue countRange, ScalarValue selectionCriteria)
     {
         // Excel doesn't support anything but area in the syntax, but we need to deal with it somehow.
-        if (!countRange.TryPickArea(out var countArea, out var areaError))
+        if (!countRange.TryPickArea(out XlsxRangeAddress countArea, out XlsxError areaError))
             return areaError;
 
         var tally = new TallyCriteria(static _ => 1);
@@ -217,8 +217,8 @@ internal static class Statistical
         tally.Add(countArea, criteria);
 
         // TallyCriteria only sums up the value.
-        var result = tally.Tally(ctx, [countRange], new CountState(0));
-        if (!result.TryPickT0(out var state, out var error))
+        OneOf<CountState, XlsxError> result = tally.Tally(ctx, [countRange], new CountState(0));
+        if (!result.TryPickT0(out CountState state, out XlsxError error))
             return error;
 
         return state.Count;
@@ -226,14 +226,14 @@ internal static class Statistical
 
     private static AnyValue CountIfs(CalcContext ctx, List<(AnyValue Range, ScalarValue Criteria)> criteriaRanges)
     {
-        if (!criteriaRanges[0].Range.TryPickArea(out var countArea, out var areaError))
+        if (!criteriaRanges[0].Range.TryPickArea(out XlsxRangeAddress countArea, out XlsxError areaError))
             return areaError;
 
         var tally = new TallyCriteria(static _ => 1);
-        foreach (var (selectionRange, selectionCriteria) in criteriaRanges)
+        foreach ((AnyValue selectionRange, ScalarValue selectionCriteria) in criteriaRanges)
         {
             var criteria = Criteria.Create(selectionCriteria, ctx.Culture);
-            if (!selectionRange.TryPickArea(out var selectionArea, out var selectionAreaError))
+            if (!selectionRange.TryPickArea(out XlsxRangeAddress selectionArea, out XlsxError selectionAreaError))
                 return selectionAreaError;
 
             // All areas must have same size.
@@ -245,8 +245,8 @@ internal static class Statistical
         }
 
         // The values in the range aren't used, so just use first area
-        var result = tally.Tally(ctx, [criteriaRanges[0].Range], new CountState(0));
-        if (!result.TryPickT0(out var state, out var error))
+        OneOf<CountState, XlsxError> result = tally.Tally(ctx, [criteriaRanges[0].Range], new CountState(0));
+        if (!result.TryPickT0(out CountState state, out XlsxError error))
             return error;
 
         return state.Count;
@@ -254,8 +254,8 @@ internal static class Statistical
 
     private static AnyValue DevSq(CalcContext ctx, Span<AnyValue> args)
     {
-        var result = GetSquareDiffSum(ctx, args, TallyNumbers.Default);
-        if (!result.TryPickT0(out var squareDiff, out var error))
+        OneOf<SquareDiff, XlsxError> result = GetSquareDiffSum(ctx, args, TallyNumbers.Default);
+        if (!result.TryPickT0(out SquareDiff squareDiff, out XlsxError error))
             return error;
 
         // An outlier, most others return #DIV/0! when they can't calculate mean.
@@ -278,8 +278,8 @@ internal static class Statistical
         // Rather than interrupting a cycle early, just add it all
         // go through all values anyway. I don't want to code same
         // loop 1000 times and non-positive numbers will be rare.
-        var tally = TallyNumbers.Default.Tally(ctx, args, new LogSumState(0.0, 0));
-        if (!tally.TryPickT0(out var geoMean, out var error))
+        OneOf<LogSumState, XlsxError> tally = TallyNumbers.Default.Tally(ctx, args, new LogSumState(0.0, 0));
+        if (!tally.TryPickT0(out LogSumState geoMean, out XlsxError error))
             return error;
 
         if (geoMean.Count == 0)
@@ -300,8 +300,8 @@ internal static class Statistical
 
     internal static AnyValue Max(CalcContext ctx, Span<AnyValue> args, ITally tally)
     {
-        var result = tally.Tally(ctx, args, new MaxState());
-        if (!result.TryPickT0(out var state, out var error))
+        OneOf<MaxState, XlsxError> result = tally.Tally(ctx, args, new MaxState());
+        if (!result.TryPickT0(out MaxState state, out XlsxError error))
             return error;
 
         if (!state.HasValues)
@@ -319,11 +319,11 @@ internal static class Statistical
     {
         // There is a better median algorithm that uses two heaps, but NetFx
         // doesn't have heap structure.
-        var result = TallyNumbers.Default.Tally(ctx, args, new ValuesState([]));
-        if (!result.TryPickT0(out var state, out var error))
+        OneOf<ValuesState, XlsxError> result = TallyNumbers.Default.Tally(ctx, args, new ValuesState([]));
+        if (!result.TryPickT0(out ValuesState state, out XlsxError error))
             return error;
 
-        var allNumbers = state.Values;
+        List<double> allNumbers = state.Values;
         if (allNumbers.Count == 0)
             return XlsxError.NumberInvalid;
 
@@ -344,9 +344,9 @@ internal static class Statistical
 
     internal static AnyValue Min(CalcContext ctx, Span<AnyValue> args, ITally tally)
     {
-        var result = tally.Tally(ctx, args, new MinState());
+        OneOf<MinState, XlsxError> result = tally.Tally(ctx, args, new MinState());
 
-        if (!result.TryPickT0(out var state, out var error))
+        if (!result.TryPickT0(out MinState state, out XlsxError error))
             return error;
 
         // Not even one non-ignored value found, return 0.
@@ -368,7 +368,7 @@ internal static class Statistical
 
     internal static AnyValue StDev(CalcContext ctx, Span<AnyValue> args, ITally tally)
     {
-        if (!GetSquareDiffSum(ctx, args, tally).TryPickT0(out var squareDiff, out var error))
+        if (!GetSquareDiffSum(ctx, args, tally).TryPickT0(out SquareDiff squareDiff, out XlsxError error))
             return error;
 
         if (squareDiff.Count <= 1)
@@ -389,7 +389,7 @@ internal static class Statistical
 
     internal static AnyValue StDevP(CalcContext ctx, Span<AnyValue> args, ITally tally)
     {
-        if (!GetSquareDiffSum(ctx, args, tally).TryPickT0(out var squareDiff, out var error))
+        if (!GetSquareDiffSum(ctx, args, tally).TryPickT0(out SquareDiff squareDiff, out XlsxError error))
             return error;
 
         if (squareDiff.Count < 1)
@@ -410,7 +410,7 @@ internal static class Statistical
 
     internal static AnyValue Var(CalcContext ctx, Span<AnyValue> args, ITally tally)
     {
-        if (!GetSquareDiffSum(ctx, args, tally).TryPickT0(out var squareDiff, out var error))
+        if (!GetSquareDiffSum(ctx, args, tally).TryPickT0(out SquareDiff squareDiff, out XlsxError error))
             return error;
 
         if (squareDiff.Count <= 1)
@@ -431,7 +431,7 @@ internal static class Statistical
 
     internal static AnyValue VarP(CalcContext ctx, Span<AnyValue> args, ITally tally)
     {
-        if (!GetSquareDiffSum(ctx, args, tally).TryPickT0(out var squareDiff, out var error))
+        if (!GetSquareDiffSum(ctx, args, tally).TryPickT0(out SquareDiff squareDiff, out XlsxError error))
             return error;
 
         if (squareDiff.Count < 1)
@@ -454,15 +454,15 @@ internal static class Statistical
 
         IEnumerable<ScalarValue> values;
         int size;
-        if (arrayParam.TryPickScalar(out var scalar, out var collection))
+        if (arrayParam.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> collection))
         {
-            if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out var error))
+            if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out XlsxError error))
                 return error;
 
             values = [number];
             size = 1;
         }
-        else if (collection.TryPickT0(out var array, out var reference))
+        else if (collection.TryPickT0(out Array? array, out Reference? reference))
         {
             values = array;
             size = array.Width * array.Height;
@@ -476,7 +476,7 @@ internal static class Statistical
         // Pre-allocate array to reduce allocations during doubling of buffer.
         var total = ctx.AllocateArray<double>(size);
         var count = 0;
-        foreach (var value in values)
+        foreach (ScalarValue value in values)
         {
             ctx.ThrowIfCancelled();
             if (value.IsError)
@@ -503,7 +503,7 @@ internal static class Statistical
     /// </summary>
     private static OneOf<SquareDiff, XlsxError> GetSquareDiffSum(CalcContext ctx, Span<AnyValue> args, ITally tally)
     {
-        if (!tally.Tally(ctx, args, new SumState(0.0, 0)).TryPickT0(out var sumState, out var sumError))
+        if (!tally.Tally(ctx, args, new SumState(0.0, 0)).TryPickT0(out SumState sumState, out XlsxError sumError))
             return sumError;
 
         if (sumState.Count == 0)
@@ -513,9 +513,9 @@ internal static class Statistical
 
         // Calculate sum of squares of deviations from sample mean
         var initialSquareDiffState = new SquareDiff(Sum: 0.0, Count: 0, SampleMean: sampleMean);
-        var result = tally.Tally(ctx, args, initialSquareDiffState);
+        OneOf<SquareDiff, XlsxError> result = tally.Tally(ctx, args, initialSquareDiffState);
 
-        if (!result.TryPickT0(out var squareDiff, out var error))
+        if (!result.TryPickT0(out SquareDiff squareDiff, out XlsxError error))
             return error;
 
         return squareDiff;

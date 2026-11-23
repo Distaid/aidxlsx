@@ -31,6 +31,6 @@ internal static class XlsxErrorParser
         ["#NUM!"] = XlsxError.NumberInvalid
     };
 
-    public static bool TryParseError(String input, out XlsxError error)
+    public static bool TryParseError(string input, out XlsxError error)
         => ErrorMap.TryGetValue(input.Trim(), out error);
 }

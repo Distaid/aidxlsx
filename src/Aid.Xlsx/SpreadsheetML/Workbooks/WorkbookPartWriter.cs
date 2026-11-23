@@ -32,18 +32,18 @@ internal static class WorkbookPartWriter
 
     internal static void GenerateContent(XElement root, XlsxWorkbook workbook, SaveOptions options, XlsxWorkbook.SaveContext context)
     {
-        var ns = root.Name.Namespace;
-        var relationship = RelationshipId(root);
+        XNamespace ns = root.Name.Namespace;
+        XName relationship = RelationshipId(root);
         if (root.GetPrefixOfNamespace(relationship.Namespace) is null)
             root.SetAttributeValue(XNamespace.Xmlns + "r", relationship.NamespaceName);
 
-        var properties = GetOrAdd(root, "workbookPr");
+        XElement properties = GetOrAdd(root, "workbookPr");
         properties.SetAttributeValue("codeName", (string?)properties.Attribute("codeName") ?? "ThisWorkbook");
         properties.SetAttributeValue("date1904", workbook.Use1904DateSystem ? "1" : null);
         if (options.FilterPrivacy is { } privacy)
             properties.SetAttributeValue("filterPrivacy", privacy ? "1" : null);
 
-        var sharing = GetOrAdd(root, "fileSharing");
+        XElement sharing = GetOrAdd(root, "fileSharing");
         sharing.SetAttributeValue("readOnlyRecommended", workbook.FileSharing.ReadOnlyRecommended ? "1" : null);
         sharing.SetAttributeValue("userName", string.IsNullOrWhiteSpace(workbook.FileSharing.UserName) ? null : workbook.FileSharing.UserName);
         if (!sharing.HasElements && !sharing.Attributes().Any(attribute => !attribute.IsNamespaceDeclaration))
@@ -51,15 +51,15 @@ internal static class WorkbookPartWriter
 
         WriteProtection(root, workbook);
 
-        var sheets = GetOrAdd(root, "sheets");
+        XElement sheets = GetOrAdd(root, "sheets");
         var sheetById = sheets.Elements(ns + "sheet").ToDictionary(sheet => WorkbookXml.ReadSheet(sheet).SheetId);
         var ordered = new SortedDictionary<int, XElement>();
-        foreach (var unsupported in workbook.UnsupportedSheets)
+        foreach (XlsxWorkbook.UnsupportedSheet? unsupported in workbook.UnsupportedSheets)
             ordered.Add(unsupported.Position, sheetById[unsupported.SheetId]);
 
-        foreach (var worksheet in workbook.WorksheetsInternal.Cast<XlsxWorksheet>().OrderBy(sheet => sheet.Position))
+        foreach (XlsxWorksheet? worksheet in workbook.WorksheetsInternal.Cast<XlsxWorksheet>().OrderBy(sheet => sheet.Position))
         {
-            if (!sheetById.TryGetValue(worksheet.SheetId, out var sheet))
+            if (!sheetById.TryGetValue(worksheet.SheetId, out XElement? sheet))
                 sheet = new XElement(ns + "sheet", new XAttribute("name", worksheet.Name), new XAttribute("sheetId", worksheet.SheetId));
 
             var originalId = WorkbookXml.ReadSheet(sheet).Id;
@@ -89,16 +89,16 @@ internal static class WorkbookPartWriter
 
     internal static void WritePivotCaches(XElement root, IReadOnlyList<XlsxPivotCache> caches)
     {
-        var ns = root.Name.Namespace;
+        XNamespace ns = root.Name.Namespace;
         root.Element(ns + "pivotCaches")?.Remove();
         if (caches.Count == 0)
             return;
 
-        var list = GetOrAdd(root, "pivotCaches");
-        var relationship = RelationshipId(root);
+        XElement list = GetOrAdd(root, "pivotCaches");
+        XName relationship = RelationshipId(root);
         for (var index = 0; index < caches.Count; index++)
         {
-            var cache = caches[index];
+            XlsxPivotCache cache = caches[index];
             cache.CacheId = (uint)index;
             var id = cache.WorkbookCacheRelId ?? throw new InvalidOperationException("A pivot cache has no workbook relationship.");
             list.Add(new XElement(ns + "pivotCache", new XAttribute("cacheId", cache.CacheId), new XAttribute(relationship, id)));
@@ -107,14 +107,14 @@ internal static class WorkbookPartWriter
 
     private static void WriteProtection(XElement root, XlsxWorkbook workbook)
     {
-        var protection = workbook.Protection;
+        XlsxWorkbookProtection protection = workbook.Protection;
         if (!protection.IsProtected)
         {
             root.Element(root.Name.Namespace + "workbookProtection")?.Remove();
             return;
         }
 
-        var element = GetOrAdd(root, "workbookProtection");
+        XElement element = GetOrAdd(root, "workbookProtection");
         var simpleHash = protection.Algorithm == XlsxProtectionAlgorithm.Algorithm.SimpleHash;
         element.SetAttributeValue("workbookPassword", simpleHash && !string.IsNullOrWhiteSpace(protection.PasswordHash) ? protection.PasswordHash : null);
         element.SetAttributeValue("lockStructure", protection.AllowedElements.HasFlag(XlsxWorkbookProtectionElements.Structure) ? null : "1");
@@ -133,15 +133,15 @@ internal static class WorkbookPartWriter
         var active = workbook.UnsupportedSheets.Where(sheet => sheet.IsActive).Select(sheet => (int?)sheet.Position - 1).FirstOrDefault();
         if (!active.HasValue)
         {
-            var worksheets = workbook.WorksheetsInternal.Cast<XlsxWorksheet>();
+            IEnumerable<XlsxWorksheet> worksheets = workbook.WorksheetsInternal.Cast<XlsxWorksheet>();
             active = (worksheets.FirstOrDefault(sheet => sheet.TabActive)?.Position - 1)
                 ?? (worksheets.LastOrDefault(sheet => sheet.TabSelected)?.Position - 1)
                 ?? firstVisible;
         }
 
-        var bookViews = GetOrAdd(root, "bookViews");
-        var name = root.Name.Namespace + "workbookView";
-        var view = bookViews.Element(name);
+        XElement bookViews = GetOrAdd(root, "bookViews");
+        XName name = root.Name.Namespace + "workbookView";
+        XElement? view = bookViews.Element(name);
         if (view is null)
         {
             view = new XElement(name);
@@ -154,23 +154,23 @@ internal static class WorkbookPartWriter
 
     private static void WriteDefinedNames(XElement root, XlsxWorkbook workbook, IEnumerable<XElement> sheets)
     {
-        var ns = root.Name.Namespace;
+        XNamespace ns = root.Name.Namespace;
         var indexes = sheets.Select((sheet, index) => (Sheet: WorkbookXml.ReadSheet(sheet), Index: index))
             .ToDictionary(item => item.Sheet.SheetId, item => item.Index);
-        var names = GetOrAdd(root, "definedNames");
+        XElement names = GetOrAdd(root, "definedNames");
         names.Elements(ns + "definedName").Remove();
-        foreach (var worksheet in workbook.WorksheetsInternal.Cast<XlsxWorksheet>())
+        foreach (XlsxWorksheet worksheet in workbook.WorksheetsInternal.Cast<XlsxWorksheet>())
         {
             var sheetIndex = indexes[worksheet.SheetId];
             var prefix = worksheet.Name.EscapeSheetName() + "!";
-            var setup = worksheet.PageSetup;
+            IXlsxPageSetup setup = worksheet.PageSetup;
             if (setup.PrintAreas.Any())
                 AddName("_xlnm.Print_Area", string.Join(",", setup.PrintAreas.Select(range => prefix + FixedRange(range.RangeAddress))), sheetIndex);
 
             if (worksheet.AutoFilter.IsEnabled)
                 AddName("_xlnm._FilterDatabase", prefix + FixedRange(worksheet.AutoFilter.Range.RangeAddress), sheetIndex, hidden: true);
 
-            foreach (var name in worksheet.DefinedNames.Cast<XlsxDefinedName>().Where(name => name.Name != "_xlnm._FilterDatabase"))
+            foreach (XlsxDefinedName? name in worksheet.DefinedNames.Cast<XlsxDefinedName>().Where(name => name.Name != "_xlnm._FilterDatabase"))
                 AddName(name.Name, name.ToString(), sheetIndex, !name.Visible, name.Comment);
 
             var titles = new List<string>(2);
@@ -182,7 +182,7 @@ internal static class WorkbookPartWriter
                 AddName("_xlnm.Print_Titles", string.Join(",", titles), sheetIndex);
         }
 
-        foreach (var name in workbook.DefinedNamesInternal)
+        foreach (XlsxDefinedName name in workbook.DefinedNamesInternal)
             AddName(name.Name, name.RefersTo, hidden: !name.Visible, comment: name.Comment);
 
         void AddName(string name, string text, int? sheetIndex = null, bool hidden = false, string? comment = null)
@@ -198,7 +198,7 @@ internal static class WorkbookPartWriter
 
     private static void WriteCalculation(XElement root, XlsxWorkbook workbook)
     {
-        var calculation = root.Element(root.Name.Namespace + "calcPr");
+        XElement? calculation = root.Element(root.Name.Namespace + "calcPr");
         if (calculation is null)
         {
             calculation = GetOrAdd(root, "calcPr");
@@ -231,13 +231,13 @@ internal static class WorkbookPartWriter
 
     private static XElement GetOrAdd(XElement root, string localName)
     {
-        var ns = root.Name.Namespace;
-        var existing = root.Element(ns + localName);
+        XNamespace ns = root.Name.Namespace;
+        XElement? existing = root.Element(ns + localName);
         if (existing is not null)
             return existing;
 
         var position = Array.IndexOf(ChildOrder, localName);
-        var next = root.Elements().FirstOrDefault(element => element.Name.Namespace == ns && Array.IndexOf(ChildOrder, element.Name.LocalName) > position);
+        XElement? next = root.Elements().FirstOrDefault(element => element.Name.Namespace == ns && Array.IndexOf(ChildOrder, element.Name.LocalName) > position);
         var added = new XElement(ns + localName);
         if (next is null)
             root.Add(added);

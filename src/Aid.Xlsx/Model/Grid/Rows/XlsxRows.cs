@@ -68,10 +68,10 @@ internal class XlsxRows(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWor
         }
         else
         {
-            var toDelete = new Dictionary<IXlsxWorksheet, List<Int32>>();
+            var toDelete = new Dictionary<IXlsxWorksheet, List<int>>();
             foreach (XlsxRow r in Rows)
             {
-                if (!toDelete.TryGetValue(r.Worksheet, out List<Int32>? list))
+                if (!toDelete.TryGetValue(r.Worksheet, out List<int>? list))
                 {
                     list = [];
                     toDelete.Add(r.Worksheet, list);
@@ -82,7 +82,7 @@ internal class XlsxRows(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWor
 
             foreach (KeyValuePair<IXlsxWorksheet, List<int>> kp in toDelete)
             {
-                foreach (int r in kp.Value.OrderByDescending(r => r))
+                foreach (var r in kp.Value.OrderByDescending(r => r))
                     kp.Key.Row(r).Delete();
             }
         }
@@ -94,31 +94,31 @@ internal class XlsxRows(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWor
         return this;
     }
 
-    public IXlsxRows AdjustToContents(Int32 startColumn)
+    public IXlsxRows AdjustToContents(int startColumn)
     {
         Rows.ForEach(r => r.AdjustToContents(startColumn));
         return this;
     }
 
-    public IXlsxRows AdjustToContents(Int32 startColumn, Int32 endColumn)
+    public IXlsxRows AdjustToContents(int startColumn, int endColumn)
     {
         Rows.ForEach(r => r.AdjustToContents(startColumn, endColumn));
         return this;
     }
 
-    public IXlsxRows AdjustToContents(Double minHeight, Double maxHeight)
+    public IXlsxRows AdjustToContents(double minHeight, double maxHeight)
     {
         Rows.ForEach(r => r.AdjustToContents(minHeight, maxHeight));
         return this;
     }
 
-    public IXlsxRows AdjustToContents(Int32 startColumn, Double minHeight, Double maxHeight)
+    public IXlsxRows AdjustToContents(int startColumn, double minHeight, double maxHeight)
     {
         Rows.ForEach(r => r.AdjustToContents(startColumn, minHeight, maxHeight));
         return this;
     }
 
-    public IXlsxRows AdjustToContents(Int32 startColumn, Int32 endColumn, Double minHeight, Double maxHeight)
+    public IXlsxRows AdjustToContents(int startColumn, int endColumn, double minHeight, double maxHeight)
     {
         Rows.ForEach(r => r.AdjustToContents(startColumn, endColumn, minHeight, maxHeight));
         return this;
@@ -139,7 +139,7 @@ internal class XlsxRows(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWor
         Group(false);
     }
 
-    public void Group(Int32 outlineLevel)
+    public void Group(int outlineLevel)
     {
         Group(outlineLevel, false);
     }
@@ -149,17 +149,17 @@ internal class XlsxRows(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWor
         Ungroup(false);
     }
 
-    public void Group(Boolean collapse)
+    public void Group(bool collapse)
     {
         Rows.ForEach(r => r.Group(collapse));
     }
 
-    public void Group(Int32 outlineLevel, Boolean collapse)
+    public void Group(int outlineLevel, bool collapse)
     {
         Rows.ForEach(r => r.Group(outlineLevel, collapse));
     }
 
-    public void Ungroup(Boolean ungroupFromAll)
+    public void Ungroup(bool ungroupFromAll)
     {
         Rows.ForEach(r => r.Ungroup(ungroupFromAll));
     }
@@ -241,7 +241,7 @@ internal class XlsxRows(XlsxWorkbook workbook, XlsxWorksheet? worksheet, XlsxWor
 
     public void Select()
     {
-        foreach (var range in this)
+        foreach (IXlsxRow range in this)
             range.Select();
     }
 

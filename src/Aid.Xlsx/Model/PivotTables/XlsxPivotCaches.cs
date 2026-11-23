@@ -23,7 +23,7 @@ internal class XlsxPivotCaches(XlsxWorkbook workbook) : IXlsxPivotCaches, IEnume
 
     internal XlsxPivotCache Add(SheetArea area)
     {
-        var source = _workbook.TryGetTable(area, out var table)
+        XlsxPivotSourceReference source = _workbook.TryGetTable(area, out XlsxTable? table)
             ? new XlsxPivotSourceReference(table.Name)
             : new XlsxPivotSourceReference(area);
 
@@ -49,11 +49,11 @@ internal class XlsxPivotCaches(XlsxWorkbook workbook) : IXlsxPivotCaches, IEnume
     {
         // This method mimics behavior of Excel.
         // If there is a table for the area and there is a cache for the table, return cache for the table.
-        if (_workbook.TryGetTable(area, out var table))
+        if (_workbook.TryGetTable(area, out XlsxTable? table))
         {
             // Table exists, so try to find it and match with the source reference.
             var tableSource = new XlsxPivotSourceReference(table.Name);
-            foreach (var cache in _caches)
+            foreach (XlsxPivotCache cache in _caches)
             {
                 if (cache.Source.Equals(tableSource))
                     return cache;
@@ -62,7 +62,7 @@ internal class XlsxPivotCaches(XlsxWorkbook workbook) : IXlsxPivotCaches, IEnume
 
         // Try to find a cache with area source.
         var areaSource = new XlsxPivotSourceReference(area);
-        foreach (var cache in _caches)
+        foreach (XlsxPivotCache cache in _caches)
         {
             if (cache.Source.Equals(areaSource))
                 return cache;

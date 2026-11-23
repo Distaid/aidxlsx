@@ -17,7 +17,7 @@ internal class TablePartWriter
     internal static void SynchronizeTableParts(XlsxTables tables, WorkbookPackage package, OpcPart worksheetPart, SaveContext context)
     {
         // Remove table definition parts that are not a part of workbook
-        foreach (var (partId, _) in package.RelatedParts(worksheetPart, "table").ToList())
+        foreach ((var partId, OpcPart _) in package.RelatedParts(worksheetPart, "table").ToList())
         {
             var xlWorkbookContainsTable = tables.Cast<XlsxTable>().Any(t => t.RelId == partId);
             if (!xlWorkbookContainsTable)
@@ -26,9 +26,9 @@ internal class TablePartWriter
             }
         }
 
-        foreach (var xlTable in tables.Cast<XlsxTable>())
+        foreach (XlsxTable xlTable in tables.Cast<XlsxTable>())
         {
-            if (String.IsNullOrEmpty(xlTable.RelId) || package.RelatedPart(worksheetPart, xlTable.RelId, "table") is null)
+            if (string.IsNullOrEmpty(xlTable.RelId) || package.RelatedPart(worksheetPart, xlTable.RelId, "table") is null)
             {
                 xlTable.RelId = context.RelIdGenerator.GetNext(RelType.Workbook);
                 package.AddPart(worksheetPart, xlTable.RelId, "table");
@@ -38,11 +38,11 @@ internal class TablePartWriter
 
     internal static void GenerateTableParts(XlsxTables tables, WorkbookPackage package, OpcPart worksheetPart, SaveContext context)
     {
-        foreach (var xlTable in tables.Cast<XlsxTable>())
+        foreach (XlsxTable xlTable in tables.Cast<XlsxTable>())
         {
             var relId = xlTable.RelId;
-            var tableDefinitionPart = package.RelatedPart(worksheetPart, relId, "table")!;
-            using var output = tableDefinitionPart.OpenWrite();
+            OpcPart tableDefinitionPart = package.RelatedPart(worksheetPart, relId, "table")!;
+            using Stream output = tableDefinitionPart.OpenWrite();
             Write(output, xlTable, context);
         }
     }
@@ -68,7 +68,7 @@ internal class TablePartWriter
         var tableColumns = new XElement(ns + "tableColumns", new XAttribute("count", xlTable.ColumnCount()));
 
         uint columnId = 0;
-        foreach (var xlField in xlTable.Fields)
+        foreach (XlsxTableField? xlField in xlTable.Fields)
         {
             columnId++;
             var fieldName = xlField.Name;
@@ -89,7 +89,7 @@ internal class TablePartWriter
 
             if (xlField.IsConsistentFormula())
             {
-                string formula = xlField.Column.Cells()
+                var formula = xlField.Column.Cells()
                     .Skip(xlTable.ShowHeaderRow ? 1 : 0)
                     .First()
                     .FormulaA1;
@@ -97,7 +97,7 @@ internal class TablePartWriter
                 while (formula.StartsWith('=') && formula.Length > 1)
                     formula = formula[1..];
 
-                if (!String.IsNullOrWhiteSpace(formula))
+                if (!string.IsNullOrWhiteSpace(formula))
                 {
                     tableColumn.Add(new XElement(ns + "calculatedColumnFormula", formula));
                 }
@@ -113,7 +113,7 @@ internal class TablePartWriter
                         tableColumn.Add(new XElement(ns + "totalsRowFormula", xlField.TotalsRowFormulaA1));
                 }
 
-                if (!String.IsNullOrWhiteSpace(xlField.TotalsRowLabel))
+                if (!string.IsNullOrWhiteSpace(xlField.TotalsRowLabel))
                     tableColumn.SetAttributeValue("totalsRowLabel", xlField.TotalsRowLabel);
             }
             tableColumns.Add(tableColumn);
@@ -146,7 +146,7 @@ internal class TablePartWriter
         new XDocument(table).Save(output, System.Xml.Linq.SaveOptions.DisableFormatting);
     }
 
-    private static string GetTableName(String originalTableName, SaveContext context)
+    private static string GetTableName(string originalTableName, SaveContext context)
     {
         var tableName = originalTableName.RemoveSpecialCharacters();
         var name = tableName;

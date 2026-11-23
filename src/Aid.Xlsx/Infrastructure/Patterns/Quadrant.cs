@@ -99,12 +99,12 @@ internal class Quadrant
     /// <returns>True, if range was successfully added, false if it has been added before.</returns>
     public bool Add(IXlsxAddressable range)
     {
-        bool res = false;
-        var children = Children ?? [.. CreateChildren()];
-        bool addToChild = false;
-        foreach (var childQuadrant in children)
+        var res = false;
+        IReadOnlyList<Quadrant> children = Children ?? [.. CreateChildren()];
+        var addToChild = false;
+        foreach (Quadrant childQuadrant in children)
         {
-            var rangeAddress = range.RangeAddress;
+            IXlsxRangeAddress rangeAddress = range.RangeAddress;
             if (childQuadrant.Covers(in rangeAddress))
             {
                 res |= childQuadrant.Add(range);
@@ -129,16 +129,16 @@ internal class Quadrant
     {
         if (Ranges != null)
         {
-            foreach (var range in Ranges)
+            foreach (IXlsxAddressable range in Ranges)
                 yield return range;
         }
 
         if (Children != null)
         {
-            foreach (var childQuadrant in Children)
+            foreach (Quadrant childQuadrant in Children)
             {
-                var childRanges = childQuadrant.GetAll();
-                foreach (var range in childRanges)
+                IEnumerable<IXlsxAddressable> childRanges = childQuadrant.GetAll();
+                foreach (IXlsxAddressable range in childRanges)
                     yield return range;
             }
         }
@@ -151,7 +151,7 @@ internal class Quadrant
     {
         if (Ranges != null)
         {
-            foreach (var range in Ranges)
+            foreach (IXlsxAddressable range in Ranges)
             {
                 if (range.RangeAddress.Intersects(rangeAddress))
                     yield return range;
@@ -160,12 +160,12 @@ internal class Quadrant
 
         if (Children != null)
         {
-            foreach (var childQuadrant in Children)
+            foreach (Quadrant childQuadrant in Children)
             {
                 if (childQuadrant.Intersects(in rangeAddress))
                 {
-                    var childRanges = childQuadrant.GetIntersectedRanges(rangeAddress);
-                    foreach (var range in childRanges)
+                    IEnumerable<IXlsxAddressable> childRanges = childQuadrant.GetIntersectedRanges(rangeAddress);
+                    foreach (IXlsxAddressable range in childRanges)
                         yield return range;
                 }
             }
@@ -179,7 +179,7 @@ internal class Quadrant
     {
         if (Ranges != null)
         {
-            foreach (var range in Ranges)
+            foreach (IXlsxAddressable range in Ranges)
             {
                 if (range.RangeAddress.Contains(address))
                     yield return range;
@@ -188,12 +188,12 @@ internal class Quadrant
 
         if (Children != null)
         {
-            foreach (var childQuadrant in Children)
+            foreach (Quadrant childQuadrant in Children)
             {
                 if (childQuadrant.Covers(in address))
                 {
-                    var childRanges = childQuadrant.GetIntersectedRanges(address);
-                    foreach (var range in childRanges)
+                    IEnumerable<IXlsxAddressable> childRanges = childQuadrant.GetIntersectedRanges(address);
+                    foreach (IXlsxAddressable range in childRanges)
                         yield return range;
                 }
             }
@@ -206,12 +206,12 @@ internal class Quadrant
     /// <returns>True if the range was removed, false if it does not exist in the QuadTree.</returns>
     public bool Remove(IXlsxRangeAddress rangeAddress)
     {
-        bool res = false;
+        var res = false;
 
-        bool coveredByChild = false;
+        var coveredByChild = false;
         if (Children != null)
         {
-            foreach (var childQuadrant in Children)
+            foreach (Quadrant childQuadrant in Children)
             {
                 if (childQuadrant.Covers(rangeAddress))
                 {
@@ -238,15 +238,15 @@ internal class Quadrant
     {
         if (_ranges != null)
         {
-            var ranges = _ranges.Values.Where(r => predicate(r));
+            IEnumerable<IXlsxAddressable> ranges = _ranges.Values.Where(r => predicate(r));
             var keysToRemove = new List<IXlsxRangeAddress>();
-            foreach (var range in ranges)
+            foreach (IXlsxAddressable range in ranges)
             {
                 keysToRemove.Add(range.RangeAddress);
                 yield return range;
             }
 
-            foreach (var keyToRemove in keysToRemove)
+            foreach (IXlsxRangeAddress keyToRemove in keysToRemove)
             {
                 _ranges.Remove(keyToRemove);
             }
@@ -254,8 +254,8 @@ internal class Quadrant
 
         if (Children != null)
         {
-            foreach (var childQuadrant in Children)
-                foreach (var childRange in childQuadrant.RemoveAll(predicate))
+            foreach (Quadrant childQuadrant in Children)
+                foreach (IXlsxAddressable childRange in childQuadrant.RemoveAll(predicate))
                 {
                     yield return childRange;
                 }
@@ -334,11 +334,11 @@ internal class Quadrant
     /// </summary>
     private IEnumerable<Quadrant> CreateChildren()
     {
-        byte childLevel = (byte)(Level + 1);
+        var childLevel = (byte)(Level + 1);
         if (childLevel > MAX_LEVEL)
             yield break;
         byte xCount = 2; // Always divide on halves
-        byte yCount = (byte)((Level == 0) ? (XlsxHelper.MaxRowNumber / XlsxHelper.MaxColumnNumber) : 2); // Level 0 divide onto 64 parts, the rest - on halves
+        var yCount = (byte)((Level == 0) ? (XlsxHelper.MaxRowNumber / XlsxHelper.MaxColumnNumber) : 2); // Level 0 divide onto 64 parts, the rest - on halves
 
         for (byte dy = 0; dy < yCount; dy++)
         {

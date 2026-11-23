@@ -77,7 +77,7 @@ internal sealed class XlsxPivotSourceReference : IXlsxPivotSource
         if (Name is not null)
         {
             // TODO: Named ranges are currently unusable, so only check tables.
-            if (workbook.TryGetTable(Name, out var table))
+            if (workbook.TryGetTable(Name, out XlsxTable? table))
             {
                 sheet = table.Worksheet;
                 sheetArea = table.Area;

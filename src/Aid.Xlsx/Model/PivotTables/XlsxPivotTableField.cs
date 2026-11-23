@@ -202,14 +202,14 @@ internal class XlsxPivotTableField(XlsxPivotTable pivotTable)
     internal void AddSubtotal(XlsxSubtotalFunction value)
     {
         Subtotals.Add(value);
-        var subtotalItemType = GetItemTypeForSubtotal(value); ;
+        XlsxPivotItemType subtotalItemType = GetItemTypeForSubtotal(value); ;
         _items.Add(new XlsxPivotFieldItem(this, null) { ItemType = subtotalItemType });
     }
 
     internal void RemoveSubtotal(XlsxSubtotalFunction value)
     {
         Subtotals.Remove(value);
-        var subtotalItemType = GetItemTypeForSubtotal(value);
+        XlsxPivotItemType subtotalItemType = GetItemTypeForSubtotal(value);
         _items.RemoveAll(item => item.ItemType == subtotalItemType);
     }
 
@@ -239,13 +239,13 @@ internal class XlsxPivotTableField(XlsxPivotTable pivotTable)
     internal XlsxPivotFieldItem GetOrAddItem(XlsxCellValue value)
     {
         var index = _pivotTable.GetFieldIndex(this);
-        var cache = _pivotTable.PivotCache;
-        var cacheValues = cache.GetFieldValues(index);
+        XlsxPivotCache cache = _pivotTable.PivotCache;
+        XlsxPivotCacheValues cacheValues = cache.GetFieldValues(index);
         var sharedItemIndex = cacheValues.GetOrAddSharedItem(value);
 
         // Excel tries to repair workbook, when there are duplicates in pivotFields.Items
         // therefore add only if necessary
-        var existingItem = _items.FirstOrDefault(x => x.ItemIndex == sharedItemIndex);
+        XlsxPivotFieldItem? existingItem = _items.FirstOrDefault(x => x.ItemIndex == sharedItemIndex);
         if (existingItem is not null)
             return existingItem;
 
@@ -270,7 +270,7 @@ internal class XlsxPivotTableField(XlsxPivotTable pivotTable)
     internal List<XlsxPivotFieldItem> GetAllItems(Predicate<XlsxCellValue> predicate)
     {
         var fieldIndex = _pivotTable.GetFieldIndex(this);
-        var sharedItems = _pivotTable.PivotCache.GetFieldSharedItems(fieldIndex);
+        XlsxPivotCacheSharedItems sharedItems = _pivotTable.PivotCache.GetFieldSharedItems(fieldIndex);
 
         var pivotFieldItems = Items
             .WhereNotNull(fieldItem => fieldItem.ItemIndex)
@@ -279,7 +279,7 @@ internal class XlsxPivotTableField(XlsxPivotTable pivotTable)
         var filteredItems = new List<XlsxPivotFieldItem>();
         for (uint sharedItemIndex = 0; sharedItemIndex < sharedItems.Count; ++sharedItemIndex)
         {
-            var sharedItemValue = sharedItems[sharedItemIndex];
+            XlsxCellValue sharedItemValue = sharedItems[sharedItemIndex];
             if (!predicate(sharedItemValue))
                 continue;
 
@@ -302,7 +302,7 @@ internal class XlsxPivotTableField(XlsxPivotTable pivotTable)
 
     private static XlsxPivotItemType GetItemTypeForSubtotal(XlsxSubtotalFunction value)
     {
-        var subtotalItemType = value switch
+        XlsxPivotItemType subtotalItemType = value switch
         {
             XlsxSubtotalFunction.Automatic => XlsxPivotItemType.Default,
             XlsxSubtotalFunction.Sum => XlsxPivotItemType.Sum,

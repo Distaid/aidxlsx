@@ -112,7 +112,7 @@ public static class XmlTreeReaderExtensions
     public static TResult GetStringMappedValue<TResult>(this XmlTreeReader reader, string attributeName, IReadOnlyDictionary<string, TResult> map)
     {
         var attributeValue = reader.GetString(attributeName);
-        if (!map.TryGetValue(attributeValue, out var result))
+        if (!map.TryGetValue(attributeValue, out TResult? result))
             throw PartStructureException.InvalidAttributeFormat(attributeName, attributeValue, reader);
 
         return result;

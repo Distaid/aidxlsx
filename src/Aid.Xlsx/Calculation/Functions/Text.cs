@@ -148,7 +148,7 @@ internal static class Text
         // well. Based on `LEN(CLEAN(UNICHAR(A1))) = 0`, it removes 1-1F and 0x80-0x9F. ODF
         // says to remove Cc and Cn, but Excel doesn't seem to remove Cn.
         var result = new StringBuilder(text.Length);
-        foreach (char c in text)
+        foreach (var c in text)
         {
             ctx.ThrowIfCancelled();
             int codePoint = c;
@@ -179,12 +179,12 @@ internal static class Text
     private static ScalarValue Concat(CalcContext ctx, List<Array> texts)
     {
         var sb = new StringBuilder();
-        foreach (var array in texts)
+        foreach (Array array in texts)
         {
-            foreach (var scalar in array)
+            foreach (ScalarValue scalar in array)
             {
                 ctx.ThrowIfCancelled();
-                if (!scalar.ToText(ctx.Culture).TryPickT0(out var text, out var error))
+                if (!scalar.ToText(ctx.Culture).TryPickT0(out var text, out XlsxError error))
                     return error;
 
                 sb.Append(text);
@@ -211,13 +211,13 @@ internal static class Text
         return sb.ToString();
     }
 
-    private static AnyValue Find(CalcContext ctx, String findText, String withinText, OneOf<double, Blank> startNum)
+    private static AnyValue Find(CalcContext ctx, string findText, string withinText, OneOf<double, Blank> startNum)
     {
         var startIndex = startNum.TryPickT0(out var startNumber, out _) ? (int)Math.Truncate(startNumber) - 1 : 0;
         if (startIndex < 0 || startIndex > withinText.Length)
             return XlsxError.IncompatibleValue;
 
-        var text = withinText.AsSpan(startIndex);
+        ReadOnlySpan<char> text = withinText.AsSpan(startIndex);
         var index = text.IndexOf(findText.AsSpan());
         return index == -1
             ? XlsxError.IncompatibleValue
@@ -233,7 +233,7 @@ internal static class Text
         if (numDecimals > 99)
             return XlsxError.IncompatibleValue;
 
-        var culture = ctx.Culture;
+        CultureInfo culture = ctx.Culture;
         if (suppressComma)
         {
             culture = (CultureInfo)culture.Clone();
@@ -332,7 +332,7 @@ internal static class Text
         if (text.Length == 0)
             return string.Empty;
 
-        var culture = ctx.Culture;
+        CultureInfo culture = ctx.Culture;
         var sb = new StringBuilder(text.Length);
         var prevWasLetter = false;
         foreach (var c in text)
@@ -370,7 +370,7 @@ internal static class Text
 
         // Excel does everything is in code units, produces invalid surrogate pairs and everything.
         var sb = new StringBuilder((int)resultLength);
-        var text = oldText.AsSpan();
+        ReadOnlySpan<char> text = oldText.AsSpan();
         sb.Append(text[..prefixLength]);
         sb.Append(replacement);
         sb.Append(text[(prefixLength + deletedLength)..]);
@@ -423,7 +423,7 @@ internal static class Text
         return text[i..];
     }
 
-    private static AnyValue Search(CalcContext ctx, String findText, String withinText, OneOf<double, Blank> startNum)
+    private static AnyValue Search(CalcContext ctx, string findText, string withinText, OneOf<double, Blank> startNum)
     {
         if (withinText.Length == 0)
             return XlsxError.IncompatibleValue;
@@ -469,7 +469,7 @@ internal static class Text
                 return text;
         }
 
-        var textSpan = text.AsSpan();
+        ReadOnlySpan<char> textSpan = text.AsSpan();
         var resultLength = (long)text.Length - oldText.Length + newText.Length;
         if (resultLength > XlsxHelper.CellTextLimit)
             return XlsxError.IncompatibleValue;
@@ -489,7 +489,7 @@ internal static class Text
 
         int index;
         var count = 0;
-        var span = input.AsSpan();
+        ReadOnlySpan<char> span = input.AsSpan();
         while ((index = span.IndexOf(oldValue.AsSpan(), StringComparison.Ordinal)) != -1)
         {
             count++;
@@ -501,24 +501,24 @@ internal static class Text
 
     private static AnyValue T(CalcContext ctx, AnyValue value)
     {
-        if (value.TryPickScalar(out var scalar, out var collection))
+        if (value.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> collection))
         {
-            if (scalar.TryPickError(out var scalarError))
+            if (scalar.TryPickError(out XlsxError scalarError))
                 return scalarError;
 
             return scalar.IsText ? scalar.GetText() : string.Empty;
         }
 
-        if (collection.TryPickT0(out var array, out var reference))
+        if (collection.TryPickT0(out Array? array, out Reference? reference))
         {
-            var arrayResult = ctx.AllocateArray<ScalarValue>(array.Height, array.Width);
+            ScalarValue[,] arrayResult = ctx.AllocateArray<ScalarValue>(array.Height, array.Width);
             for (var row = 0; row < array.Height; ++row)
             {
                 for (var col = 0; col < array.Width; ++col)
                 {
                     ctx.ThrowIfCancelled();
-                    var element = array[row, col];
-                    if (element.TryPickError(out var arrayError))
+                    ScalarValue element = array[row, col];
+                    if (element.TryPickError(out XlsxError arrayError))
                     {
                         arrayResult[row, col] = arrayError;
                     }
@@ -536,9 +536,9 @@ internal static class Text
             return new ConstArray(arrayResult);
         }
 
-        var area = reference.Areas[0];
-        var cellValue = ctx.GetCellValue(area.Worksheet, area.FirstAddress.RowNumber, area.FirstAddress.ColumnNumber);
-        if (cellValue.TryPickError(out var cellError))
+        XlsxRangeAddress area = reference.Areas[0];
+        ScalarValue cellValue = ctx.GetCellValue(area.Worksheet, area.FirstAddress.RowNumber, area.FirstAddress.ColumnNumber);
+        if (cellValue.TryPickError(out XlsxError cellError))
             return cellError;
 
         return cellValue.IsText ? cellValue.GetText() : string.Empty;
@@ -579,16 +579,16 @@ internal static class Text
     {
         var first = true;
         var sb = new StringBuilder();
-        foreach (var textValue in texts)
+        foreach (AnyValue textValue in texts)
         {
             // Optimization for large areas, e.g. column ranges
-            var textElements = ignoreEmpty
+            IEnumerable<ScalarValue> textElements = ignoreEmpty
                 ? ctx.GetNonBlankValues(textValue)
                 : ctx.GetAllValues(textValue);
-            foreach (var scalar in textElements)
+            foreach (ScalarValue scalar in textElements)
             {
                 ctx.ThrowIfCancelled();
-                if (!scalar.ToText(ctx.Culture).TryPickT0(out var text, out var error))
+                if (!scalar.ToText(ctx.Culture).TryPickT0(out var text, out XlsxError error))
                     return error;
 
                 if (ignoreEmpty && text.Length == 0)
@@ -615,7 +615,7 @@ internal static class Text
     private static ScalarValue Trim(CalcContext ctx, string text)
     {
         const char space = ' ';
-        var span = text.AsSpan().Trim(space);
+        ReadOnlySpan<char> span = text.AsSpan().Trim(space);
         var sb = new StringBuilder(span.Length);
         for (var i = 0; i < span.Length; ++i)
         {
@@ -652,7 +652,7 @@ internal static class Text
         if (arg.TryPickNumber(out var number))
             return number;
 
-        if (!arg.TryPickText(out var text, out var error))
+        if (!arg.TryPickText(out var text, out XlsxError error))
             return error;
 
         const string percentSign = "%";
@@ -677,7 +677,7 @@ internal static class Text
             @"H:mm:ss" // format 21
         };
         const DateTimeStyles dateTimeStyle = DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.NoCurrentDateDefault;
-        if (DateTime.TryParseExact(text, dateTimeFormats, ctx.Culture, dateTimeStyle, out var parsedDate))
+        if (DateTime.TryParseExact(text, dateTimeFormats, ctx.Culture, dateTimeStyle, out DateTime parsedDate))
             return parsedDate.ToOADate();
 
         return XlsxError.IncompatibleValue;

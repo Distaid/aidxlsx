@@ -9,7 +9,7 @@ internal static class DictionaryExtensions
         Func<TValue, bool> predicate)
     {
         var keys = dic.Keys.Where(k => predicate(dic[k])).ToList();
-        foreach (var key in keys)
+        foreach (TKey key in keys)
         {
             dic.Remove(key);
         }

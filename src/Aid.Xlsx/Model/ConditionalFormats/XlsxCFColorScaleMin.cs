@@ -10,14 +10,14 @@ internal class XlsxCFColorScaleMin(XlsxConditionalFormat conditionalFormat) : IX
 {
     private readonly XlsxConditionalFormat _conditionalFormat = conditionalFormat;
 
-    public IXlsxCFColorScaleMid Minimum(XlsxCFContentType type, String value, XlsxColor color)
+    public IXlsxCFColorScaleMid Minimum(XlsxCFContentType type, string value, XlsxColor color)
     {
         _conditionalFormat.Values.Initialize(new XlsxFormula { Value = value });
         _conditionalFormat.Colors.Initialize(color);
         _conditionalFormat.ContentTypes.Initialize(type);
         return new XlsxCFColorScaleMid(_conditionalFormat);
     }
-    public IXlsxCFColorScaleMid Minimum(XlsxCFContentType type, Double value, XlsxColor color)
+    public IXlsxCFColorScaleMid Minimum(XlsxCFContentType type, double value, XlsxColor color)
     {
         return Minimum(type, value.ToInvariantString(), color);
     }

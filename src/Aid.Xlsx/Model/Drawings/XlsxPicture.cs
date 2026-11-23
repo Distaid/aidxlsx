@@ -2,6 +2,7 @@
 
 // Keep this file CodeMaid organised and cleaned
 using System.Diagnostics;
+using System.Drawing;
 using Aid.Xlsx.Model.Grid.Cells;
 using Aid.Xlsx.Model.Worksheets;
 using Aid.Xlsx.Rendering.Images;
@@ -11,10 +12,10 @@ namespace Aid.Xlsx.Model.Drawings;
 [DebuggerDisplay("{Name}")]
 internal sealed class XlsxPicture : IXlsxPicture, IDisposable
 {
-    private Int32 _height;
-    private Int32 _id;
-    private String _name = string.Empty;
-    private Int32 _width;
+    private int _height;
+    private int _id;
+    private string _name = string.Empty;
+    private int _width;
     private bool _disposed;
 
     internal XlsxPicture(XlsxWorksheet worksheet, Stream stream)
@@ -27,7 +28,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
     {
         ArgumentNullException.ThrowIfNull(stream);
 
-        var info = worksheet.Workbook.GraphicEngine.GetPictureInfo(stream, format);
+        XlsxPictureInfo info = worksheet.Workbook.GraphicEngine.GetPictureInfo(stream, format);
         Init(info);
 
         ImageStream = new MemoryStream();
@@ -47,7 +48,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
         };
 
         // Calculate default picture ID
-        var allPictures = worksheet.Workbook.Worksheets.SelectMany(ws => ws.Pictures);
+        IEnumerable<IXlsxPicture> allPictures = worksheet.Workbook.Worksheets.SelectMany(ws => ws.Pictures);
         var freeId = allPictures.Select(x => x.Id).DefaultIfEmpty(0).Max() + 1;
         _id = freeId;
     }
@@ -66,7 +67,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
 
     public XlsxPictureFormat Format { get; private set; } = XlsxPictureFormat.Unknown;
 
-    public Int32 Height
+    public int Height
     {
         get => _height;
         set
@@ -78,7 +79,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
         }
     }
 
-    public Int32 Id
+    public int Id
     {
         get => _id;
         internal set
@@ -100,7 +101,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
         private init;
     }
 
-    public Int32 Left
+    public int Left
     {
         get => Markers[XlsxMarkerPosition.TopLeft]?.Offset.X ?? 0;
         set
@@ -112,7 +113,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
         }
     }
 
-    public String Name
+    public string Name
     {
         get => _name;
         set
@@ -127,13 +128,13 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
         }
     }
 
-    public Int32 OriginalHeight { get; private set; }
+    public int OriginalHeight { get; private set; }
 
-    public Int32 OriginalWidth { get; private set; }
+    public int OriginalWidth { get; private set; }
 
     public XlsxPicturePlacement Placement { get; set; }
 
-    public Int32 Top
+    public int Top
     {
         get { return Markers[XlsxMarkerPosition.TopLeft]?.Offset.Y ?? 0; }
         set
@@ -161,7 +162,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
         }
     }
 
-    public Int32 Width
+    public int Width
     {
         get { return _width; }
         set
@@ -176,7 +177,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
 
     internal IDictionary<XlsxMarkerPosition, XlsxMarker> Markers { get; private set; }
 
-    internal String RelId { get; set; }
+    internal string RelId { get; set; }
 
     /// <summary>
     /// Create a copy of the picture on a different worksheet.
@@ -207,7 +208,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
         return Markers[position].Offset;
     }
 
-    public IXlsxPicture MoveTo(Int32 left, Int32 top)
+    public IXlsxPicture MoveTo(int left, int top)
     {
         this.Placement = XlsxPicturePlacement.FreeFloating;
         this.Left = left;
@@ -220,7 +221,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
         return MoveTo(cell, 0, 0);
     }
 
-    public IXlsxPicture MoveTo(IXlsxCell cell, Int32 xOffset, Int32 yOffset)
+    public IXlsxPicture MoveTo(IXlsxCell cell, int xOffset, int yOffset)
     {
         return MoveTo(cell, new System.Drawing.Point(xOffset, yOffset));
     }
@@ -238,7 +239,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
         return MoveTo(fromCell, 0, 0, toCell, 0, 0);
     }
 
-    public IXlsxPicture MoveTo(IXlsxCell fromCell, Int32 fromCellXOffset, Int32 fromCellYOffset, IXlsxCell toCell, Int32 toCellXOffset, Int32 toCellYOffset)
+    public IXlsxPicture MoveTo(IXlsxCell fromCell, int fromCellXOffset, int fromCellYOffset, IXlsxCell toCell, int toCellXOffset, int toCellYOffset)
     {
         return MoveTo(fromCell, new System.Drawing.Point(fromCellXOffset, fromCellYOffset), toCell, new System.Drawing.Point(toCellXOffset, toCellYOffset));
     }
@@ -256,18 +257,18 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
         return this;
     }
 
-    public IXlsxPicture Scale(Double factor, Boolean relativeToOriginal = false)
+    public IXlsxPicture Scale(double factor, bool relativeToOriginal = false)
     {
         return this.ScaleHeight(factor, relativeToOriginal).ScaleWidth(factor, relativeToOriginal);
     }
 
-    public IXlsxPicture ScaleHeight(Double factor, Boolean relativeToOriginal = false)
+    public IXlsxPicture ScaleHeight(double factor, bool relativeToOriginal = false)
     {
         this.Height = Convert.ToInt32((relativeToOriginal ? this.OriginalHeight : this.Height) * factor);
         return this;
     }
 
-    public IXlsxPicture ScaleWidth(Double factor, Boolean relativeToOriginal = false)
+    public IXlsxPicture ScaleWidth(double factor, bool relativeToOriginal = false)
     {
         this.Width = Convert.ToInt32((relativeToOriginal ? this.OriginalWidth : this.Width) * factor);
         return this;
@@ -279,7 +280,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
         return this;
     }
 
-    public IXlsxPicture WithSize(Int32 width, Int32 height)
+    public IXlsxPicture WithSize(int width, int height)
     {
         this.Width = width;
         this.Height = height;
@@ -332,7 +333,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
 
     internal void SetName(string value)
     {
-        if (String.IsNullOrEmpty(value))
+        if (string.IsNullOrEmpty(value))
             throw new ArgumentException("Picture names cannot be null or empty.");
 
         _name = value;
@@ -341,7 +342,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
     private void Init(XlsxPictureInfo info)
     {
         Format = info.Format;
-        var size = info.GetSizePx(Worksheet.Workbook.DpiX, Worksheet.Workbook.DpiY);
+        Size size = info.GetSizePx(Worksheet.Workbook.DpiX, Worksheet.Workbook.DpiY);
         _width = OriginalWidth = size.Width;
         _height = OriginalHeight = size.Height;
     }

@@ -10,15 +10,15 @@ using Aid.Xlsx.Model.Worksheets;
 
 namespace Aid.Xlsx.Model.Grid.Cells;
 
-internal class XlsxCells(XlsxWorkbook workbook, bool usedCellsOnly, XlsxCellsUsedOptions options, Func<XlsxCell, Boolean>? predicate = null) : IXlsxCells, IEnumerable<XlsxCell>
+internal class XlsxCells(XlsxWorkbook workbook, bool usedCellsOnly, XlsxCellsUsedOptions options, Func<XlsxCell, bool>? predicate = null) : IXlsxCells, IEnumerable<XlsxCell>
 {
     private readonly XlsxWorkbook _workbook = workbook;
     private readonly List<XlsxRangeAddress> _rangeAddresses = [];
     private readonly bool _usedCellsOnly = usedCellsOnly;
-    private readonly Func<XlsxCell, Boolean> _predicate = predicate ?? (_ => true);
+    private readonly Func<XlsxCell, bool> _predicate = predicate ?? (_ => true);
     private readonly XlsxCellsUsedOptions _options = options;
 
-    public XlsxCells(XlsxWorksheet worksheet, bool usedCellsOnly, XlsxCellsUsedOptions options, Func<XlsxCell, Boolean>? predicate = null)
+    public XlsxCells(XlsxWorksheet worksheet, bool usedCellsOnly, XlsxCellsUsedOptions options, Func<XlsxCell, bool>? predicate = null)
         : this(worksheet.Workbook, usedCellsOnly, options, predicate)
     {
     }
@@ -27,15 +27,15 @@ internal class XlsxCells(XlsxWorkbook workbook, bool usedCellsOnly, XlsxCellsUse
 
     private IEnumerable<XlsxCell> GetAllCells()
     {
-        var groupedAddresses = _rangeAddresses.GroupBy(addr => addr.Worksheet);
-        foreach (var worksheetGroup in groupedAddresses)
+        IEnumerable<IGrouping<XlsxWorksheet?, XlsxRangeAddress>> groupedAddresses = _rangeAddresses.GroupBy(addr => addr.Worksheet);
+        foreach (IGrouping<XlsxWorksheet?, XlsxRangeAddress> worksheetGroup in groupedAddresses)
         {
-            var ws = worksheetGroup.Key!;
-            var sheetPoints = worksheetGroup.SelectMany(addr => GetAllCellsInRange(addr))
+            XlsxWorksheet ws = worksheetGroup.Key!;
+            IEnumerable<Point> sheetPoints = worksheetGroup.SelectMany(addr => GetAllCellsInRange(addr))
                 .Distinct();
-            foreach (var sheetPoint in sheetPoints)
+            foreach (Point sheetPoint in sheetPoints)
             {
-                var c = ws.Cell(sheetPoint.Row, sheetPoint.Column);
+                XlsxCell c = ws.Cell(sheetPoint.Row, sheetPoint.Column);
                 if (_predicate(c))
                     yield return c;
             }
@@ -47,7 +47,7 @@ internal class XlsxCells(XlsxWorkbook workbook, bool usedCellsOnly, XlsxCellsUse
         if (!rangeAddress.IsValid)
             yield break;
 
-        var normalizedAddress = ((XlsxRangeAddress)rangeAddress).Normalize();
+        XlsxRangeAddress normalizedAddress = ((XlsxRangeAddress)rangeAddress).Normalize();
         var minRow = normalizedAddress.FirstAddress.RowNumber;
         var maxRow = normalizedAddress.LastAddress.RowNumber;
         var minColumn = normalizedAddress.FirstAddress.ColumnNumber;
@@ -65,19 +65,19 @@ internal class XlsxCells(XlsxWorkbook workbook, bool usedCellsOnly, XlsxCellsUse
     private IEnumerable<XlsxCell> GetUsedCells()
     {
         var visitedCells = new HashSet<XlsxAddress>();
-        var groupedAddresses = _rangeAddresses.GroupBy(addr => addr.Worksheet);
-        foreach (var worksheetGroup in groupedAddresses)
+        IEnumerable<IGrouping<XlsxWorksheet?, XlsxRangeAddress>> groupedAddresses = _rangeAddresses.GroupBy(addr => addr.Worksheet);
+        foreach (IGrouping<XlsxWorksheet?, XlsxRangeAddress> worksheetGroup in groupedAddresses)
         {
-            var ws = worksheetGroup.Key!;
+            XlsxWorksheet ws = worksheetGroup.Key!;
 
-            var usedCellsCandidates = GetUsedCellsCandidates(ws);
+            IEnumerable<Point> usedCellsCandidates = GetUsedCellsCandidates(ws);
 
-            var cells = worksheetGroup.SelectMany(addr => GetUsedCellsInRange(addr, ws, usedCellsCandidates))
+            IOrderedEnumerable<XlsxCell> cells = worksheetGroup.SelectMany(addr => GetUsedCellsInRange(addr, ws, usedCellsCandidates))
                 .OrderBy(cell => cell.Address.RowNumber)
                 .ThenBy(cell => cell.Address.ColumnNumber);
 
             visitedCells.Clear();
-            foreach (var cell in cells)
+            foreach (XlsxCell? cell in cells)
             {
                 if (visitedCells.Add(cell.Address))
                 {
@@ -91,27 +91,27 @@ internal class XlsxCells(XlsxWorkbook workbook, bool usedCellsOnly, XlsxCellsUse
     {
         if (!rangeAddress.IsValid)
             yield break;
-        var normalizedAddress = rangeAddress.Normalize();
+        XlsxRangeAddress normalizedAddress = rangeAddress.Normalize();
         var minRow = normalizedAddress.FirstAddress.RowNumber;
         var maxRow = normalizedAddress.LastAddress.RowNumber;
         var minColumn = normalizedAddress.FirstAddress.ColumnNumber;
         var maxColumn = normalizedAddress.LastAddress.ColumnNumber;
 
-        var cellRange = worksheet.Internals.CellsCollection
+        IEnumerable<XlsxCell> cellRange = worksheet.Internals.CellsCollection
             .GetCells(minRow, minColumn, maxRow, maxColumn, _predicate);
 
-        foreach (var cell in cellRange)
+        foreach (XlsxCell cell in cellRange)
         {
             if (!cell.IsEmpty(_options) && _predicate(cell))
                 yield return cell;
         }
 
-        foreach (var sheetPoint in usedCellsCandidates)
+        foreach (Point sheetPoint in usedCellsCandidates)
         {
             if (sheetPoint.Row.Between(minRow, maxRow) &&
                 sheetPoint.Column.Between(minColumn, maxColumn))
             {
-                var cell = worksheet.Cell(sheetPoint.Row, sheetPoint.Column);
+                XlsxCell cell = worksheet.Cell(sheetPoint.Row, sheetPoint.Column);
 
                 if (_predicate(cell))
                     yield return cell;
@@ -121,7 +121,7 @@ internal class XlsxCells(XlsxWorkbook workbook, bool usedCellsOnly, XlsxCellsUse
 
     private IEnumerable<Point> GetUsedCellsCandidates(XlsxWorksheet worksheet)
     {
-        var candidates = Enumerable.Empty<Point>();
+        IEnumerable<Point> candidates = [];
 
         if (_options == XlsxCellsUsedOptions.AllContents)
         {
@@ -192,12 +192,12 @@ internal class XlsxCells(XlsxWorkbook workbook, bool usedCellsOnly, XlsxCellsUse
         this.ForEach<XlsxCell>(c => c.DeleteSparkline());
     }
 
-    public String FormulaA1
+    public string FormulaA1
     {
         set { this.ForEach<XlsxCell>(c => c.FormulaA1 = value); }
     }
 
-    public String FormulaR1C1
+    public string FormulaR1C1
     {
         set { this.ForEach<XlsxCell>(c => c.FormulaR1C1 = value); }
     }
@@ -214,8 +214,8 @@ internal class XlsxCells(XlsxWorkbook workbook, bool usedCellsOnly, XlsxCellsUse
         {
             // For backwards compatibility, the sheet is considered the inner style. A terrible
             // choice, but it is what it is.
-            var sheet = _rangeAddresses.Select(x => x.Worksheet).FirstOrDefault(x => x is not null);
-            var areas = _rangeAddresses.Select(SheetArea.From).ToArray();
+            XlsxWorksheet? sheet = _rangeAddresses.Select(x => x.Worksheet).FirstOrDefault(x => x is not null);
+            SheetArea[] areas = [.. _rangeAddresses.Select(SheetArea.From)];
             return XlsxCellFormat.ForCells(_workbook, areas, sheet);
         }
     }
@@ -234,7 +234,7 @@ internal class XlsxCells(XlsxWorkbook workbook, bool usedCellsOnly, XlsxCellsUse
 
     public void Select()
     {
-        foreach (var cell in this)
+        foreach (XlsxCell cell in this)
             cell.Select();
     }
 }

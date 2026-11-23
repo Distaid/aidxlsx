@@ -14,7 +14,7 @@ internal class TextSerializer
 {
     internal static void WriteRichTextElements(XmlWriter w, XlsxImmutableRichText richText, SaveContext context)
     {
-        foreach (var textRun in richText.Runs)
+        foreach (XlsxImmutableRichText.RichTextRun textRun in richText.Runs)
         {
             var text = richText.GetRunText(textRun);
             if (text.Length > 0)
@@ -25,8 +25,8 @@ internal class TextSerializer
 
         if (richText.PhoneticsProperties is not null)
         {
-            var phoneticsProps = richText.PhoneticsProperties.Value;
-            foreach (var p in richText.PhoneticRuns)
+            XlsxImmutableRichText.PhoneticProperties phoneticsProps = richText.PhoneticsProperties.Value;
+            foreach (XlsxImmutableRichText.PhoneticRun p in richText.PhoneticRuns)
             {
                 w.WriteStartElement("rPh", Main2006SsNs);
                 w.WriteAttribute("sb", p.StartIndex);
@@ -41,7 +41,7 @@ internal class TextSerializer
                 w.WriteEndElement(); // rPh
             }
 
-            var phoneticsFont = phoneticsProps.Font;
+            XlsxFontFormatValue phoneticsFont = phoneticsProps.Font;
             var phoneticsFontId = context.GetFontId(phoneticsFont);
 
             w.WriteStartElement("phoneticPr", Main2006SsNs);
@@ -65,7 +65,7 @@ internal class TextSerializer
 
     private static void WriteRun(XmlWriter w, string text, XlsxFontFormatValue font)
     {
-        var defaultFont = XlsxFontFormatValue.Default;
+        XlsxFontFormatValue defaultFont = XlsxFontFormatValue.Default;
         w.WriteStartElement("r", Main2006SsNs);
         w.WriteStartElement("rPr", Main2006SsNs);
 
@@ -114,21 +114,21 @@ internal class TextSerializer
         w.WriteEndElement(); // r
     }
 
-    private static void WriteRunProperty(XmlWriter w, String elName, String val)
+    private static void WriteRunProperty(XmlWriter w, string elName, string val)
     {
         w.WriteStartElement(elName, Main2006SsNs);
         w.WriteAttributeString("val", val);
         w.WriteEndElement();
     }
 
-    private static void WriteRunProperty(XmlWriter w, String elName, Int32 val)
+    private static void WriteRunProperty(XmlWriter w, string elName, int val)
     {
         w.WriteStartElement(elName, Main2006SsNs);
         w.WriteAttribute("val", val);
         w.WriteEndElement();
     }
 
-    private static void WriteRunProperty(XmlWriter w, String elName, Double val)
+    private static void WriteRunProperty(XmlWriter w, string elName, double val)
     {
         w.WriteStartElement(elName, Main2006SsNs);
         w.WriteAttribute("val", val);

@@ -36,9 +36,9 @@ internal abstract class Array : IEnumerable<ScalarValue>
 
     protected IEnumerable<ScalarValue> FlattenArray()
     {
-        for (int row = 0; row < Height; row++)
+        for (var row = 0; row < Height; row++)
         {
-            for (int col = 0; col < Width; col++)
+            for (var col = 0; col < Width; col++)
             {
                 yield return this[row, col];
             }
@@ -50,7 +50,7 @@ internal abstract class Array : IEnumerable<ScalarValue>
     /// </summary>
     public Array Apply(Func<ScalarValue, ScalarValue> op, CalcContext ctx)
     {
-        var data = ctx.AllocateArray<ScalarValue>(Height, Width);
+        ScalarValue[,] data = ctx.AllocateArray<ScalarValue>(Height, Width);
         for (var y = 0; y < Height; ++y)
             for (var x = 0; x < Width; ++x)
                 data[y, x] = op(this[y, x]);
@@ -64,16 +64,16 @@ internal abstract class Array : IEnumerable<ScalarValue>
     /// </summary>
     public Array Apply(Array rightArray, BinaryFunc func, CalcContext ctx)
     {
-        var leftArray = this;
+        Array leftArray = this;
         var width = Math.Max(leftArray.Width, rightArray.Width);
         var height = Math.Max(leftArray.Height, rightArray.Height);
-        var data = ctx.AllocateArray<ScalarValue>(height, width);
+        ScalarValue[,] data = ctx.AllocateArray<ScalarValue>(height, width);
         for (var y = 0; y < height; ++y)
         {
             for (var x = 0; x < width; ++x)
             {
-                var leftItem = x < leftArray.Width && y < leftArray.Height ? leftArray[y, x] : XlsxError.NoValueAvailable;
-                var rightItem = x < rightArray.Width && y < rightArray.Height ? rightArray[y, x] : XlsxError.NoValueAvailable;
+                ScalarValue leftItem = x < leftArray.Width && y < leftArray.Height ? leftArray[y, x] : XlsxError.NoValueAvailable;
+                ScalarValue rightItem = x < rightArray.Width && y < rightArray.Height ? rightArray[y, x] : XlsxError.NoValueAvailable;
                 data[y, x] = func(leftItem, rightItem, ctx);
             }
         }

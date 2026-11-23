@@ -45,17 +45,17 @@ internal class TallyNumbers : ITally
     public OneOf<T, XlsxError> Tally<T>(CalcContext ctx, Span<AnyValue> args, T initialState)
         where T : ITallyState<T>
     {
-        var tally = initialState;
-        foreach (var arg in args)
+        T tally = initialState;
+        foreach (AnyValue arg in args)
         {
-            if (arg.TryPickScalar(out var scalar, out var collection))
+            if (arg.TryPickScalar(out ScalarValue scalar, out OneOf<Array, Reference> collection))
             {
                 ctx.ThrowIfCancelled();
                 if (_ignoreScalarBlank && scalar.IsBlank)
                     continue;
 
                 // Scalars are converted to number.
-                if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out var error))
+                if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out XlsxError error))
                 {
                     if (_ignoreErrors)
                         continue;
@@ -67,13 +67,13 @@ internal class TallyNumbers : ITally
             }
             else
             {
-                var valuesIterator = !collection.TryPickT0(out var array, out var reference)
+                IEnumerable<ScalarValue> valuesIterator = !collection.TryPickT0(out Array? array, out Reference? reference)
                     ? _getNonBlankValues(ctx, reference)
                     : array;
-                foreach (var value in valuesIterator)
+                foreach (ScalarValue value in valuesIterator)
                 {
                     ctx.ThrowIfCancelled();
-                    if (value.TryPickError(out var error))
+                    if (value.TryPickError(out XlsxError error))
                     {
                         if (_ignoreErrors)
                             continue;

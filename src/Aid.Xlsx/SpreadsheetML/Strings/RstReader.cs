@@ -271,7 +271,7 @@ internal partial class RstReader
 
     private (string Text, XlsxDifferentialFontValue Font) OnREltParsed(XlsxDifferentialFontValue? runProperties, string runText)
     {
-        var runFont = runProperties ?? XlsxDifferentialFontValue.Empty;
+        XlsxDifferentialFontValue runFont = runProperties ?? XlsxDifferentialFontValue.Empty;
         ResetFontState();
         return (runText, runFont);
     }
@@ -284,7 +284,7 @@ internal partial class RstReader
 
     private PhoneticProperties OnPhoneticPrParsed(uint fontId, XlsxPhoneticType type, XlsxPhoneticAlignment alignment)
     {
-        var phoneticFont = _styles.Fonts[checked((int)fontId)];
+        XlsxFontFormatValue phoneticFont = _styles.Fonts[checked((int)fontId)];
         return new PhoneticProperties(phoneticFont, type, alignment);
     }
 
@@ -303,7 +303,7 @@ internal partial class RstReader
     {
         var richTextLength = richRuns.Sum(x => x.Text.Length);
         var sb = new StringBuilder(richTextLength);
-        foreach (var (Text, Font) in richRuns)
+        foreach ((var Text, XlsxDifferentialFontValue? Font) in richRuns)
             sb.Append(Text);
 
         var richText = sb.ToString();
@@ -314,7 +314,7 @@ internal partial class RstReader
         var prevStartIndex = richTextLength;
         for (var i = phoneticRunDtos.Count - 1; i >= 0; --i)
         {
-            var (Text, StartIndex, EndIndex) = phoneticRunDtos[i];
+            (var Text, var StartIndex, var EndIndex) = phoneticRunDtos[i];
 
             // Each run must have a text
             if (string.IsNullOrEmpty(Text))
@@ -356,7 +356,7 @@ internal partial class RstReader
             startIndex += runLength;
         }
 
-        var phoneticRuns = phoneticRunDtos.Select(x => new PhoneticRun(x.Text, x.StartIndex, x.EndIndex)).ToArray();
+        PhoneticRun[] phoneticRuns = [.. phoneticRunDtos.Select(x => new PhoneticRun(x.Text, x.StartIndex, x.EndIndex))];
         return new XlsxImmutableRichText(richText, runs, phoneticRuns, phoneticProps);
     }
 }

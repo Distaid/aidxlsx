@@ -44,7 +44,7 @@ internal class DataRecordReader : IInsertDataReader
 
     private IEnumerable<IEnumerable<XlsxCellValue>> ReadToEnd(IEnumerable<IDataRecord> data)
     {
-        foreach (var dataRecord in data)
+        foreach (IDataRecord dataRecord in data)
         {
             yield return ToEnumerable(dataRecord).ToArray();
         }
@@ -59,7 +59,7 @@ internal class DataRecordReader : IInsertDataReader
             _columns = new string[dataRecord.FieldCount];
         }
 
-        for (int i = 0; i < dataRecord.FieldCount; i++)
+        for (var i = 0; i < dataRecord.FieldCount; i++)
         {
             if (firstRow)
                 _columns[i] = dataRecord.GetName(i);

@@ -84,7 +84,7 @@ internal class BiDictionary<TKey, TValue> : IReadOnlyBiDictionary<TKey, TValue>
 
     public bool TryGetValue(TValue value, [NotNullWhen(true)] out TValue? foundValue)
     {
-        if (_entryToKey.TryGetValue(value, out var key))
+        if (_entryToKey.TryGetValue(value, out TKey? key))
         {
             foundValue = _keyToValue[key];
             return true;

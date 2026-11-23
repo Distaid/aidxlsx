@@ -106,7 +106,7 @@ internal static partial class PivotTableXml
         xml.WriteAttribute("firstDataRow", pt.FirstDataRow);
         xml.WriteAttribute("firstDataCol", pt.FirstDataCol);
 
-        var (Width, Height) = pt.Filters.GetSize();
+        (var Width, var Height) = pt.Filters.GetSize();
         xml.WriteAttributeDefault("rowPageCount", Height, 0);
         xml.WriteAttributeDefault("colPageCount", Width, 0);
         xml.WriteEndElement(); // location
@@ -115,7 +115,7 @@ internal static partial class PivotTableXml
         xml.WriteStartElement("pivotFields", Main2006SsNs);
         xml.WriteAttribute("count", pt.PivotFields.Count);
 
-        foreach (var pf in pt.PivotFields)
+        foreach (XlsxPivotTableField? pf in pt.PivotFields)
         {
             xml.WriteStartElement("pivotField", Main2006SsNs);
             xml.WriteAttributeOptional("name", pf.Name);
@@ -189,7 +189,7 @@ internal static partial class PivotTableXml
             {
                 xml.WriteStartElement("items", Main2006SsNs);
                 xml.WriteAttribute("count", pf.Items.Count);
-                foreach (var pfItem in pf.Items)
+                foreach (XlsxPivotFieldItem pfItem in pf.Items)
                 {
                     xml.WriteStartElement("item", Main2006SsNs);
                     xml.WriteAttributeOptional("n", pfItem.ItemUserCaption);
@@ -236,12 +236,12 @@ internal static partial class PivotTableXml
         WriteAxis(xml, pt.RowAxis, "rowFields", "rowItems");
         WriteAxis(xml, pt.ColumnAxis, "colFields", "colItems");
 
-        var filterFields = pt.Filters.Fields;
+        IReadOnlyList<XlsxPivotPageField> filterFields = pt.Filters.Fields;
         if (filterFields.Count > 0)
         {
             xml.WriteStartElement("pageFields", Main2006SsNs);
             xml.WriteAttribute("count", filterFields.Count);
-            foreach (var filterField in filterFields)
+            foreach (XlsxPivotPageField filterField in filterFields)
             {
                 xml.WriteStartElement("pageField", Main2006SsNs);
                 xml.WriteAttribute("fld", filterField.Field);
@@ -259,7 +259,7 @@ internal static partial class PivotTableXml
         {
             xml.WriteStartElement("dataFields", Main2006SsNs);
             xml.WriteAttribute("count", pt.DataFields.Count);
-            foreach (var dataField in pt.DataFields)
+            foreach (XlsxPivotDataField dataField in pt.DataFields)
             {
                 xml.WriteStartElement("dataField", Main2006SsNs);
                 xml.WriteAttributeOptional("name", dataField.DataFieldName);
@@ -316,7 +316,7 @@ internal static partial class PivotTableXml
         {
             xml.WriteStartElement("formats", Main2006SsNs);
             xml.WriteAttribute("count", pt.Formats.Count);
-            foreach (var format in pt.Formats)
+            foreach (XlsxPivotFormat? format in pt.Formats)
             {
                 xml.WriteStartElement("format", Main2006SsNs);
                 if (format.Action != XlsxPivotFormatAction.Formatting)
@@ -337,7 +337,7 @@ internal static partial class PivotTableXml
                     xml.WriteAttribute("dxfId", dxfId);
                 }
 
-                var pivotArea = format.PivotArea;
+                XlsxPivotArea pivotArea = format.PivotArea;
                 WritePivotArea(xml, pivotArea);
                 xml.WriteEndElement(); // format
             }
@@ -351,7 +351,7 @@ internal static partial class PivotTableXml
         {
             xml.WriteStartElement("conditionalFormats", Main2006SsNs);
             xml.WriteAttribute("count", pt.ConditionalFormats.Count);
-            foreach (var conditionalFormat in pt.ConditionalFormats)
+            foreach (XlsxPivotConditionalFormat? conditionalFormat in pt.ConditionalFormats)
             {
                 xml.WriteStartElement("conditionalFormat", Main2006SsNs);
                 if (conditionalFormat.Scope != XlsxPivotCfScope.SelectedCells)
@@ -382,7 +382,7 @@ internal static partial class PivotTableXml
                 xml.WriteAttribute("priority", conditionalFormat.Format.Priority);
                 xml.WriteStartElement("pivotAreas", Main2006SsNs);
                 xml.WriteAttribute("count", conditionalFormat.Areas.Count);
-                foreach (var pivotArea in conditionalFormat.Areas)
+                foreach (XlsxPivotArea pivotArea in conditionalFormat.Areas)
                     WritePivotArea(xml, pivotArea);
 
                 xml.WriteEndElement(); // pivotAreas
@@ -441,7 +441,7 @@ internal static partial class PivotTableXml
         {
             xml.WriteStartElement(fieldsElement, Main2006SsNs);
             xml.WriteAttribute("count", axis.Fields.Count);
-            foreach (var axisField in axis.Fields)
+            foreach (FieldIndex axisField in axis.Fields)
             {
                 xml.WriteStartElement("field", Main2006SsNs);
                 xml.WriteAttribute("x", axisField.Value);
@@ -457,7 +457,7 @@ internal static partial class PivotTableXml
             xml.WriteAttribute("count", axis.Items.Count);
 
             IReadOnlyList<int> previous = [];
-            foreach (var axisItem in axis.Items)
+            foreach (XlsxPivotFieldAxisItem axisItem in axis.Items)
             {
                 xml.WriteStartElement("i", Main2006SsNs);
                 if (axisItem.ItemType != XlsxPivotItemType.Data)
@@ -535,7 +535,7 @@ internal static partial class PivotTableXml
         {
             xml.WriteStartElement("references", Main2006SsNs);
             xml.WriteAttribute("count", pivotArea.References.Count);
-            foreach (var reference in pivotArea.References)
+            foreach (XlsxPivotReference reference in pivotArea.References)
             {
                 xml.WriteStartElement("reference", Main2006SsNs);
                 xml.WriteAttributeOptional("field", reference.Field);
@@ -543,7 +543,7 @@ internal static partial class PivotTableXml
                 xml.WriteAttributeDefault("selected", reference.Selected, true);
                 xml.WriteAttributeDefault("byPosition", reference.ByPosition, false);
                 xml.WriteAttributeDefault("relative", reference.Relative, false);
-                var subtotals = reference.Subtotals;
+                HashSet<XlsxSubtotalFunction> subtotals = reference.Subtotals;
                 xml.WriteAttributeDefault("defaultSubtotal", subtotals.Contains(XlsxSubtotalFunction.Automatic), false);
                 xml.WriteAttributeDefault("sumSubtotal", subtotals.Contains(XlsxSubtotalFunction.Sum), false);
                 xml.WriteAttributeDefault("countASubtotal", subtotals.Contains(XlsxSubtotalFunction.Count), false);

@@ -38,7 +38,7 @@ internal class XlsxPivotDataFields : IXlsxPivotValues, IReadOnlyCollection<XlsxP
     public void Clear()
     {
         _fields.Clear();
-        foreach (var field in _fields)
+        foreach (XlsxPivotDataField field in _fields)
             _pivotTable.RemoveFieldFromAxis(field.Field);
     }
 
@@ -54,7 +54,7 @@ internal class XlsxPivotDataFields : IXlsxPivotValues, IReadOnlyCollection<XlsxP
 
     public IXlsxPivotValue Get(string customName)
     {
-        var dataField = _fields.SingleOrDefault(x => XlsxHelper.NameComparer.Equals(x.CustomName, customName)) ?? throw new KeyNotFoundException($"Unable to find data field for '{customName}'.");
+        XlsxPivotDataField dataField = _fields.SingleOrDefault(x => XlsxHelper.NameComparer.Equals(x.CustomName, customName)) ?? throw new KeyNotFoundException($"Unable to find data field for '{customName}'.");
         return dataField;
     }
 
@@ -79,7 +79,7 @@ internal class XlsxPivotDataFields : IXlsxPivotValues, IReadOnlyCollection<XlsxP
         if (index == -1)
             return;
 
-        var dataField = _fields[index];
+        XlsxPivotDataField dataField = _fields[index];
         _pivotTable.RemoveFieldFromAxis(dataField.Field);
         _fields.Remove(dataField);
     }
@@ -98,7 +98,7 @@ internal class XlsxPivotDataFields : IXlsxPivotValues, IReadOnlyCollection<XlsxP
 
     internal XlsxPivotDataField AddField(string sourceName, string? customName)
     {
-        if (!_pivotTable.TryGetSourceNameFieldIndex(sourceName, out var fieldIndex))
+        if (!_pivotTable.TryGetSourceNameFieldIndex(sourceName, out FieldIndex fieldIndex))
         {
             var validNames = string.Join("','", _pivotTable.PivotCache.FieldNames);
             throw new ArgumentOutOfRangeException(nameof(sourceName), $"Field '{sourceName}' is not in the fields of a pivot cache. Should be one of '{validNames}'.");

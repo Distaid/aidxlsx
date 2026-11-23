@@ -77,12 +77,12 @@ internal static class XlsxMath
         return factorial;
     }
 
-    public static Boolean IsEven(Int32 value)
+    public static bool IsEven(int value)
     {
         return Math.Abs(value % 2) == 0;
     }
 
-    public static Boolean IsEven(double value)
+    public static bool IsEven(double value)
     {
         // Check the number doesn't have any fractions and that it is even.
         // Due to rounding after division, only checking for % 2 could fail
@@ -92,12 +92,12 @@ internal static class XlsxMath
         return hasNoFraction && isEven;
     }
 
-    public static Boolean IsOdd(Int32 value)
+    public static bool IsOdd(int value)
     {
         return Math.Abs(value % 2) != 0;
     }
 
-    public static Boolean IsOdd(double value)
+    public static bool IsOdd(double value)
     {
         var hasNoFraction = value % 1 == 0;
         var isOdd = value % 2 != 0;

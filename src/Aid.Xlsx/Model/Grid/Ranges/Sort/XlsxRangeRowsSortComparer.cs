@@ -34,10 +34,10 @@ internal class XlsxRangeRowsSortComparer : IComparer<int>
 
     public int Compare(int rowNumber1, int rowNumber2)
     {
-        foreach (var (columnNumber, comparer) in _columnComparers)
+        foreach ((var columnNumber, XlsxCellValueSortComparer? comparer) in _columnComparers)
         {
-            var row1 = _valueSlice.GetCellValue(new Point(rowNumber1, columnNumber));
-            var row2 = _valueSlice.GetCellValue(new Point(rowNumber2, columnNumber));
+            XlsxCellValue row1 = _valueSlice.GetCellValue(new Point(rowNumber1, columnNumber));
+            XlsxCellValue row2 = _valueSlice.GetCellValue(new Point(rowNumber2, columnNumber));
             var comparison = comparer.Compare(row1, row2);
             if (comparison != 0)
                 return comparison;

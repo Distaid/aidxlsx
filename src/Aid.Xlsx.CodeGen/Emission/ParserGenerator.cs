@@ -62,7 +62,7 @@ public class ParserGenerator(XsdSchema schema, SchemeTypeMap typeMap, string rea
         if (_parseMethods.Count > 0)
             GenerateParseMethod(code, _parseMethods[0]);
 
-        foreach (var parseMethod in _parseMethods[1..])
+        foreach (ParsletName parseMethod in _parseMethods[1..])
         {
             code.EndLine();
             GenerateParseMethod(code, parseMethod);
@@ -74,7 +74,7 @@ public class ParserGenerator(XsdSchema schema, SchemeTypeMap typeMap, string rea
 
     private void GenerateParseMethod(CodeBuilder code, ParsletName parsletName)
     {
-        if (!_schema.TryGetParslet(parsletName, out var parslet))
+        if (!_schema.TryGetParslet(parsletName, out IParslet? parslet))
             throw new InvalidOperationException($"Unable to find definition for '{parsletName.Value}'. Was it part of the XSD file?");
 
         parslet.GenerateParseMethod(code);

@@ -94,7 +94,7 @@ public sealed class OpcPackage : IDisposable
             return false;
 
         RemoveLinks(Relationships, partName);
-        foreach (var part in _parts.Values)
+        foreach (OpcPart part in _parts.Values)
             RemoveLinks(part.Relationships, partName);
         return true;
     }
@@ -114,12 +114,12 @@ public sealed class OpcPackage : IDisposable
             { OpcPartName.ContentTypesEntry, stream => OpcMetadata.WriteContentTypes(stream, defaults, overrides) }
         };
         AddRelationshipEntry(null, Relationships);
-        foreach (var part in _parts.Values)
+        foreach (OpcPart part in _parts.Values)
         {
             DeclareContentType(part.PartName, part.ContentType);
             entries.Add(part.PartName[1..], destinationPart =>
             {
-                using var sourcePart = part.OpenRead();
+                using Stream sourcePart = part.OpenRead();
                 sourcePart.CopyTo(destinationPart);
             });
             AddRelationshipEntry(part.PartName, part.Relationships);
@@ -132,12 +132,12 @@ public sealed class OpcPackage : IDisposable
         }
 
         using var zip = new ZipArchive(destination, ZipArchiveMode.Create, leaveOpen: true);
-        foreach (var (name, write) in entries)
+        foreach ((var name, Action<Stream>? write) in entries)
         {
-            var entry = zip.CreateEntry(name, CompressionLevel.Optimal);
+            ZipArchiveEntry entry = zip.CreateEntry(name, CompressionLevel.Optimal);
             entry.LastWriteTime = ZipEpoch;
             entry.ExternalAttributes = 0;
-            using var contents = entry.Open();
+            using Stream contents = entry.Open();
             write(contents);
         }
 
@@ -174,7 +174,7 @@ public sealed class OpcPackage : IDisposable
 
         var entries = new Dictionary<string, ZipArchiveEntry>(StringComparer.OrdinalIgnoreCase);
         long totalSize = 0;
-        foreach (var entry in archive.Entries)
+        foreach (ZipArchiveEntry entry in archive.Entries)
         {
             if (entry.Length < 0 || entry.Length > options.MaxUncompressedBytes - totalSize)
                 throw new InvalidDataException("The OPC container exceeds its uncompressed size limit.");
@@ -186,14 +186,14 @@ public sealed class OpcPackage : IDisposable
                 throw new InvalidDataException($"Duplicate OPC entry '{entry.FullName}'.");
         }
 
-        if (!entries.Remove(OpcPartName.ContentTypesEntry, out var contentTypes))
+        if (!entries.Remove(OpcPartName.ContentTypesEntry, out ZipArchiveEntry? contentTypes))
             throw new InvalidDataException("The OPC container is missing [Content_Types].xml.");
 
         var overrides = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         OpcMetadata.ReadContentTypes(contentTypes, options.MaxMetadataCharacters, _defaults, overrides);
 
         var relationshipEntries = new List<(string? Source, ZipArchiveEntry Entry)>();
-        foreach (var (name, entry) in entries)
+        foreach ((var name, ZipArchiveEntry? entry) in entries)
         {
             if (name.EndsWith('/') && entry.Length == 0)
             {
@@ -215,12 +215,12 @@ public sealed class OpcPackage : IDisposable
                 _parts.Add(partName, new OpcPart(this, partName, contentType, entry));
         }
 
-        foreach (var (source, entry) in relationshipEntries)
+        foreach ((var source, ZipArchiveEntry? entry) in relationshipEntries)
         {
-            var relationships = source switch
+            OpcRelationshipCollection relationships = source switch
             {
                 null => Relationships,
-                _ when _parts.TryGetValue(source, out var part) => part.Relationships,
+                _ when _parts.TryGetValue(source, out OpcPart? part) => part.Relationships,
                 _ => throw new InvalidDataException($"OPC relationship source '{source}' does not exist."),
             };
             OpcMetadata.ReadRelationships(entry, options.MaxMetadataCharacters, relationships);
@@ -235,7 +235,7 @@ public sealed class OpcPackage : IDisposable
 
     private static void RemoveLinks(OpcRelationshipCollection relationships, string partName)
     {
-        foreach (var relationship in relationships.Where(relationship => string.Equals(partName, relationship.TargetPartName, StringComparison.OrdinalIgnoreCase)).ToList())
+        foreach (OpcRelationship? relationship in relationships.Where(relationship => string.Equals(partName, relationship.TargetPartName, StringComparison.OrdinalIgnoreCase)).ToList())
             relationships.Remove(relationship.Id);
     }
 }

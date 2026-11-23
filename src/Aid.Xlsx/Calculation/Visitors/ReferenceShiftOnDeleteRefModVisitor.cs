@@ -31,7 +31,7 @@ internal class ReferenceShiftOnDeleteRefModVisitor(SheetArea deletedBookArea, Xl
             return TransformedSymbol.CopyOriginal(ctx.Formula, range);
 
         var wouldSplitArea = _shift == XlsxShiftDeletedCells.ShiftCellsUp
-            ? !referenceToShift.TryDeleteAndShiftUp(_deletedBookArea.Area, out var shiftedReference)
+            ? !referenceToShift.TryDeleteAndShiftUp(_deletedBookArea.Area, out ReferenceArea? shiftedReference)
             : !referenceToShift.TryDeleteAndShiftLeft(_deletedBookArea.Area, out shiftedReference);
 
         // Return original reference if the shift would cause a split

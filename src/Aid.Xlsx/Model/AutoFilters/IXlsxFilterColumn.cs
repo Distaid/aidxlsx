@@ -127,10 +127,10 @@ public interface IXlsxFilterColumn
     IXlsxFilteredColumn AddDateGroupFilter(DateTime date, XlsxDateTimeGrouping dateTimeGrouping, bool reapply = true);
 
     /// <exception cref="ArgumentOutOfRangeException">If <paramref name="value"/> is out of range 1..500.</exception>
-    void Top(Int32 value, XlsxTopBottomType type = XlsxTopBottomType.Items, bool reapply = true);
+    void Top(int value, XlsxTopBottomType type = XlsxTopBottomType.Items, bool reapply = true);
 
     /// <exception cref="ArgumentOutOfRangeException">If <paramref name="value"/> is out of range 1..500.</exception>
-    void Bottom(Int32 value, XlsxTopBottomType type = XlsxTopBottomType.Items, bool reapply = true);
+    void Bottom(int value, XlsxTopBottomType type = XlsxTopBottomType.Items, bool reapply = true);
 
     void AboveAverage(bool reapply = true);
 
@@ -152,17 +152,17 @@ public interface IXlsxFilterColumn
 
     void NotBetween(XlsxCellValue minValue, XlsxCellValue maxValue, bool reapply = true);
 
-    IXlsxFilterConnector BeginsWith(String value, bool reapply = true);
+    IXlsxFilterConnector BeginsWith(string value, bool reapply = true);
 
-    IXlsxFilterConnector NotBeginsWith(String value, bool reapply = true);
+    IXlsxFilterConnector NotBeginsWith(string value, bool reapply = true);
 
-    IXlsxFilterConnector EndsWith(String value, bool reapply = true);
+    IXlsxFilterConnector EndsWith(string value, bool reapply = true);
 
-    IXlsxFilterConnector NotEndsWith(String value, bool reapply = true);
+    IXlsxFilterConnector NotEndsWith(string value, bool reapply = true);
 
-    IXlsxFilterConnector Contains(String value, bool reapply = true);
+    IXlsxFilterConnector Contains(string value, bool reapply = true);
 
-    IXlsxFilterConnector NotContains(String value, bool reapply = true);
+    IXlsxFilterConnector NotContains(string value, bool reapply = true);
 
     /// <summary>
     /// Current filter type used by the filter columns.
@@ -176,7 +176,7 @@ public interface IXlsxFilterColumn
     /// <remarks>
     /// Returns undefined value, if <see cref="FilterType"/> is not <see cref="XlsxFilterType.TopBottom"/>.
     /// </remarks>
-    Int32 TopBottomValue { get; }
+    int TopBottomValue { get; }
 
     /// <summary>
     /// Configuration of a <see cref="XlsxFilterType.TopBottom"/> filter. It contains the content
@@ -214,5 +214,5 @@ public interface IXlsxFilterColumn
     /// <remarks>
     /// Returns undefined value, if <see cref="FilterType"/> is not <see cref="XlsxFilterType.Dynamic"/>.
     /// </remarks>
-    Double DynamicValue { get; }
+    double DynamicValue { get; }
 }

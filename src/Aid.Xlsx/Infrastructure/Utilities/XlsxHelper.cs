@@ -20,9 +20,9 @@ public static partial class XlsxHelper
     public const int MinColumnNumber = 1;
     public const int MaxRowNumber = 1048576;
     public const int MaxColumnNumber = 16384;
-    public const String MaxColumnLetter = "XFD";
+    public const string MaxColumnLetter = "XFD";
     public const string LastSheetAddress = "XFD1048576";
-    public const Double Epsilon = 1e-10;
+    public const double Epsilon = 1e-10;
 
     internal const string RefError = "#REF!";
 
@@ -43,7 +43,7 @@ public static partial class XlsxHelper
     private static readonly char[] sourceArray = ['C', 'R'];
     public static Encoding NoBomUTF8 = new UTF8Encoding(false);
 
-    public static String LastCell { get { return $"{MaxColumnLetter}{MaxRowNumber}"; } }
+    public static string LastCell { get { return $"{MaxColumnLetter}{MaxRowNumber}"; } }
 
     internal static readonly NumberStyles NumberStyle = NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign | NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite | NumberStyles.AllowExponent;
     internal static readonly CultureInfo ParseCulture = CultureInfo.InvariantCulture;
@@ -82,7 +82,7 @@ public static partial class XlsxHelper
     {
         allLetters = new string[XlsxHelper.MaxColumnNumber];
         letterIndexes = new Dictionary<string, int>(XlsxHelper.MaxColumnNumber, StringComparer.Create(ParseCulture, true));
-        for (int i = 0; i < XlsxHelper.MaxColumnNumber; i++)
+        for (var i = 0; i < XlsxHelper.MaxColumnNumber; i++)
         {
             string letter;
             if (i < 26)
@@ -107,7 +107,7 @@ public static partial class XlsxHelper
         //Extra check because we allow users to pass row col positions in as strings
         if (columnLetter[0] <= '9')
         {
-            return Int32.Parse(columnLetter, XlsxHelper.NumberStyle, XlsxHelper.ParseCulture);
+            return int.Parse(columnLetter, XlsxHelper.NumberStyle, XlsxHelper.ParseCulture);
         }
 
         if (letterIndexes.TryGetValue(columnLetter, out var retVal))
@@ -144,7 +144,7 @@ public static partial class XlsxHelper
 
     public static bool IsValidColumn(string column)
     {
-        if (String.IsNullOrWhiteSpace(column))
+        if (string.IsNullOrWhiteSpace(column))
             return false;
         var length = column.Length;
         if (length > 3)
@@ -175,14 +175,14 @@ public static partial class XlsxHelper
 
     public static bool IsValidRow(string rowString)
     {
-        if (Int32.TryParse(rowString, out int row))
+        if (int.TryParse(rowString, out var row))
             return row > 0 && row <= MaxRowNumber;
         return false;
     }
 
     public static bool IsValidA1Address(string address)
     {
-        if (String.IsNullOrWhiteSpace(address))
+        if (string.IsNullOrWhiteSpace(address))
             return false;
 
         address = address.Replace("$", "");
@@ -199,21 +199,21 @@ public static partial class XlsxHelper
 
     public static bool IsValidRCAddress(string address)
     {
-        if (String.IsNullOrWhiteSpace(address))
+        if (string.IsNullOrWhiteSpace(address))
             return false;
 
         return RCSimpleRegex.IsMatch(address);
     }
 
-    public static Boolean IsValidRangeAddress(String rangeAddress)
+    public static bool IsValidRangeAddress(string rangeAddress)
     {
-        if (String.IsNullOrWhiteSpace(rangeAddress))
+        if (string.IsNullOrWhiteSpace(rangeAddress))
             return false;
 
         return A1SimpleRegex.IsMatch(rangeAddress);
     }
 
-    public static Boolean IsValidRangeAddress(IXlsxRangeAddress rangeAddress)
+    public static bool IsValidRangeAddress(IXlsxRangeAddress rangeAddress)
     {
         return rangeAddress.IsValid
                && rangeAddress.FirstAddress.RowNumber >= 1 && rangeAddress.LastAddress.RowNumber <= MaxRowNumber
@@ -237,12 +237,12 @@ public static partial class XlsxHelper
     }
 
     internal static IXlsxTableRows InsertRowsWithoutEvents(Func<int, bool, IXlsxRangeRows> insertFunc,
-                                                         XlsxTableRange tableRange, Int32 numberOfRows,
-                                                         Boolean expandTable)
+                                                         XlsxTableRange tableRange, int numberOfRows,
+                                                         bool expandTable)
     {
-        var ws = tableRange.Worksheet;
+        XlsxWorksheet ws = tableRange.Worksheet;
         var rows = new XlsxTableRows(ws);
-        var inserted = insertFunc(numberOfRows, false);
+        IXlsxRangeRows inserted = insertFunc(numberOfRows, false);
         inserted.ForEach(r => rows.Add(new XlsxTableRow(tableRange, (XlsxRangeRow)r)));
 
         if (expandTable)
@@ -254,7 +254,7 @@ public static partial class XlsxHelper
     [GeneratedRegex(@"(?<=\W)(?<one>\$?[a-zA-Z]{1,3}\$?\d{1,7})(?=\W)|(?<=\W)(?<two>\$?\d{1,7}:\$?\d{1,7})(?=\W)|(?<=\W)(?<three>\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})(?=\W)", RegexOptions.Compiled)]
     private static partial Regex A1RegexRelative { get; }
 
-    private static string Evaluator(Match match, Int32 row, String column)
+    private static string Evaluator(Match match, int row, string column)
     {
         if (match.Groups["one"].Success)
         {
@@ -272,27 +272,27 @@ public static partial class XlsxHelper
         return ReplaceGroup(match.Groups["three"].Value, column);
     }
 
-    private static String ReplaceGroup(String value, String item)
+    private static string ReplaceGroup(string value, string item)
     {
         var split = value.Split(':');
-        String ret1 = split[0].StartsWith('$') ? split[0] : item;
-        String ret2 = split[1].StartsWith('$') ? split[1] : item;
+        var ret1 = split[0].StartsWith('$') ? split[0] : item;
+        var ret2 = split[1].StartsWith('$') ? split[1] : item;
         return ret1 + ":" + ret2;
     }
 
-    internal static String ReplaceRelative(String value, Int32 row, String column)
+    internal static string ReplaceRelative(string value, int row, string column)
     {
         var oldValue = ">" + value + "<";
         var newVal = A1RegexRelative.Replace(oldValue, m => Evaluator(m, row, column));
         return newVal[1..^1];
     }
 
-    public static Boolean AreEqual(Double d1, Double d2)
+    public static bool AreEqual(double d1, double d2)
     {
         return Math.Abs(d1 - d2) < Epsilon;
     }
 
-    public static DateTime GetDate(Object v)
+    public static DateTime GetDate(object v)
     {
         // handle dates
         if (v is DateTime dateTime)
@@ -339,7 +339,7 @@ public static partial class XlsxHelper
         return TimeSpan.FromTicks(checked((long)ticks));
     }
 
-    internal static Boolean ValidateName(String objectType, String newName, String oldName, IEnumerable<String> existingNames, out String message)
+    internal static bool ValidateName(string objectType, string newName, string oldName, IEnumerable<string> existingNames, out string message)
     {
         if (!ValidateName(objectType, newName, out message))
             return false;
@@ -355,10 +355,10 @@ public static partial class XlsxHelper
         return true;
     }
 
-    internal static Boolean ValidateName(String objectType, String newName, out String message)
+    internal static bool ValidateName(string objectType, string newName, out string message)
     {
         message = "";
-        if (String.IsNullOrWhiteSpace(newName))
+        if (string.IsNullOrWhiteSpace(newName))
         {
             message = $"The {objectType} name '{newName}' is invalid";
             return false;
@@ -480,16 +480,16 @@ public static partial class XlsxHelper
     internal static double CalculateColumnWidth(double charWidth, IXlsxFontBase font, XlsxWorkbook workbook)
     {
         // Convert width as a number of characters and translate it into a given number of pixels.
-        int mdw = workbook.GraphicEngine.GetMaxDigitWidth(font, workbook.DpiX).RoundToInt();
-        int defaultColWidthPx = NoCToPixels(charWidth, mdw).RoundToInt();
+        var mdw = workbook.GraphicEngine.GetMaxDigitWidth(font, workbook.DpiX).RoundToInt();
+        var defaultColWidthPx = NoCToPixels(charWidth, mdw).RoundToInt();
 
         // Excel then rounds this number up to the nearest multiple of 8 pixels, so that
         // scrolling across columns and rows is faster.
-        int roundUpToMultiple = defaultColWidthPx + (8 - defaultColWidthPx % 8);
+        var roundUpToMultiple = defaultColWidthPx + (8 - defaultColWidthPx % 8);
 
         // and last convert the width in pixels to width displayed in Excel. Shouldn't round the number, because
         // it causes inconsistency with conversion to other units, but other places in the code do it, so keep for now.
-        double defaultColumnWidth = PixelToNoC(roundUpToMultiple, mdw).Round(2);
+        var defaultColumnWidth = PixelToNoC(roundUpToMultiple, mdw).Round(2);
         return defaultColumnWidth;
     }
 }

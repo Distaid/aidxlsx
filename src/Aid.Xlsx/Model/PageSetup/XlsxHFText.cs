@@ -15,9 +15,9 @@ internal class XlsxHFText(XlsxRichString richText, XlsxHFItem hfItem)
 
     public XlsxRichString RichText { get; private set; } = richText;
 
-    public String GetHFText(String prevText)
+    public string GetHFText(string prevText)
     {
-        var wsFont = _hfItem.HeaderFooter.Worksheet.Style.Font;
+        IXlsxFont wsFont = _hfItem.HeaderFooter.Worksheet.Style.Font;
 
         var isRichText = RichText.FontName != null && RichText.FontName != wsFont.FontName
                          || RichText.Bold != wsFont.Bold

@@ -26,8 +26,8 @@ internal sealed partial class XlsxFillCellFormat(XlsxCellFormat parent)
         get => _parent.Resolve(static x => (x.Fill.Pattern ?? PatternNone).BackgroundColor);
         set => _parent.ModifyFill(static (fill, bgColor) =>
         {
-            var currentPattern = fill.Pattern ?? PatternNone;
-            var newPattern = currentPattern.WithModifiedBgColor(bgColor);
+            XlsxPatternFill currentPattern = fill.Pattern ?? PatternNone;
+            XlsxPatternFill newPattern = currentPattern.WithModifiedBgColor(bgColor);
             return new XlsxFillFormatValue(newPattern);
         }, value);
     }
@@ -37,7 +37,7 @@ internal sealed partial class XlsxFillCellFormat(XlsxCellFormat parent)
         get => _parent.Resolve(x => (x.Fill.Pattern ?? PatternNone).PatternColor);
         set => _parent.ModifyFill((fill, patternColor) =>
         {
-            var pattern = fill.Pattern ?? PatternNone;
+            XlsxPatternFill pattern = fill.Pattern ?? PatternNone;
             return new XlsxFillFormatValue(pattern with { PatternColor = patternColor });
         }, value);
     }
@@ -47,8 +47,8 @@ internal sealed partial class XlsxFillCellFormat(XlsxCellFormat parent)
         get => _parent.Resolve(static x => (x.Fill.Pattern ?? PatternNone).PatternType);
         set => _parent.ModifyFill(static (fill, patternType) =>
         {
-            var pattern = fill.Pattern ?? PatternNone;
-            var newPattern = pattern.WithModifiedPattern(patternType);
+            XlsxPatternFill pattern = fill.Pattern ?? PatternNone;
+            XlsxPatternFill newPattern = pattern.WithModifiedPattern(patternType);
             return new XlsxFillFormatValue(newPattern);
         }, value);
     }

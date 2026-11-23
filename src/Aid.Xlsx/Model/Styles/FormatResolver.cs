@@ -25,13 +25,13 @@ internal class FormatResolver(XlsxWorksheet worksheet)
     /// <returns>A format that is already registered in the styles.</returns>
     public XlsxCellFormatValue Resolve(Point point)
     {
-        if (_rows.TryGetValue(point.Row, out var row) &&
+        if (_rows.TryGetValue(point.Row, out XlsxRow? row) &&
             row.FormatValue is { } rowFormat)
         {
             return rowFormat;
         }
 
-        if (_columns.TryGetValue(point.Column, out var column) &&
+        if (_columns.TryGetValue(point.Column, out XlsxColumn? column) &&
             column.FormatValue is { } columnFormat)
         {
             return columnFormat;

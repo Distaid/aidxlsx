@@ -13,7 +13,7 @@ internal static class CalculationChainPartWriter
 
     internal static XDocument? GenerateContent(Stream? existing, XlsxWorkbook workbook)
     {
-        var document = existing is null ? null : XDocumentExtensions.Load(existing);
+        XDocument? document = existing is null ? null : XDocumentExtensions.Load(existing);
         if (document?.Root is not { } root || root.Name != Spreadsheet + "calcChain")
         {
             root = new XElement(Spreadsheet + "calcChain");
@@ -24,14 +24,14 @@ internal static class CalculationChainPartWriter
             root.Attribute("xmlns")!.Remove();
         root.SetAttributeValue(XNamespace.Xmlns + "x", Spreadsheet.NamespaceName);
         root.Elements(Spreadsheet + "c").Remove();
-        var cells = workbook.WorksheetsInternal.Cast<XlsxWorksheet>().SelectMany(GetCalculationCells);
+        IEnumerable<XElement> cells = workbook.WorksheetsInternal.Cast<XlsxWorksheet>().SelectMany(GetCalculationCells);
         root.AddFirst(cells);
         return root.HasElements ? document : null;
     }
 
     private static IEnumerable<XElement> GetCalculationCells(XlsxWorksheet sheet)
     {
-        foreach (var cell in sheet.Internals.CellsCollection.GetCells(c => c.HasFormula))
+        foreach (XlsxCell cell in sheet.Internals.CellsCollection.GetCells(c => c.HasFormula))
         {
             // Excel does not generate calculation-chain entries for data tables.
             if (cell.Formula.Type == FormulaType.DataTable)
@@ -47,11 +47,11 @@ internal static class CalculationChainPartWriter
             if (!cell.FormulaReference.FirstAddress.Equals(cell.Address))
                 continue;
 
-            var anchor = CreateEntry(cell, sheet.SheetId);
+            XElement anchor = CreateEntry(cell, sheet.SheetId);
             anchor.Add(new XAttribute("a", "1"));
             yield return anchor;
 
-            foreach (var child in sheet.Range(cell.FormulaReference).Cells())
+            foreach (IXlsxCell? child in sheet.Range(cell.FormulaReference).Cells())
                 yield return CreateEntry(child, sheet.SheetId);
         }
     }

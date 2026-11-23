@@ -36,7 +36,7 @@ internal class ReferenceShiftOnInsertRefModVisitor : CopyVisitor
             return TransformedSymbol.CopyOriginal(ctx.Formula, range);
 
         var wouldSplitArea = _shiftDown
-            ? !referenceToShift.TryInsertAndShiftDown(_insertedBookArea.Area, out var shiftedReference)
+            ? !referenceToShift.TryInsertAndShiftDown(_insertedBookArea.Area, out ReferenceArea? shiftedReference)
             : !referenceToShift.TryInsertAndShiftRight(_insertedBookArea.Area, out shiftedReference);
 
         // Return original reference if the shift would cause a split

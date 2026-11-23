@@ -23,7 +23,7 @@ internal static class TokenParser
         // Parse optional WORKBOOK_INDEX
         input = ExtractWorkbookIndex(input, out index);
 
-        var sheetRangeSpan = input;
+        ReadOnlySpan<char> sheetRangeSpan = input;
         if (!isEscaped)
         {
             // SHEET_NAME
@@ -48,7 +48,7 @@ internal static class TokenParser
         // Parse optional WORKBOOK_INDEX
         input = ExtractWorkbookIndex(input, out index);
 
-        var sheetRangeSpan = input;
+        ReadOnlySpan<char> sheetRangeSpan = input;
         if (!isEscaped)
         {
             // SHEET_NAME ':' SHEET_NAME
@@ -129,7 +129,7 @@ internal static class TokenParser
         var endPosition = functionNameWithBrace[^1] == '('
             ? functionNameWithBrace.Length - 1
             : functionNameWithBrace.LastIndexOf('(');
-        var functionName = functionNameWithBrace[..endPosition];
+        ReadOnlySpan<char> functionName = functionNameWithBrace[..endPosition];
         return functionName;
     }
 
@@ -145,14 +145,14 @@ internal static class TokenParser
     private static ReferenceArea ParseR1C1Reference(ReadOnlySpan<char> token)
     {
         var i = 0;
-        var rowCol1 = ParseR1C1Reference(token, ref i);
+        RowCol rowCol1 = ParseR1C1Reference(token, ref i);
         if (i == token.Length)
             return new ReferenceArea(rowCol1, rowCol1);
 
         if (token[i++] != ':')
             throw Bug();
 
-        var rowCol2 = ParseR1C1Reference(token, ref i);
+        RowCol rowCol2 = ParseR1C1Reference(token, ref i);
         return new ReferenceArea(rowCol1, rowCol2);
     }
 
@@ -161,7 +161,7 @@ internal static class TokenParser
         if (token[i] is 'C' or 'c')
         {
             // Token is COLUMN. ROW must be after column, so there can't be one.
-            var loneCol = ReadR1C1Axis(token, ref i);
+            (ReferenceAxisType Type, int Value) loneCol = ReadR1C1Axis(token, ref i);
             return new RowCol(None, 0, loneCol.Type, loneCol.Value, R1C1);
         }
 
@@ -169,14 +169,14 @@ internal static class TokenParser
         if (token[i] is not ('R' or 'r'))
             throw Bug();
 
-        var row = ReadR1C1Axis(token, ref i);
+        (ReferenceAxisType Type, int Value) row = ReadR1C1Axis(token, ref i);
 
         // Token is ROW. Either it has ended or it is followed by :
         if (i == token.Length || token[i] is not ('C' or 'c'))
             return new RowCol(row.Type, row.Value, None, 0, R1C1);
 
         // Token is ROW COLUMN
-        var col = ReadR1C1Axis(token, ref i);
+        (ReferenceAxisType Type, int Value) col = ReadR1C1Axis(token, ref i);
         return new RowCol(row.Type, row.Value, col.Type, col.Value, R1C1);
     }
 
@@ -293,7 +293,7 @@ internal static class TokenParser
 
         // A1_AREA
         i++; // Skip ':'
-        var secondCell = ReadA1Cell(input, ref i);
+        RowCol secondCell = ReadA1Cell(input, ref i);
         return new ReferenceArea(cell, secondCell);
     }
 
@@ -393,7 +393,7 @@ internal static class TokenParser
         if (input[i + 1] == '#')
         {
             // Inner reference contains a keyword.
-            var listItem = GetArea(input, ++i);
+            StructuredReferenceArea listItem = GetArea(input, ++i);
             i += GetLength(listItem) + 1;
             area |= listItem;
 
@@ -405,7 +405,7 @@ internal static class TokenParser
             // Item is a keyword list, either
             // * '[#Headers]' SPACED_COMMA '[#Data]'
             // * '[#Data]' SPACED_COMMA '[#Totals]'
-            var listItem = GetArea(input, ++i);
+            StructuredReferenceArea listItem = GetArea(input, ++i);
             i += GetLength(listItem) + 1;
             area |= listItem;
 
@@ -470,7 +470,7 @@ internal static class TokenParser
     private static StructuredReferenceArea GetArea(ReadOnlySpan<char> input, int i)
     {
         // Tokenizer has taken care that input can contain only valid values = only first two chars is enough.
-        var item = input[i + 1] switch
+        StructuredReferenceArea item = input[i + 1] switch
         {
             'A' => StructuredReferenceArea.All,
             'a' => StructuredReferenceArea.All,

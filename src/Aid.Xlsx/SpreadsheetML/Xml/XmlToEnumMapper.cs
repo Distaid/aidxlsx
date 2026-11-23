@@ -29,14 +29,14 @@ internal sealed class XmlToEnumMapper : IEnumMapper
     public bool TryGetEnum<TEnum>(string text, out TEnum enumValue)
         where TEnum : struct, Enum
     {
-        var enumMap = GetEnumMap<TEnum>();
+        BiDictionary<string, TEnum> enumMap = GetEnumMap<TEnum>();
         return enumMap.KeyToValue.TryGetValue(text, out enumValue);
     }
 
     public bool TryGetText<TEnum>(TEnum enumValue, [MaybeNullWhen(false)] out string text)
         where TEnum : struct, Enum
     {
-        var enumMap = GetEnumMap<TEnum>();
+        BiDictionary<string, TEnum> enumMap = GetEnumMap<TEnum>();
         return enumMap.ValueToKey.TryGetValue(enumValue, out text);
     }
 

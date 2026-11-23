@@ -31,7 +31,7 @@ public static class ReferenceParser
         ArgumentNullException.ThrowIfNull(text);
 
         sheetName = null;
-        var tokens = RolexLexer.GetTokensA1(text.AsSpan());
+        List<Token> tokens = RolexLexer.GetTokensA1(text.AsSpan());
         if (TryParseA1(tokens, text, out area))
             return true;
 
@@ -58,7 +58,7 @@ public static class ReferenceParser
     {
         ArgumentNullException.ThrowIfNull(text);
 
-        var tokens = RolexLexer.GetTokensA1(text.AsSpan());
+        List<Token> tokens = RolexLexer.GetTokensA1(text.AsSpan());
         return TryParseA1(tokens, text, out area);
     }
 
@@ -75,7 +75,7 @@ public static class ReferenceParser
     /// <exception cref="ParsingException">Invalid input.</exception>
     public static ReferenceArea ParseA1(string text)
     {
-        if (!TryParseA1(text, out var area))
+        if (!TryParseA1(text, out ReferenceArea area))
             throw new ParsingException($"Unable to parse '{text}'.");
 
         return area;
@@ -102,7 +102,7 @@ public static class ReferenceParser
     {
         ArgumentNullException.ThrowIfNull(text);
 
-        var tokens = RolexLexer.GetTokensA1(text.AsSpan());
+        List<Token> tokens = RolexLexer.GetTokensA1(text.AsSpan());
         return TryParseSheetA1(tokens, text, out sheetName, out area);
     }
 
@@ -121,7 +121,7 @@ public static class ReferenceParser
     {
         ArgumentNullException.ThrowIfNull(text);
 
-        var tokens = RolexLexer.GetTokensA1(text.AsSpan());
+        List<Token> tokens = RolexLexer.GetTokensA1(text.AsSpan());
         if (tokens.Count == 2 &&
             tokens[0].SymbolId == Token.NAME &&
             tokens[1].SymbolId == Token.EofSymbolId)
@@ -146,7 +146,7 @@ public static class ReferenceParser
     {
         ArgumentNullException.ThrowIfNull(text);
 
-        var tokens = RolexLexer.GetTokensA1(text.AsSpan());
+        List<Token> tokens = RolexLexer.GetTokensA1(text.AsSpan());
         return TryParseSheetName(tokens, text, out sheetName, out name);
     }
 
@@ -173,9 +173,9 @@ public static class ReferenceParser
             return false;
         }
 
-        var sheetPrefixToken = tokens[0];
-        var sheetPrefix = text.AsSpan(sheetPrefixToken.StartIndex, sheetPrefixToken.Length);
-        TokenParser.ParseSingleSheetPrefix(sheetPrefix, out int? workbookIndex, out sheetName);
+        Token sheetPrefixToken = tokens[0];
+        ReadOnlySpan<char> sheetPrefix = text.AsSpan(sheetPrefixToken.StartIndex, sheetPrefixToken.Length);
+        TokenParser.ParseSingleSheetPrefix(sheetPrefix, out var workbookIndex, out sheetName);
         if (workbookIndex is not null)
         {
             sheetName = string.Empty;
@@ -191,7 +191,7 @@ public static class ReferenceParser
             return false;
         }
 
-        var referenceArea = text.AsSpan()[sheetPrefixToken.Length..];
+        ReadOnlySpan<char> referenceArea = text.AsSpan()[sheetPrefixToken.Length..];
         area = TokenParser.ParseReference(referenceArea, isA1: true);
         return true;
     }
@@ -230,9 +230,9 @@ public static class ReferenceParser
             return false;
         }
 
-        var sheetPrefixToken = tokens[0];
-        var sheetPrefix = text.AsSpan(sheetPrefixToken.StartIndex, sheetPrefixToken.Length);
-        TokenParser.ParseSingleSheetPrefix(sheetPrefix, out int? workbookIndex, out sheetName);
+        Token sheetPrefixToken = tokens[0];
+        ReadOnlySpan<char> sheetPrefix = text.AsSpan(sheetPrefixToken.StartIndex, sheetPrefixToken.Length);
+        TokenParser.ParseSingleSheetPrefix(sheetPrefix, out var workbookIndex, out sheetName);
         if (workbookIndex is not null)
         {
             sheetName = string.Empty;
@@ -240,7 +240,7 @@ public static class ReferenceParser
             return false;
         }
 
-        var nameToken = tokens[1];
+        Token nameToken = tokens[1];
         name = text.AsSpan().Slice(nameToken.StartIndex, nameToken.Length).ToString();
         return true;
     }

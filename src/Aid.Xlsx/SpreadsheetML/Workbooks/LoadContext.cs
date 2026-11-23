@@ -14,7 +14,7 @@ internal class LoadContext
 
     internal void AddPivotTableCf(string sheetName, XlsxConditionalFormat conditionalFormat)
     {
-        if (!_pivotCfs.TryGetValue(sheetName, out var list))
+        if (!_pivotCfs.TryGetValue(sheetName, out List<XlsxConditionalFormat>? list))
         {
             list = [];
             _pivotCfs[sheetName] = list;
@@ -25,10 +25,10 @@ internal class LoadContext
 
     internal XlsxConditionalFormat GetPivotCf(string sheetName, int priority)
     {
-        if (!_pivotCfs.TryGetValue(sheetName, out var list))
+        if (!_pivotCfs.TryGetValue(sheetName, out List<XlsxConditionalFormat>? list))
             throw PivotCfNotFoundException(sheetName, priority);
 
-        var pivotCf = list.SingleOrDefault(x => x.Priority == priority) ?? throw PivotCfNotFoundException(sheetName, priority);
+        XlsxConditionalFormat pivotCf = list.SingleOrDefault(x => x.Priority == priority) ?? throw PivotCfNotFoundException(sheetName, priority);
         return pivotCf;
     }
 

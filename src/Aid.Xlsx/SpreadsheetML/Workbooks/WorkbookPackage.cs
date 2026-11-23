@@ -21,7 +21,7 @@ internal sealed partial class WorkbookPackage(OpcPackage package)
 
     internal OpcPart AddPart(OpcPart source, string id, string type)
     {
-        var (name, contentType, numbered) = type switch
+        (var name, var contentType, var numbered) = type switch
         {
             "worksheet" => ("/xl/worksheets/sheet.xml", SpreadsheetContentType + "worksheet+xml", true),
             "styles" => ("/xl/styles.xml", SpreadsheetContentType + "styles+xml", false),
@@ -43,7 +43,7 @@ internal sealed partial class WorkbookPackage(OpcPackage package)
 
     internal OpcPart AddImage(OpcPart source, string id, XlsxPictureFormat format)
     {
-        var (extension, contentType) = format switch
+        (var extension, var contentType) = format switch
         {
             XlsxPictureFormat.Bmp => (".bmp", "image/bmp"),
             XlsxPictureFormat.Gif => (".gif", "image/gif"),
@@ -62,7 +62,7 @@ internal sealed partial class WorkbookPackage(OpcPackage package)
 
     internal static void Link(OpcPart source, string id, string type, OpcPart target)
     {
-        var relativeUri = new Uri("https://package.invalid" + source.PartName)
+        Uri relativeUri = new Uri("https://package.invalid" + source.PartName)
             .MakeRelativeUri(new Uri("https://package.invalid" + target.PartName));
         source.Relationships.Add(id, TransitionalRelationships + type, relativeUri.OriginalString);
     }
@@ -72,7 +72,7 @@ internal sealed partial class WorkbookPackage(OpcPackage package)
 
     internal void Unlink(OpcPart source, string id)
     {
-        if (!source.Relationships.TryGet(id, out var relationship))
+        if (!source.Relationships.TryGet(id, out OpcRelationship? relationship))
             return;
 
         source.Relationships.Remove(id);
@@ -82,26 +82,26 @@ internal sealed partial class WorkbookPackage(OpcPackage package)
         var candidates = new HashSet<OpcPart>();
         var pending = new Stack<OpcPart>();
         pending.Push(target);
-        while (pending.TryPop(out var candidate))
+        while (pending.TryPop(out OpcPart? candidate))
         {
             if (!candidates.Add(candidate))
                 continue;
 
-            foreach (var child in candidate.Relationships)
+            foreach (OpcRelationship child in candidate.Relationships)
                 if (IsManagedChild(child) && Resolve(child) is { } childPart)
                     pending.Push(childPart);
         }
 
         // A part linked by any surviving source remains shared, together with its descendants.
-        foreach (var rootRelationship in package.Relationships)
+        foreach (OpcRelationship rootRelationship in package.Relationships)
             KeepTargets(rootRelationship);
 
-        foreach (var part in package.Parts.Values)
+        foreach (OpcPart part in package.Parts.Values)
             if (!candidates.Contains(part))
-                foreach (var child in part.Relationships)
+                foreach (OpcRelationship child in part.Relationships)
                     KeepTargets(child);
 
-        foreach (var part in candidates)
+        foreach (OpcPart part in candidates)
             package.RemovePart(part.PartName);
 
         void KeepTargets(OpcRelationship link)
@@ -109,12 +109,12 @@ internal sealed partial class WorkbookPackage(OpcPackage package)
             if (Resolve(link) is { } linkedPart)
                 pending.Push(linkedPart);
 
-            while (pending.TryPop(out var candidate))
+            while (pending.TryPop(out OpcPart? candidate))
             {
                 if (!candidates.Remove(candidate))
                     continue;
 
-                foreach (var child in candidate.Relationships)
+                foreach (OpcRelationship child in candidate.Relationships)
                     if (Resolve(child) is { } childPart)
                         pending.Push(childPart);
             }
@@ -145,7 +145,7 @@ internal sealed partial class WorkbookPackage(OpcPackage package)
 
         if (isPivot)
             _pivotPartCounts[contentType] = index;
-        var part = package.AddPart(partName, contentType);
+        OpcPart part = package.AddPart(partName, contentType);
         if (source is null)
             package.Relationships.Add(id, TransitionalRelationships + type, partName[1..]);
         else
@@ -163,13 +163,13 @@ internal sealed partial class WorkbookPackage(OpcPackage package)
         RelatedParts(source.Relationships, type);
 
     internal OpcPart? RelatedPart(OpcPart source, string id, string type) =>
-        source.Relationships.TryGet(id, out var relationship) && IsOfficeRelationship(relationship, type)
+        source.Relationships.TryGet(id, out OpcRelationship? relationship) && IsOfficeRelationship(relationship, type)
             ? Resolve(relationship)
             : null;
 
     private IEnumerable<(string Id, OpcPart Part)> RelatedParts(OpcRelationshipCollection relationships, string type)
     {
-        foreach (var relationship in relationships)
+        foreach (OpcRelationship relationship in relationships)
         {
             if (IsOfficeRelationship(relationship, type) && Resolve(relationship) is { } target)
                 yield return (relationship.Id, target);
@@ -177,7 +177,7 @@ internal sealed partial class WorkbookPackage(OpcPackage package)
     }
 
     private OpcPart? Resolve(OpcRelationship relationship) =>
-        relationship.TargetPartName is { } name && package.TryGetPart(name, out var part) ? part : null;
+        relationship.TargetPartName is { } name && package.TryGetPart(name, out OpcPart? part) ? part : null;
 
     private static bool HasType(string qualifiedType, string prefix, string type) =>
         qualifiedType.StartsWith(prefix, StringComparison.Ordinal) && qualifiedType.AsSpan(prefix.Length).SequenceEqual(type);

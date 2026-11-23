@@ -39,7 +39,7 @@ internal class XlsxPivotValueStyleFormat : XlsxPivotStyleFormatBase, IXlsxPivotV
         if (predicate is null)
             return AndWith(field);
 
-        var pivotField = PivotTable.PivotFields[fieldIndex];
+        XlsxPivotTableField pivotField = PivotTable.PivotFields[fieldIndex];
         var filteredItems = pivotField.GetAllItems(predicate)
             .WhereNotNull(fieldItem => fieldItem.ItemIndex)
             .Select(itemIndex => (uint)itemIndex)
@@ -55,7 +55,7 @@ internal class XlsxPivotValueStyleFormat : XlsxPivotStyleFormatBase, IXlsxPivotV
         if (valuesIndex == -1)
             throw new ArgumentOutOfRangeException($"Field '{valueField.CustomName}' is not among value fields of the pivot table.");
 
-        _fieldReferences.Add(new FieldReference(FieldIndex.DataField, new[] { (uint)valuesIndex }));
+        _fieldReferences.Add(new FieldReference(FieldIndex.DataField, [(uint)valuesIndex]));
         return this;
     }
 
@@ -64,7 +64,7 @@ internal class XlsxPivotValueStyleFormat : XlsxPivotStyleFormatBase, IXlsxPivotV
     internal override XlsxPivotArea GetCurrentArea()
     {
         var area = new XlsxPivotArea();
-        foreach (var fieldReference in _fieldReferences)
+        foreach (FieldReference fieldReference in _fieldReferences)
         {
             var reference = new XlsxPivotReference
             {
@@ -84,7 +84,7 @@ internal class XlsxPivotValueStyleFormat : XlsxPivotStyleFormatBase, IXlsxPivotV
 
     internal override bool Filter(XlsxPivotArea area)
     {
-        var currentArea = GetCurrentArea();
+        XlsxPivotArea currentArea = GetCurrentArea();
         return XlsxPivotAreaComparer.Instance.Equals(area, currentArea);
     }
 

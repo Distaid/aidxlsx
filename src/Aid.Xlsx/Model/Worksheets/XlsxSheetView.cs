@@ -30,9 +30,9 @@ internal class XlsxSheetView : IXlsxSheetView
         this.TopLeftCellAddress = new XlsxAddress(this.Worksheet, sheetView.TopLeftCellAddress.RowNumber, sheetView.TopLeftCellAddress.ColumnNumber, sheetView.TopLeftCellAddress.FixedRow, sheetView.TopLeftCellAddress.FixedColumn);
     }
 
-    public Boolean FreezePanes { get; set; }
-    public Int32 SplitColumn { get; set; }
-    public Int32 SplitRow { get; set; }
+    public bool FreezePanes { get; set; }
+    public int SplitColumn { get; set; }
+    public int SplitRow { get; set; }
 
     IXlsxAddress IXlsxSheetView.TopLeftCellAddress { get => TopLeftCellAddress; set => TopLeftCellAddress = (XlsxAddress)value; }
 
@@ -82,20 +82,20 @@ internal class XlsxSheetView : IXlsxSheetView
 
     public int ZoomScaleSheetLayoutView { get; set; }
 
-    public void Freeze(Int32 rows, Int32 columns)
+    public void Freeze(int rows, int columns)
     {
         SplitRow = rows;
         SplitColumn = columns;
         FreezePanes = true;
     }
 
-    public void FreezeColumns(Int32 columns)
+    public void FreezeColumns(int columns)
     {
         SplitColumn = columns;
         FreezePanes = true;
     }
 
-    public void FreezeRows(Int32 rows)
+    public void FreezeRows(int rows)
     {
         SplitRow = rows;
         FreezePanes = true;

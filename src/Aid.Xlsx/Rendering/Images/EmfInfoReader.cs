@@ -29,7 +29,7 @@ internal class EmfInfoReader : ImageInfoReader
     protected override XlsxPictureInfo ReadInfo(Stream stream)
     {
         stream.Position += 24;
-        var frame = ReadRectL(stream);
+        Rectangle frame = ReadRectL(stream);
         return new XlsxPictureInfo(XlsxPictureFormat.Emf, Size.Empty, frame.Size);
     }
 

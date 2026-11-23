@@ -97,8 +97,8 @@ internal partial class XlsxCellFormat : IXlsxStyle
         if (value is not XlsxCellFormat cellFormat)
             throw new NotSupportedException("Can only copy cell format style.");
 
-        var otherCellFormat = cellFormat._formatValue.Resolve();
-        var registeredCellFormat = _workbook.Styles.GetRegisteredCellFormat(otherCellFormat);
+        XlsxCellFormatValue otherCellFormat = cellFormat._formatValue.Resolve();
+        XlsxCellFormatValue registeredCellFormat = _workbook.Styles.GetRegisteredCellFormat(otherCellFormat);
         ModifyFormat((_, cellForamt) => cellForamt, registeredCellFormat);
     }
 }

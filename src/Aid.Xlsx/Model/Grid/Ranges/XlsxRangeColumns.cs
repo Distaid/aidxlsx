@@ -18,7 +18,7 @@ internal class XlsxRangeColumns(XlsxWorksheet worksheet) : IXlsxRangeColumns
     {
         get
         {
-            var columns = _ranges.Select(x => SheetArea.From(x.RangeAddress)).ToArray();
+            SheetArea[] columns = [.. _ranges.Select(x => SheetArea.From(x.RangeAddress))];
             return XlsxCellFormat.ForAreas(_worksheet.Workbook, columns, null);
         }
     }
@@ -88,7 +88,7 @@ internal class XlsxRangeColumns(XlsxWorksheet worksheet) : IXlsxRangeColumns
 
     public void Select()
     {
-        foreach (var range in this)
+        foreach (IXlsxRangeColumn range in this)
             range.Select();
     }
 

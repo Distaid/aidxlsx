@@ -10,13 +10,13 @@ internal class XlsxCFColorScaleMax(XlsxConditionalFormat conditionalFormat) : IX
 {
     private readonly XlsxConditionalFormat _conditionalFormat = conditionalFormat;
 
-    public void Maximum(XlsxCFContentType type, String value, XlsxColor color)
+    public void Maximum(XlsxCFContentType type, string value, XlsxColor color)
     {
         _conditionalFormat.Values.Add(new XlsxFormula { Value = value });
         _conditionalFormat.Colors.Add(color);
         _conditionalFormat.ContentTypes.Add(type);
     }
-    public void Maximum(XlsxCFContentType type, Double value, XlsxColor color)
+    public void Maximum(XlsxCFContentType type, double value, XlsxColor color)
     {
         Maximum(type, value.ToInvariantString(), color);
     }

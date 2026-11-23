@@ -202,7 +202,7 @@ internal static class MathTrig
             return XlsxError.IncompatibleValue;
 
         // Check minus sign
-        var text = input.AsSpan().Trim();
+        ReadOnlySpan<char> text = input.AsSpan().Trim();
         var minusSign = text.Length > 0 && text[0] == '-';
         if (minusSign)
             text = text[1..];
@@ -328,8 +328,8 @@ internal static class MathTrig
 
     private static ScalarValue Combin(CalcContext ctx, double number, double numberChosen)
     {
-        var combinationsResult = XlsxMath.CombinChecked(ctx, number, numberChosen);
-        if (!combinationsResult.TryPickT0(out var combinations, out var error))
+        OneOf<double, XlsxError> combinationsResult = XlsxMath.CombinChecked(ctx, number, numberChosen);
+        if (!combinationsResult.TryPickT0(out var combinations, out XlsxError error))
             return error;
 
         return combinations;
@@ -525,15 +525,15 @@ internal static class MathTrig
     private static ScalarValue Gcd(CalcContext ctx, List<Array> arrays)
     {
         var result = 0d;
-        foreach (var array in arrays)
+        foreach (Array array in arrays)
         {
-            foreach (var scalar in array)
+            foreach (ScalarValue scalar in array)
             {
                 ctx.ThrowIfCancelled();
                 if (scalar.IsLogical)
                     return XlsxError.IncompatibleValue;
 
-                if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out var error))
+                if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out XlsxError error))
                     return error;
 
                 if (number is < 0 or > MaxDoubleInt)
@@ -558,7 +558,7 @@ internal static class MathTrig
 
     private static OneOf<double[,], XlsxError> GetArray(AnyValue value, CalcContext ctx)
     {
-        if (value.TryPickSingleOrMultiValue(out var scalar, out var array, ctx))
+        if (value.TryPickSingleOrMultiValue(out ScalarValue scalar, out Array? array, ctx))
             array = new ScalarArray(scalar, 1, 1);
 
         var rows = array.Height;
@@ -569,7 +569,7 @@ internal static class MathTrig
         {
             for (var col = 0; col < cols; col++)
             {
-                if (!array[row, col].TryPickNumber(out var number, out var error))
+                if (!array[row, col].TryPickNumber(out var number, out XlsxError error))
                     return error;
 
                 arr[row, col] = number;
@@ -587,15 +587,15 @@ internal static class MathTrig
     private static ScalarValue Lcm(CalcContext ctx, List<Array> arrays)
     {
         var result = 1d;
-        foreach (var array in arrays)
+        foreach (Array array in arrays)
         {
-            foreach (var scalar in array)
+            foreach (ScalarValue scalar in array)
             {
                 ctx.ThrowIfCancelled();
                 if (scalar.IsLogical)
                     return XlsxError.IncompatibleValue;
 
-                if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out var error))
+                if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out XlsxError error))
                     return error;
 
                 if (number is < 0 or > MaxDoubleInt)
@@ -643,7 +643,7 @@ internal static class MathTrig
 
     private static AnyValue MDeterm(CalcContext ctx, AnyValue value)
     {
-        if (!GetArray(value, ctx).TryPickT0(out var array, out var error))
+        if (!GetArray(value, ctx).TryPickT0(out var array, out XlsxError error))
             return error;
 
         var isSquare = array.GetLength(0) == array.GetLength(1);
@@ -656,7 +656,7 @@ internal static class MathTrig
 
     private static AnyValue MInverse(CalcContext ctx, AnyValue value)
     {
-        if (!GetArray(value, ctx).TryPickT0(out var array, out var error))
+        if (!GetArray(value, ctx).TryPickT0(out var array, out XlsxError error))
             return error;
 
         var isSquare = array.GetLength(0) == array.GetLength(1);
@@ -664,7 +664,7 @@ internal static class MathTrig
             return XlsxError.IncompatibleValue;
 
         var matrix = new XlsxMatrix(array, ctx);
-        var inverse = matrix.Invert();
+        XlsxMatrix inverse = matrix.Invert();
         if (inverse.IsSingular())
             return XlsxError.NumberInvalid;
 
@@ -673,10 +673,10 @@ internal static class MathTrig
 
     private static AnyValue MMult(CalcContext ctx, Span<AnyValue> args)
     {
-        if (!GetArray(args[0], ctx).TryPickT0(out var matrixA, out var errorA))
+        if (!GetArray(args[0], ctx).TryPickT0(out var matrixA, out XlsxError errorA))
             return errorA;
 
-        if (!GetArray(args[1], ctx).TryPickT0(out var matrixB, out var errorB))
+        if (!GetArray(args[1], ctx).TryPickT0(out var matrixB, out XlsxError errorB))
             return errorB;
 
         if (matrixA.GetLength(1) != matrixB.GetLength(0))
@@ -724,15 +724,15 @@ internal static class MathTrig
     {
         var numbersSum = 0.0;
         var denominator = 1.0;
-        foreach (var numberCollection in numberCollections)
+        foreach (IEnumerable<ScalarValue> numberCollection in numberCollections)
         {
-            foreach (var scalar in numberCollection)
+            foreach (ScalarValue scalar in numberCollection)
             {
                 ctx.ThrowIfCancelled();
                 if (scalar.IsLogical)
                     return XlsxError.IncompatibleValue;
 
-                if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out var error))
+                if (!scalar.ToNumber(ctx.Culture).TryPickT0(out var number, out XlsxError error))
                     return error;
 
                 if (number < 0)
@@ -792,8 +792,8 @@ internal static class MathTrig
 
     private static AnyValue Product(CalcContext ctx, Span<AnyValue> args, ITally tally)
     {
-        var result = tally.Tally(ctx, args, new ProductState(1, false));
-        if (!result.TryPickT0(out var state, out var error))
+        OneOf<ProductState, XlsxError> result = tally.Tally(ctx, args, new ProductState(1, false));
+        if (!result.TryPickT0(out ProductState state, out XlsxError error))
             return error;
 
         return state.HasValues ? state.Product : 0;
@@ -843,8 +843,8 @@ internal static class MathTrig
 
         // The result can have at most 15 chars
         var result = new StringBuilder(15);
-        var subtractValues = RomanForms.Value[form];
-        foreach (var (Symbol, Value) in subtractValues)
+        IReadOnlyList<(string Symbol, int Value)> subtractValues = RomanForms.Value[form];
+        foreach ((var Symbol, var Value) in subtractValues)
         {
             // While the number is larger than the current value, append the symbol
             while (number >= Value)
@@ -894,10 +894,10 @@ internal static class MathTrig
     {
         var total = 0d;
         var i = 0;
-        foreach (var coefScalar in coefficients)
+        foreach (ScalarValue coefScalar in coefficients)
         {
             ctx.ThrowIfCancelled();
-            if (!coefScalar.TryPickNumberOrBlank(out var coef, out var error))
+            if (!coefScalar.TryPickNumberOrBlank(out var coef, out XlsxError error))
                 return error;
 
             total += coef * Math.Pow(input, initial + i * step);
@@ -957,7 +957,7 @@ internal static class MathTrig
         if (funcNumber < 0)
             return XlsxError.IncompatibleValue;
 
-        var args = fnArgs.AsSpan();
+        Span<AnyValue> args = fnArgs.AsSpan();
         return funcNumber switch
         {
             1 => Statistical.Average(ctx, args, TallyNumbers.Subtotal10),
@@ -993,8 +993,8 @@ internal static class MathTrig
 
     private static AnyValue Sum(CalcContext ctx, Span<AnyValue> args, ITally tally)
     {
-        var result = tally.Tally(ctx, args, new SumState(0));
-        if (!result.TryPickT0(out var state, out var error))
+        OneOf<SumState, XlsxError> result = tally.Tally(ctx, args, new SumState(0));
+        if (!result.TryPickT0(out SumState state, out XlsxError error))
             return error;
 
         return state.Sum;
@@ -1010,10 +1010,10 @@ internal static class MathTrig
         var criteria = Criteria.Create(selectionCriteria, ctx.Culture);
 
         // Excel doesn't support anything but area in the syntax, but we need to deal with it somehow.
-        if (!range.TryPickArea(out var area, out var areaError))
+        if (!range.TryPickArea(out XlsxRangeAddress area, out XlsxError areaError))
             return areaError;
 
-        if (!sumRange.TryPickArea(out _, out var sumAreaError))
+        if (!sumRange.TryPickArea(out _, out XlsxError sumAreaError))
             return sumAreaError;
 
         tally.Add(area, criteria);
@@ -1023,14 +1023,14 @@ internal static class MathTrig
 
     private static AnyValue SumIfs(CalcContext ctx, AnyValue sumRange, List<(AnyValue Range, ScalarValue Criteria)> criteriaRanges)
     {
-        if (!sumRange.TryPickArea(out var sumArea, out var sumAreaError))
+        if (!sumRange.TryPickArea(out XlsxRangeAddress sumArea, out XlsxError sumAreaError))
             return sumAreaError;
 
         var tally = new TallyCriteria();
-        foreach (var (selectionRange, selectionCriteria) in criteriaRanges)
+        foreach ((AnyValue selectionRange, ScalarValue selectionCriteria) in criteriaRanges)
         {
             var criteria = Criteria.Create(selectionCriteria, ctx.Culture);
-            if (!selectionRange.TryPickArea(out var selectionArea, out var selectionAreaError))
+            if (!selectionRange.TryPickArea(out XlsxRangeAddress selectionArea, out XlsxError selectionAreaError))
                 return selectionAreaError;
 
             // All areas must have same size, that is different
@@ -1054,7 +1054,7 @@ internal static class MathTrig
         var height = 0;
 
         // Check that all arguments have same width and height.
-        foreach (var area in areas)
+        foreach (Array area in areas)
         {
             var areaWidth = area.Width;
             var areaHeight = area.Height;
@@ -1081,12 +1081,12 @@ internal static class MathTrig
             for (var colIdx = 0; colIdx < width; ++colIdx)
             {
                 var product = 1.0;
-                foreach (var area in areas)
+                foreach (Array area in areas)
                 {
                     ctx.ThrowIfCancelled();
-                    var scalar = area[rowIdx, colIdx];
+                    ScalarValue scalar = area[rowIdx, colIdx];
 
-                    if (scalar.TryPickError(out var error))
+                    if (scalar.TryPickError(out XlsxError error))
                         return error;
 
                     if (!scalar.TryPickNumber(out var number))
@@ -1104,8 +1104,8 @@ internal static class MathTrig
 
     private static AnyValue SumSq(CalcContext ctx, Span<AnyValue> args)
     {
-        var result = TallyNumbers.Default.Tally(ctx, args, new SumSqState(0.0));
-        if (!result.TryPickT0(out var sumSq, out var error))
+        OneOf<SumSqState, XlsxError> result = TallyNumbers.Default.Tally(ctx, args, new SumSqState(0.0));
+        if (!result.TryPickT0(out SumSqState sumSq, out XlsxError error))
             return error;
 
         return sumSq.Sum;
@@ -1157,7 +1157,7 @@ internal static class MathTrig
             ("VC", 95),
             ("VL", 45),
         };
-        var form1 = form0.Concat(form1Additions).OrderByDescending(x => x.Value).ToArray();
+        (string Symbol, int Value)[] form1 = [.. form0.Concat(form1Additions).OrderByDescending(x => x.Value)];
         allForms.Add(1, form1);
 
         var form2Additions = new (string Symbol, int Value)[]
@@ -1167,7 +1167,7 @@ internal static class MathTrig
             ("IC", 99),
             ("IL", 49),
         };
-        var form2 = form1.Concat(form2Additions).OrderByDescending(x => x.Value).ToArray();
+        (string Symbol, int Value)[] form2 = [.. form1.Concat(form2Additions).OrderByDescending(x => x.Value)];
         allForms.Add(2, form2);
 
         var form3Additions = new (string Symbol, int Value)[]
@@ -1175,7 +1175,7 @@ internal static class MathTrig
             ("VM", 995),
             ("VD", 495),
         };
-        var form3 = form2.Concat(form3Additions).OrderByDescending(x => x.Value).ToArray();
+        (string Symbol, int Value)[] form3 = [.. form2.Concat(form3Additions).OrderByDescending(x => x.Value)];
         allForms.Add(3, form3);
 
         var form4Additions = new (string Symbol, int Value)[]
@@ -1183,7 +1183,7 @@ internal static class MathTrig
             ("IM", 999),
             ("ID", 499),
         };
-        var form4 = form3.Concat(form4Additions).OrderByDescending(x => x.Value).ToArray();
+        (string Symbol, int Value)[] form4 = [.. form3.Concat(form4Additions).OrderByDescending(x => x.Value)];
         allForms.Add(4, form4);
         return allForms;
     }

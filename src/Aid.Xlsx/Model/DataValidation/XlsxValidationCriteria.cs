@@ -11,7 +11,7 @@ public abstract class XlsxValidationCriteria(IXlsxDataValidation dataValidation)
 
     #region IXlsxValidationCriteria Members
 
-    public void Between(String minValue, String maxValue)
+    public void Between(string minValue, string maxValue)
     {
         dataValidation.MinValue = minValue;
         dataValidation.MaxValue = maxValue;
@@ -25,7 +25,7 @@ public abstract class XlsxValidationCriteria(IXlsxDataValidation dataValidation)
         dataValidation.Operator = XlsxOperator.Between;
     }
 
-    public void EqualOrGreaterThan(String value)
+    public void EqualOrGreaterThan(string value)
     {
         dataValidation.Value = value;
         dataValidation.Operator = XlsxOperator.EqualOrGreaterThan;
@@ -37,7 +37,7 @@ public abstract class XlsxValidationCriteria(IXlsxDataValidation dataValidation)
         dataValidation.Operator = XlsxOperator.EqualOrGreaterThan;
     }
 
-    public void EqualOrLessThan(String value)
+    public void EqualOrLessThan(string value)
     {
         dataValidation.Value = value;
         dataValidation.Operator = XlsxOperator.EqualOrLessThan;
@@ -49,7 +49,7 @@ public abstract class XlsxValidationCriteria(IXlsxDataValidation dataValidation)
         dataValidation.Operator = XlsxOperator.EqualOrLessThan;
     }
 
-    public void EqualTo(String value)
+    public void EqualTo(string value)
     {
         dataValidation.Value = value;
         dataValidation.Operator = XlsxOperator.EqualTo;
@@ -61,7 +61,7 @@ public abstract class XlsxValidationCriteria(IXlsxDataValidation dataValidation)
         dataValidation.Operator = XlsxOperator.EqualTo;
     }
 
-    public void GreaterThan(String value)
+    public void GreaterThan(string value)
     {
         dataValidation.Value = value;
         dataValidation.Operator = XlsxOperator.GreaterThan;
@@ -73,7 +73,7 @@ public abstract class XlsxValidationCriteria(IXlsxDataValidation dataValidation)
         dataValidation.Operator = XlsxOperator.GreaterThan;
     }
 
-    public void LessThan(String value)
+    public void LessThan(string value)
     {
         dataValidation.Value = value;
         dataValidation.Operator = XlsxOperator.LessThan;
@@ -85,7 +85,7 @@ public abstract class XlsxValidationCriteria(IXlsxDataValidation dataValidation)
         dataValidation.Operator = XlsxOperator.LessThan;
     }
 
-    public void NotBetween(String minValue, String maxValue)
+    public void NotBetween(string minValue, string maxValue)
     {
         dataValidation.MinValue = minValue;
         dataValidation.MaxValue = maxValue;
@@ -99,7 +99,7 @@ public abstract class XlsxValidationCriteria(IXlsxDataValidation dataValidation)
         dataValidation.Operator = XlsxOperator.NotBetween;
     }
 
-    public void NotEqualTo(String value)
+    public void NotEqualTo(string value)
     {
         dataValidation.Value = value;
         dataValidation.Operator = XlsxOperator.NotEqualTo;

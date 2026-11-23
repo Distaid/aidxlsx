@@ -54,13 +54,13 @@ internal class FunctionDefinition
 
         // Step 1: For scalar parameters of function, determine maximum size of scalar
         // parameters from argument arrays
-        var (totalRows, totalColumns) = GetScalarArgsMaxSize(args);
+        (var totalRows, var totalColumns) = GetScalarArgsMaxSize(args);
 
         // Step 2: Normalize arguments. Single params are converted to array of same size, multi params are converted from scalars
         for (var i = 0; i < args.Length; ++i)
         {
-            ref var arg = ref args[i];
-            var argIsSingle = arg.TryPickSingleOrMultiValue(out var single, out var multi, ctx);
+            ref AnyValue arg = ref args[i];
+            var argIsSingle = arg.TryPickSingleOrMultiValue(out ScalarValue single, out Array? multi, ctx);
             if (IsParameterSingleValue(i))
             {
                 arg = argIsSingle
@@ -81,7 +81,7 @@ internal class FunctionDefinition
         }
 
         // Step 3: For each item in total array, calculate function
-        var result = ctx.AllocateArray<ScalarValue>(totalRows, totalColumns);
+        ScalarValue[,] result = ctx.AllocateArray<ScalarValue>(totalRows, totalColumns);
         for (var row = 0; row < totalRows; ++row)
         {
             for (var column = 0; column < totalColumns; ++column)
@@ -89,17 +89,17 @@ internal class FunctionDefinition
                 var itemArg = new AnyValue[args.Length];
                 for (var i = 0; i < itemArg.Length; ++i)
                 {
-                    ref var arg = ref args[i];
+                    ref AnyValue arg = ref args[i];
                     itemArg[i] = IsParameterSingleValue(i)
                         ? arg.GetArray()[row, column].ToAnyValue()
                         : arg;
                 }
 
-                var itemResult = _function(ctx, args);
+                AnyValue itemResult = _function(ctx, args);
 
                 // Even if function returns an array, only the top-left value of array is used
                 // as a result for the item, per tests with FILTERXML.
-                result[row, column] = itemResult.TryPickSingleOrMultiValue(out var scalarResult, out var arrayResult, ctx)
+                result[row, column] = itemResult.TryPickSingleOrMultiValue(out ScalarValue scalarResult, out Array? arrayResult, ctx)
                     ? scalarResult
                     : arrayResult[0, 0];
             }
@@ -131,10 +131,10 @@ internal class FunctionDefinition
         var maxColumns = 1;
         for (var i = 0; i < args.Length; ++i)
         {
-            ref var arg = ref args[i];
+            ref AnyValue arg = ref args[i];
             if (IsParameterSingleValue(i))
             {
-                var (argRows, argColumns) = arg.GetArraySize();
+                (var argRows, var argColumns) = arg.GetArraySize();
                 maxRows = Math.Max(maxRows, argRows);
                 maxColumns = Math.Max(maxColumns, argColumns);
             }

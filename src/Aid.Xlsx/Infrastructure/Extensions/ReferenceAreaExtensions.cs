@@ -80,8 +80,8 @@ internal static class ReferenceAreaExtensions
             return true;
         }
 
-        var referenceArea = reference.ToAreaFromA1();
-        if (!referenceArea.TryInsertAreaAndShiftDown(insertedArea, out var shifted))
+        Area referenceArea = reference.ToAreaFromA1();
+        if (!referenceArea.TryInsertAreaAndShiftDown(insertedArea, out Area? shifted))
         {
             shiftedReference = null;
             return false;
@@ -94,8 +94,8 @@ internal static class ReferenceAreaExtensions
             return true;
         }
 
-        var first = Set(reference.First, shifted.Value.TopRow, referenceArea.LeftColumn);
-        var second = Set(reference.Second, shifted.Value.BottomRow, referenceArea.RightColumn);
+        RowCol first = Set(reference.First, shifted.Value.TopRow, referenceArea.LeftColumn);
+        RowCol second = Set(reference.Second, shifted.Value.BottomRow, referenceArea.RightColumn);
         shiftedReference = new ReferenceArea(first, second);
         return true;
     }
@@ -116,8 +116,8 @@ internal static class ReferenceAreaExtensions
             return true;
         }
 
-        var referenceArea = reference.ToAreaFromA1();
-        if (!referenceArea.TryInsertAreaAndShiftRight(insertedArea, out var shifted))
+        Area referenceArea = reference.ToAreaFromA1();
+        if (!referenceArea.TryInsertAreaAndShiftRight(insertedArea, out Area? shifted))
         {
             shiftedReference = null;
             return false;
@@ -130,8 +130,8 @@ internal static class ReferenceAreaExtensions
             return true;
         }
 
-        var first = Set(reference.First, referenceArea.TopRow, shifted.Value.LeftColumn);
-        var second = Set(reference.Second, referenceArea.BottomRow, shifted.Value.RightColumn);
+        RowCol first = Set(reference.First, referenceArea.TopRow, shifted.Value.LeftColumn);
+        RowCol second = Set(reference.Second, referenceArea.BottomRow, shifted.Value.RightColumn);
         shiftedReference = new ReferenceArea(first, second);
         return true;
     }
@@ -145,8 +145,8 @@ internal static class ReferenceAreaExtensions
             return true;
         }
 
-        var referenceArea = reference.ToAreaFromA1();
-        if (!referenceArea.TryDeleteAreaAndShiftUp(deletedArea, out var shifted))
+        Area referenceArea = reference.ToAreaFromA1();
+        if (!referenceArea.TryDeleteAreaAndShiftUp(deletedArea, out Area? shifted))
         {
             shiftedReference = null;
             return false;
@@ -159,8 +159,8 @@ internal static class ReferenceAreaExtensions
             return true;
         }
 
-        var first = Set(reference.First, shifted.Value.TopRow, shifted.Value.LeftColumn);
-        var second = Set(reference.Second, shifted.Value.BottomRow, shifted.Value.RightColumn);
+        RowCol first = Set(reference.First, shifted.Value.TopRow, shifted.Value.LeftColumn);
+        RowCol second = Set(reference.Second, shifted.Value.BottomRow, shifted.Value.RightColumn);
         shiftedReference = new ReferenceArea(first, second);
         return true;
     }
@@ -174,8 +174,8 @@ internal static class ReferenceAreaExtensions
             return true;
         }
 
-        var referenceArea = reference.ToAreaFromA1();
-        if (!referenceArea.TryDeleteAreaAndShiftLeft(deletedArea, out var shifted))
+        Area referenceArea = reference.ToAreaFromA1();
+        if (!referenceArea.TryDeleteAreaAndShiftLeft(deletedArea, out Area? shifted))
         {
             shiftedReference = null;
             return false;
@@ -188,8 +188,8 @@ internal static class ReferenceAreaExtensions
             return true;
         }
 
-        var first = Set(reference.First, shifted.Value.TopRow, shifted.Value.LeftColumn);
-        var second = Set(reference.Second, shifted.Value.BottomRow, shifted.Value.RightColumn);
+        RowCol first = Set(reference.First, shifted.Value.TopRow, shifted.Value.LeftColumn);
+        RowCol second = Set(reference.Second, shifted.Value.BottomRow, shifted.Value.RightColumn);
         shiftedReference = new ReferenceArea(first, second);
         return true;
     }

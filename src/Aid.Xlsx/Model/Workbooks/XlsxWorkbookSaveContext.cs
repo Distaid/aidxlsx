@@ -111,11 +111,11 @@ public partial class XlsxWorkbook
 
     internal sealed class RelIdGenerator
     {
-        private readonly Dictionary<RelType, HashSet<String>> _relIds = [];
+        private readonly Dictionary<RelType, HashSet<string>> _relIds = [];
 
-        public void AddValues(IEnumerable<String> values, RelType relType)
+        public void AddValues(IEnumerable<string> values, RelType relType)
         {
-            if (!_relIds.TryGetValue(relType, out var set))
+            if (!_relIds.TryGetValue(relType, out HashSet<string> set))
             {
                 set = [];
                 _relIds.Add(relType, set);
@@ -130,15 +130,15 @@ public partial class XlsxWorkbook
         public void AddExistingValues(WorkbookPackage package, OpcPart workbookPart, XlsxWorkbook xlWorkbook)
         {
             AddValues(workbookPart.Relationships.Select(rel => rel.Id), RelType.Workbook);
-            AddValues(xlWorkbook.WorksheetsInternal.Cast<XlsxWorksheet>().Where(ws => !String.IsNullOrWhiteSpace(ws.RelId)).Select(ws => ws.RelId), RelType.Workbook);
-            AddValues(xlWorkbook.WorksheetsInternal.Cast<XlsxWorksheet>().Where(ws => !String.IsNullOrWhiteSpace(ws.LegacyDrawingId)).Select(ws => ws.LegacyDrawingId), RelType.Workbook);
+            AddValues(xlWorkbook.WorksheetsInternal.Cast<XlsxWorksheet>().Where(ws => !string.IsNullOrWhiteSpace(ws.RelId)).Select(ws => ws.RelId), RelType.Workbook);
+            AddValues(xlWorkbook.WorksheetsInternal.Cast<XlsxWorksheet>().Where(ws => !string.IsNullOrWhiteSpace(ws.LegacyDrawingId)).Select(ws => ws.LegacyDrawingId), RelType.Workbook);
             AddValues(xlWorkbook.WorksheetsInternal
                 .Cast<XlsxWorksheet>()
                 .SelectMany(ws => ws.Tables.Cast<XlsxTable>())
-                .Where(t => !String.IsNullOrWhiteSpace(t.RelId))
+                .Where(t => !string.IsNullOrWhiteSpace(t.RelId))
                 .Select(t => t.RelId), RelType.Workbook);
 
-            foreach (var xlWorksheet in xlWorkbook.WorksheetsInternal.Cast<XlsxWorksheet>())
+            foreach (XlsxWorksheet xlWorksheet in xlWorkbook.WorksheetsInternal.Cast<XlsxWorksheet>())
             {
                 // if the worksheet is a new one, it doesn't have RelId yet.
                 if (string.IsNullOrEmpty(xlWorksheet.RelId) || package.RelatedPart(workbookPart, xlWorksheet.RelId, "worksheet") is not { } worksheetPart)
@@ -150,9 +150,9 @@ public partial class XlsxWorkbook
             }
         }
 
-        public String GetNext(RelType relType)
+        public string GetNext(RelType relType)
         {
-            if (!_relIds.TryGetValue(relType, out var set))
+            if (!_relIds.TryGetValue(relType, out HashSet<string> set))
             {
                 set = [];
                 _relIds.Add(relType, set);
@@ -161,7 +161,7 @@ public partial class XlsxWorkbook
             var id = set.Count + 1;
             while (true)
             {
-                var relId = String.Concat("rId", id);
+                var relId = string.Concat("rId", id);
                 if (set.Add(relId))
                 {
                     return relId;

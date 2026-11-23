@@ -8,7 +8,7 @@ internal static class XDocumentExtensions
 {
     public static XDocument? Load(Stream stream)
     {
-        using XmlReader reader = XmlReader.Create(stream);
+        using var reader = XmlReader.Create(stream);
         try
         {
             return XDocument.Load(reader);

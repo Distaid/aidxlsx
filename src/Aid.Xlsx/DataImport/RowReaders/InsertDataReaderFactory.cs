@@ -28,7 +28,7 @@ internal class InsertDataReaderFactory
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        if (itemType == null || itemType == typeof(Object))
+        if (itemType == null || itemType == typeof(object))
             return new UntypedObjectReader(data);
         else if (itemType.IsNullableType() && itemType.GetUnderlyingType().IsSimpleType())
             return new SimpleNullableTypeReader(data, itemType);
@@ -56,7 +56,7 @@ internal class InsertDataReaderFactory
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        if (data.GetType().GetElementType() == typeof(String))
+        if (data.GetType().GetElementType() == typeof(string))
             return new SimpleTypeReader(data);
 
         return new ArrayReader(data);

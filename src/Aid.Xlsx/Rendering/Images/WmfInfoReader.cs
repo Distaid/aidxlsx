@@ -58,8 +58,8 @@ internal class WmfInfoReader : ImageInfoReader
         // Either no placeable header or it is corrupted. Skip header.
         stream.Position = 18;
         var complete = false;
-        var viewportOrigin = System.Drawing.Point.Empty;
-        var viewportExtent = System.Drawing.Point.Empty;
+        Point viewportOrigin = System.Drawing.Point.Empty;
+        Point viewportExtent = System.Drawing.Point.Empty;
         while (!complete)
         {
             var recordSizeInWords = stream.ReadU32LE();

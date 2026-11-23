@@ -21,7 +21,7 @@ internal class FormulaParser(FunctionRegistry functionRegistry)
 
         try
         {
-            var root = isA1
+            ValueNode root = isA1
                 ? FormulaParser<ScalarValue, ValueNode, string>.CellFormulaA1(formula, formula, _nodeFactoryA1)
                 : FormulaParser<ScalarValue, ValueNode, string>.CellFormulaR1C1(formula, formula, _nodeFactoryR1C1);
             return new Formula(formula, root);
@@ -87,7 +87,7 @@ internal class FormulaParser(FunctionRegistry functionRegistry)
 
         public ValueNode ErrorNode(string context, SymbolRange range, ReadOnlySpan<char> errorText)
         {
-            var error = GetErrorValue(errorText);
+            XlsxError error = GetErrorValue(errorText);
             return new ScalarNode(error);
         }
 
@@ -233,7 +233,7 @@ internal class FormulaParser(FunctionRegistry functionRegistry)
         public ValueNode BinaryNode(string context, SymbolRange range, BinaryOperation operation, ValueNode leftNode,
             ValueNode rightNode)
         {
-            var op = operation switch
+            BinaryOp op = operation switch
             {
                 BinaryOperation.Concat => BinaryOp.Concat,
                 BinaryOperation.GreaterOrEqualThan => BinaryOp.Gte,
@@ -258,7 +258,7 @@ internal class FormulaParser(FunctionRegistry functionRegistry)
 
         public ValueNode Unary(string context, SymbolRange range, UnaryOperation operation, ValueNode node)
         {
-            var op = operation switch
+            UnaryOp op = operation switch
             {
                 UnaryOperation.Plus => UnaryOp.Add,
                 UnaryOperation.Minus => UnaryOp.Subtract,
@@ -305,7 +305,7 @@ internal class FormulaParser(FunctionRegistry functionRegistry)
 
         private static XlsxError GetErrorValue(ReadOnlySpan<char> error)
         {
-            if (!XlsxErrorParser.TryParseError(error.ToString(), out var errorEnum))
+            if (!XlsxErrorParser.TryParseError(error.ToString(), out XlsxError errorEnum))
                 throw new InvalidOperationException($"'{error}' is not error.");
             return errorEnum;
         }

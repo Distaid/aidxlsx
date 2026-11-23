@@ -60,7 +60,7 @@ internal class Criteria
             // with a value (e.g. ">7,5") or just value ("7,5"). Comparison must start
             // at the very first char, otherwise it's not interpreted as a comparison.
             var criteriaText = criteria.GetText();
-            var (prefix, comparison) = GetComparison(criteriaText);
+            (var prefix, Comparison comparison) = GetComparison(criteriaText);
             var operandText = criteriaText[prefix.Length..];
             var operand = ScalarValue.Parse(operandText, culture);
             return new Criteria(comparison, operand, culture);
@@ -75,7 +75,7 @@ internal class Criteria
 
         static (string Prefix, Comparison Comparison) GetComparison(string criteriaText)
         {
-            foreach (var (prefix, prefixComparison) in AllComparisons)
+            foreach ((var prefix, Comparison prefixComparison) in AllComparisons)
             {
                 if (criteriaText.StartsWith(prefix))
                     return (prefix, prefixComparison);

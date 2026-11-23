@@ -12,34 +12,34 @@ public interface IXlsxRangeRow : IXlsxRangeBase
     /// Gets the cell in the specified column.
     /// </summary>
     /// <param name="columnNumber">The cell's column.</param>
-    IXlsxCell Cell(Int32 columnNumber);
+    IXlsxCell Cell(int columnNumber);
 
     /// <summary>
     /// Gets the cell in the specified column.
     /// </summary>
     /// <param name="columnLetter">The cell's column.</param>
-    IXlsxCell Cell(String columnLetter);
+    IXlsxCell Cell(string columnLetter);
 
     /// <summary>
     /// Returns the specified group of cells, separated by commas.
     /// <para>e.g. Cells("1"), Cells("1:5"), Cells("1:2,4:5")</para>
     /// </summary>
     /// <param name="cellsInRow">The row's cells to return.</param>
-    new IXlsxCells Cells(String cellsInRow);
+    new IXlsxCells Cells(string cellsInRow);
 
     /// <summary>
     /// Returns the specified group of cells.
     /// </summary>
     /// <param name="firstColumn">The first column in the group of cells to return.</param>
     /// <param name="lastColumn">The last column in the group of cells to return.</param>
-    IXlsxCells Cells(Int32 firstColumn, Int32 lastColumn);
+    IXlsxCells Cells(int firstColumn, int lastColumn);
 
     /// <summary>
     /// Returns the specified group of cells.
     /// </summary>
     /// <param name="firstColumn">The first column in the group of cells to return.</param>
     /// <param name="lastColumn">The last column in the group of cells to return.</param>
-    IXlsxCells Cells(String firstColumn, String lastColumn);
+    IXlsxCells Cells(string firstColumn, string lastColumn);
 
     /// <summary>
     /// Inserts X number of cells to the right of this row.
@@ -48,7 +48,7 @@ public interface IXlsxRangeRow : IXlsxRangeBase
     /// <param name="numberOfColumns">Number of cells to insert.</param>
     IXlsxCells InsertCellsAfter(int numberOfColumns);
 
-    IXlsxCells InsertCellsAfter(int numberOfColumns, Boolean expandRange);
+    IXlsxCells InsertCellsAfter(int numberOfColumns, bool expandRange);
 
     /// <summary>
     /// Inserts X number of cells to the left of this row.
@@ -57,7 +57,7 @@ public interface IXlsxRangeRow : IXlsxRangeBase
     /// <param name="numberOfColumns">Number of cells to insert.</param>
     IXlsxCells InsertCellsBefore(int numberOfColumns);
 
-    IXlsxCells InsertCellsBefore(int numberOfColumns, Boolean expandRange);
+    IXlsxCells InsertCellsBefore(int numberOfColumns, bool expandRange);
 
     /// <summary>
     /// Inserts X number of rows on top of this row.
@@ -66,7 +66,7 @@ public interface IXlsxRangeRow : IXlsxRangeBase
     /// <param name="numberOfRows">Number of rows to insert.</param>
     IXlsxRangeRows InsertRowsAbove(int numberOfRows);
 
-    IXlsxRangeRows InsertRowsAbove(int numberOfRows, Boolean expandRange);
+    IXlsxRangeRows InsertRowsAbove(int numberOfRows, bool expandRange);
 
     /// <summary>
     /// Inserts X number of rows below this row.
@@ -75,7 +75,7 @@ public interface IXlsxRangeRow : IXlsxRangeBase
     /// <param name="numberOfRows">Number of rows to insert.</param>
     IXlsxRangeRows InsertRowsBelow(int numberOfRows);
 
-    IXlsxRangeRows InsertRowsBelow(int numberOfRows, Boolean expandRange);
+    IXlsxRangeRows InsertRowsBelow(int numberOfRows, bool expandRange);
 
     /// <summary>
     /// Deletes this range and shifts the cells below.
@@ -91,9 +91,9 @@ public interface IXlsxRangeRow : IXlsxRangeBase
     /// <summary>
     /// Gets this row's number in the range
     /// </summary>
-    Int32 RowNumber();
+    int RowNumber();
 
-    Int32 CellCount();
+    int CellCount();
 
     IXlsxRangeRow CopyTo(IXlsxCell target);
 
@@ -101,21 +101,21 @@ public interface IXlsxRangeRow : IXlsxRangeBase
 
     IXlsxRangeRow Sort();
 
-    IXlsxRangeRow SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, Boolean matchCase = false, Boolean ignoreBlanks = true);
+    IXlsxRangeRow SortLeftToRight(XlsxSortOrder sortOrder = XlsxSortOrder.Ascending, bool matchCase = false, bool ignoreBlanks = true);
 
-    IXlsxRangeRow Row(Int32 start, Int32 end);
+    IXlsxRangeRow Row(int start, int end);
 
     IXlsxRangeRow Row(IXlsxCell start, IXlsxCell end);
 
-    IXlsxRangeRows Rows(String rows);
+    IXlsxRangeRows Rows(string rows);
 
     IXlsxRangeRow RowAbove();
 
-    IXlsxRangeRow RowAbove(Int32 step);
+    IXlsxRangeRow RowAbove(int step);
 
     IXlsxRangeRow RowBelow();
 
-    IXlsxRangeRow RowBelow(Int32 step);
+    IXlsxRangeRow RowBelow(int step);
 
     IXlsxRow WorksheetRow();
 

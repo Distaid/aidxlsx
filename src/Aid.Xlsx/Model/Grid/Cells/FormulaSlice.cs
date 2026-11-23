@@ -57,8 +57,8 @@ internal class FormulaSlice(XlsxWorksheet sheet) : ISlice
 
     public void Swap(Point sp1, Point sp2)
     {
-        var value1 = _formulas[sp1];
-        var value2 = _formulas[sp2];
+        XlsxCellFormula? value1 = _formulas[sp1];
+        XlsxCellFormula? value2 = _formulas[sp2];
 
         value1 = value1?.GetMovedTo(sp1, sp2);
         value2 = value2?.GetMovedTo(sp2, sp1);
@@ -75,7 +75,7 @@ internal class FormulaSlice(XlsxWorksheet sheet) : ISlice
     internal void Set(Point point, XlsxCellFormula? formula)
     {
         // Can't ref, because it is an alias for a memory and thus wouldn't hold old formula.
-        var original = _formulas[point];
+        XlsxCellFormula? original = _formulas[point];
         if (ReferenceEquals(original, formula))
             return;
 
@@ -104,7 +104,7 @@ internal class FormulaSlice(XlsxWorksheet sheet) : ISlice
             for (var col = range.LeftColumn; col <= range.RightColumn; ++col)
             {
                 var point = new Point(row, col);
-                var original = _formulas[point];
+                XlsxCellFormula? original = _formulas[point];
 
                 _formulas.Set(point, arrayFormula);
 
@@ -132,7 +132,7 @@ internal class FormulaSlice(XlsxWorksheet sheet) : ISlice
     /// </summary>
     internal void MarkDirty(Area range)
     {
-        using var enumerator = GetForwardEnumerator(range);
+        using Slice<XlsxCellFormula>.Enumerator enumerator = GetForwardEnumerator(range);
         while (enumerator.MoveNext())
         {
             enumerator.Current.IsDirty = true;

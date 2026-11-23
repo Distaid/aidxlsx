@@ -41,7 +41,7 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// prefixed (e.g. <c>_xlfn.CONCAT</c>).
     /// </remarks>
     /// <value>The formula with A1 references.</value>
-    String FormulaA1 { set; }
+    string FormulaA1 { set; }
 
     /// <summary>
     /// Create an array formula for all cells in the range.
@@ -52,7 +52,7 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// prefixed (e.g. <c>_xlfn.CONCAT</c>).
     /// </remarks>
     /// <exception cref="InvalidOperationException">When the range overlaps with a table, pivot table, merged cells or partially overlaps another array formula.</exception>
-    String FormulaArrayA1 { set; }
+    string FormulaArrayA1 { set; }
 
     /// <summary>
     ///   Sets the cells' formula with R1C1 references.
@@ -63,7 +63,7 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// prefixed (e.g. <c>_xlfn.CONCAT</c>).
     /// </remarks>
     /// <value>The formula with R1C1 references.</value>
-    String FormulaR1C1 { set; }
+    string FormulaR1C1 { set; }
 
     IXlsxStyle Style { get; set; }
 
@@ -73,20 +73,20 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <value>
     ///   If false the cell's text will not be shared and stored as an inline value.
     /// </value>
-    Boolean ShareString { set; }
+    bool ShareString { set; }
 
     /// <summary>
     ///   Returns the collection of cells.
     /// </summary>
     IXlsxCells Cells();
 
-    IXlsxCells Cells(Boolean usedCellsOnly);
+    IXlsxCells Cells(bool usedCellsOnly);
 
-    IXlsxCells Cells(Boolean usedCellsOnly, XlsxCellsUsedOptions options);
+    IXlsxCells Cells(bool usedCellsOnly, XlsxCellsUsedOptions options);
 
-    IXlsxCells Cells(String cells);
+    IXlsxCells Cells(string cells);
 
-    IXlsxCells Cells(Func<IXlsxCell, Boolean> predicate);
+    IXlsxCells Cells(Func<IXlsxCell, bool> predicate);
 
     /// <summary>
     ///   Returns the collection of cells that have a value. Formats are ignored.
@@ -102,12 +102,12 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <summary>
     /// Returns cells considered used by <see cref="XlsxCellsUsedOptions.AllContents"/> that match the predicate.
     /// </summary>
-    IXlsxCells CellsUsed(Func<IXlsxCell, Boolean> predicate);
+    IXlsxCells CellsUsed(Func<IXlsxCell, bool> predicate);
 
     /// <summary>
     /// Returns cells considered used by <paramref name="options"/> that match the predicate.
     /// </summary>
-    IXlsxCells CellsUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, Boolean> predicate);
+    IXlsxCells CellsUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, bool> predicate);
 
     /// <summary>
     /// Searches the cells' contents for a given piece of text
@@ -115,7 +115,7 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <param name="searchText">The search text.</param>
     /// <param name="compareOptions">The compare options.</param>
     /// <param name="searchFormulae">if set to <c>true</c> search formulae instead of cell values.</param>
-    IXlsxCells Search(String searchText, CompareOptions compareOptions = CompareOptions.Ordinal, Boolean searchFormulae = false);
+    IXlsxCells Search(string searchText, CompareOptions compareOptions = CompareOptions.Ordinal, bool searchFormulae = false);
 
     /// <summary>
     ///   Returns the first cell of this range.
@@ -134,14 +134,14 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <param name="options">The options to determine whether a cell is used.</param>
     IXlsxCell FirstCellUsed(XlsxCellsUsedOptions options);
 
-    IXlsxCell FirstCellUsed(Func<IXlsxCell, Boolean> predicate);
+    IXlsxCell FirstCellUsed(Func<IXlsxCell, bool> predicate);
 
     /// <summary>
     /// Returns the first non-empty cell with a value of this range.
     /// </summary>
     /// <param name="options">The options to determine whether a cell is used.</param>
     /// <param name="predicate">The predicate used to choose cells</param>
-    IXlsxCell FirstCellUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, Boolean> predicate);
+    IXlsxCell FirstCellUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, bool> predicate);
 
     /// <summary>
     ///   Returns the last cell of this range.
@@ -160,9 +160,9 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <param name="options">The options to determine whether a cell is used.</param>
     IXlsxCell LastCellUsed(XlsxCellsUsedOptions options);
 
-    IXlsxCell LastCellUsed(Func<IXlsxCell, Boolean> predicate);
+    IXlsxCell LastCellUsed(Func<IXlsxCell, bool> predicate);
 
-    IXlsxCell LastCellUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, Boolean> predicate);
+    IXlsxCell LastCellUsed(XlsxCellsUsedOptions options, Func<IXlsxCell, bool> predicate);
 
     /// <summary>
     ///   Determines whether this range contains the specified range (completely).
@@ -172,7 +172,7 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <returns>
     ///   <c>true</c> if this range contains the specified range; otherwise, <c>false</c>.
     /// </returns>
-    Boolean Contains(String rangeAddress);
+    bool Contains(string rangeAddress);
 
     /// <summary>
     ///   Determines whether this range contains the specified range (completely).
@@ -182,9 +182,9 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <returns>
     ///   <c>true</c> if this range contains the specified range; otherwise, <c>false</c>.
     /// </returns>
-    Boolean Contains(IXlsxRangeBase range);
+    bool Contains(IXlsxRangeBase range);
 
-    Boolean Contains(IXlsxCell cell);
+    bool Contains(IXlsxCell cell);
 
     /// <summary>
     ///   Determines whether this range intersects the specified range.
@@ -194,7 +194,7 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <returns>
     ///   <c>true</c> if this range intersects the specified range; otherwise, <c>false</c>.
     /// </returns>
-    Boolean Intersects(String rangeAddress);
+    bool Intersects(string rangeAddress);
 
     /// <summary>
     ///   Determines whether this range contains the specified range.
@@ -204,7 +204,7 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <returns>
     ///   <c>true</c> if this range intersects the specified range; otherwise, <c>false</c>.
     /// </returns>
-    Boolean Intersects(IXlsxRangeBase range);
+    bool Intersects(IXlsxRangeBase range);
 
     /// <summary>
     ///   Unmerges this range.
@@ -216,14 +216,14 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// </summary>
     IXlsxRange Merge();
 
-    IXlsxRange Merge(Boolean checkIntersect);
+    IXlsxRange Merge(bool checkIntersect);
 
     /// <summary>
     /// Creates/adds this range to workbook scoped <see cref="IXlsxDefinedNames"/>.
     /// <para>If the named range exists, it will add this range to that named range.</para>
     /// </summary>
     /// <param name = "name">Name of the defined name, without sheet.</param>
-    IXlsxRange AddToNamed(String name);
+    IXlsxRange AddToNamed(string name);
 
     /// <summary>
     /// Creates/adds this range to <see cref="IXlsxDefinedNames"/>.
@@ -231,7 +231,7 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <param name = "name">Name of the defined name, without sheet.</param>
     /// <param name = "scope">The scope for the named range.</param>
     /// </summary>
-    IXlsxRange AddToNamed(String name, XlsxScope scope);
+    IXlsxRange AddToNamed(string name, XlsxScope scope);
 
     /// <summary>
     /// Creates/adds this range to <see cref="IXlsxDefinedNames"/>.
@@ -240,7 +240,7 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <param name = "scope">The scope for the named range.</param>
     /// <param name = "comment">The comments for the named range.</param>
     /// </summary>
-    IXlsxRange AddToNamed(String name, XlsxScope scope, String comment);
+    IXlsxRange AddToNamed(string name, XlsxScope scope, string comment);
 
     /// <summary>
     /// Clears the contents of this range.
@@ -263,11 +263,11 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// </summary>
     IXlsxRange AsRange();
 
-    Boolean IsMerged();
+    bool IsMerged();
 
-    Boolean IsEmpty();
+    bool IsEmpty();
 
-    Boolean IsEmpty(XlsxCellsUsedOptions options);
+    bool IsEmpty(XlsxCellsUsedOptions options);
 
     /// <summary>
     /// Determines whether range address spans the entire column.
@@ -275,7 +275,7 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <returns>
     ///   <c>true</c> if is entire column; otherwise, <c>false</c>.
     /// </returns>
-    Boolean IsEntireColumn();
+    bool IsEntireColumn();
 
     /// <summary>
     /// Determines whether range address spans the entire row.
@@ -284,7 +284,7 @@ public interface IXlsxRangeBase : IXlsxAddressable
     ///   <c>true</c> if is entire row; otherwise, <c>false</c>.
     /// </returns>
 
-    Boolean IsEntireRow();
+    bool IsEntireRow();
 
     /// <summary>
     /// Determines whether the range address spans the entire worksheet.
@@ -292,15 +292,15 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <returns>
     ///   <c>true</c> if is entire sheet; otherwise, <c>false</c>.
     /// </returns>
-    Boolean IsEntireSheet();
+    bool IsEntireSheet();
 
-    IXlsxPivotTable CreatePivotTable(IXlsxCell targetCell, String name);
+    IXlsxPivotTable CreatePivotTable(IXlsxCell targetCell, string name);
 
     //IXlsxChart CreateChart(Int32 firstRow, Int32 firstColumn, Int32 lastRow, Int32 lastColumn);
 
     IXlsxAutoFilter SetAutoFilter();
 
-    IXlsxAutoFilter SetAutoFilter(Boolean value);
+    IXlsxAutoFilter SetAutoFilter(bool value);
 
     /// <summary>
     /// Returns a data validation rule assigned to the range, if any, or creates a new instance of data validation rule if no rule exists.
@@ -325,7 +325,7 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// Grows this the current range by the specified number of cells to each side.
     /// </summary>
     /// <param name="growCount">The grow count.</param>
-    IXlsxRangeBase Grow(Int32 growCount);
+    IXlsxRangeBase Grow(int growCount);
 
     /// <summary>
     /// Shrinks this current range by one cell.
@@ -336,7 +336,7 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// Shrinks the current range by the specified number of cells from each side.
     /// </summary>
     /// <param name="shrinkCount">The shrink count.</param>
-    IXlsxRangeBase Shrink(Int32 shrinkCount);
+    IXlsxRangeBase Shrink(int shrinkCount);
 
     /// <summary>
     /// Returns the intersection of this range with another range on the same worksheet.
@@ -345,13 +345,13 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <param name="thisRangePredicate">Predicate applied to this range's cells.</param>
     /// <param name="otherRangePredicate">Predicate applied to the other range's cells.</param>
     /// <returns>The range address of the intersection</returns>
-    IXlsxRangeAddress Intersection(IXlsxRangeBase otherRange, Func<IXlsxCell, Boolean> thisRangePredicate = null, Func<IXlsxCell, Boolean> otherRangePredicate = null);
+    IXlsxRangeAddress Intersection(IXlsxRangeBase otherRange, Func<IXlsxCell, bool> thisRangePredicate = null, Func<IXlsxCell, bool> otherRangePredicate = null);
 
     /// <summary>
     /// Returns the set of cells surrounding the current range.
     /// </summary>
     /// <param name="predicate">The predicate to apply on the resulting set of cells.</param>
-    IXlsxCells SurroundingCells(Func<IXlsxCell, Boolean> predicate = null);
+    IXlsxCells SurroundingCells(Func<IXlsxCell, bool> predicate = null);
 
     /// <summary>
     /// Calculates the union of two ranges on the same worksheet.
@@ -362,7 +362,7 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <returns>
     /// The union
     /// </returns>
-    IXlsxCells Union(IXlsxRangeBase otherRange, Func<IXlsxCell, Boolean> thisRangePredicate = null, Func<IXlsxCell, Boolean> otherRangePredicate = null);
+    IXlsxCells Union(IXlsxRangeBase otherRange, Func<IXlsxCell, bool> thisRangePredicate = null, Func<IXlsxCell, bool> otherRangePredicate = null);
 
     /// <summary>
     /// Returns all cells in the current range that are not in the other range.
@@ -370,7 +370,7 @@ public interface IXlsxRangeBase : IXlsxAddressable
     /// <param name="otherRange">The other range.</param>
     /// <param name="thisRangePredicate">Predicate applied to this range's cells.</param>
     /// <param name="otherRangePredicate">Predicate applied to the other range's cells.</param>
-    IXlsxCells Difference(IXlsxRangeBase otherRange, Func<IXlsxCell, Boolean> thisRangePredicate = null, Func<IXlsxCell, Boolean> otherRangePredicate = null);
+    IXlsxCells Difference(IXlsxRangeBase otherRange, Func<IXlsxCell, bool> thisRangePredicate = null, Func<IXlsxCell, bool> otherRangePredicate = null);
 
     /// <summary>
     /// Returns a range so that its offset from the target base range is equal to the offset of the current range to the source base range.

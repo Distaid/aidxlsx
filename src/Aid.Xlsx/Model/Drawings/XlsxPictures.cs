@@ -15,7 +15,7 @@ internal class XlsxPictures(XlsxWorksheet worksheet) : IXlsxPictures, IEnumerabl
         get { return _pictures.Count; }
     }
 
-    internal ICollection<String> Deleted { get; private set; } = new HashSet<String>();
+    internal ICollection<string> Deleted { get; private set; } = new HashSet<string>();
 
     public IXlsxPicture Add(Stream stream)
     {
@@ -27,7 +27,7 @@ internal class XlsxPictures(XlsxWorksheet worksheet) : IXlsxPictures, IEnumerabl
 
     public IXlsxPicture Add(Stream stream, string name)
     {
-        var picture = Add(stream);
+        IXlsxPicture picture = Add(stream);
         picture.Name = name;
         return picture;
     }
@@ -42,14 +42,14 @@ internal class XlsxPictures(XlsxWorksheet worksheet) : IXlsxPictures, IEnumerabl
 
     public IXlsxPicture Add(Stream stream, XlsxPictureFormat format, string name)
     {
-        var picture = Add(stream, format);
+        IXlsxPicture picture = Add(stream, format);
         picture.Name = name;
         return picture;
     }
 
     public IXlsxPicture Add(string imageFile)
     {
-        using var fs = File.OpenRead(imageFile);
+        using FileStream fs = File.OpenRead(imageFile);
         var picture = new XlsxPicture(_worksheet, fs);
         _pictures.Add(picture);
         picture.Name = GetNextPictureName();
@@ -58,7 +58,7 @@ internal class XlsxPictures(XlsxWorksheet worksheet) : IXlsxPictures, IEnumerabl
 
     public IXlsxPicture Add(string imageFile, string name)
     {
-        var picture = Add(imageFile);
+        IXlsxPicture picture = Add(imageFile);
         picture.Name = name;
         return picture;
     }
@@ -82,7 +82,7 @@ internal class XlsxPictures(XlsxWorksheet worksheet) : IXlsxPictures, IEnumerabl
         if (picturesToDelete.Count == 0)
             throw new ArgumentOutOfRangeException(nameof(pictureName), $"Picture {pictureName} was not found.");
 
-        foreach (var picture in picturesToDelete)
+        foreach (XlsxPicture? picture in picturesToDelete)
         {
             if (!string.IsNullOrEmpty(picture.RelId))
                 Deleted.Add(picture.RelId);
@@ -116,7 +116,7 @@ internal class XlsxPictures(XlsxWorksheet worksheet) : IXlsxPictures, IEnumerabl
 
     public bool TryGetPicture(string pictureName, out IXlsxPicture? picture)
     {
-        var match = _pictures.FirstOrDefault(p => p.Name.Equals(pictureName, StringComparison.OrdinalIgnoreCase));
+        XlsxPicture? match = _pictures.FirstOrDefault(p => p.Name.Equals(pictureName, StringComparison.OrdinalIgnoreCase));
         if (match is not null)
         {
             picture = match;
@@ -134,7 +134,7 @@ internal class XlsxPictures(XlsxWorksheet worksheet) : IXlsxPictures, IEnumerabl
         return picture;
     }
 
-    private String GetNextPictureName()
+    private string GetNextPictureName()
     {
         var pictureNumber = this.Count;
         while (_pictures.Any(p => p.Name == $"Picture {pictureNumber}"))

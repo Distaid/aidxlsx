@@ -145,7 +145,7 @@ internal class XlsxPivotCacheValues
         _values.Add(XlsxPivotCacheValue.ForIndex(index));
 
         // Get value referenced by added index value, so stats can be updated.
-        var cacheValue = _sharedItems.GetValue(index);
+        XlsxPivotCacheValue cacheValue = _sharedItems.GetValue(index);
         switch (cacheValue.Type)
         {
             case XlsxPivotCacheValueType.Missing:
@@ -189,7 +189,7 @@ internal class XlsxPivotCacheValues
 
     internal IEnumerable<XlsxCellValue> GetCellValues()
     {
-        foreach (var value in _values)
+        foreach (XlsxPivotCacheValue value in _values)
         {
             yield return value.GetCellValue(_stringStorage, _sharedItems);
         }
@@ -221,8 +221,8 @@ internal class XlsxPivotCacheValues
     {
         for (var index = 0; index < _values.Count; ++index)
         {
-            var recordValue = GetValue(index);
-            var cacheValue = recordValue.GetCellValue(_stringStorage, _sharedItems);
+            XlsxPivotCacheValue recordValue = GetValue(index);
+            XlsxCellValue cacheValue = recordValue.GetCellValue(_stringStorage, _sharedItems);
             if (XlsxCellValueComparer.OrdinalIgnoreCase.Equals(cacheValue, value))
                 return true;
         }
@@ -235,7 +235,7 @@ internal class XlsxPivotCacheValues
         var uniqueItems = new HashSet<XlsxCellValue>(XlsxCellValueComparer.OrdinalIgnoreCase);
         for (var row = area.TopRow + 1; row <= area.BottomRow; ++row)
         {
-            var value = valueSlice.GetCellValue(new Point(row, column));
+            XlsxCellValue value = valueSlice.GetCellValue(new Point(row, column));
 
             // Add to shared items first, because value can be an index to shared items.
             if (uniqueItems.Add(value))
@@ -263,7 +263,7 @@ internal class XlsxPivotCacheValues
                     break;
                 case XlsxDataType.TimeSpan:
                     // TimeSpan is represented as datetime in pivot cache, e.g. 14:30 into 1899-12-30T14:30:00
-                    var adjustedTimeSpan = DateTime.FromOADate(0).Add(value.GetTimeSpan());
+                    DateTime adjustedTimeSpan = DateTime.FromOADate(0).Add(value.GetTimeSpan());
                     AddDateTime(adjustedTimeSpan);
                     break;
                 default:

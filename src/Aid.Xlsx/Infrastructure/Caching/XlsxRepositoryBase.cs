@@ -76,7 +76,7 @@ internal abstract class XlsxRepositoryBase<Tkey, Tvalue>(Func<Tkey, Tvalue> crea
         }
 
         _storage.TryRemove(key, out _);
-        var value = _createNew(key);
+        Tvalue value = _createNew(key);
         return Store(ref key, value)!;
     }
 

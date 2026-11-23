@@ -88,7 +88,7 @@ public class SchemeTypeMap
     internal string GetSimpleTypeMethod(AttributeElement attribute)
     {
         var simpleTypeName = attribute.Type ?? throw new InvalidOperationException();
-        var simpleType = _simpleTypeMap[simpleTypeName];
+        SimpleTypeMapping simpleType = _simpleTypeMap[simpleTypeName];
         var expressionTemplate = attribute.IsOptional ? simpleType.OptionalTemplate : simpleType.RequiredTemplate;
         if (expressionTemplate.Contains("{0}", StringComparison.Ordinal))
             return expressionTemplate.Replace("{0}", attribute.Name, StringComparison.Ordinal);
@@ -100,7 +100,7 @@ public class SchemeTypeMap
 
     internal bool TryGetParsletCsType(ParsletName name, [NotNullWhen(true)] out string? csType)
     {
-        if (_parsletMap.TryGetValue(name, out var map))
+        if (_parsletMap.TryGetValue(name, out (string FinalType, string ItemType) map))
         {
             csType = map.FinalType;
             return true;
@@ -112,7 +112,7 @@ public class SchemeTypeMap
 
     internal bool TryItemGetValue(ParsletName parsletName, [NotNullWhen(true)] out string? csItemType)
     {
-        if (_parsletMap.TryGetValue(parsletName, out var map))
+        if (_parsletMap.TryGetValue(parsletName, out (string FinalType, string ItemType) map))
         {
             csItemType = map.ItemType;
             return true;

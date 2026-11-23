@@ -156,7 +156,7 @@ internal class CodeBuilder(StringBuilder sb, SchemeTypeMap typeMap)
     {
         Append("On").Append(name.WithoutPrefix()).Append(suffix).Append("(");
         var isFirst = true;
-        foreach (var argument in arguments)
+        foreach (Variable argument in arguments)
         {
             if (!isFirst)
                 Append(", ");
@@ -174,7 +174,7 @@ internal class CodeBuilder(StringBuilder sb, SchemeTypeMap typeMap)
         WriteIndent().Append("partial void On").Append(name.WithoutPrefix()).Append(suffix).Append("(");
 
         var isFirst = true;
-        foreach (var argument in arguments)
+        foreach (Variable argument in arguments)
         {
             if (!isFirst)
                 Append(", ");

@@ -23,7 +23,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
     public static XlsxAddress Create(XlsxWorksheet worksheet, string cellAddressString)
     {
         var fixedColumn = cellAddressString[0] == '$';
-        Int32 startPos;
+        int startPos;
         if (fixedColumn)
         {
             startPos = 1;
@@ -33,7 +33,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
             startPos = 0;
         }
 
-        int rowPos = startPos;
+        var rowPos = startPos;
         while (cellAddressString[rowPos] > '9')
         {
             rowPos++;
@@ -66,7 +66,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
                 columnLetter = cellAddressString.Substring(startPos, rowPos);
             }
 
-            rowNumber = Int32.Parse(cellAddressString[rowPos..], XlsxHelper.NumberStyle, XlsxHelper.ParseCulture);
+            rowNumber = int.Parse(cellAddressString[rowPos..], XlsxHelper.NumberStyle, XlsxHelper.ParseCulture);
         }
         return new XlsxAddress(worksheet, rowNumber, columnLetter, fixedRow, fixedColumn);
     }
@@ -180,7 +180,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
     /// <summary>
     /// Gets the row number of this address.
     /// </summary>
-    public readonly Int32 RowNumber
+    public readonly int RowNumber
     {
         get { return _rowNumber; }
     }
@@ -188,7 +188,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
     /// <summary>
     /// Gets the column number of this address.
     /// </summary>
-    public readonly Int32 ColumnNumber
+    public readonly int ColumnNumber
     {
         get { return _columnNumber; }
     }
@@ -196,7 +196,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
     /// <summary>
     /// Gets the column letter(s) of this address.
     /// </summary>
-    public readonly String ColumnLetter
+    public readonly string ColumnLetter
     {
         get { return XlsxHelper.GetColumnLetterFromNumber(_columnNumber); }
     }
@@ -210,7 +210,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
         if (!IsValid)
             return "#REF!";
 
-        String retVal = ColumnLetter;
+        var retVal = ColumnLetter;
         if (_fixedColumn)
         {
             retVal = "$" + retVal;
@@ -242,7 +242,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
             address = GetTrimmedAddress();
 
         if (includeSheet)
-            return String.Concat(
+            return string.Concat(
                 WorksheetIsDeleted ? "#REF" : Worksheet.Name.EscapeSheetName(),
                 '!',
                 address);
@@ -281,7 +281,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
                              left._fixedColumn);
     }
 
-    public static XlsxAddress operator +(XlsxAddress left, Int32 right)
+    public static XlsxAddress operator +(XlsxAddress left, int right)
     {
         return new XlsxAddress(left.Worksheet,
                              left.RowNumber + right,
@@ -290,7 +290,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
                              left._fixedColumn);
     }
 
-    public static XlsxAddress operator -(XlsxAddress left, Int32 right)
+    public static XlsxAddress operator -(XlsxAddress left, int right)
     {
         return new XlsxAddress(left.Worksheet,
                              left.RowNumber - right,
@@ -299,12 +299,12 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
                              left._fixedColumn);
     }
 
-    public static Boolean operator ==(XlsxAddress left, XlsxAddress right)
+    public static bool operator ==(XlsxAddress left, XlsxAddress right)
     {
         return left.Equals(right);
     }
 
-    public static Boolean operator !=(XlsxAddress left, XlsxAddress right)
+    public static bool operator !=(XlsxAddress left, XlsxAddress right)
     {
         return !(left == right);
     }
@@ -315,12 +315,12 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
 
     #region IEqualityComparer<XlsxCellAddress> Members
 
-    public readonly Boolean Equals(IXlsxAddress x, IXlsxAddress y)
+    public readonly bool Equals(IXlsxAddress x, IXlsxAddress y)
     {
         return x == y;
     }
 
-    public new static Boolean Equals(object x, object y)
+    public new static bool Equals(object x, object y)
     {
         return x == y;
     }
@@ -348,7 +348,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
                _fixedColumn == other._fixedColumn;
     }
 
-    public override readonly Boolean Equals(Object other)
+    public override readonly bool Equals(object other)
     {
         return Equals(other as IXlsxAddress);
     }
@@ -372,22 +372,22 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
 
     #endregion Interface Requirements
 
-    public String ToStringRelative()
+    public string ToStringRelative()
     {
         return ToStringRelative(false);
     }
 
-    public readonly String ToStringFixed()
+    public readonly string ToStringFixed()
     {
         return ToStringFixed(XlsxReferenceStyle.Default);
     }
 
-    public String ToStringRelative(Boolean includeSheet)
+    public string ToStringRelative(bool includeSheet)
     {
         var address = IsValid ? GetTrimmedAddress() : "#REF!";
 
         if (includeSheet)
-            return String.Concat(
+            return string.Concat(
                 WorksheetIsDeleted ? "#REF" : Worksheet.Name.EscapeSheetName(),
                 '!',
                 address
@@ -406,14 +406,14 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
         return new XlsxAddress(worksheet, RowNumber, ColumnNumber, FixedRow, FixedColumn);
     }
 
-    public readonly String ToStringFixed(XlsxReferenceStyle referenceStyle)
+    public readonly string ToStringFixed(XlsxReferenceStyle referenceStyle)
     {
         return ToStringFixed(referenceStyle, false);
     }
 
-    public readonly String ToStringFixed(XlsxReferenceStyle referenceStyle, Boolean includeSheet)
+    public readonly string ToStringFixed(XlsxReferenceStyle referenceStyle, bool includeSheet)
     {
-        String address;
+        string address;
 
         if (referenceStyle == XlsxReferenceStyle.Default && HasWorksheet)
             referenceStyle = Worksheet.Workbook.ReferenceStyle;
@@ -431,14 +431,14 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
         {
             address = referenceStyle switch
             {
-                XlsxReferenceStyle.A1 => String.Concat('$', ColumnLetter, '$', _rowNumber.ToInvariantString()),
-                XlsxReferenceStyle.R1C1 => String.Concat('R', _rowNumber.ToInvariantString(), 'C', ColumnNumber),
+                XlsxReferenceStyle.A1 => string.Concat('$', ColumnLetter, '$', _rowNumber.ToInvariantString()),
+                XlsxReferenceStyle.R1C1 => string.Concat('R', _rowNumber.ToInvariantString(), 'C', ColumnNumber),
                 _ => throw new NotImplementedException(),
             };
         }
 
         if (includeSheet)
-            return String.Concat(
+            return string.Concat(
                 WorksheetIsDeleted ? "#REF" : Worksheet.Name.EscapeSheetName(),
                 '!',
                 address);
@@ -446,7 +446,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
         return address;
     }
 
-    public readonly String UniqueId { get { return RowNumber.ToString("0000000") + ColumnNumber.ToString("00000"); } }
+    public readonly string UniqueId { get { return RowNumber.ToString("0000000") + ColumnNumber.ToString("00000"); } }
 
     public readonly bool IsValid
     {

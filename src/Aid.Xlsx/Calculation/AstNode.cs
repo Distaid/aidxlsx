@@ -247,7 +247,7 @@ internal class ReferenceNode(PrefixNode? prefix, ReferenceArea referenceArea, bo
         if (Prefix is null)
             return new Reference(new XlsxRangeAddress(null, Address));
 
-        if (!Prefix.GetWorksheet(ctx.Workbook).TryPickT0(out var ws, out var err))
+        if (!Prefix.GetWorksheet(ctx.Workbook).TryPickT0(out IXlsxWorksheet? ws, out XlsxError err))
             return err;
 
         // TODO: XlsxRangeAddress can parse all types of reference item type, utilize known type for faster parsing + cache
@@ -272,16 +272,16 @@ internal class NameNode(PrefixNode? prefix, string name) : ValueNode
 
     public AnyValue GetValue(XlsxWorksheet ctxWs, XlsxCalcEngine engine)
     {
-        var worksheet = ctxWs;
+        XlsxWorksheet worksheet = ctxWs;
         if (Prefix is not null)
         {
-            if (!Prefix.GetWorksheet(ctxWs.Workbook).TryPickT0(out var ws, out var err))
+            if (!Prefix.GetWorksheet(ctxWs.Workbook).TryPickT0(out IXlsxWorksheet? ws, out XlsxError err))
                 return err;
 
             worksheet = (XlsxWorksheet)ws!;
         }
 
-        if (!TryGetNameRange(worksheet, out var definedName))
+        if (!TryGetNameRange(worksheet, out IXlsxDefinedName? definedName))
             return XlsxError.NameNotRecognized;
 
         // Parser needs an equal sign for a union of ranges (or braces around formula)
@@ -292,13 +292,13 @@ internal class NameNode(PrefixNode? prefix, string name) : ValueNode
 
     internal bool TryGetNameRange(IXlsxWorksheet ws, [NotNullWhen(true)] out IXlsxDefinedName? definedName)
     {
-        if (ws.DefinedNames.TryGetValue(Name, out var sheetDefinedName))
+        if (ws.DefinedNames.TryGetValue(Name, out IXlsxDefinedName? sheetDefinedName))
         {
             definedName = sheetDefinedName;
             return true;
         }
 
-        if (ws.Workbook.DefinedNamesInternal.TryGetValue(Name, out var bookDefinedName))
+        if (ws.Workbook.DefinedNamesInternal.TryGetValue(Name, out IXlsxDefinedName? bookDefinedName))
         {
             definedName = bookDefinedName;
             return true;

@@ -7,22 +7,22 @@ namespace Aid.Xlsx.Model.CustomProperties;
 internal class XlsxCustomProperties(XlsxWorkbook workbook) : IXlsxCustomProperties, IEnumerable<IXlsxCustomProperty>
 {
     readonly XlsxWorkbook workbook = workbook;
-    private readonly Dictionary<String, IXlsxCustomProperty> customProperties = [];
+    private readonly Dictionary<string, IXlsxCustomProperty> customProperties = [];
     public void Add(IXlsxCustomProperty customProperty)
     {
         customProperties.Add(customProperty.Name, customProperty);
     }
-    public void Add<T>(String name, T value)
+    public void Add<T>(string name, T value)
     {
         var cp = new XlsxCustomProperty(workbook) { Name = name, Value = value };
         Add(cp);
     }
 
-    public void Delete(String name)
+    public void Delete(string name)
     {
         customProperties.Remove(name);
     }
-    public IXlsxCustomProperty CustomProperty(String name)
+    public IXlsxCustomProperty CustomProperty(string name)
     {
         return customProperties[name];
     }

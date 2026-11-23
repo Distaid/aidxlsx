@@ -18,7 +18,7 @@ internal class XlsxRangeRows(XlsxWorksheet worksheet) : IXlsxRangeRows
     {
         get
         {
-            var areas = _ranges.Select(x => SheetArea.From(x.RangeAddress)).ToArray();
+            SheetArea[] areas = [.. _ranges.Select(x => SheetArea.From(x.RangeAddress))];
             return XlsxCellFormat.ForAreas(_worksheet.Workbook, areas, null);
         }
     }
@@ -88,7 +88,7 @@ internal class XlsxRangeRows(XlsxWorksheet worksheet) : IXlsxRangeRows
 
     public void Select()
     {
-        foreach (var range in this)
+        foreach (IXlsxRangeRow range in this)
             range.Select();
     }
 

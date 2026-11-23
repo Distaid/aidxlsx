@@ -32,7 +32,7 @@ internal class XlsxMarker
     }
 
     public IXlsxCell Cell { get => rangeCell.FirstCell(); }
-    public Int32 ColumnNumber { get => rangeCell.RangeAddress.FirstAddress.ColumnNumber; }
+    public int ColumnNumber { get => rangeCell.RangeAddress.FirstAddress.ColumnNumber; }
     public System.Drawing.Point Offset { get; set; }
-    public Int32 RowNumber { get => rangeCell.RangeAddress.FirstAddress.RowNumber; }
+    public int RowNumber { get => rangeCell.RangeAddress.FirstAddress.RowNumber; }
 }

@@ -4,7 +4,7 @@ internal class XlsxDrawingWeb(IXlsxDrawingStyle style) : IXlsxDrawingWeb
 {
     private readonly IXlsxDrawingStyle _style = style;
 
-    public String? AlternateText { get; set; }
+    public string? AlternateText { get; set; }
 
-    public IXlsxDrawingStyle SetAlternateText(String? value) { AlternateText = value; return _style; }
+    public IXlsxDrawingStyle SetAlternateText(string? value) { AlternateText = value; return _style; }
 }

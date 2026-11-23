@@ -74,14 +74,14 @@ internal sealed class XlsxCellFormula
     /// the data table is row or column).
     /// </para>
     /// </remarks>
-    internal Boolean IsRowDataTable => _flags.HasFlag(FormulaFlags.Is1DRow);
+    internal bool IsRowDataTable => _flags.HasFlag(FormulaFlags.Is1DRow);
 
     /// <summary>
     /// True, if data table is 2D and uses both inputs. Input1 is replaced by
     /// value from current row, input2 is replaced by a value from current column.
     /// This property is meaningless, if called for non-data-table formula.
     /// </summary>
-    internal Boolean Is2DDataTable => _flags.HasFlag(FormulaFlags.Is2D);
+    internal bool Is2DDataTable => _flags.HasFlag(FormulaFlags.Is2D);
 
     /// <summary>
     /// Returns a cell that data table formula uses as a variable to replace with values
@@ -103,13 +103,13 @@ internal sealed class XlsxCellFormula
     /// Returns true, if data table formula has its input1 deleted.
     /// This property is meaningless, if called for non-data-table formula.
     /// </summary>
-    internal Boolean Input1Deleted => _flags.HasFlag(FormulaFlags.Input1Deleted);
+    internal bool Input1Deleted => _flags.HasFlag(FormulaFlags.Input1Deleted);
 
     /// <summary>
     /// Returns true, if data table formula has its input1 deleted.
     /// This property is meaningless, if called for non-data-table formula.
     /// </summary>
-    internal Boolean Input2Deleted => _flags.HasFlag(FormulaFlags.Input2Deleted);
+    internal bool Input2Deleted => _flags.HasFlag(FormulaFlags.Input2Deleted);
 
     private XlsxCellFormula(string a1)
     {
@@ -126,8 +126,8 @@ internal sealed class XlsxCellFormula
 
     internal static string GetFormula(string strValue, FormulaConversionType conversionType, Point cellAddress)
     {
-        if (String.IsNullOrWhiteSpace(strValue))
-            return String.Empty;
+        if (string.IsNullOrWhiteSpace(strValue))
+            return string.Empty;
 
         // Users and some producers might prefix formula with '=', but that is not a valid
         // formula, so strip and re-add if present.
@@ -190,8 +190,8 @@ internal sealed class XlsxCellFormula
         bool input1Deleted,
         bool isRowDataTable)
     {
-        String rowInput;
-        String colInput;
+        string rowInput;
+        string colInput;
         if (isRowDataTable)
         {
             colInput = string.Empty;
@@ -290,7 +290,7 @@ internal sealed class XlsxCellFormula
     /// <param name="engine">Engine to parse the formula into AST, if necessary.</param>
     public Formula GetAst(XlsxCalcEngine engine)
     {
-        var ast = engine.Parse(A1);
+        Formula ast = engine.Parse(A1);
         return ast;
     }
 
@@ -322,7 +322,7 @@ internal sealed class XlsxCellFormula
 
         var originR1C1 = FormulaConverter.ToR1C1(A1, origin.Row, origin.Column);
         var targetA1 = FormulaConverter.ToA1(originR1C1, destination.Row, destination.Column);
-        var targetFormula = NormalA1(targetA1);
+        XlsxCellFormula targetFormula = NormalA1(targetA1);
         targetFormula.IsDirty = true;
         return targetFormula;
     }

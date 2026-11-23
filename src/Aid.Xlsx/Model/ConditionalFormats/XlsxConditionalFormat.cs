@@ -25,12 +25,12 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
             if (yy is null) return false;
             if (xx.GetType() != yy.GetType()) return false;
 
-            var xxValues = xx.Values.Values.Where(v => v == null || !v.IsFormula).Select(v => v?.Value);
-            var yyValues = yy.Values.Values.Where(v => v == null || !v.IsFormula).Select(v => v?.Value);
-            var xxFormulas = xx.Areas.Count > 0 ? xx.Values.Values.Where(v => v != null && v.IsFormula).Select(f => ((XlsxCell)xx.Range.FirstCell()).GetFormulaR1C1(f.Value)) : null;
-            var yyFormulas = yy.Areas.Count > 0 ? yy.Values.Values.Where(v => v != null && v.IsFormula).Select(f => ((XlsxCell)yy.Range.FirstCell()).GetFormulaR1C1(f.Value)) : null;
-            var xStyle = xx.FormatValue;
-            var yStyle = yy.FormatValue;
+            IEnumerable<string> xxValues = xx.Values.Values.Where(v => v == null || !v.IsFormula).Select(v => v?.Value);
+            IEnumerable<string> yyValues = yy.Values.Values.Where(v => v == null || !v.IsFormula).Select(v => v?.Value);
+            IEnumerable<string> xxFormulas = xx.Areas.Count > 0 ? xx.Values.Values.Where(v => v != null && v.IsFormula).Select(f => ((XlsxCell)xx.Range.FirstCell()).GetFormulaR1C1(f.Value)) : null;
+            IEnumerable<string> yyFormulas = yy.Areas.Count > 0 ? yy.Values.Values.Where(v => v != null && v.IsFormula).Select(f => ((XlsxCell)yy.Range.FirstCell()).GetFormulaR1C1(f.Value)) : null;
+            XlsxDxfValue xStyle = xx.FormatValue;
+            XlsxDxfValue yStyle = yy.FormatValue;
             return Equals(xStyle, yStyle)
                 && xx.ConditionalFormatType == yy.ConditionalFormatType
                 && xx.TimePeriod == yy.TimePeriod
@@ -51,9 +51,9 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
 
         public int GetHashCode(XlsxConditionalFormat obj)
         {
-            var xx = obj;
-            var xStyle = obj.FormatValue;
-            var xValues = xx.Values.Values.Where(v => !v.IsFormula).Select(v => v.Value);
+            XlsxConditionalFormat xx = obj;
+            XlsxDxfValue xStyle = obj.FormatValue;
+            IEnumerable<string> xValues = xx.Values.Values.Where(v => !v.IsFormula).Select(v => v.Value);
             if (obj.Areas.Count > 0)
                 xValues = xValues
                 .Union(xx.Values.Values.Where(v => v.IsFormula).Select(f => ((XlsxCell)obj.Range.FirstCell()).GetFormulaR1C1(f.Value)));
@@ -93,8 +93,8 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
                 return false;
             if (y.Keys.Except(x.Keys).Any())
                 return false;
-            var valueComparer = EqualityComparer<TValue>.Default;
-            foreach (var pair in x)
+            EqualityComparer<TValue> valueComparer = EqualityComparer<TValue>.Default;
+            foreach (KeyValuePair<int, TValue> pair in x)
                 if (!valueComparer.Equals(pair.Value, y[pair.Key]))
                     return false;
 
@@ -123,7 +123,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
     internal XlsxConditionalFormat(XlsxWorksheet worksheet, XlsxConditionalFormat other, XlsxAreaList areaList)
         : this(worksheet, areaList)
     {
-        var otherDxf = other.FormatValue;
+        XlsxDxfValue otherDxf = other.FormatValue;
         FormatValue = otherDxf is not null
             ? _worksheet.Workbook.Styles.GetRegisteredDxFormat(otherDxf, static x => x)
             : null;
@@ -138,9 +138,9 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         ShowBarOnly = other.ShowBarOnly;
         StopIfTrue = other.StopIfTrue;
 
-        var sourceAnchor = other.Areas[0].FirstPoint;
-        var targetAnchor = Areas[0].FirstPoint;
-        foreach (var (key, originalValue) in other.Values)
+        Point sourceAnchor = other.Areas[0].FirstPoint;
+        Point targetAnchor = Areas[0].FirstPoint;
+        foreach ((var key, XlsxFormula originalValue) in other.Values)
             Values.Add(key, originalValue.GetAdjustedCopy(sourceAnchor, targetAnchor));
 
         Colors = other.Colors.CopyDictionary();
@@ -156,7 +156,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
     /// Priority of formatting rule. Lower values have higher priority than higher values.
     /// Minimum value is 1. It is basically used for ordering of CF during saving.
     /// </summary>
-    internal Int32 Priority { get; set; }
+    internal int Priority { get; set; }
 
     public XlsxDxfValue? FormatValue { get; set; }
 
@@ -187,7 +187,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         get
         {
             var ranges = new XlsxRanges(_worksheet);
-            foreach (var area in Areas)
+            foreach (Area area in Areas)
                 ranges.Add(_worksheet.Range(area));
 
             return ranges;
@@ -203,17 +203,17 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
 
     public XlsxCFOperator Operator { get; set; }
 
-    public Boolean Bottom { get; set; }
+    public bool Bottom { get; set; }
 
-    public Boolean Percent { get; set; }
+    public bool Percent { get; set; }
 
-    public Boolean ReverseIconOrder { get; set; }
+    public bool ReverseIconOrder { get; set; }
 
-    public Boolean ShowIconOnly { get; set; }
+    public bool ShowIconOnly { get; set; }
 
-    public Boolean ShowBarOnly { get; set; }
+    public bool ShowBarOnly { get; set; }
 
-    public Boolean StopIfTrue { get; set; }
+    public bool StopIfTrue { get; set; }
 
     internal XlsxAreaList Areas { get; set; }
 
@@ -268,7 +268,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenContains(String value)
+    public IXlsxStyle WhenContains(string value)
     {
         Values.Initialize(new XlsxFormula { Value = value });
         ConditionalFormatType = XlsxConditionalFormatType.ContainsText;
@@ -276,7 +276,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenNotContains(String value)
+    public IXlsxStyle WhenNotContains(string value)
     {
         Values.Initialize(new XlsxFormula { Value = value });
         ConditionalFormatType = XlsxConditionalFormatType.NotContainsText;
@@ -284,7 +284,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenStartsWith(String value)
+    public IXlsxStyle WhenStartsWith(string value)
     {
         Values.Initialize(new XlsxFormula { Value = value });
         ConditionalFormatType = XlsxConditionalFormatType.StartsWith;
@@ -292,7 +292,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenEndsWith(String value)
+    public IXlsxStyle WhenEndsWith(string value)
     {
         Values.Initialize(new XlsxFormula { Value = value });
         ConditionalFormatType = XlsxConditionalFormatType.EndsWith;
@@ -300,7 +300,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenEquals(String value)
+    public IXlsxStyle WhenEquals(string value)
     {
         Values.Initialize(new XlsxFormula { Value = value });
         Operator = XlsxCFOperator.Equal;
@@ -308,7 +308,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenNotEquals(String value)
+    public IXlsxStyle WhenNotEquals(string value)
     {
         Values.Initialize(new XlsxFormula { Value = value });
         Operator = XlsxCFOperator.NotEqual;
@@ -316,7 +316,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenGreaterThan(String value)
+    public IXlsxStyle WhenGreaterThan(string value)
     {
         Values.Initialize(new XlsxFormula { Value = value });
         Operator = XlsxCFOperator.GreaterThan;
@@ -324,7 +324,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenLessThan(String value)
+    public IXlsxStyle WhenLessThan(string value)
     {
         Values.Initialize(new XlsxFormula { Value = value });
         Operator = XlsxCFOperator.LessThan;
@@ -332,7 +332,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenEqualOrGreaterThan(String value)
+    public IXlsxStyle WhenEqualOrGreaterThan(string value)
     {
         Values.Initialize(new XlsxFormula { Value = value });
         Operator = XlsxCFOperator.EqualOrGreaterThan;
@@ -340,7 +340,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenEqualOrLessThan(String value)
+    public IXlsxStyle WhenEqualOrLessThan(string value)
     {
         Values.Initialize(new XlsxFormula { Value = value });
         Operator = XlsxCFOperator.EqualOrLessThan;
@@ -348,7 +348,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenBetween(String minValue, String maxValue)
+    public IXlsxStyle WhenBetween(string minValue, string maxValue)
     {
         Values.Initialize(new XlsxFormula { Value = minValue });
         Values.Add(new XlsxFormula { Value = maxValue });
@@ -357,7 +357,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenNotBetween(String minValue, String maxValue)
+    public IXlsxStyle WhenNotBetween(string minValue, string maxValue)
     {
         Values.Initialize(new XlsxFormula { Value = minValue });
         Values.Add(new XlsxFormula { Value = maxValue });
@@ -366,7 +366,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenEquals(Double value)
+    public IXlsxStyle WhenEquals(double value)
     {
         Values.Initialize(new XlsxFormula(value));
         Operator = XlsxCFOperator.Equal;
@@ -374,7 +374,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenNotEquals(Double value)
+    public IXlsxStyle WhenNotEquals(double value)
     {
         Values.Initialize(new XlsxFormula(value));
         Operator = XlsxCFOperator.NotEqual;
@@ -382,7 +382,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenGreaterThan(Double value)
+    public IXlsxStyle WhenGreaterThan(double value)
     {
         Values.Initialize(new XlsxFormula(value));
         Operator = XlsxCFOperator.GreaterThan;
@@ -390,7 +390,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenLessThan(Double value)
+    public IXlsxStyle WhenLessThan(double value)
     {
         Values.Initialize(new XlsxFormula(value));
         Operator = XlsxCFOperator.LessThan;
@@ -398,7 +398,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenEqualOrGreaterThan(Double value)
+    public IXlsxStyle WhenEqualOrGreaterThan(double value)
     {
         Values.Initialize(new XlsxFormula(value));
         Operator = XlsxCFOperator.EqualOrGreaterThan;
@@ -406,7 +406,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenEqualOrLessThan(Double value)
+    public IXlsxStyle WhenEqualOrLessThan(double value)
     {
         Values.Initialize(new XlsxFormula(value));
         Operator = XlsxCFOperator.EqualOrLessThan;
@@ -414,7 +414,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenBetween(Double minValue, Double maxValue)
+    public IXlsxStyle WhenBetween(double minValue, double maxValue)
     {
         Values.Initialize(new XlsxFormula(minValue));
         Values.Add(new XlsxFormula(maxValue));
@@ -423,7 +423,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenNotBetween(Double minValue, Double maxValue)
+    public IXlsxStyle WhenNotBetween(double minValue, double maxValue)
     {
         Values.Initialize(new XlsxFormula(minValue));
         Values.Add(new XlsxFormula(maxValue));
@@ -444,15 +444,15 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenIsTrue(String formula)
+    public IXlsxStyle WhenIsTrue(string formula)
     {
-        String f = formula.TrimStart()[0] == '=' ? formula : "=" + formula;
+        var f = formula.TrimStart()[0] == '=' ? formula : "=" + formula;
         Values.Initialize(new XlsxFormula { Value = f });
         ConditionalFormatType = XlsxConditionalFormatType.Expression;
         return Style;
     }
 
-    public IXlsxStyle WhenIsTop(Int32 value, XlsxTopBottomType topBottomType = XlsxTopBottomType.Items)
+    public IXlsxStyle WhenIsTop(int value, XlsxTopBottomType topBottomType = XlsxTopBottomType.Items)
     {
         Values.Initialize(new XlsxFormula(value));
         Percent = topBottomType == XlsxTopBottomType.Percent;
@@ -461,7 +461,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return Style;
     }
 
-    public IXlsxStyle WhenIsBottom(Int32 value, XlsxTopBottomType topBottomType = XlsxTopBottomType.Items)
+    public IXlsxStyle WhenIsBottom(int value, XlsxTopBottomType topBottomType = XlsxTopBottomType.Items)
     {
         Values.Initialize(new XlsxFormula(value));
         Percent = topBottomType == XlsxTopBottomType.Percent;
@@ -476,7 +476,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return new XlsxCFColorScaleMin(this);
     }
 
-    public IXlsxCFDataBarMin DataBar(XlsxColor color, Boolean showBarOnly = false)
+    public IXlsxCFDataBarMin DataBar(XlsxColor color, bool showBarOnly = false)
     {
         Colors.Initialize(color);
         ShowBarOnly = showBarOnly;
@@ -484,7 +484,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return new XlsxCFDataBarMin(this);
     }
 
-    public IXlsxCFDataBarMin DataBar(XlsxColor positiveColor, XlsxColor negativeColor, Boolean showBarOnly = false)
+    public IXlsxCFDataBarMin DataBar(XlsxColor positiveColor, XlsxColor negativeColor, bool showBarOnly = false)
     {
         Colors.Initialize(positiveColor);
         Colors.Add(negativeColor);
@@ -493,7 +493,7 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         return new XlsxCFDataBarMin(this);
     }
 
-    public IXlsxCFIconSet IconSet(XlsxIconSetStyle iconSetStyle, Boolean reverseIconOrder = false, Boolean showIconOnly = false)
+    public IXlsxCFIconSet IconSet(XlsxIconSetStyle iconSetStyle, bool reverseIconOrder = false, bool showIconOnly = false)
     {
         IconSetOperators.Clear();
         Values.Clear();

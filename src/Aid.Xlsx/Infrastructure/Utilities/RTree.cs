@@ -34,7 +34,7 @@ internal sealed class RTree<TData>
 
     internal List<Node> GetNodes(Area area, List<Node> buffer)
     {
-        var envelope = ToEnvelope(area);
+        Envelope envelope = ToEnvelope(area);
         GetNodes(_rBush.Root, in envelope, buffer);
         return buffer;
     }

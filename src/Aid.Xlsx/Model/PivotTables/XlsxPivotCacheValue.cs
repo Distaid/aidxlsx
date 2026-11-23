@@ -111,7 +111,7 @@ internal readonly struct XlsxPivotCacheValue
 
     internal double GetNumber() => _value;
 
-    internal Boolean GetBoolean()
+    internal bool GetBoolean()
     {
         return _value != 0;
     }

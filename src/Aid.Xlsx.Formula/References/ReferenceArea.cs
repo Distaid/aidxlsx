@@ -113,10 +113,10 @@ public readonly record struct ReferenceArea
     /// <remarks>Assumes reference is in A1.</remarks>
     internal ReferenceArea ToR1C1(int anchorRow, int anchorCol)
     {
-        var first = First.ToR1C1(anchorRow, anchorCol);
+        RowCol first = First.ToR1C1(anchorRow, anchorCol);
         if (First != Second)
         {
-            var second = Second.ToR1C1(anchorRow, anchorCol);
+            RowCol second = Second.ToR1C1(anchorRow, anchorCol);
             return new ReferenceArea(first, second);
         }
 
@@ -129,11 +129,11 @@ public readonly record struct ReferenceArea
     /// <remarks>Assumes reference is in R1C1.</remarks>
     internal ReferenceArea? ToA1OrError(int anchorRow, int anchorCol)
     {
-        var first = First.ToA1OrError(anchorRow, anchorCol);
+        RowCol? first = First.ToA1OrError(anchorRow, anchorCol);
         if (first is null)
             return null;
 
-        var second = First != Second ? Second.ToA1OrError(anchorRow, anchorCol) : first;
+        RowCol? second = First != Second ? Second.ToA1OrError(anchorRow, anchorCol) : first;
         if (second is null)
             return null;
 

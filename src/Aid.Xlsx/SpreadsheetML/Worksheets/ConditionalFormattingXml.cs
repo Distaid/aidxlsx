@@ -5,6 +5,7 @@ using Aid.Xlsx.Infrastructure.Extensions;
 using Aid.Xlsx.Infrastructure.Utilities;
 using Aid.Xlsx.Model.ConditionalFormats;
 using Aid.Xlsx.Model.Grid.Coordinates;
+using Aid.Xlsx.Model.Grid.Ranges;
 using Aid.Xlsx.Model.Styles.Colors;
 using Aid.Xlsx.Model.Workbooks;
 using Aid.Xlsx.Model.Worksheets;
@@ -76,15 +77,15 @@ internal static class ConditionalFormattingXml
 
     internal static void Load(XElement source, XlsxWorksheet worksheet, LoadContext context)
     {
-        var ns = source.Name.Namespace;
+        XNamespace ns = source.Name.Namespace;
         var pivot = (bool?)source.Attribute("pivot") ?? false;
         var references = ((string?)source.Attribute("sqref") ?? string.Empty).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
-        foreach (var rule in source.Elements(ns + "cfRule"))
+        foreach (XElement rule in source.Elements(ns + "cfRule"))
         {
             if ((string?)rule.Attribute("type") is not { } type)
                 continue;
 
-            var ranges = references.Select(reference => worksheet.Range(reference)
+            IEnumerable<XlsxRange> ranges = references.Select(reference => worksheet.Range(reference)
                 ?? throw new InvalidDataException($"Invalid conditional formatting range '{reference}'."));
             var format = new XlsxConditionalFormat(worksheet, XlsxAreaList.FromRanges(worksheet, ranges))
             {
@@ -101,7 +102,7 @@ internal static class ConditionalFormattingXml
             else if (rule.Element(ns + "dataBar") is { } dataBar)
             {
                 format.ShowBarOnly = (bool?)dataBar.Attribute("showValue") == false;
-                if (Guid.TryParse(rule.Descendants(Extended + "id").FirstOrDefault()?.Value, out var id))
+                if (Guid.TryParse(rule.Descendants(Extended + "id").FirstOrDefault()?.Value, out Guid id))
                     format.Id = id;
 
                 ReadThresholds(dataBar, format);
@@ -166,8 +167,8 @@ internal static class ConditionalFormattingXml
 
     private static void ReadThresholds(XElement source, XlsxConditionalFormat format)
     {
-        var ns = source.Name.Namespace;
-        foreach (var threshold in source.Elements(ns + "cfvo"))
+        XNamespace ns = source.Name.Namespace;
+        foreach (XElement threshold in source.Elements(ns + "cfvo"))
         {
             if ((string?)threshold.Attribute("type") is { } type)
                 format.ContentTypes.Add(ReadValue(ThresholdTypes, type));
@@ -178,20 +179,20 @@ internal static class ConditionalFormattingXml
             format.IconSetOperators.Add(inclusive ? XlsxCFIconSetOperator.EqualOrGreaterThan : XlsxCFIconSetOperator.GreaterThan);
         }
 
-        foreach (var color in source.Elements(ns + "color"))
+        foreach (XElement color in source.Elements(ns + "color"))
             format.Colors.Add(SpreadsheetColorXml.Read(color));
     }
 
     internal static void LoadDataBarExtensions(XElement source, XlsxWorksheet worksheet)
     {
-        foreach (var rule in source.Descendants(Extended + "cfRule"))
+        foreach (XElement rule in source.Descendants(Extended + "cfRule"))
         {
             if ((string?)rule.Attribute("type") != "dataBar" ||
-                !Guid.TryParse((string?)rule.Attribute("id"), out var id) ||
+                !Guid.TryParse((string?)rule.Attribute("id"), out Guid id) ||
                 rule.Element(Extended + "dataBar")?.Element(Extended + "negativeFillColor") is not { } negativeFill)
                 continue;
 
-            var format = worksheet.ConditionalFormats.SingleOrDefault<XlsxConditionalFormat>(candidate => candidate.Id == id);
+            XlsxConditionalFormat? format = worksheet.ConditionalFormats.SingleOrDefault<XlsxConditionalFormat>(candidate => candidate.Id == id);
             format?.Colors.Add(SpreadsheetColorXml.Read(negativeFill));
         }
     }
@@ -202,7 +203,7 @@ internal static class ConditionalFormattingXml
         if (pivot)
             group.Add(Flag("pivot", true));
         group.Add(new XAttribute("sqref", references));
-        foreach (var format in formats)
+        foreach (XlsxConditionalFormat format in formats)
             group.Add(WriteRule(format, context));
 
         return group;
@@ -279,7 +280,7 @@ internal static class ConditionalFormattingXml
         var text = format.Values[1].Value;
         var cell = FirstCell(format);
         var length = text.Length.ToString(CultureInfo.InvariantCulture);
-        var (op, formula) = format.ConditionalFormatType switch
+        (var op, var formula) = format.ConditionalFormatType switch
         {
             XlsxConditionalFormatType.ContainsText => ("containsText", $"NOT(ISERROR(SEARCH(\"{text}\",{cell})))"),
             XlsxConditionalFormatType.NotContainsText => ("notContains", $"ISERROR(SEARCH(\"{text}\",{cell}))"),
@@ -340,7 +341,7 @@ internal static class ConditionalFormattingXml
             Flag("showValue", !format.ShowIconOnly), Flag("reverse", format.ReverseIconOrder));
         for (var index = 1; index <= format.Values.Count; index++)
         {
-            var threshold = WriteThreshold(format, index);
+            XElement threshold = WriteThreshold(format, index);
             threshold.Add(Flag("gte", format.IconSetOperators[index] == XlsxCFIconSetOperator.EqualOrGreaterThan));
             set.Add(threshold);
         }
@@ -350,9 +351,9 @@ internal static class ConditionalFormattingXml
 
     private static XElement WriteThreshold(XlsxConditionalFormat format, int index, XlsxCFContentType? fallback = null)
     {
-        var type = format.ContentTypes.TryGetValue(index, out var stored) ? stored : fallback!.Value;
+        XlsxCFContentType type = format.ContentTypes.TryGetValue(index, out XlsxCFContentType stored) ? stored : fallback!.Value;
         var threshold = new XElement(Spreadsheet + "cfvo", new XAttribute("type", WriteValue(ThresholdTypes, type)));
-        if (format.Values.TryGetValue(index, out var value) && value?.Value is { } text)
+        if (format.Values.TryGetValue(index, out XlsxFormula? value) && value?.Value is { } text)
             threshold.Add(new XAttribute("val", text));
 
         return threshold;
@@ -368,18 +369,18 @@ internal static class ConditionalFormattingXml
 
     internal static void UpdateDataBarExtensions(XElement extension, IEnumerable<XlsxConditionalFormat> formats)
     {
-        var container = extension.Element(Extended + "conditionalFormattings");
+        XElement? container = extension.Element(Extended + "conditionalFormattings");
         if (container is null)
         {
             container = new XElement(Extended + "conditionalFormattings");
             extension.Add(container);
         }
 
-        foreach (var format in formats)
+        foreach (XlsxConditionalFormat format in formats)
         {
             var id = format.Id.WrapInBraces();
-            var existing = container.Descendants(Extended + "cfRule")
-                .SingleOrDefault(rule => Guid.TryParse((string?)rule.Attribute("id"), out var ruleId) && ruleId == format.Id);
+            XElement? existing = container.Descendants(Extended + "cfRule")
+                .SingleOrDefault(rule => Guid.TryParse((string?)rule.Attribute("id"), out Guid ruleId) && ruleId == format.Id);
             if (existing?.Parent is { } oldGroup)
             {
                 existing.Remove();
@@ -401,8 +402,8 @@ internal static class ConditionalFormattingXml
 
     private static XElement WriteExtendedThreshold(XlsxConditionalFormat format, int index, XlsxCFContentType fallback)
     {
-        var type = format.ContentTypes.TryGetValue(index, out var stored) ? stored : fallback;
-        if (format.Values.TryGetValue(index, out var value) && value?.Value is { } text)
+        XlsxCFContentType type = format.ContentTypes.TryGetValue(index, out XlsxCFContentType stored) ? stored : fallback;
+        if (format.Values.TryGetValue(index, out XlsxFormula? value) && value?.Value is { } text)
             return new XElement(Extended + "cfvo", new XAttribute("type", "num"), new XElement(Excel + "f", text));
 
         var token = type switch
@@ -418,7 +419,7 @@ internal static class ConditionalFormattingXml
 
     private static T ReadValue<T>((T Model, string Xml)[] values, string? token) where T : struct, Enum
     {
-        foreach (var pair in values)
+        foreach ((T Model, string Xml) pair in values)
         {
             if (pair.Xml == token)
                 return pair.Model;
@@ -429,7 +430,7 @@ internal static class ConditionalFormattingXml
 
     private static string WriteValue<T>((T Model, string Xml)[] values, T value) where T : struct, Enum
     {
-        foreach (var pair in values)
+        foreach ((T Model, string Xml) pair in values)
         {
             if (EqualityComparer<T>.Default.Equals(pair.Model, value))
                 return pair.Xml;

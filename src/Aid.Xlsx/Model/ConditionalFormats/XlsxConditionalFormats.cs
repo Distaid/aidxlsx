@@ -81,11 +81,11 @@ internal class XlsxConditionalFormats(XlsxWorksheet worksheet) : IXlsxConditiona
     {
         for (var i = _conditionalFormats.Count - 1; i >= 0; --i)
         {
-            var conditionalFormat = _conditionalFormats[i];
+            XlsxConditionalFormat conditionalFormat = _conditionalFormats[i];
             if (!conditionalFormat.Areas.IntersectsWith(area))
                 continue;
 
-            var remainingAreas = conditionalFormat.Areas.Excluding(area);
+            XlsxAreaList remainingAreas = conditionalFormat.Areas.Excluding(area);
             if (remainingAreas.Count > 0)
             {
                 conditionalFormat.Areas = remainingAreas;
@@ -103,15 +103,15 @@ internal class XlsxConditionalFormats(XlsxWorksheet worksheet) : IXlsxConditiona
         var sourceCfCount = sourceSheet.ConditionalFormats._conditionalFormats.Count;
         for (var i = 0; i < sourceCfCount; ++i)
         {
-            var sourceCf = sourceSheet.ConditionalFormats._conditionalFormats[i];
-            if (!sourceCf.Areas.TryCopyAreaTo(targetPoint, sourceArea, out var targetAreas))
+            XlsxConditionalFormat sourceCf = sourceSheet.ConditionalFormats._conditionalFormats[i];
+            if (!sourceCf.Areas.TryCopyAreaTo(targetPoint, sourceArea, out XlsxAreaList? targetAreas))
                 continue;
 
             // Legacy behavior where a copied single point was merged into CF when not covered.
             // But only for cell copy API, nor range copy API (even if range is only 1x1).
             if (mergeUncoveredInSameSheet && _worksheet == sourceSheet)
             {
-                foreach (var targetArea in targetAreas)
+                foreach (Area targetArea in targetAreas)
                 {
                     var isCovered = sourceCf.Areas.Any(sourceCfArea => sourceCfArea.Covers(targetArea));
                     if (!isCovered)
@@ -140,11 +140,11 @@ internal class XlsxConditionalFormats(XlsxWorksheet worksheet) : IXlsxConditiona
 
         while (formats.Count > 0)
         {
-            var format = formats[0];
+            XlsxConditionalFormat format = formats[0];
             if (!CFTypesExcludedFromConsolidation.Contains(format.ConditionalFormatType))
             {
-                var (rulesToConsolidate, areasWithSameFormat) = GetConsolidatableRules(formats);
-                var consolidatedAreas = areasWithSameFormat.GetConsolidated();
+                (List<int>? rulesToConsolidate, XlsxAreaList? areasWithSameFormat) = GetConsolidatableRules(formats);
+                XlsxAreaList consolidatedAreas = areasWithSameFormat.GetConsolidated();
                 var consolidatedCf = new XlsxConditionalFormat(_worksheet, format, consolidatedAreas);
 
                 // Remove consolidated formats
@@ -162,15 +162,15 @@ internal class XlsxConditionalFormats(XlsxWorksheet worksheet) : IXlsxConditiona
 
     private static (List<int> RulesToConsolidate, XlsxAreaList AreaList) GetConsolidatableRules(List<XlsxConditionalFormat> conditionalFormats)
     {
-        var rule = conditionalFormats[0];
+        XlsxConditionalFormat rule = conditionalFormats[0];
         var sameFormatAreas = rule.Areas.ToList();
         var differentFormatAreas = new List<Area>();
 
         // The ids to the list must be in the ascending order
         var rulesToConsolidate = new List<int>();
-        for (int i = 1; i < conditionalFormats.Count; ++i)
+        for (var i = 1; i < conditionalFormats.Count; ++i)
         {
-            var candidateRule = conditionalFormats[i];
+            XlsxConditionalFormat candidateRule = conditionalFormats[i];
 
             var intersectsDifferentFormatAreas = differentFormatAreas.Any(differentFormatArea => candidateRule.Areas.Any(v => v.Intersects(differentFormatArea)));
             if (intersectsDifferentFormatAreas)
@@ -247,13 +247,13 @@ internal class XlsxConditionalFormats(XlsxWorksheet worksheet) : IXlsxConditiona
 
     private void AdjustFormulas(CopyVisitor refMod)
     {
-        foreach (var conditionalFormat in _conditionalFormats)
+        foreach (XlsxConditionalFormat conditionalFormat in _conditionalFormats)
         {
-            var anchor = conditionalFormat.Areas[0].FirstPoint;
+            Point anchor = conditionalFormat.Areas[0].FirstPoint;
             var formulaIndexes = conditionalFormat.Values.Where(x => x.Value.IsFormula).Select(x => x.Key).ToArray();
             foreach (var index in formulaIndexes)
             {
-                var originalFormula = conditionalFormat.Values[index];
+                XlsxFormula originalFormula = conditionalFormat.Values[index];
                 var shiftedFormula = FormulaConverter.ModifyA1(originalFormula.Value, _worksheet.Name, anchor.Row, anchor.Column, refMod);
                 conditionalFormat.Values[index] = new XlsxFormula(shiftedFormula) { IsFormula = true };
             }
@@ -267,8 +267,8 @@ internal class XlsxConditionalFormats(XlsxWorksheet worksheet) : IXlsxConditiona
 
         for (var i = _conditionalFormats.Count - 1; i >= 0; --i)
         {
-            var conditionalFormat = _conditionalFormats[i];
-            var modifiedAreaList = adjustAreas(conditionalFormat.Areas, affectedRange);
+            XlsxConditionalFormat conditionalFormat = _conditionalFormats[i];
+            XlsxAreaList modifiedAreaList = adjustAreas(conditionalFormat.Areas, affectedRange);
             if (modifiedAreaList.Count == 0)
             {
                 _conditionalFormats.RemoveAt(i);

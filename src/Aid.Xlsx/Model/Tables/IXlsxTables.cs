@@ -15,15 +15,15 @@ public interface IXlsxTables : IEnumerable<IXlsxTable>
     /// <param name="clearOptions">Specify what you want to clear.</param>
     IXlsxTables Clear(XlsxClearOptions clearOptions = XlsxClearOptions.All);
 
-    Boolean Contains(String name);
+    bool Contains(string name);
 
-    void Remove(Int32 index);
+    void Remove(int index);
 
-    void Remove(String name);
+    void Remove(string name);
 
-    IXlsxTable Table(Int32 index);
+    IXlsxTable Table(int index);
 
-    IXlsxTable Table(String name);
+    IXlsxTable Table(string name);
 
-    Boolean TryGetTable(String tableName, out IXlsxTable table);
+    bool TryGetTable(string tableName, out IXlsxTable table);
 }

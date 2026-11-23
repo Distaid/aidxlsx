@@ -11,14 +11,14 @@ internal class XlsxSheetProtection(XlsxProtectionAlgorithm.Algorithm algorithm) 
     public Algorithm Algorithm { get; internal set; } = algorithm;
     public XlsxSheetProtectionElements AllowedElements { get; set; } = XlsxSheetProtectionElements.SelectEverything;
 
-    public Boolean IsPasswordProtected => this.IsProtected && !String.IsNullOrEmpty(PasswordHash);
-    public Boolean IsProtected { get; internal set; }
+    public bool IsPasswordProtected => this.IsProtected && !string.IsNullOrEmpty(PasswordHash);
+    public bool IsProtected { get; internal set; }
 
-    internal String Base64EncodedSalt { get; set; }
-    internal String PasswordHash { get; set; }
-    internal UInt32 SpinCount { get; set; } = 100000;
+    internal string Base64EncodedSalt { get; set; }
+    internal string PasswordHash { get; set; }
+    internal uint SpinCount { get; set; } = 100000;
 
-    public IXlsxSheetProtection AllowElement(XlsxSheetProtectionElements element, Boolean allowed = true)
+    public IXlsxSheetProtection AllowElement(XlsxSheetProtectionElements element, bool allowed = true)
     {
         if (!allowed)
             return DisallowElement(element);
@@ -72,7 +72,7 @@ internal class XlsxSheetProtection(XlsxProtectionAlgorithm.Algorithm algorithm) 
 
     public IXlsxSheetProtection Protect(Algorithm algorithm = DefaultProtectionAlgorithm)
     {
-        return Protect(String.Empty, algorithm);
+        return Protect(string.Empty, algorithm);
     }
 
     public IXlsxSheetProtection Protect(XlsxSheetProtectionElements allowedElements)
@@ -81,7 +81,7 @@ internal class XlsxSheetProtection(XlsxProtectionAlgorithm.Algorithm algorithm) 
     public IXlsxSheetProtection Protect(Algorithm algorithm, XlsxSheetProtectionElements allowedElements)
         => Protect(string.Empty, algorithm, allowedElements);
 
-    public IXlsxSheetProtection Protect(String password, Algorithm algorithm = DefaultProtectionAlgorithm, XlsxSheetProtectionElements allowedElements = XlsxSheetProtectionElements.SelectEverything)
+    public IXlsxSheetProtection Protect(string password, Algorithm algorithm = DefaultProtectionAlgorithm, XlsxSheetProtectionElements allowedElements = XlsxSheetProtectionElements.SelectEverything)
     {
         if (IsProtected)
         {
@@ -105,10 +105,10 @@ internal class XlsxSheetProtection(XlsxProtectionAlgorithm.Algorithm algorithm) 
 
     public IXlsxSheetProtection Unprotect()
     {
-        return Unprotect(String.Empty);
+        return Unprotect(string.Empty);
     }
 
-    public IXlsxSheetProtection Unprotect(String password)
+    public IXlsxSheetProtection Unprotect(string password)
     {
         if (IsProtected)
         {
@@ -121,8 +121,8 @@ internal class XlsxSheetProtection(XlsxProtectionAlgorithm.Algorithm algorithm) 
             else
             {
                 IsProtected = false;
-                PasswordHash = String.Empty;
-                this.Base64EncodedSalt = String.Empty;
+                PasswordHash = string.Empty;
+                this.Base64EncodedSalt = string.Empty;
             }
         }
 
@@ -131,7 +131,7 @@ internal class XlsxSheetProtection(XlsxProtectionAlgorithm.Algorithm algorithm) 
 
     #region IXlsxProtectable interface
 
-    IXlsxElementProtection<XlsxSheetProtectionElements> IXlsxElementProtection<XlsxSheetProtectionElements>.AllowElement(XlsxSheetProtectionElements element, Boolean allowed) => AllowElement(element, allowed);
+    IXlsxElementProtection<XlsxSheetProtectionElements> IXlsxElementProtection<XlsxSheetProtectionElements>.AllowElement(XlsxSheetProtectionElements element, bool allowed) => AllowElement(element, allowed);
 
     IXlsxElementProtection<XlsxSheetProtectionElements> IXlsxElementProtection<XlsxSheetProtectionElements>.AllowEverything() => AllowEverything();
 
@@ -143,17 +143,17 @@ internal class XlsxSheetProtection(XlsxProtectionAlgorithm.Algorithm algorithm) 
 
     IXlsxElementProtection<XlsxSheetProtectionElements> IXlsxElementProtection<XlsxSheetProtectionElements>.Protect(Algorithm algorithm) => Protect(algorithm);
 
-    IXlsxElementProtection<XlsxSheetProtectionElements> IXlsxElementProtection<XlsxSheetProtectionElements>.Protect(String password, Algorithm algorithm) => Protect(password, algorithm);
+    IXlsxElementProtection<XlsxSheetProtectionElements> IXlsxElementProtection<XlsxSheetProtectionElements>.Protect(string password, Algorithm algorithm) => Protect(password, algorithm);
 
     IXlsxSheetProtection IXlsxSheetProtection.Protect(XlsxSheetProtectionElements allowedElements) => Protect(allowedElements);
 
     IXlsxSheetProtection IXlsxSheetProtection.Protect(Algorithm algorithm, XlsxSheetProtectionElements allowedElements) => Protect(algorithm, allowedElements);
 
-    IXlsxSheetProtection IXlsxSheetProtection.Protect(String password, Algorithm algorithm, XlsxSheetProtectionElements allowedElements) => Protect(password, algorithm, allowedElements);
+    IXlsxSheetProtection IXlsxSheetProtection.Protect(string password, Algorithm algorithm, XlsxSheetProtectionElements allowedElements) => Protect(password, algorithm, allowedElements);
 
     IXlsxElementProtection<XlsxSheetProtectionElements> IXlsxElementProtection<XlsxSheetProtectionElements>.Unprotect() => Unprotect();
 
-    IXlsxElementProtection<XlsxSheetProtectionElements> IXlsxElementProtection<XlsxSheetProtectionElements>.Unprotect(String password) => Unprotect(password);
+    IXlsxElementProtection<XlsxSheetProtectionElements> IXlsxElementProtection<XlsxSheetProtectionElements>.Unprotect(string password) => Unprotect(password);
 
     #endregion IXlsxProtectable interface
 }

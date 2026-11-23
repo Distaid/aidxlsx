@@ -30,13 +30,13 @@ internal class XlsxFormattedText<T> : IXlsxFormattedText<T>
 
     IXlsxPhonetics IXlsxFormattedText<T>.Phonetics => Phonetics;
 
-    public Int32 Count => _richTexts.Count;
+    public int Count => _richTexts.Count;
 
     public int Length { get; private set; }
 
-    public String Text => ToString();
+    public string Text => ToString();
 
-    public Boolean HasPhonetics => _phonetics is not null;
+    public bool HasPhonetics => _phonetics is not null;
 
     /// <inheritdoc cref="IXlsxFormattedText{T}.Phonetics"/>
     internal XlsxPhonetics Phonetics
@@ -45,12 +45,12 @@ internal class XlsxFormattedText<T> : IXlsxFormattedText<T>
         init => _phonetics = value;
     }
 
-    public IXlsxRichString AddText(String text)
+    public IXlsxRichString AddText(string text)
     {
         return AddText(text, _defaultFont);
     }
 
-    public IXlsxRichString AddText(String text, IXlsxFontBase font)
+    public IXlsxRichString AddText(string text, IXlsxFontBase font)
     {
         return AddText(text, XlsxFontFormatValue.FromFontBase(font, Styles));
     }
@@ -82,7 +82,7 @@ internal class XlsxFormattedText<T> : IXlsxFormattedText<T>
 
     public IXlsxFormattedText<T> ClearFont()
     {
-        String text = Text;
+        var text = Text;
         ClearContent();
         AddText(text);
         return this;
@@ -95,12 +95,12 @@ internal class XlsxFormattedText<T> : IXlsxFormattedText<T>
         return sb.ToString();
     }
 
-    public IXlsxFormattedText<T> Substring(Int32 index)
+    public IXlsxFormattedText<T> Substring(int index)
     {
         return Substring(index, Length - index);
     }
 
-    public IXlsxFormattedText<T> Substring(Int32 index, Int32 length)
+    public IXlsxFormattedText<T> Substring(int index, int length)
     {
         if (index + 1 > Length || (Length - index + 1) < length || length <= 0)
             throw new IndexOutOfRangeException("Index and length must refer to a location within the string.");
@@ -109,7 +109,7 @@ internal class XlsxFormattedText<T> : IXlsxFormattedText<T>
         var retVal = new XlsxFormattedText<T>(_defaultFont, Styles);
 
         var lastPosition = 0;
-        foreach (var rt in _richTexts)
+        foreach (XlsxRichString rt in _richTexts)
         {
             if (lastPosition >= index + 1 + length) // We already have what we need
             {
@@ -151,7 +151,7 @@ internal class XlsxFormattedText<T> : IXlsxFormattedText<T>
     public IXlsxFormattedText<T> CopyFrom(IXlsxFormattedText<T> original)
     {
         ClearContent();
-        foreach (var richText in original)
+        foreach (IXlsxRichString richText in original)
         {
             var copyFont = XlsxFontFormatValue.FromFontBase(richText, Styles);
             var copyText = new XlsxRichString(richText.Text, copyFont, this, Styles, OnContentChanged);
@@ -168,31 +168,31 @@ internal class XlsxFormattedText<T> : IXlsxFormattedText<T>
 
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public Boolean Bold { set { _richTexts.ForEach(rt => rt.Bold = value); } }
-    public Boolean Italic { set { _richTexts.ForEach(rt => rt.Italic = value); } }
+    public bool Bold { set { _richTexts.ForEach(rt => rt.Bold = value); } }
+    public bool Italic { set { _richTexts.ForEach(rt => rt.Italic = value); } }
     public XlsxFontUnderlineValues Underline { set { _richTexts.ForEach(rt => rt.Underline = value); } }
-    public Boolean Strikethrough { set { _richTexts.ForEach(rt => rt.Strikethrough = value); } }
+    public bool Strikethrough { set { _richTexts.ForEach(rt => rt.Strikethrough = value); } }
     public XlsxFontVerticalTextAlignmentValues VerticalAlignment { set { _richTexts.ForEach(rt => rt.VerticalAlignment = value); } }
-    public Boolean Shadow { set { _richTexts.ForEach(rt => rt.Shadow = value); } }
-    public Double FontSize { set { _richTexts.ForEach(rt => rt.FontSize = value); } }
+    public bool Shadow { set { _richTexts.ForEach(rt => rt.Shadow = value); } }
+    public double FontSize { set { _richTexts.ForEach(rt => rt.FontSize = value); } }
     public XlsxColor FontColor { set { _richTexts.ForEach(rt => rt.FontColor = value); } }
-    public String FontName { set { _richTexts.ForEach(rt => rt.FontName = value); } }
+    public string FontName { set { _richTexts.ForEach(rt => rt.FontName = value); } }
     public XlsxFontFamilyNumberingValues FontFamilyNumbering { set { _richTexts.ForEach(rt => rt.FontFamilyNumbering = value); } }
 
     public IXlsxFormattedText<T> SetBold() { Bold = true; return this; }
-    public IXlsxFormattedText<T> SetBold(Boolean value) { Bold = value; return this; }
+    public IXlsxFormattedText<T> SetBold(bool value) { Bold = value; return this; }
     public IXlsxFormattedText<T> SetItalic() { Italic = true; return this; }
-    public IXlsxFormattedText<T> SetItalic(Boolean value) { Italic = value; return this; }
+    public IXlsxFormattedText<T> SetItalic(bool value) { Italic = value; return this; }
     public IXlsxFormattedText<T> SetUnderline() { Underline = XlsxFontUnderlineValues.Single; return this; }
     public IXlsxFormattedText<T> SetUnderline(XlsxFontUnderlineValues value) { Underline = value; return this; }
     public IXlsxFormattedText<T> SetStrikethrough() { Strikethrough = true; return this; }
-    public IXlsxFormattedText<T> SetStrikethrough(Boolean value) { Strikethrough = value; return this; }
+    public IXlsxFormattedText<T> SetStrikethrough(bool value) { Strikethrough = value; return this; }
     public IXlsxFormattedText<T> SetVerticalAlignment(XlsxFontVerticalTextAlignmentValues value) { VerticalAlignment = value; return this; }
     public IXlsxFormattedText<T> SetShadow() { Shadow = true; return this; }
-    public IXlsxFormattedText<T> SetShadow(Boolean value) { Shadow = value; return this; }
-    public IXlsxFormattedText<T> SetFontSize(Double value) { FontSize = value; return this; }
+    public IXlsxFormattedText<T> SetShadow(bool value) { Shadow = value; return this; }
+    public IXlsxFormattedText<T> SetFontSize(double value) { FontSize = value; return this; }
     public IXlsxFormattedText<T> SetFontColor(XlsxColor value) { FontColor = value; return this; }
-    public IXlsxFormattedText<T> SetFontName(String value) { FontName = value; return this; }
+    public IXlsxFormattedText<T> SetFontName(string value) { FontName = value; return this; }
     public IXlsxFormattedText<T> SetFontFamilyNumbering(XlsxFontFamilyNumberingValues value) { FontFamilyNumbering = value; return this; }
 
     public bool Equals(IXlsxFormattedText<T> other)

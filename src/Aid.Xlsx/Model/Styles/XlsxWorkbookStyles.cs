@@ -282,7 +282,7 @@ internal class XlsxWorkbookStyles
 
     internal XlsxNumberFormat RegisterNumberFormat(XlsxNumberFormat numberFormat)
     {
-        if (_numberFormats.TryGetValue(numberFormat, out var existingFormat))
+        if (_numberFormats.TryGetValue(numberFormat, out XlsxNumberFormat existingFormat))
             return existingFormat;
 
         AddUserDefinedNumberFormat(numberFormat);
@@ -296,7 +296,7 @@ internal class XlsxWorkbookStyles
 
     internal XlsxAlignmentFormatValue RegisterAlignmentFormat(XlsxAlignmentFormatValue alignment)
     {
-        if (_alignmentFormats.TryGetValue(alignment, out var existingAlignment))
+        if (_alignmentFormats.TryGetValue(alignment, out XlsxAlignmentFormatValue? existingAlignment))
             return existingAlignment;
 
         _alignmentFormats.Add(_alignmentFormats.Count, alignment);
@@ -305,7 +305,7 @@ internal class XlsxWorkbookStyles
 
     internal XlsxProtectionFormatValue RegisterProtectionFormat(XlsxProtectionFormatValue protection)
     {
-        if (_protectionFormats.TryGetValue(protection, out var existingProtection))
+        if (_protectionFormats.TryGetValue(protection, out XlsxProtectionFormatValue? existingProtection))
             return existingProtection;
 
         _protectionFormats.Add(_protectionFormats.Count, protection);
@@ -319,13 +319,13 @@ internal class XlsxWorkbookStyles
     /// </summary>
     internal XlsxFontFormatValue GetRegisteredFontFormat(XlsxFontFormatValue original, Func<XlsxFontFormatValue, XlsxFontFormatValue> modify)
     {
-        var modified = modify(original);
+        XlsxFontFormatValue modified = modify(original);
         return RegisterFontFormat(modified);
     }
 
     internal XlsxFontFormatValue RegisterFontFormat(XlsxFontFormatValue font)
     {
-        if (_fontFormats.TryGetValue(font, out var existingFont))
+        if (_fontFormats.TryGetValue(font, out XlsxFontFormatValue? existingFont))
             return existingFont;
 
         AddFontFormat(font);
@@ -334,41 +334,41 @@ internal class XlsxWorkbookStyles
 
     internal XlsxCellFormatValue GetModifiedFormat(XlsxCellFormatValue originalFormat, XlsxNumberFormat numberFormat)
     {
-        var modifiedNumberFormat = RegisterNumberFormat(numberFormat);
-        var modifiedFormat = GetRegisteredCellFormat(originalFormat, format => format with { NumberFormat = modifiedNumberFormat });
+        XlsxNumberFormat modifiedNumberFormat = RegisterNumberFormat(numberFormat);
+        XlsxCellFormatValue modifiedFormat = GetRegisteredCellFormat(originalFormat, format => format with { NumberFormat = modifiedNumberFormat });
         return modifiedFormat;
     }
 
     internal XlsxCellFormatValue GetModifiedFormat(XlsxCellFormatValue originalFormat, Func<XlsxAlignmentFormatValue, XlsxAlignmentFormatValue> modify)
     {
-        var modifiedAlignment = GetRegisteredAlignmentFormat(originalFormat.Alignment, modify);
-        var modifiedFormat = GetRegisteredCellFormat(originalFormat, format => format with { Alignment = modifiedAlignment });
+        XlsxAlignmentFormatValue modifiedAlignment = GetRegisteredAlignmentFormat(originalFormat.Alignment, modify);
+        XlsxCellFormatValue modifiedFormat = GetRegisteredCellFormat(originalFormat, format => format with { Alignment = modifiedAlignment });
         return modifiedFormat;
     }
 
     internal XlsxCellFormatValue GetModifiedFormat(XlsxCellFormatValue originalFormat, Func<XlsxFontFormatValue, XlsxFontFormatValue> modify)
     {
-        var modifiedFont = GetRegisteredFontFormat(originalFormat.Font, modify);
-        var modifiedFormat = GetRegisteredCellFormat(originalFormat, format => format with { Font = modifiedFont });
+        XlsxFontFormatValue modifiedFont = GetRegisteredFontFormat(originalFormat.Font, modify);
+        XlsxCellFormatValue modifiedFormat = GetRegisteredCellFormat(originalFormat, format => format with { Font = modifiedFont });
         return modifiedFormat;
     }
 
     internal XlsxCellFormatValue GetModifiedFormat(XlsxCellFormatValue originalFormat, Func<XlsxBorderFormatValue, XlsxBorderFormatValue> modify)
     {
-        var modifiedBorder = GetRegisteredBorderFormat(originalFormat.Border, modify);
-        var modifiedFormat = GetRegisteredCellFormat(originalFormat, format => format with { Border = modifiedBorder });
+        XlsxBorderFormatValue modifiedBorder = GetRegisteredBorderFormat(originalFormat.Border, modify);
+        XlsxCellFormatValue modifiedFormat = GetRegisteredCellFormat(originalFormat, format => format with { Border = modifiedBorder });
         return modifiedFormat;
     }
 
     internal XlsxFillFormatValue GetRegisteredFillFormat(XlsxFillFormatValue original, Func<XlsxFillFormatValue, XlsxFillFormatValue> modify)
     {
-        var modified = modify(original);
+        XlsxFillFormatValue modified = modify(original);
         return RegisterFillFormat(modified);
     }
 
     private XlsxFillFormatValue RegisterFillFormat(XlsxFillFormatValue fill)
     {
-        if (_fillFormats.TryGetValue(fill, out var existingFill))
+        if (_fillFormats.TryGetValue(fill, out XlsxFillFormatValue? existingFill))
             return existingFill;
 
         AddFillFormat(fill);
@@ -377,13 +377,13 @@ internal class XlsxWorkbookStyles
 
     internal XlsxBorderFormatValue GetRegisteredBorderFormat(XlsxBorderFormatValue original, Func<XlsxBorderFormatValue, XlsxBorderFormatValue> modify)
     {
-        var modified = modify(original);
+        XlsxBorderFormatValue modified = modify(original);
         return RegisterBorderFormat(modified);
     }
 
     private XlsxBorderFormatValue RegisterBorderFormat(XlsxBorderFormatValue border)
     {
-        if (_borderFormats.TryGetValue(border, out var existingBorder))
+        if (_borderFormats.TryGetValue(border, out XlsxBorderFormatValue? existingBorder))
             return existingBorder;
 
         AddBorderFormat(border);
@@ -392,21 +392,21 @@ internal class XlsxWorkbookStyles
 
     internal XlsxCellFormatValue GetRegisteredCellFormat(XlsxCellFormatValue original, Func<XlsxCellFormatValue, XlsxCellFormatValue> modify)
     {
-        var modified = modify(original);
+        XlsxCellFormatValue modified = modify(original);
         return RegisterCellFormat(modified);
     }
 
     internal XlsxCellFormatValue RegisterCellFormat(XlsxCellFormatValue cellFormat)
     {
-        if (_cellFormats.TryGetValue(cellFormat, out var existing))
+        if (_cellFormats.TryGetValue(cellFormat, out XlsxCellFormatValue? existing))
             return existing;
 
         Debug.Assert(_numberFormats.ContainsValue(cellFormat.NumberFormat));
-        Debug.Assert(_alignmentFormats.TryGetValue(cellFormat.Alignment, out var registeredAlignment) && ReferenceEquals(cellFormat.Alignment, registeredAlignment));
-        Debug.Assert(_protectionFormats.TryGetValue(cellFormat.Protection, out var registeredProtection) && ReferenceEquals(cellFormat.Protection, registeredProtection));
-        Debug.Assert(_fontFormats.TryGetValue(cellFormat.Font, out var registeredFont) && ReferenceEquals(cellFormat.Font, registeredFont));
-        Debug.Assert(_fillFormats.TryGetValue(cellFormat.Fill, out var registeredFill) && ReferenceEquals(cellFormat.Fill, registeredFill));
-        Debug.Assert(_borderFormats.TryGetValue(cellFormat.Border, out var registeredBorder) && ReferenceEquals(cellFormat.Border, registeredBorder));
+        Debug.Assert(_alignmentFormats.TryGetValue(cellFormat.Alignment, out XlsxAlignmentFormatValue? registeredAlignment) && ReferenceEquals(cellFormat.Alignment, registeredAlignment));
+        Debug.Assert(_protectionFormats.TryGetValue(cellFormat.Protection, out XlsxProtectionFormatValue? registeredProtection) && ReferenceEquals(cellFormat.Protection, registeredProtection));
+        Debug.Assert(_fontFormats.TryGetValue(cellFormat.Font, out XlsxFontFormatValue? registeredFont) && ReferenceEquals(cellFormat.Font, registeredFont));
+        Debug.Assert(_fillFormats.TryGetValue(cellFormat.Fill, out XlsxFillFormatValue? registeredFill) && ReferenceEquals(cellFormat.Fill, registeredFill));
+        Debug.Assert(_borderFormats.TryGetValue(cellFormat.Border, out XlsxBorderFormatValue? registeredBorder) && ReferenceEquals(cellFormat.Border, registeredBorder));
         AddFormat(cellFormat);
         return cellFormat;
     }
@@ -417,7 +417,7 @@ internal class XlsxWorkbookStyles
     internal XlsxCellFormatValue GetRegisteredCellFormat(XlsxCellFormatValue format)
     {
         // If format is already registered, all its components must be registered too.
-        if (_cellFormats.TryGetValue(format, out var existing))
+        if (_cellFormats.TryGetValue(format, out XlsxCellFormatValue? existing))
             return existing;
 
         // TODO: If format is from different workbook, we should copy style if from different workbook and this workbook doesn't already have a style with same name
@@ -449,7 +449,7 @@ internal class XlsxWorkbookStyles
     /// </summary>
     internal XlsxDxfValue GetRegisteredDxFormat(XlsxDxfValue original, Func<XlsxDxfValue, XlsxDxfValue> modify)
     {
-        var modified = modify(original);
+        XlsxDxfValue modified = modify(original);
         return RegisterDxFormat(modified);
     }
 
@@ -459,7 +459,7 @@ internal class XlsxWorkbookStyles
     /// <returns>Registered instance.</returns>
     internal XlsxDxfValue RegisterDxFormat(XlsxDxfValue dxf)
     {
-        if (_differentialFormats.TryGetValue(dxf, out var existingDxf))
+        if (_differentialFormats.TryGetValue(dxf, out XlsxDxfValue? existingDxf))
             return existingDxf;
 
         AddDifferentialFormat(dxf);
@@ -474,10 +474,10 @@ internal class XlsxWorkbookStyles
         DefaultTableStyle = XlsxTableTheme.TableStyleMedium2.ToString();
         DefaultPivotStyle = nameof(XlsxPivotTableTheme.PivotStyleLight16);
 
-        foreach (var (numFmtId, formatCode) in XlsxPredefinedFormat.FormatCodes)
+        foreach ((var numFmtId, XlsxNumberFormat formatCode) in XlsxPredefinedFormat.FormatCodes)
             AddNumberFormat(numFmtId, formatCode);
 
-        var normalStyle = DefaultNormalStyle;
+        XlsxCellStyleValue normalStyle = DefaultNormalStyle;
         AddFontFormat(normalStyle.Font);
         AddFillFormat(XlsxFillFormatValue.None);
         AddFillFormat(XlsxFillFormatValue.Gray125);

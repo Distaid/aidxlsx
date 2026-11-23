@@ -402,7 +402,7 @@ public sealed class XmlTreeReader : IDisposable
             return null;
         }
 
-        if (!_enumMapper.TryGetEnum<TEnum>(enumString, out var enumValue))
+        if (!_enumMapper.TryGetEnum<TEnum>(enumString, out TEnum enumValue))
         {
             if (StrictAttributeParsing)
                 ThrowAttributeFormatException(attributeName, enumString);

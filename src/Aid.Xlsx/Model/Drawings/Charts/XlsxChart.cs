@@ -14,7 +14,7 @@ internal class XlsxChart : XlsxDrawing<IXlsxChart>, IXlsxChart
     {
         Container = this;
         this.worksheet = worksheet;
-        Int32 zOrder;
+        int zOrder;
         if (worksheet.Charts.Any())
             zOrder = worksheet.Charts.Max(c => c.ZOrder) + 1;
         else
@@ -24,13 +24,13 @@ internal class XlsxChart : XlsxDrawing<IXlsxChart>, IXlsxChart
         RightAngleAxes = true;
     }
 
-    public Boolean RightAngleAxes { get; set; }
+    public bool RightAngleAxes { get; set; }
     public IXlsxChart SetRightAngleAxes()
     {
         RightAngleAxes = true;
         return this;
     }
-    public IXlsxChart SetRightAngleAxes(Boolean rightAngleAxes)
+    public IXlsxChart SetRightAngleAxes(bool rightAngleAxes)
     {
         RightAngleAxes = rightAngleAxes;
         return this;

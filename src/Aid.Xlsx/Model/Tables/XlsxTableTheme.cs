@@ -82,7 +82,7 @@ public sealed partial class XlsxTableTheme
 
     public static XlsxTableTheme? FromName(string name)
     {
-        return name is not null && BuiltInThemes.ByName.TryGetValue(name, out var theme) ? theme : null;
+        return name is not null && BuiltInThemes.ByName.TryGetValue(name, out XlsxTableTheme? theme) ? theme : null;
     }
 
     internal IReadOnlyDictionary<XlsxTableStyleRegionValues, XlsxDxfValue> RegionFormats => _regionFormats;
