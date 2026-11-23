@@ -94,10 +94,10 @@ public partial class XlsxHyperlink
                 return _internalAddress[0] != '\''
                            ? String.Concat(
                                 _internalAddress
-                                    .Substring(0, _internalAddress.IndexOf('!'))
+[.._internalAddress.IndexOf('!')]
                                     .EscapeSheetName(),
                                 '!',
-                                _internalAddress.Substring(_internalAddress.IndexOf('!') + 1))
+                                _internalAddress[(_internalAddress.IndexOf('!') + 1)..])
                            : _internalAddress;
             }
 

@@ -15,7 +15,7 @@ internal class DataRecordReader : IInsertDataReader
     {
         if (data == null) throw new ArgumentNullException(nameof(data));
 
-        _inMemoryData = ReadToEnd(data).ToArray();
+        _inMemoryData = [.. ReadToEnd(data)];
     }
 
     public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()

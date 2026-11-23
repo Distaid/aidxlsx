@@ -12,13 +12,13 @@ namespace Aid.Xlsx.Model.PivotTables;
 internal class XlsxPivotCache : IXlsxPivotCache
 {
     private readonly XlsxWorkbook _workbook;
-    private readonly Dictionary<String, Int32> _fieldIndexes = new(XlsxHelper.NameComparer);
-    private readonly List<String> _fieldNames = new();
+    private readonly Dictionary<String, Int32> _fieldIndexes = [with(XlsxHelper.NameComparer)];
+    private readonly List<String> _fieldNames = [];
 
     /// <summary>
     /// Length is a number of fields, in same order as <see cref="_fieldNames"/>.
     /// </summary>
-    private readonly List<XlsxPivotCacheValues> _values = new();
+    private readonly List<XlsxPivotCacheValues> _values = [];
 
     internal XlsxPivotCache(IXlsxPivotSource source, XlsxWorkbook workbook)
     {

@@ -17,7 +17,7 @@ internal class XlsxCellsCollection : IWorkbookListener
         ValueSlice = new ValueSlice(ws.Workbook.SharedStringTable);
         FormulaSlice = new FormulaSlice(ws);
         FormatSlice = new FormatSlice();
-        _slices = new List<ISlice> { ValueSlice, FormulaSlice, FormatSlice, MiscSlice };
+        _slices = [ValueSlice, FormulaSlice, FormatSlice, MiscSlice];
     }
 
     internal HashSet<int> ColumnsUsedKeys
@@ -400,7 +400,7 @@ internal class XlsxCellsCollection : IWorkbookListener
     internal void ApplyFormatOnAll(Area area, Func<XlsxBorderFormatValue, XlsxBorderFormatValue> modififyBorder)
     {
         var styles = Worksheet.Workbook.Styles;
-        Func<XlsxCellFormatValue, XlsxCellFormatValue> modifyFormat = format =>
+        XlsxCellFormatValue modifyFormat(XlsxCellFormatValue format)
         {
             var modifiedBorder = styles.GetRegisteredBorderFormat(format.Border, modififyBorder);
             var modifiedFormat = format with
@@ -409,7 +409,7 @@ internal class XlsxCellsCollection : IWorkbookListener
                 CustomFormat = format.CustomFormat | CellFormatComponents.Border
             };
             return styles.GetRegisteredCellFormat(modifiedFormat, static f => f);
-        };
+        }
         ApplyFormatOnAll(area, modifyFormat, point => Worksheet.GetStyleValue(point));
     }
 
@@ -464,7 +464,7 @@ internal class XlsxCellsCollection : IWorkbookListener
         {
             Current = new Point(1, 1);
             _reverse = reverse;
-            _enumerators = new();
+            _enumerators = [];
             foreach (var enumerator in enumerators)
             {
                 if (enumerator.MoveNext())

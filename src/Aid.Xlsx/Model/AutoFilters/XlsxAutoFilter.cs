@@ -17,7 +17,7 @@ internal class XlsxAutoFilter : IXlsxAutoFilter
     /// <summary>
     /// Key is column number.
     /// </summary>
-    private readonly Dictionary<Int32, XlsxFilterColumn> _columns = new();
+    private readonly Dictionary<Int32, XlsxFilterColumn> _columns = [];
 
     internal IReadOnlyDictionary<Int32, XlsxFilterColumn> Columns => _columns;
 

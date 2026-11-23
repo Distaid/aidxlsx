@@ -21,9 +21,9 @@ internal static class WorkbookPropertiesParts
             if (extended is not null)
                 ExtendedPropertiesXml.Read(extended, workbook);
 
-        using (var custom = GetPart(package, CustomRelationship)?.OpenRead())
-            if (custom is not null)
-                CustomPropertiesXml.Read(custom, workbook.CustomProperties);
+        using var custom = GetPart(package, CustomRelationship)?.OpenRead();
+        if (custom is not null)
+            CustomPropertiesXml.Read(custom, workbook.CustomProperties);
     }
 
     internal static bool HasExtendedProperties(OpcPackage package) => GetPart(package, ExtendedRelationship) is not null;

@@ -10,7 +10,7 @@ namespace Aid.Xlsx.Model.Tables;
 internal class XlsxTableRows : IXlsxTableRows
 {
     private readonly XlsxWorksheet _worksheet;
-    private readonly List<XlsxTableRow> _ranges = new List<XlsxTableRow>();
+    private readonly List<XlsxTableRow> _ranges = [];
 
     public XlsxTableRows(XlsxWorksheet worksheet)
     {

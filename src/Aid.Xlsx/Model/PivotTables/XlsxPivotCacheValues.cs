@@ -44,8 +44,8 @@ internal class XlsxPivotCacheValues
     internal XlsxPivotCacheValues(ValueSlice valueSlice, int column, Area area)
     {
         _sharedItems = new XlsxPivotCacheSharedItems();
-        _values = new List<XlsxPivotCacheValue>();
-        _stringStorage = new List<string>();
+        _values = [];
+        _stringStorage = [];
 
         Initialize(valueSlice, column, area);
     }
@@ -53,8 +53,8 @@ internal class XlsxPivotCacheValues
     internal XlsxPivotCacheValues(XlsxPivotCacheSharedItems sharedItems, XlsxPivotCacheValuesStats stats)
     {
         _sharedItems = sharedItems;
-        _values = new List<XlsxPivotCacheValue>();
-        _stringStorage = new List<string>();
+        _values = [];
+        _stringStorage = [];
 
         // Have a separate fields instead of one large struct. That way,
         // the flags are more easily set when record values are being added.

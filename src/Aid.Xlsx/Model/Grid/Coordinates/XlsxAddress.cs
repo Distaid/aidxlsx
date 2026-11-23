@@ -53,7 +53,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
                 columnLetter = cellAddressString.Substring(startPos, rowPos);
             }
 
-            rowNumber = int.Parse(cellAddressString.Substring(rowPos + 1), XlsxHelper.NumberStyle, XlsxHelper.ParseCulture);
+            rowNumber = int.Parse(cellAddressString[(rowPos + 1)..], XlsxHelper.NumberStyle, XlsxHelper.ParseCulture);
         }
         else
         {
@@ -66,7 +66,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
                 columnLetter = cellAddressString.Substring(startPos, rowPos);
             }
 
-            rowNumber = Int32.Parse(cellAddressString.Substring(rowPos), XlsxHelper.NumberStyle, XlsxHelper.ParseCulture);
+            rowNumber = Int32.Parse(cellAddressString[rowPos..], XlsxHelper.NumberStyle, XlsxHelper.ParseCulture);
         }
         return new XlsxAddress(worksheet, rowNumber, columnLetter, fixedRow, fixedColumn);
     }
@@ -76,10 +76,10 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
     #region Private fields
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private bool _fixedRow;
+    private readonly bool _fixedRow;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private bool _fixedColumn;
+    private readonly bool _fixedColumn;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly int _rowNumber;
@@ -155,24 +155,24 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
 
     public XlsxWorksheet Worksheet { get; internal set; }
 
-    IXlsxWorksheet IXlsxAddress.Worksheet
+    readonly IXlsxWorksheet IXlsxAddress.Worksheet
     {
         [DebuggerStepThrough]
         get { return Worksheet; }
     }
 
-    public bool HasWorksheet
+    public readonly bool HasWorksheet
     {
         [DebuggerStepThrough]
         get { return Worksheet != null; }
     }
 
-    public bool FixedRow
+    public readonly bool FixedRow
     {
         get { return _fixedRow; }
     }
 
-    public bool FixedColumn
+    public readonly bool FixedColumn
     {
         get { return _fixedColumn; }
     }
@@ -180,7 +180,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
     /// <summary>
     /// Gets the row number of this address.
     /// </summary>
-    public Int32 RowNumber
+    public readonly Int32 RowNumber
     {
         get { return _rowNumber; }
     }
@@ -188,7 +188,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
     /// <summary>
     /// Gets the column number of this address.
     /// </summary>
-    public Int32 ColumnNumber
+    public readonly Int32 ColumnNumber
     {
         get { return _columnNumber; }
     }
@@ -196,7 +196,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
     /// <summary>
     /// Gets the column letter(s) of this address.
     /// </summary>
-    public String ColumnLetter
+    public readonly String ColumnLetter
     {
         get { return XlsxHelper.GetColumnLetterFromNumber(_columnNumber); }
     }
@@ -256,7 +256,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
 
     public string GetTrimmedAddress()
     {
-        return _trimmedAddress ?? (_trimmedAddress = ColumnLetter + _rowNumber.ToInvariantString());
+        return _trimmedAddress ??= ColumnLetter + _rowNumber.ToInvariantString();
     }
 
     #endregion Methods
@@ -315,12 +315,12 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
 
     #region IEqualityComparer<XlsxCellAddress> Members
 
-    public Boolean Equals(IXlsxAddress x, IXlsxAddress y)
+    public readonly Boolean Equals(IXlsxAddress x, IXlsxAddress y)
     {
         return x == y;
     }
 
-    public new Boolean Equals(object x, object y)
+    public new readonly Boolean Equals(object x, object y)
     {
         return x == y;
     }
@@ -329,7 +329,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
 
     #region IEquatable<XlsxCellAddress> Members
 
-    public bool Equals(IXlsxAddress other)
+    public readonly bool Equals(IXlsxAddress other)
     {
         if (other == null)
             return false;
@@ -340,7 +340,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
                _fixedColumn == other.FixedColumn;
     }
 
-    public bool Equals(XlsxAddress other)
+    public readonly bool Equals(XlsxAddress other)
     {
         return _rowNumber == other._rowNumber &&
                _columnNumber == other._columnNumber &&
@@ -353,7 +353,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
         return Equals(other as IXlsxAddress);
     }
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         var hashCode = 2122234362;
         hashCode = hashCode * -1521134295 + _fixedRow.GetHashCode();
@@ -363,7 +363,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
         return hashCode;
     }
 
-    public int GetHashCode(IXlsxAddress obj)
+    public readonly int GetHashCode(IXlsxAddress obj)
     {
         return ((XlsxAddress)obj).GetHashCode();
     }
@@ -429,19 +429,12 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
         }
         else
         {
-            switch (referenceStyle)
+            address = referenceStyle switch
             {
-                case XlsxReferenceStyle.A1:
-                    address = String.Concat('$', ColumnLetter, '$', _rowNumber.ToInvariantString());
-                    break;
-
-                case XlsxReferenceStyle.R1C1:
-                    address = String.Concat('R', _rowNumber.ToInvariantString(), 'C', ColumnNumber);
-                    break;
-
-                default:
-                    throw new NotImplementedException();
-            }
+                XlsxReferenceStyle.A1 => String.Concat('$', ColumnLetter, '$', _rowNumber.ToInvariantString()),
+                XlsxReferenceStyle.R1C1 => String.Concat('R', _rowNumber.ToInvariantString(), 'C', ColumnNumber),
+                _ => throw new NotImplementedException(),
+            };
         }
 
         if (includeSheet)
@@ -464,5 +457,5 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
         }
     }
 
-    private bool WorksheetIsDeleted => Worksheet?.IsDeleted == true;
+    private readonly bool WorksheetIsDeleted => Worksheet?.IsDeleted == true;
 }

@@ -17,7 +17,7 @@ internal struct XlsxColorKey : IEquatable<XlsxColorKey>
 
     public double ThemeTint { get; set; }
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         var hashCode = -331517974;
         hashCode = hashCode * -1521134295 + (int)ColorType;
@@ -28,7 +28,7 @@ internal struct XlsxColorKey : IEquatable<XlsxColorKey>
         return hashCode;
     }
 
-    public bool Equals(XlsxColorKey other)
+    public readonly bool Equals(XlsxColorKey other)
     {
         if (ColorType == other.ColorType)
         {
@@ -57,19 +57,15 @@ internal struct XlsxColorKey : IEquatable<XlsxColorKey>
         return base.Equals(obj);
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
-        switch (ColorType)
+        return ColorType switch
         {
-            case XlsxColorType.Color:
-                return Color.ToString();
-            case XlsxColorType.Theme:
-                return $"{ThemeColor} ({ThemeTint})";
-            case XlsxColorType.Indexed:
-                return $"Indexed: {Indexed}";
-            default:
-                return base.ToString();
-        }
+            XlsxColorType.Color => Color.ToString(),
+            XlsxColorType.Theme => $"{ThemeColor} ({ThemeTint})",
+            XlsxColorType.Indexed => $"Indexed: {Indexed}",
+            _ => base.ToString(),
+        };
     }
 
     public static bool operator ==(XlsxColorKey left, XlsxColorKey right) => left.Equals(right);

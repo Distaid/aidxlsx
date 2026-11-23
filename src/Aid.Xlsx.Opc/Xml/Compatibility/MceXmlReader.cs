@@ -44,7 +44,7 @@ public class MceXmlReader : IXmlReader
     /// <summary>
     /// A set of namespaces understood by the consumer.
     /// </summary>
-    private readonly HashSet<string> _appConfig = new(ReferenceEqualityComparer.Instance);
+    private readonly HashSet<string> _appConfig = [with(ReferenceEqualityComparer.Instance)];
 
     /// <summary>
     /// An optional application defined extension element.
@@ -330,10 +330,7 @@ public class MceXmlReader : IXmlReader
         var prefixes = requires.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         foreach (var prefix in prefixes)
         {
-            var namespaceUri = _reader.LookupNamespace(prefix);
-            if (namespaceUri is null)
-                throw MceThrowHelper.NamespacePrefixNotFound(_attRequires.LocalName, prefix, _reader);
-
+            var namespaceUri = _reader.LookupNamespace(prefix) ?? throw MceThrowHelper.NamespacePrefixNotFound(_attRequires.LocalName, prefix, _reader);
             if (!_appConfig.Contains(namespaceUri))
                 return false;
         }
@@ -558,8 +555,8 @@ public class MceXmlReader : IXmlReader
 
         internal Tracker(IEqualityComparer<T> comparer, Func<Dictionary<T, int>, T, bool> matches)
         {
-            _state = new Dictionary<T, int>(comparer);
-            _usedDepths = new HashSet<int>();
+            _state = [with(comparer)];
+            _usedDepths = [];
             _matches = matches;
         }
 

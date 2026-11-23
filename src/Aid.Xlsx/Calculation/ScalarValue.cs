@@ -291,14 +291,14 @@ internal readonly struct ScalarValue
 
         // Date with names of months. The names of months differ across cultures.
         // Format 15 'd-mmm-yy'
-        if (DateTime.TryParseExact(text, new[] { "d-MMM-yyyy", "d-MMMM-yyyy", "d-MMM-yy", "d-MMMM-yy" }, culture, dateStyle, out var dateFormat15))
+        if (DateTime.TryParseExact(text, ["d-MMM-yyyy", "d-MMMM-yyyy", "d-MMM-yy", "d-MMMM-yy"], culture, dateStyle, out var dateFormat15))
         {
             return ToSerialDate(dateFormat15, out serialDateTime);
         }
 
         // Since format doesn't have a year, it uses current year
         // Format 16 'd-mmm'
-        if (DateTime.TryParseExact(text, new[] { "d-MMM", "d-MMMM" }, culture, dateStyle, out var dateFormat16))
+        if (DateTime.TryParseExact(text, ["d-MMM", "d-MMMM"], culture, dateStyle, out var dateFormat16))
         {
             return ToSerialDate(dateFormat16, out serialDateTime);
         }
@@ -306,7 +306,7 @@ internal readonly struct ScalarValue
         // Month and a number. In some cultures, the culture date parsing will interpret this pattern as MMM-dd, but
         // that depends on culture date patterns above. Use MMM and MMMM to encompass both abbreviation and full name.
         // Format 17 'mmm-yy'
-        if (DateTime.TryParseExact(text, new[] { "MMM-y", "MMMM-y" }, culture, dateStyle, out var dateFormat17))
+        if (DateTime.TryParseExact(text, ["MMM-y", "MMMM-y"], culture, dateStyle, out var dateFormat17))
         {
             if (dateFormat17.Year != DateTime.Now.Year && dateFormat17.Year >= 2030)
                 dateFormat17 = dateFormat17.AddYears(-100);

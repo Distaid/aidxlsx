@@ -25,7 +25,7 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
             new XlsxAddress(worksheet, row, XlsxHelper.MaxColumnNumber, false, false));
     }
 
-    public static readonly XlsxRangeAddress Invalid = new XlsxRangeAddress(
+    public static readonly XlsxRangeAddress Invalid = new(
         new XlsxAddress(-1, -1, fixedRow: true, fixedColumn: true),
         new XlsxAddress(-1, -1, fixedRow: true, fixedColumn: true)
     );
@@ -52,7 +52,7 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
     public XlsxRangeAddress(XlsxWorksheet? worksheet, String rangeAddress) : this()
     {
         string addressToUse = rangeAddress.Contains('!')
-            ? rangeAddress.Substring(rangeAddress.LastIndexOf('!') + 1)
+            ? rangeAddress[(rangeAddress.LastIndexOf('!') + 1)..]
             : rangeAddress;
 
         string firstPart;
@@ -382,7 +382,7 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
 
     public override bool Equals(object? obj)
     {
-        if (!(obj is XlsxRangeAddress))
+        if (obj is not XlsxRangeAddress)
         {
             return false;
         }

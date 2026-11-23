@@ -12,7 +12,7 @@ namespace Aid.Xlsx.Model.Grid.Ranges;
 internal class XlsxRangeRows : IXlsxRangeRows
 {
     private readonly XlsxWorksheet _worksheet;
-    private readonly List<XlsxRangeRow> _ranges = new List<XlsxRangeRow>();
+    private readonly List<XlsxRangeRow> _ranges = [];
 
     public XlsxRangeRows(XlsxWorksheet worksheet)
     {

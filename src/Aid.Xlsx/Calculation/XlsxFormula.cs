@@ -47,7 +47,7 @@ public class XlsxFormula
                 _value = value.Trim();
                 IsFormula = !String.IsNullOrWhiteSpace(_value) && _value.TrimStart()[0] == '=';
                 if (IsFormula)
-                    _value = _value.Substring(1);
+                    _value = _value[1..];
             }
 
 

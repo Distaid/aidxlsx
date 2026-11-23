@@ -43,10 +43,10 @@ internal partial class SheetDataReader
     }
 
     private static readonly string[] DateCellFormats =
-    {
+    [
         "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff", // Format accepted by OpenXML SDK
         "yyyy-MM-ddTHH:mm", "yyyy-MM-dd" // Formats accepted by Excel.
-    };
+    ];
 
     private readonly string _ns;
     private readonly XmlTreeReader _reader;
@@ -54,7 +54,7 @@ internal partial class SheetDataReader
     private readonly XlsxWorkbookStyles _styles;
     private readonly RstReader _rstReader;
     private readonly List<StringItem> _sst;
-    private readonly Dictionary<uint, string> _sharedFormulasR1C1 = new();
+    private readonly Dictionary<uint, string> _sharedFormulasR1C1 = [];
 
     private int _row;
     private int _column;

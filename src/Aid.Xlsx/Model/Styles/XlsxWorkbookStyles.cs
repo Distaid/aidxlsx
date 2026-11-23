@@ -54,7 +54,7 @@ internal class XlsxWorkbookStyles
 
     private List<uint>? _indexedColorsArgb;
 
-    private List<XlsxColor> _mruColors = new();
+    private List<XlsxColor> _mruColors = [];
 
     /// <summary>
     /// A normal style that is used for newly create workbooks or loaded workbooks without a normal style.
@@ -107,17 +107,17 @@ internal class XlsxWorkbookStyles
 
     internal XlsxWorkbookStyles()
     {
-        _numberFormats = new BiDictionary<int, XlsxNumberFormat>();
-        _fontFormats = new BiDictionary<int, XlsxFontFormatValue>();
-        _fillFormats = new BiDictionary<int, XlsxFillFormatValue>();
-        _borderFormats = new BiDictionary<int, XlsxBorderFormatValue>();
-        _alignmentFormats = new BiDictionary<int, XlsxAlignmentFormatValue>();
-        _protectionFormats = new BiDictionary<int, XlsxProtectionFormatValue>();
-        _cellFormats = new BiDictionary<int, XlsxCellFormatValue>();
-        _cellStyles = new BiDictionary<StyleId, XlsxCellStyleValue>();
-        _differentialFormats = new BiDictionary<int, XlsxDxfValue>();
-        _tableStyles = new Dictionary<string, XlsxTableTheme>(XlsxHelper.NameComparer);
-        _pivotStyles = new Dictionary<string, XlsxPivotTableStyle>(XlsxHelper.NameComparer);
+        _numberFormats = [];
+        _fontFormats = [];
+        _fillFormats = [];
+        _borderFormats = [];
+        _alignmentFormats = [];
+        _protectionFormats = [];
+        _cellFormats = [];
+        _cellStyles = [];
+        _differentialFormats = [];
+        _tableStyles = [with(XlsxHelper.NameComparer)];
+        _pivotStyles = [with(XlsxHelper.NameComparer)];
     }
 
     internal IReadOnlyBiDictionary<int, XlsxNumberFormat> NumberFormats => _numberFormats;

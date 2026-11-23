@@ -27,13 +27,13 @@ internal partial class StylesReader
     private XlsxFontFormatValue _defaultFontFormat;
 
     // Currently read CT_TableStyle element
-    private Dictionary<TS, (XlsxDxfValue Dxf, int BandSize)> _currentTableStyle = new();
-    private Dictionary<PTS, (XlsxDxfValue Dxf, int BandSize)> _currentPivotStyle = new();
+    private Dictionary<TS, (XlsxDxfValue Dxf, int BandSize)> _currentTableStyle = [];
+    private Dictionary<PTS, (XlsxDxfValue Dxf, int BandSize)> _currentPivotStyle = [];
 
     /// <summary>
     /// Style formats from <c>cellStyleXfs</c>.
     /// </summary>
-    private List<XlsxCellFormatValue> _styleFormats = new();
+    private List<XlsxCellFormatValue> _styleFormats = [];
 
     public StylesReader(XmlTreeReader reader, XlsxWorkbookStyles styles)
     {
@@ -448,26 +448,23 @@ internal partial class StylesReader
     private XlsxFillFormatValue OnGradientFillParsed(List<(FractionOfOne Value, XlsxColor Color)> stop, XlsxGradientType type, double degree, double left, double right, double top, double bottom)
     {
         var stops = stop.ToDictionary(x => x.Value, x => x.Color);
-        switch (type)
+        return type switch
         {
-            case XlsxGradientType.Linear:
-                return new XlsxFillFormatValue(new XlsxLinearGradientFill
-                {
-                    Stops = stops,
-                    Degrees = degree,
-                });
-            case XlsxGradientType.Path:
-                return new XlsxFillFormatValue(new XlsxPathGradientFill
-                {
-                    Stops = stops,
-                    InnerLeft = left,
-                    InnerRight = right,
-                    InnerTop = top,
-                    InnerBottom = bottom
-                });
-            default:
-                throw new UnreachableException();
-        }
+            XlsxGradientType.Linear => new XlsxFillFormatValue(new XlsxLinearGradientFill
+            {
+                Stops = stops,
+                Degrees = degree,
+            }),
+            XlsxGradientType.Path => new XlsxFillFormatValue(new XlsxPathGradientFill
+            {
+                Stops = stops,
+                InnerLeft = left,
+                InnerRight = right,
+                InnerTop = top,
+                InnerBottom = bottom
+            }),
+            _ => throw new UnreachableException(),
+        };
     }
 
     private (FractionOfOne Position, XlsxColor Color) OnGradientStopParsed(XlsxColor color, double position)
@@ -507,7 +504,7 @@ internal partial class StylesReader
 
     partial void OnCellStyleXfsParsed(List<(XlsxCellFormatValue Format, int? CellStyleXfId)> xf, uint? count)
     {
-        _styleFormats = xf.Select(x => x.Format).ToList();
+        _styleFormats = [.. xf.Select(x => x.Format)];
     }
 
     private (XlsxCellFormatValue Format, int? CellStyleXfId) OnXfParsed(XlsxDifferentialAlignmentValue? alignment, XlsxDifferentialProtectionValue? protection, uint? numFmtId, uint? fontId, uint? fillId, uint? borderId, uint? xfId, bool quotePrefix, bool pivotButton, bool? applyNumberFormat, bool? applyFont, bool? applyFill, bool? applyBorder, bool? applyAlignment, bool? applyProtection)
@@ -742,7 +739,7 @@ internal partial class StylesReader
             _styles.AddTableStyle(tableStyle);
         }
 
-        _currentTableStyle = new Dictionary<TS, (XlsxDxfValue Dxf, int BandSize)>();
+        _currentTableStyle = [];
 
         if (pivot)
         {
@@ -753,7 +750,7 @@ internal partial class StylesReader
             _styles.AddPivotStyle(pivotStyle);
         }
 
-        _currentPivotStyle = new Dictionary<PTS, (XlsxDxfValue Dxf, int BandSize)>();
+        _currentPivotStyle = [];
     }
 
     partial void OnTableStylesParsed(uint? count, string? defaultTableStyle, string? defaultPivotStyle)

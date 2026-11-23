@@ -16,14 +16,14 @@ internal class UntypedObjectReader : IInsertDataReader
     public UntypedObjectReader(IEnumerable data)
     {
         _data = (data ?? new object[0]).Cast<object>();
-        _readers = CreateReaders().ToList();
+        _readers = [.. CreateReaders()];
 
         IEnumerable<IInsertDataReader> CreateReaders()
         {
             if (!_data.Any())
                 yield break;
 
-            List<object> itemsOfSameType = new List<object>();
+            List<object> itemsOfSameType = [];
             Type previousType = null;
 
             foreach (var item in _data)
@@ -82,6 +82,6 @@ internal class UntypedObjectReader : IInsertDataReader
 
     private IInsertDataReader GetFirstNonNullReader()
     {
-        return _readers.FirstOrDefault(r => !(r is NullDataReader));
+        return _readers.FirstOrDefault(r => r is not NullDataReader);
     }
 }

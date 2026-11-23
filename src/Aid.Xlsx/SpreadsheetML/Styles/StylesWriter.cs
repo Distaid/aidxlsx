@@ -24,8 +24,8 @@ internal class StylesWriter
 {
     private const int FirstUserDefinedFormatIndex = XlsxWorkbookStyles.FirstUserDefinedNumberFormatIndex;
 
-    private static readonly List<(string Type, TableRegion? TableRegion, PivotRegion? PivotRegion)> TableRegionsMap = new()
-    {
+    private static readonly List<(string Type, TableRegion? TableRegion, PivotRegion? PivotRegion)> TableRegionsMap =
+    [
         ("wholeTable", TableRegion.WholeTable, PivotRegion.WholeTable),
         ("headerRow", TableRegion.HeaderRow, PivotRegion.HeaderRow),
         ("totalRow", TableRegion.TotalRow, PivotRegion.GrandTotalRow),
@@ -54,7 +54,7 @@ internal class StylesWriter
         ("thirdRowSubheading", null, PivotRegion.RowSubheading3),
         ("pageFieldLabels", null, PivotRegion.PageFieldLabels),
         ("pageFieldValues", null, PivotRegion.PageFieldValues),
-    };
+    ];
 
     private readonly string _ns = Main2006SsNs;
 

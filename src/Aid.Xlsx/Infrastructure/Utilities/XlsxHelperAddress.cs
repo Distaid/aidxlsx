@@ -51,7 +51,7 @@ public static partial class XlsxHelper
             return "empty";
         }
         int length = Math.Min(MaxWorksheetNameCharsCount, nameProposal.Length);
-        var shortenedName = nameProposal.Substring(0, length);
+        var shortenedName = nameProposal[..length];
         var result = new System.Text.StringBuilder(shortenedName);
         for (int i = 0; i < length; i++)
         {

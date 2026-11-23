@@ -97,10 +97,7 @@ internal class XlsxMatrix
             if (p == 0)
                 throw new InvalidOperationException("The matrix is singular!");
 
-            var pom1 = pi[k];
-            pi[k] = pi[k0];
-            pi[k0] = pom1; // switch two rows in permutation matrix
-
+            (pi[k0], pi[k]) = (pi[k], pi[k0]);
             double pom2;
             for (var i = 0; i < k; i++)
             {

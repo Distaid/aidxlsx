@@ -6,7 +6,7 @@ namespace Aid.Xlsx.Infrastructure.Utilities;
 
 internal static class XmlEncoder
 {
-    private static readonly Regex xHHHHRegex = new Regex("_(x[\\dA-Fa-f]{4})_", RegexOptions.Compiled);
+    private static readonly Regex xHHHHRegex = new("_(x[\\dA-Fa-f]{4})_", RegexOptions.Compiled);
 
     public static string EncodeString(string encodeStr)
     {

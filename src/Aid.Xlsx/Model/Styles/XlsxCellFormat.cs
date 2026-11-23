@@ -49,31 +49,31 @@ internal partial class XlsxCellFormat
     /// an area, so we can satisfy the <see cref="IXlsxBorder.OutsideBorder"/> and
     /// <see cref="IXlsxBorder.InsideBorder"/> property setters.
     /// </summary>
-    private IReadOnlyList<SheetArea> Areas { get; init; } = Array.Empty<SheetArea>();
+    private IReadOnlyList<SheetArea> Areas { get; init; } = [];
 
     /// <summary>
     /// Formatting is updated for used cells within these areas. Unused cells are ignored.
     /// </summary>
-    private IReadOnlyList<SheetArea> UsedAreas { get; init; } = Array.Empty<SheetArea>();
+    private IReadOnlyList<SheetArea> UsedAreas { get; init; } = [];
 
     /// <summary>
     /// Formatting is updated for these columns. This doesn't update cells within the columns, only
     /// the columns themselves. The values are unique columns, sorted by column number in ascending
     /// order.
     /// </summary>
-    private XlsxColumnArea[] Columns { get; init; } = Array.Empty<XlsxColumnArea>();
+    private XlsxColumnArea[] Columns { get; init; } = [];
 
     /// <summary>
     /// Formatting is updated for these rows. This doesn't update cells within the rows, only
     /// the rows themselves. The values are unique rows, sorted by row number in ascending order.
     /// </summary>
-    private XlsxRowArea[] Rows { get; init; } = Array.Empty<XlsxRowArea>();
+    private XlsxRowArea[] Rows { get; init; } = [];
 
     /// <summary>
     /// Formatting is updated for these worksheets. This doesn't update cells within the sheets, only
     /// the sheets and materialized rows and columns of the sheets.
     /// </summary>
-    private IReadOnlyList<string> Worksheets { get; init; } = Array.Empty<string>();
+    private IReadOnlyList<string> Worksheets { get; init; } = [];
 
     /// <summary>
     /// Should the formatting be updated for the default format of a workbook (plus cascade to all
@@ -117,7 +117,7 @@ internal partial class XlsxCellFormat
         return new XlsxCellFormat(workbook, formatValue)
         {
             UsedAreas = new[] { columnArea.Area },
-            Columns = new[] { columnArea }
+            Columns = [columnArea]
         };
     }
 
@@ -128,7 +128,7 @@ internal partial class XlsxCellFormat
         return new XlsxCellFormat(workbook, formatValue)
         {
             Columns = columnAreas,
-            UsedAreas = columnAreas.Select(x => x.Area).ToArray()
+            UsedAreas = [.. columnAreas.Select(x => x.Area)]
         };
     }
 
@@ -140,7 +140,7 @@ internal partial class XlsxCellFormat
         return new XlsxCellFormat(workbook, formatValue)
         {
             UsedAreas = new[] { rowArea.Area },
-            Rows = new[] { rowArea }
+            Rows = [rowArea]
         };
     }
 
@@ -151,7 +151,7 @@ internal partial class XlsxCellFormat
         return new XlsxCellFormat(workbook, formatValue)
         {
             Rows = rowAreas,
-            UsedAreas = rowAreas.Select(x => x.Area).ToArray()
+            UsedAreas = [.. rowAreas.Select(x => x.Area)]
         };
     }
 

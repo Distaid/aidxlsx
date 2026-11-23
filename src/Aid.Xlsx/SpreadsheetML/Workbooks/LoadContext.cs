@@ -10,13 +10,13 @@ internal class LoadContext
     /// Conditional formats for pivot tables, loaded from sheets. Key is sheet name, value is the
     /// conditional formats.
     /// </summary>
-    private readonly Dictionary<string, List<XlsxConditionalFormat>> _pivotCfs = new(XlsxHelper.SheetComparer);
+    private readonly Dictionary<string, List<XlsxConditionalFormat>> _pivotCfs = [with(XlsxHelper.SheetComparer)];
 
     internal void AddPivotTableCf(string sheetName, XlsxConditionalFormat conditionalFormat)
     {
         if (!_pivotCfs.TryGetValue(sheetName, out var list))
         {
-            list = new List<XlsxConditionalFormat>();
+            list = [];
             _pivotCfs[sheetName] = list;
         }
 
@@ -28,10 +28,7 @@ internal class LoadContext
         if (!_pivotCfs.TryGetValue(sheetName, out var list))
             throw PivotCfNotFoundException(sheetName, priority);
 
-        var pivotCf = list.SingleOrDefault(x => x.Priority == priority);
-        if (pivotCf is null)
-            throw PivotCfNotFoundException(sheetName, priority);
-
+        var pivotCf = list.SingleOrDefault(x => x.Priority == priority) ?? throw PivotCfNotFoundException(sheetName, priority);
         return pivotCf;
     }
 

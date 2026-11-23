@@ -168,8 +168,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     {
         get
         {
-            if (_autoFilter == null)
-                _autoFilter = new XlsxAutoFilter();
+            _autoFilter ??= new XlsxAutoFilter();
 
             _autoFilter.Range = ShowTotalsRow ? Range(1, 1, RowCount() - 1, ColumnCount()) : AsRange();
             return _autoFilter;
@@ -268,7 +267,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
 
         if (scanForNewFieldsNames)
         {
-            var tempResult = FieldNames;
+            _ = FieldNames;
         }
 
         return FirstRow();
@@ -562,7 +561,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
 
     internal void OnAddedToTables()
     {
-        _uniqueNames = new HashSet<string>();
+        _uniqueNames = [];
         Int32 co = 1;
         foreach (IXlsxCell c in Row(1).Cells())
         {
@@ -576,7 +575,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
 
     private static Dictionary<string, XlsxTableField> CreateFieldNames()
     {
-        return new Dictionary<string, XlsxTableField>(StringComparer.CurrentCultureIgnoreCase);
+        return [with(StringComparer.CurrentCultureIgnoreCase)];
     }
 
     private String GetUniqueName(String originalName, Int32 initialOffset, Boolean enforceOffset)
@@ -620,7 +619,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
             if (_showHeaderRow)
             {
                 var headersRow = HeadersRow();
-                _uniqueNames = new HashSet<string>();
+                _uniqueNames = [];
                 Int32 co = 1;
                 foreach (IXlsxCell c in headersRow.Cells())
                 {
@@ -893,7 +892,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
     public IXlsxRange AppendData(IEnumerable data, bool transpose, Boolean propagateExtraColumns = false)
     {
-        var castedData = data?.Cast<object>().ToArray() ?? Array.Empty<object>();
+        var castedData = data?.Cast<object>().ToArray() ?? [];
         if (!castedData.Any() || data is String)
             return null;
 
@@ -911,7 +910,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
     public IXlsxRange AppendData<T>(IEnumerable<T> data, Boolean propagateExtraColumns = false)
     {
-        var materializedData = data?.ToArray() ?? Array.Empty<T>();
+        var materializedData = data?.ToArray() ?? [];
         if (!materializedData.Any() || data is String)
             return null;
 
@@ -927,7 +926,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
     public IXlsxRange ReplaceData(IEnumerable data, bool transpose, Boolean propagateExtraColumns = false)
     {
-        var castedData = data?.Cast<object>().ToArray() ?? Array.Empty<object>();
+        var castedData = data?.Cast<object>().ToArray() ?? [];
         if (!castedData.Any() || data is String)
             throw new InvalidOperationException("Cannot replace table data with empty enumerable.");
 
@@ -945,7 +944,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     [RequiresUnreferencedCode("Table data from an IEnumerable is written with reflection over the item type and its members. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
     public IXlsxRange ReplaceData<T>(IEnumerable<T> data, Boolean propagateExtraColumns = false)
     {
-        var materializedData = data?.ToArray() ?? Array.Empty<T>();
+        var materializedData = data?.ToArray() ?? [];
         if (!materializedData.Any() || data is String)
             throw new InvalidOperationException("Cannot replace table data with empty enumerable.");
 

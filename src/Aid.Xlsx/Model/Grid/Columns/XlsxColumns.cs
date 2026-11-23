@@ -10,7 +10,7 @@ namespace Aid.Xlsx.Model.Grid.Columns;
 
 internal class XlsxColumns : IXlsxColumns
 {
-    private readonly List<XlsxColumn> _columnsCollection = new List<XlsxColumn>();
+    private readonly List<XlsxColumn> _columnsCollection = [];
 
     private readonly XlsxWorkbook _workbook;
     private readonly XlsxWorksheet? _worksheet;
@@ -83,7 +83,7 @@ internal class XlsxColumns : IXlsxColumns
             {
                 if (!toDelete.TryGetValue(c.Worksheet, out List<Int32>? list))
                 {
-                    list = new List<Int32>();
+                    list = [];
                     toDelete.Add(c.Worksheet, list);
                 }
 

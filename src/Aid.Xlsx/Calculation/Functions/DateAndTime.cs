@@ -762,9 +762,9 @@ internal static class DateAndTime
     /// </summary>
     private readonly record struct DateParts(int Year, int Month, int Day)
     {
-        private static readonly int[] DaysToMonth365 = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 };
+        private static readonly int[] DaysToMonth365 = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365];
 
-        private static readonly int[] DaysToMonth366 = { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 };
+        private static readonly int[] DaysToMonth366 = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366];
 
         private static readonly DateParts Epoch1900 = new(1900, 1, 0);
 

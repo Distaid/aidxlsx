@@ -16,7 +16,7 @@ namespace Aid.Xlsx.Model.DefinedNames;
 /// </summary>
 internal class XlsxDefinedNames : IXlsxDefinedNames, IEnumerable<XlsxDefinedName>, ISheetListener
 {
-    private readonly Dictionary<String, XlsxDefinedName> _namedRanges = new(XlsxHelper.NameComparer);
+    private readonly Dictionary<String, XlsxDefinedName> _namedRanges = [with(XlsxHelper.NameComparer)];
 
     internal XlsxWorkbook Workbook { get; }
 

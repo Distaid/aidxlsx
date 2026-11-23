@@ -8,8 +8,8 @@ namespace Aid.Xlsx.Model.PageSetup;
 
 internal class XlsxPrintAreas : IXlsxPrintAreas
 {
-    List<IXlsxRange> ranges = new List<IXlsxRange>();
-    private XlsxWorksheet worksheet;
+    readonly List<IXlsxRange> ranges = [];
+    private readonly XlsxWorksheet worksheet;
     public XlsxPrintAreas(XlsxWorksheet worksheet)
     {
         this.worksheet = worksheet;
@@ -17,7 +17,7 @@ internal class XlsxPrintAreas : IXlsxPrintAreas
 
     public XlsxPrintAreas(XlsxPrintAreas defaultPrintAreas, XlsxWorksheet worksheet)
     {
-        ranges = defaultPrintAreas.ranges.ToList();
+        ranges = [.. defaultPrintAreas.ranges];
         this.worksheet = worksheet;
     }
 

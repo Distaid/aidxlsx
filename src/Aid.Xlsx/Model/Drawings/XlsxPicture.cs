@@ -227,9 +227,8 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
 
     public IXlsxPicture MoveTo(IXlsxCell cell, System.Drawing.Point offset)
     {
-        if (cell == null) throw new ArgumentNullException(nameof(cell));
         this.Placement = XlsxPicturePlacement.Move;
-        this.TopLeftCell = cell;
+        this.TopLeftCell = cell ?? throw new ArgumentNullException(nameof(cell));
         this.Markers[XlsxMarkerPosition.TopLeft].Offset = offset;
         return this;
     }
@@ -246,14 +245,12 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
 
     public IXlsxPicture MoveTo(IXlsxCell fromCell, System.Drawing.Point fromOffset, IXlsxCell toCell, System.Drawing.Point toOffset)
     {
-        if (fromCell == null) throw new ArgumentNullException(nameof(fromCell));
-        if (toCell == null) throw new ArgumentNullException(nameof(toCell));
         this.Placement = XlsxPicturePlacement.MoveAndSize;
 
-        this.TopLeftCell = fromCell;
+        this.TopLeftCell = fromCell ?? throw new ArgumentNullException(nameof(fromCell));
         this.Markers[XlsxMarkerPosition.TopLeft].Offset = fromOffset;
 
-        this.BottomRightCell = toCell;
+        this.BottomRightCell = toCell ?? throw new ArgumentNullException(nameof(toCell));
         this.Markers[XlsxMarkerPosition.BottomRight].Offset = toOffset;
 
         return this;
@@ -301,8 +298,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
     internal IXlsxPicture CopyTo(XlsxWorksheet targetSheet)
     {
         ThrowIfDisposed();
-        if (targetSheet == null)
-            targetSheet = Worksheet as XlsxWorksheet;
+        targetSheet ??= Worksheet as XlsxWorksheet;
 
         IXlsxPicture newPicture;
         if (targetSheet == Worksheet)

@@ -38,8 +38,7 @@ internal static class ExtendedPropertiesXml
         var worksheetNames = workbook.WorksheetsInternal.Cast<XlsxWorksheet>()
             .OrderBy(sheet => sheet.Position).Select(sheet => sheet.Name).ToList();
         var namedRanges = GetRangeNames(workbook);
-        SetVector(root, "TitlesOfParts", "lpstr", worksheetNames.Concat(namedRanges)
-            .Select(name => new XElement(Variant + "lpstr", name)).ToList());
+        SetVector(root, "TitlesOfParts", "lpstr", [.. worksheetNames.Concat(namedRanges).Select(name => new XElement(Variant + "lpstr", name))]);
         SetVector(root, "HeadingPairs", "variant",
         [
             new XElement(Variant + "variant", new XElement(Variant + "lpstr", "Worksheets")),

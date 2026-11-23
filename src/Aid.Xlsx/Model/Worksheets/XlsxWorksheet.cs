@@ -34,8 +34,8 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
 {
     #region Fields
 
-    private readonly Dictionary<Int32, Int32> _columnOutlineCount = new Dictionary<Int32, Int32>();
-    private readonly Dictionary<Int32, Int32> _rowOutlineCount = new Dictionary<Int32, Int32>();
+    private readonly Dictionary<Int32, Int32> _columnOutlineCount = [];
+    private readonly Dictionary<Int32, Int32> _rowOutlineCount = [];
     private readonly XlsxRangeFactory _rangeFactory;
     private readonly XlsxRangeRepository _rangeRepository;
     private readonly List<IXlsxRangeIndex> _rangeIndices;
@@ -76,12 +76,12 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
         RangeAddress = new XlsxRangeAddress(firstAddress, lastAddress);
         _rangeFactory = new XlsxRangeFactory(this);
         _rangeRepository = new XlsxRangeRepository(workbook, _rangeFactory.Create);
-        _rangeIndices = new List<IXlsxRangeIndex>();
+        _rangeIndices = [];
 
         Pictures = new XlsxPictures(this);
         DefinedNames = new XlsxDefinedNames(this);
         SheetView = new XlsxSheetView(this);
-        Tables = new XlsxTables();
+        Tables = [];
         Hyperlinks = new XlsxHyperlinks(this);
         DataValidations = new XlsxDataValidations(this);
         PivotTables = new XlsxPivotTables(this);
@@ -92,8 +92,8 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
         Internals = new XlsxWorksheetInternals
         {
             CellsCollection = new XlsxCellsCollection(this),
-            ColumnsCollection = new XlsxColumnsCollection(),
-            RowsCollection = new XlsxRowsCollection(),
+            ColumnsCollection = [],
+            RowsCollection = [],
             MergedRanges = new XlsxRanges(this)
         };
         PageSetup = new XlsxPageSetup((XlsxPageSetup)workbook.PageOptions, this);
@@ -1517,7 +1517,7 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
             return Range(new XlsxRangeAddress(Worksheet, rangeAddressStr));
 
         if (rangeAddressStr.Contains("["))
-            return Table(rangeAddressStr.Substring(0, rangeAddressStr.IndexOf("["))) as XlsxRange;
+            return Table(rangeAddressStr[..rangeAddressStr.IndexOf("[")]) as XlsxRange;
 
         if (DefinedNames.TryGetValue(rangeAddressStr, out var sheetDefinedName))
             return sheetDefinedName.Ranges.First().CastTo<XlsxRange>();
@@ -1706,7 +1706,7 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
                 if (modifiedStyle is not null)
                 {
                     if (value.IsText && value.GetText()[0] == '\'')
-                        value = value.GetText().Substring(1);
+                        value = value.GetText()[1..];
 
                     formatSlice.Set(point, modifiedStyle);
                 }
@@ -1759,7 +1759,7 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
                     // The original has `sourceValue` at [sourceRow, sourceColumn]
                     var destinationRowCount = destination.Count;
                     if (sourceColumn > destinationRowCount)
-                        destination.Add(new List<XlsxCellValue>());
+                        destination.Add([]);
 
                     // There can be jagged arrays and the destination can have spaces between columns.
                     var destinationRow = destination[sourceColumn - 1];

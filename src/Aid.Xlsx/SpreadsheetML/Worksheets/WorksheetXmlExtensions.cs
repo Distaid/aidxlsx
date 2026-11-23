@@ -26,7 +26,7 @@ internal sealed partial class WorksheetXml
         Replace("conditionalFormatting", formats.GroupBy(format => (
             References: string.Join(" ", format.Ranges.Select(range => range.RangeAddress.ToStringRelative(false))),
             IsPivot: pivotFormats.Contains(format)))
-            .Select(group => ConditionalFormattingXml.WriteGroup(group.Key.References, group.Key.IsPivot, group.ToList(), context)));
+            .Select(group => ConditionalFormattingXml.WriteGroup(group.Key.References, group.Key.IsPivot, [.. group], context)));
 
         var dataBars = sheet.ConditionalFormats.Cast<XlsxConditionalFormat>().Where(format => format.ConditionalFormatType == XlsxConditionalFormatType.DataBar).ToArray();
         if (dataBars.Length == 0)

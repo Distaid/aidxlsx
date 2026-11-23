@@ -18,7 +18,7 @@ internal class XlsxRangeColumnsSortComparer : IComparer<int>
             throw new ArgumentException("Range has fewer columns that sort specification.");
 
         _valueSlice = sheet.Internals.CellsCollection.ValueSlice;
-        _rowComparers = sortRows.Select(se => (se.ElementNumber + sortRange.TopRow - 1, new XlsxCellValueSortComparer(se))).ToList();
+        _rowComparers = [.. sortRows.Select(se => (se.ElementNumber + sortRange.TopRow - 1, new XlsxCellValueSortComparer(se)))];
     }
 
     public int Compare(int colNumber1, int colNumber2)

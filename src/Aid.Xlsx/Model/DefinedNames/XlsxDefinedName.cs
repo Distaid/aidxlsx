@@ -102,7 +102,7 @@ internal class XlsxDefinedName : IXlsxDefinedName, IWorkbookListener
     /// Get sheet references found in the formula in A1. Doesn't return tables or name references,
     /// only what has col/row coordinates.
     /// </summary>
-    internal IReadOnlyList<String> SheetReferencesList => _references.SheetReferences.Select(x => x.GetA1()).ToList();
+    internal IReadOnlyList<String> SheetReferencesList => [.. _references.SheetReferences.Select(x => x.GetA1())];
 
     internal XlsxDefinedName CopyTo(XlsxWorksheet targetSheet)
     {

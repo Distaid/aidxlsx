@@ -10,7 +10,7 @@ namespace Aid.Xlsx.Model.Grid.Rows;
 
 internal class XlsxRows : IXlsxRows
 {
-    private readonly List<XlsxRow> _rowsCollection = new List<XlsxRow>();
+    private readonly List<XlsxRow> _rowsCollection = [];
     private readonly XlsxWorkbook _workbook;
     private readonly XlsxWorksheet? _worksheet;
     private readonly XlsxWorksheet? _defaultStyleSheet;
@@ -81,7 +81,7 @@ internal class XlsxRows : IXlsxRows
             {
                 if (!toDelete.TryGetValue(r.Worksheet, out List<Int32>? list))
                 {
-                    list = new List<Int32>();
+                    list = [];
                     toDelete.Add(r.Worksheet, list);
                 }
 

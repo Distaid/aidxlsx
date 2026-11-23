@@ -17,13 +17,13 @@ namespace Aid.Xlsx.Model.PivotTables;
 internal class XlsxPivotTableField
 {
     private readonly XlsxPivotTable _pivotTable;
-    private readonly List<XlsxPivotFieldItem> _items = new();
+    private readonly List<XlsxPivotFieldItem> _items = [];
 
     public XlsxPivotTableField(XlsxPivotTable pivotTable)
     {
         _pivotTable = pivotTable;
         ShowAll = false; // The XML default value is true, but Excel always has false, so let's follow Excel.
-        Subtotals = new HashSet<XlsxSubtotalFunction> { XlsxSubtotalFunction.Automatic };
+        Subtotals = [XlsxSubtotalFunction.Automatic];
     }
 
     internal XlsxPivotTable PivotTable => _pivotTable;

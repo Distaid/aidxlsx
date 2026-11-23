@@ -16,7 +16,7 @@ internal static class MathTrig
     /// </summary>
     private const double MaxDoubleInt = 9007199254740991;
 
-    private static readonly Random _rnd = new Random();
+    private static readonly Random _rnd = new();
 
     /// <summary>
     /// Key: roman form. Value: A collection of subtract symbols and subtract value.
@@ -104,7 +104,7 @@ internal static class MathTrig
         ce.RegisterFunction("SUBTOTAL", 2, 255, Adapt(Subtotal), FunctionFlags.Range, AllowRange.Except, 0);
         ce.RegisterFunction("SUM", 1, 255, Sum, FunctionFlags.Range, AllowRange.All);
         ce.RegisterFunction("SUMIF", 2, 3, AdaptLastOptional(SumIf), FunctionFlags.Range, AllowRange.Only, 0, 2);
-        ce.RegisterFunction("SUMIFS", 3, 255, AdaptIfs(SumIfs), FunctionFlags.Range, AllowRange.Only, new[] { 0 }.Concat(Enumerable.Range(0, 128).Select(x => x * 2 + 1)).ToArray());
+        ce.RegisterFunction("SUMIFS", 3, 255, AdaptIfs(SumIfs), FunctionFlags.Range, AllowRange.Only, [0, .. Enumerable.Range(0, 128).Select(x => x * 2 + 1)]);
         ce.RegisterFunction("SUMPRODUCT", 1, 255, Adapt(SumProduct), FunctionFlags.Range, AllowRange.All);
         ce.RegisterFunction("SUMSQ", 1, 255, SumSq, FunctionFlags.Range, AllowRange.All);
         //ce.RegisterFunction("SUMX2MY2", SumX2MY2, 1);
@@ -1018,7 +1018,7 @@ internal static class MathTrig
 
         tally.Add(area, criteria);
 
-        return Sum(ctx, new[] { sumRange }, tally);
+        return Sum(ctx, [sumRange], tally);
     }
 
     private static AnyValue SumIfs(CalcContext ctx, AnyValue sumRange, List<(AnyValue Range, ScalarValue Criteria)> criteriaRanges)
@@ -1042,7 +1042,7 @@ internal static class MathTrig
             tally.Add(selectionArea, criteria);
         }
 
-        return Sum(ctx, new[] { sumRange }, tally);
+        return Sum(ctx, [sumRange], tally);
     }
 
     private static AnyValue SumProduct(CalcContext ctx, Array[] areas)

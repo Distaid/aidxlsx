@@ -30,7 +30,7 @@ internal abstract class XlsxPivotStyleFormatBase : IXlsxPivotStyleFormat
     #endregion IXlsxPivotStyleFormat members
 
     // TODO Styles: Ensure that each pivot area is there only once in a pivot table. Ensure it on load and during modifications.
-    internal XlsxDxFormat Format => new XlsxDxFormat(PivotTable.Worksheet.Workbook.Styles, GetFormats().First());
+    internal XlsxDxFormat Format => new(PivotTable.Worksheet.Workbook.Styles, GetFormats().First());
 
     internal abstract XlsxPivotArea GetCurrentArea();
 

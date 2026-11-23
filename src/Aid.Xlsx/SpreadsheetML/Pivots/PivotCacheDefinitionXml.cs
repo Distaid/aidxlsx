@@ -90,7 +90,7 @@ internal static class PivotCacheDefinitionXml
     {
         var ns = consolidation.Name.Namespace;
         var pages = consolidation.Element(ns + "pages")?.Elements(ns + "page")
-            .Select(page => new XlsxPivotCacheSourceConsolidationPage(page.Elements(ns + "pageItem").Select(item => Required(item, "name")).ToList()))
+            .Select(page => new XlsxPivotCacheSourceConsolidationPage([.. page.Elements(ns + "pageItem").Select(item => Required(item, "name"))]))
             .ToList() ?? [];
         var ranges = consolidation.Element(ns + "rangeSets") ?? throw PartStructureException.RequiredElementIsMissing("rangeSets");
         var rangeSets = new List<XlsxPivotCacheSourceConsolidationRangeSet>();

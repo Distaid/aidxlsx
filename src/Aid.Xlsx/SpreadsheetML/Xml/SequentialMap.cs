@@ -8,9 +8,9 @@ internal class SequentialMap<TKey, T>
     /// <summary>
     /// The index is the one that is used to save the <typeparamref name="T"/> while value is an index to the <c>_fullMap</c>.
     /// </summary>
-    private readonly Dictionary<int, TKey> _savedIdToActualId = new();
+    private readonly Dictionary<int, TKey> _savedIdToActualId = [];
 
-    private readonly Dictionary<TKey, int> _actualIdToSavedId = new();
+    private readonly Dictionary<TKey, int> _actualIdToSavedId = [];
 
     private readonly IReadOnlyBiDictionary<TKey, T> _fullMap;
 
@@ -75,10 +75,9 @@ internal class SequentialMap<TKey, T>
 
     public void Sort()
     {
-        _saveTable = _savedIdToActualId
+        _saveTable = [.. _savedIdToActualId
             .Select(x => (x.Key, _fullMap[x.Value]))
-            .OrderBy(x => x.Item1)
-            .ToList();
+            .OrderBy(x => x.Item1)];
     }
 
     public IEnumerable<(int SaveId, T Actual)> GetActual()

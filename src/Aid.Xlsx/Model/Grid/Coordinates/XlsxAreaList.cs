@@ -18,7 +18,7 @@ internal class XlsxAreaList : IEnumerable<Area>
 
     internal XlsxAreaList(Area area)
     {
-        _areas = new List<Area>(1) { area };
+        _areas = [area];
     }
 
     internal XlsxAreaList(List<Area> areas)
@@ -57,7 +57,7 @@ internal class XlsxAreaList : IEnumerable<Area>
         if (_areas.Contains(area))
             return this;
 
-        return new XlsxAreaList(new List<Area>(_areas) { area });
+        return new XlsxAreaList([with(_areas), area]);
     }
 
     internal XlsxAreaList Without(Area area)
@@ -110,11 +110,9 @@ internal class XlsxAreaList : IEnumerable<Area>
             }
 
             Area? left = null, right = null;
-            if (remaining is not null)
-                remaining.Value.SplitBefore(insertedArea.LeftColumn, out left, out remaining);
+            remaining?.SplitBefore(insertedArea.LeftColumn, out left, out remaining);
 
-            if (remaining is not null)
-                remaining.Value.SplitAfter(insertedArea.RightColumn, out right, out remaining);
+            remaining?.SplitAfter(insertedArea.RightColumn, out right, out remaining);
 
             if (above is not null)
                 result.Add(above.Value);
@@ -202,11 +200,9 @@ internal class XlsxAreaList : IEnumerable<Area>
             Area? below = null, left = null;
             originalArea.SplitAbove(insertedArea.TopRow, out var above, out var remaining);
 
-            if (remaining is not null)
-                remaining.Value.SplitBelow(insertedArea.BottomRow, out below, out remaining);
+            remaining?.SplitBelow(insertedArea.BottomRow, out below, out remaining);
 
-            if (remaining is not null)
-                remaining.Value.SplitBefore(insertedArea.LeftColumn, out left, out remaining);
+            remaining?.SplitBefore(insertedArea.LeftColumn, out left, out remaining);
 
             // There must be something. We know that inserted area intersects original area (we took care of special
             // case of right side attachment in an if above) and we only cut three times on each side of
@@ -362,7 +358,7 @@ internal class XlsxAreaList : IEnumerable<Area>
             if (intersection.ShiftAndClip(rowShift, columnShift) is not { } shiftedArea)
                 continue;
 
-            copyList ??= new List<Area>();
+            copyList ??= [];
             copyList.Add(shiftedArea);
         }
 

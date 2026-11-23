@@ -456,7 +456,7 @@ internal static partial class PivotTableXml
             xml.WriteStartElement(itemsElement, Main2006SsNs);
             xml.WriteAttribute("count", axis.Items.Count);
 
-            IReadOnlyList<int> previous = Array.Empty<int>();
+            IReadOnlyList<int> previous = [];
             foreach (var axisItem in axis.Items)
             {
                 xml.WriteStartElement("i", Main2006SsNs);

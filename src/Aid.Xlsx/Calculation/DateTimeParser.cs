@@ -20,7 +20,7 @@ internal static class DateTimeParser
     // what patterns Excel uses for which cultures.
     private static readonly ConcurrentDictionary<CultureInfo, string[]> CultureSpecificPatterns = new();
 
-    private static readonly string[] TimeOfDayPatterns = { "h:m tt", "h:m t", "h:m:s tt", "h:m:s t" };
+    private static readonly string[] TimeOfDayPatterns = ["h:m tt", "h:m t", "h:m:s tt", "h:m:s t"];
 
     public static bool TryParseCultureDate(string s, CultureInfo culture, out DateTime date)
     {
@@ -49,7 +49,7 @@ internal static class DateTimeParser
                 .SelectMany(datePattern => timePatterns.Select(timePattern => FormattableString.Invariant($"{datePattern} {timePattern}")));
 
             // ISO8601 should be parseable in all cultures, not sure if Excel does. Be more forgiving, M,d instead MM,dd.
-            return shortDatePatterns.Concat(longDatePatterns).Concat(new[] { "yyyy-M-d" }).Distinct().ToArray();
+            return [.. shortDatePatterns.Concat(longDatePatterns).Concat(new[] { "yyyy-M-d" }).Distinct()];
         });
 
         return DateTime.TryParseExact(s, datePatterns, culture, Style, out date);

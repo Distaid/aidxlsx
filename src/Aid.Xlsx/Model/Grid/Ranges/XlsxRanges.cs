@@ -39,7 +39,7 @@ internal class XlsxRanges : IXlsxRanges, IEnumerable<XlsxRange>
     public XlsxRanges(XlsxWorkbook workbook)
     {
         _workbook = workbook;
-        _indexes = new Dictionary<IXlsxWorksheet, IXlsxRangeIndex<XlsxRange>>();
+        _indexes = [];
     }
 
     internal XlsxCellFormat Format
@@ -240,7 +240,7 @@ internal class XlsxRanges : IXlsxRanges, IEnumerable<XlsxRange>
     public override string ToString()
     {
         String retVal = Ranges.Aggregate(String.Empty, (agg, r) => agg + (r.ToString() + ","));
-        if (retVal.Length > 0) retVal = retVal.Substring(0, retVal.Length - 1);
+        if (retVal.Length > 0) retVal = retVal[..^1];
         return retVal;
     }
 

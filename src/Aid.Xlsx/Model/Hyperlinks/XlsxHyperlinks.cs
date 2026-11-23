@@ -17,9 +17,9 @@ internal class XlsxHyperlinks : IXlsxHyperlinks, ISheetListener
     /// <summary>
     /// XlsxHyperlink doesn't contain range, it is user created and only then it is associated with an area in a sheet.
     /// </summary>
-    private readonly List<(XlsxHyperlink Link, Area Area)> _hyperlinks = new();
+    private readonly List<(XlsxHyperlink Link, Area Area)> _hyperlinks = [];
     private readonly RTree<XlsxHyperlink> _areaIndex = new();
-    private readonly Dictionary<XlsxHyperlink, Area> _linkIndex = new();
+    private readonly Dictionary<XlsxHyperlink, Area> _linkIndex = [];
 
     private delegate (bool Success, Area? RepositionedArea) RepositionFunc(Area hyperlinkArea);
 

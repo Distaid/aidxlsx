@@ -41,8 +41,7 @@ internal class XlsxCustomProperty : IXlsxCustomProperty
 
             if (Value is Boolean)
                 return XlsxCustomPropertyType.Boolean;
-
-            if (Double.TryParse(Value.ToString(), out Double dTest))
+            if (Double.TryParse(Value.ToString(), out _))
                 return XlsxCustomPropertyType.Number;
 
             return XlsxCustomPropertyType.Text;

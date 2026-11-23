@@ -582,7 +582,7 @@ internal class WorksheetPartWriter
     /// It saves some performance through direct indexation instead of switch.
     /// </summary>
     private static readonly String[] FormulaDataType =
-    {
+    [
         null, // blank
         "b", // boolean
         null, // number, default value, no need to save type
@@ -590,14 +590,14 @@ internal class WorksheetPartWriter
         "e", // error
         null, // datetime, saved as serialized date-time
         null // timespan, saved as serialized date-time
-    };
+    ];
 
     /// <summary>
     /// An array to convert data type for a cell that only contains a value. Key is <see cref="XlsxDataType"/>.
     /// It saves some performance through direct indexation instead of switch.
     /// </summary>
     private static readonly String[] ValueDataType =
-    {
+    [
         null, // blank
         "b", // boolean
         null, // number, default value, no need to save type
@@ -605,7 +605,7 @@ internal class WorksheetPartWriter
         "e", // error
         null, // datetime, saved as serialized date-time
         null // timespan, saved as serialized date-time
-    };
+    ];
 
     private static String GetCellValueType(XlsxCell xlCell)
     {

@@ -187,8 +187,8 @@ internal class XlsxComment : XlsxFormattedText<IXlsxComment>, IXlsxComment
 
     private void Initialize(XlsxCell cell, IXlsxDrawingStyle style = null, int? shapeId = null)
     {
-        style = style ?? XlsxDrawingStyle.DefaultCommentStyle;
-        shapeId = shapeId ?? cell.Worksheet.Workbook.ShapeIdManager.GetNext();
+        style ??= XlsxDrawingStyle.DefaultCommentStyle;
+        shapeId ??= cell.Worksheet.Workbook.ShapeIdManager.GetNext();
 
         Author = cell.Worksheet.Author;
         Container = this;

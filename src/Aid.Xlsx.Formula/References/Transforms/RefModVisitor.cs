@@ -76,11 +76,11 @@ public class RefModVisitor : IAstFactory<TransformedSymbol, TransformedSymbol, M
         }
 
         // Sheet!#REF! is a valid formula per grammar and Excel, though it displeases me.
-        var sheet = symbol.Slice(0, symbol.Length - REF_ERROR.Length - 1);
+        var sheet = symbol[..(symbol.Length - REF_ERROR.Length - 1)];
         var modifiedSheet = ModifySheet(ctx, sheet.ToString());
         var nodeText = new StringBuilder()
             .AppendSheetReference(modifiedSheet)
-            .Append(symbol.Slice(symbol.Length - REF_ERROR.Length))
+            .Append(symbol[^REF_ERROR.Length..])
             .ToString();
         return TransformedSymbol.ToText(ctx.Formula, range, nodeText);
     }

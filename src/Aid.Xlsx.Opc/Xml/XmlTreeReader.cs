@@ -91,7 +91,7 @@ public sealed class XmlTreeReader : IDisposable
     /// </summary>
     private bool _inLookup;
 
-    private readonly List<string> _context = new();
+    private readonly List<string> _context = [];
 
     public XmlTreeReader(Stream stream, IEnumMapper enumMapper, bool strictAttributeParsing)
         : this(XmlReader.Create(stream, Settings), enumMapper, strictAttributeParsing, leaveOpen: false)

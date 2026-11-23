@@ -439,7 +439,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
     public bool Contains(String rangeAddress)
     {
         string addressToUse = rangeAddress.Contains("!")
-                                  ? rangeAddress.Substring(rangeAddress.IndexOf("!") + 1)
+                                  ? rangeAddress[(rangeAddress.IndexOf("!") + 1)..]
                                   : rangeAddress;
 
         XlsxAddress firstAddress;
@@ -1402,7 +1402,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         if (shiftLeftBoundary)
         {
             if (newLeftBoundary + columnsShifted > shiftedRange.RangeAddress.FirstAddress.ColumnNumber)
-                newLeftBoundary = newLeftBoundary + columnsShifted;
+                newLeftBoundary += columnsShifted;
             else
                 newLeftBoundary = shiftedRange.RangeAddress.FirstAddress.ColumnNumber;
         }
@@ -1459,7 +1459,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         if (shiftTopBoundary)
         {
             if (newTopBoundary + rowsShifted > shiftedRange.RangeAddress.FirstAddress.RowNumber)
-                newTopBoundary = newTopBoundary + rowsShifted;
+                newTopBoundary += rowsShifted;
             else
                 newTopBoundary = shiftedRange.RangeAddress.FirstAddress.RowNumber;
         }
@@ -1559,12 +1559,12 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     public IXlsxSortElements SortRows
     {
-        get { return _sortRows ?? (_sortRows = new XlsxSortElements()); }
+        get { return _sortRows ??= []; }
     }
 
     public IXlsxSortElements SortColumns
     {
-        get { return _sortColumns ?? (_sortColumns = new XlsxSortElements()); }
+        get { return _sortColumns ??= []; }
     }
 
     private String DefaultSortString()
@@ -1780,8 +1780,8 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         }
         else
         {
-            thisRangePredicate = thisRangePredicate ?? (c => true);
-            otherRangePredicate = otherRangePredicate ?? (c => true);
+            thisRangePredicate ??= (c => true);
+            otherRangePredicate ??= (c => true);
 
             var intersectionCells = this.Cells(c => thisRangePredicate(c) && otherRange.Cells(otherRangePredicate).Contains(c));
 
@@ -1818,8 +1818,8 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         if (!this.Worksheet.Equals(otherRange.Worksheet))
             return cells;
 
-        if (thisRangePredicate == null) thisRangePredicate = c => true;
-        if (otherRangePredicate == null) otherRangePredicate = c => true;
+        thisRangePredicate ??= c => true;
+        otherRangePredicate ??= c => true;
 
         this.Cells(thisRangePredicate).Concat(otherRange.Cells(otherRangePredicate)).Distinct().ForEach(c => cells.Add(c as XlsxCell));
         return cells;
@@ -1834,8 +1834,8 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
         if (!this.Worksheet.Equals(otherRange.Worksheet))
             return cells;
 
-        if (thisRangePredicate == null) thisRangePredicate = c => true;
-        if (otherRangePredicate == null) otherRangePredicate = c => true;
+        thisRangePredicate ??= c => true;
+        otherRangePredicate ??= c => true;
 
         this.Cells(c => thisRangePredicate(c) && !otherRange.Cells(otherRangePredicate).Contains(c)).ForEach(c => cells.Add(c as XlsxCell));
         return cells;

@@ -100,7 +100,7 @@ internal class Quadrant
     public bool Add(IXlsxAddressable range)
     {
         bool res = false;
-        var children = Children ?? CreateChildren().ToList();
+        var children = Children ?? [.. CreateChildren()];
         bool addToChild = false;
         foreach (var childQuadrant in children)
         {
@@ -286,8 +286,7 @@ internal class Quadrant
     /// <returns>True if the range was successfully added, false if it had been added before.</returns>
     private bool AddInternal(IXlsxAddressable range)
     {
-        if (_ranges == null)
-            _ranges = new Dictionary<IXlsxRangeAddress, IXlsxAddressable>();
+        _ranges ??= [];
 
         if (_ranges.ContainsKey(range.RangeAddress))
             return false;

@@ -9,7 +9,7 @@ namespace Aid.Xlsx.Model.DataValidation;
 
 internal class XlsxDataValidations : IXlsxDataValidations, IEnumerable<XlsxDataValidation>, ISheetListener
 {
-    private readonly List<XlsxDataValidation> _dataValidations = new();
+    private readonly List<XlsxDataValidation> _dataValidations = [];
     private readonly XlsxWorksheet _worksheet;
 
     public XlsxDataValidations(XlsxWorksheet worksheet)
@@ -187,7 +187,7 @@ internal class XlsxDataValidations : IXlsxDataValidations, IEnumerable<XlsxDataV
 
     internal void Consolidate()
     {
-        Func<IXlsxDataValidation, IXlsxDataValidation, bool> areEqual = (dv1, dv2) =>
+        bool areEqual(IXlsxDataValidation dv1, IXlsxDataValidation dv2)
         {
             return
                 dv1.IgnoreBlanks == dv2.IgnoreBlanks &&
@@ -204,7 +204,7 @@ internal class XlsxDataValidations : IXlsxDataValidations, IEnumerable<XlsxDataV
                 dv1.MinValue == dv2.MinValue &&
                 dv1.MaxValue == dv2.MaxValue &&
                 dv1.Value == dv2.Value;
-        };
+        }
 
         var rules = _dataValidations.ToList();
         _dataValidations.Clear();

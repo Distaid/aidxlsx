@@ -14,7 +14,7 @@ internal class XlsxPivotDataFields : IXlsxPivotValues, IReadOnlyCollection<XlsxP
     /// <summary>
     /// Fields displayed in the data area of the pivot table, in the order fields are displayed.
     /// </summary>
-    private readonly List<XlsxPivotDataField> _fields = new();
+    private readonly List<XlsxPivotDataField> _fields = [];
 
     internal XlsxPivotDataFields(XlsxPivotTable pivotTable)
     {
@@ -54,12 +54,7 @@ internal class XlsxPivotDataFields : IXlsxPivotValues, IReadOnlyCollection<XlsxP
 
     public IXlsxPivotValue Get(string customName)
     {
-        var dataField = _fields.SingleOrDefault(x => XlsxHelper.NameComparer.Equals(x.CustomName, customName));
-        if (dataField is null)
-        {
-            throw new KeyNotFoundException($"Unable to find data field for '{customName}'.");
-        }
-
+        var dataField = _fields.SingleOrDefault(x => XlsxHelper.NameComparer.Equals(x.CustomName, customName)) ?? throw new KeyNotFoundException($"Unable to find data field for '{customName}'.");
         return dataField;
     }
 

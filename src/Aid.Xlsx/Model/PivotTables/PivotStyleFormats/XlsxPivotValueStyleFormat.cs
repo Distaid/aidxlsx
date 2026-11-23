@@ -14,7 +14,7 @@ internal class XlsxPivotValueStyleFormat : XlsxPivotStyleFormatBase, IXlsxPivotV
     /// The term "lie on" means that either column or a row of data cell
     /// intersects a label cell of referenced field.
     /// </summary>
-    private readonly List<FieldReference> _fieldReferences = new();
+    private readonly List<FieldReference> _fieldReferences = [];
 
     public XlsxPivotValueStyleFormat(XlsxPivotTable pivotTable, FieldIndex fieldIndex)
         : base(pivotTable)

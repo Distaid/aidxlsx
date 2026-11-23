@@ -6,7 +6,7 @@ namespace Aid.Xlsx.Infrastructure.Utilities;
 
 internal class XlsxIdManager
 {
-    private HashSet<Int32> _hash = new HashSet<Int32>();
+    private readonly HashSet<Int32> _hash = [];
 
 
     public Int32 GetNext()

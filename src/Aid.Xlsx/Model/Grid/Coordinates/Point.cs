@@ -84,7 +84,7 @@ internal readonly struct Point : IEquatable<Point>, IComparable<Point>
     public static Point Parse(ReadOnlySpan<char> input)
     {
         if (!TryParse(input, out var point))
-            throw new FormatException($"Sheet point doesn't have correct format: '{input.ToString()}'.");
+            throw new FormatException($"Sheet point doesn't have correct format: '{input}'.");
 
         return point;
     }
@@ -174,7 +174,7 @@ internal readonly struct Point : IEquatable<Point>, IComparable<Point>
     {
         Span<char> text = stackalloc char[10];
         var len = Format(text);
-        return text.Slice(0, len).ToString();
+        return text[..len].ToString();
     }
 
     private static int GetDigitCount(int n)

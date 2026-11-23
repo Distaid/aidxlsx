@@ -31,14 +31,14 @@ internal class FormulaReferences
     /// <summary>
     /// Areas without a sheet found in the formula.
     /// </summary>
-    internal HashSet<XlsxReference> References { get; } = new();
+    internal HashSet<XlsxReference> References { get; } = [];
 
     /// <summary>
     /// Areas with a sheet found in the formula.
     /// </summary>
-    internal HashSet<XlsxSheetReference> SheetReferences { get; } = new();
+    internal HashSet<XlsxSheetReference> SheetReferences { get; } = [];
 
-    internal HashSet<(string Table, string Column, string Symbol)> StructuredReferences { get; } = new();
+    internal HashSet<(string Table, string Column, string Symbol)> StructuredReferences { get; } = [];
 
     internal static FormulaReferences ForFormula(string formula)
     {
@@ -103,7 +103,7 @@ internal class FormulaReferences
         {
             // TODO: Temporary placeholder, extract range detection from CalculationVisitor
             if (firstColumn is not null)
-                context.StructuredReferences.Add((table, firstColumn, context._formula.Substring(range.Start, range.End - range.Start)));
+                context.StructuredReferences.Add((table, firstColumn, context._formula[range.Start..range.End]));
 
             return base.StructureReference(context, range, table, area, firstColumn, lastColumn);
         }

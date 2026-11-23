@@ -417,7 +417,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         {
             var split = name.Split('!');
             var first = split[0];
-            var wsName = first.StartsWith("'") ? first.Substring(1, first.Length - 2) : first;
+            var wsName = first.StartsWith("'") ? first[1..^1] : first;
             var sheetlessName = split[1];
             if (TryGetWorksheet(wsName, out XlsxWorksheet ws))
             {
@@ -591,11 +591,9 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         {
             _originalStream.Position = 0;
 
-            using (var fileStream = File.Create(file))
-            {
-                CopyStream(_originalStream, fileStream);
-                CreatePackage(fileStream, false, _spreadsheetDocumentType, options);
-            }
+            using var fileStream = File.Create(file);
+            CopyStream(_originalStream, fileStream);
+            CreatePackage(fileStream, false, _spreadsheetDocumentType, options);
         }
 
         _loadSource = XlsxLoadSource.File;
@@ -608,25 +606,16 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         var extension = Path.GetExtension(filePath);
 
         if (string.IsNullOrEmpty(extension)) throw new ArgumentException("Empty extension is not supported.");
-        extension = extension.Substring(1).ToLowerInvariant();
+        extension = extension[1..].ToLowerInvariant();
 
-        switch (extension)
+        return extension switch
         {
-            case "xlsm":
-                return WorkbookPackageType.MacroEnabledWorkbook;
-
-            case "xltm":
-                return WorkbookPackageType.MacroEnabledTemplate;
-
-            case "xlsx":
-                return WorkbookPackageType.Workbook;
-
-            case "xltx":
-                return WorkbookPackageType.Template;
-
-            default:
-                throw new ArgumentException(String.Format("Extension '{0}' is not supported. Supported extensions are '.xlsx', '.xlsm', '.xltx' and '.xltm'.", extension));
-        }
+            "xlsm" => WorkbookPackageType.MacroEnabledWorkbook,
+            "xltm" => WorkbookPackageType.MacroEnabledTemplate,
+            "xlsx" => WorkbookPackageType.Workbook,
+            "xltx" => WorkbookPackageType.Template,
+            _ => throw new ArgumentException(String.Format("Extension '{0}' is not supported. Supported extensions are '.xlsx', '.xlsm', '.xltx' and '.xltm'.", extension)),
+        };
     }
 
     private void checkForWorksheetsPresent()
@@ -680,15 +669,13 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
             else
             {
                 // the harder way
-                using (var ms = new MemoryStream())
-                {
-                    CreatePackage(ms, true, _spreadsheetDocumentType, options);
-                    // not really necessary, because I changed CopyStream too.
-                    // but for better understanding and if somebody in the future
-                    // provide an changed version of CopyStream
-                    ms.Position = 0;
-                    CopyStream(ms, stream);
-                }
+                using var ms = new MemoryStream();
+                CreatePackage(ms, true, _spreadsheetDocumentType, options);
+                // not really necessary, because I changed CopyStream too.
+                // but for better understanding and if somebody in the future
+                // provide an changed version of CopyStream
+                ms.Position = 0;
+                CopyStream(ms, stream);
             }
         }
         else if (_loadSource == XlsxLoadSource.File)
@@ -1337,20 +1324,13 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     public override string ToString()
     {
         ThrowIfDisposed();
-        switch (_loadSource)
+        return _loadSource switch
         {
-            case XlsxLoadSource.New:
-                return "XlsxWorkbook(new)";
-
-            case XlsxLoadSource.File:
-                return String.Format("XlsxWorkbook({0})", _originalFile);
-
-            case XlsxLoadSource.Stream:
-                return String.Format("XlsxWorkbook({0})", _originalStream.ToString());
-
-            default:
-                throw new NotImplementedException();
-        }
+            XlsxLoadSource.New => "XlsxWorkbook(new)",
+            XlsxLoadSource.File => String.Format("XlsxWorkbook({0})", _originalFile),
+            XlsxLoadSource.Stream => String.Format("XlsxWorkbook({0})", _originalStream.ToString()),
+            _ => throw new NotImplementedException(),
+        };
     }
 
     internal XlsxCellFormat Format

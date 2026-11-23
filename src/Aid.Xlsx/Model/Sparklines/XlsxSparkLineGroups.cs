@@ -10,7 +10,7 @@ namespace Aid.Xlsx.Model.Sparklines;
 internal class XlsxSparklineGroups : IXlsxSparklineGroups, IEnumerable<XlsxSparklineGroup>
 {
     private readonly XlsxWorksheet _worksheet;
-    private readonly List<XlsxSparklineGroup> _sparklineGroups = new();
+    private readonly List<XlsxSparklineGroup> _sparklineGroups = [];
 
     public XlsxSparklineGroups(XlsxWorksheet worksheet)
     {

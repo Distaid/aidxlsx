@@ -19,18 +19,18 @@ namespace Aid.Xlsx.Model.PivotTables;
 /// </summary>
 internal class XlsxPivotCacheSharedItems
 {
-    private readonly List<XlsxPivotCacheValue> _values = new();
+    private readonly List<XlsxPivotCacheValue> _values = [];
 
     /// <summary>
     /// Storage of strings to save 8 bytes per <c>XlsxPivotCacheValue</c>
     /// (reference can't be aliased with a number).
     /// </summary>
-    private readonly List<string> _stringStorage = new();
+    private readonly List<string> _stringStorage = [];
 
     /// <summary>
     /// Strings in a pivot table are case-insensitive.
     /// </summary>
-    private readonly Dictionary<string, int> _stringMap = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, int> _stringMap = [with(StringComparer.OrdinalIgnoreCase)];
 
     internal XlsxCellValue this[uint index] => GetValue(index).GetCellValue(_stringStorage, this);
 

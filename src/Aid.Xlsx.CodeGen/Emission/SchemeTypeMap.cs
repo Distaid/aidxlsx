@@ -10,13 +10,13 @@ public class SchemeTypeMap
     /// <summary>
     /// Simple type map. The key is an XML simple name, the value is info about how to work with it in the C# code.
     /// </summary>
-    private readonly Dictionary<string, SimpleTypeMapping> _simpleTypeMap = new();
+    private readonly Dictionary<string, SimpleTypeMapping> _simpleTypeMap = [];
 
     /// <summary>
     /// Map of XML complex type or element group name to C# type (as a text). If there isn't a record in the map,
     /// there is no mapping codegen will use <c>void</c>.
     /// </summary>
-    private readonly Dictionary<ParsletName, (string FinalType, string ItemType)> _parsletMap = new();
+    private readonly Dictionary<ParsletName, (string FinalType, string ItemType)> _parsletMap = [];
 
     /// <summary>
     /// A dictionary of parse calls, i.e. a code used to call a parslet. Under normal circumstance,
@@ -30,7 +30,7 @@ public class SchemeTypeMap
     ///     collision.</item>
     /// </list>
     /// </summary>
-    private readonly Dictionary<ParsletName, string> _manualParseCall = new();
+    private readonly Dictionary<ParsletName, string> _manualParseCall = [];
 
     public SchemeTypeMap AddComplexTypeMapping(ParsletName complexTypeName, string cSharpType)
     {

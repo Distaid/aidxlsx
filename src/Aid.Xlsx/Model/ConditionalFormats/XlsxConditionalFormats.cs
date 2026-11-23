@@ -17,10 +17,10 @@ namespace Aid.Xlsx.Model.ConditionalFormats;
 internal class XlsxConditionalFormats : IXlsxConditionalFormats, IEnumerable<XlsxConditionalFormat>, ISheetListener
 {
     private readonly XlsxWorksheet _worksheet;
-    private readonly List<XlsxConditionalFormat> _conditionalFormats = new();
+    private readonly List<XlsxConditionalFormat> _conditionalFormats = [];
 
-    private static readonly List<XlsxConditionalFormatType> CFTypesExcludedFromConsolidation = new()
-    {
+    private static readonly List<XlsxConditionalFormatType> CFTypesExcludedFromConsolidation =
+    [
         XlsxConditionalFormatType.DataBar,
         XlsxConditionalFormatType.ColorScale,
         XlsxConditionalFormatType.IconSet,
@@ -28,7 +28,7 @@ internal class XlsxConditionalFormats : IXlsxConditionalFormats, IEnumerable<Xls
         XlsxConditionalFormatType.AboveAverage,
         XlsxConditionalFormatType.IsDuplicate,
         XlsxConditionalFormatType.IsUnique
-    };
+    ];
 
     public XlsxConditionalFormats(XlsxWorksheet worksheet)
     {

@@ -19,7 +19,7 @@ internal class XlsxPivotTableFilters : IXlsxPivotFields
     /// <see cref="XlsxPivotTable.FilterFieldsPageWrap"/> and
     /// <see cref="XlsxPivotTable.FilterAreaOrder"/>.
     /// </summary>
-    private readonly List<XlsxPivotPageField> _fields = new();
+    private readonly List<XlsxPivotPageField> _fields = [];
 
     internal XlsxPivotTableFilters(XlsxPivotTable pivotTable)
     {
@@ -53,10 +53,7 @@ internal class XlsxPivotTableFilters : IXlsxPivotFields
         if (!_pivotTable.TryGetSourceNameFieldIndex(sourceName, out var fieldIndex))
             throw new KeyNotFoundException($"Field with source name '{sourceName}' not found in {XlsxPivotAxis.AxisPage}.");
 
-        var filterField = _fields.SingleOrDefault(f => f.Field == fieldIndex);
-        if (filterField is null)
-            throw new KeyNotFoundException($"Field with source name '{sourceName}' not found in {XlsxPivotAxis.AxisPage}.");
-
+        var filterField = _fields.SingleOrDefault(f => f.Field == fieldIndex) ?? throw new KeyNotFoundException($"Field with source name '{sourceName}' not found in {XlsxPivotAxis.AxisPage}.");
         return new XlsxPivotTablePageField(_pivotTable, filterField);
     }
 

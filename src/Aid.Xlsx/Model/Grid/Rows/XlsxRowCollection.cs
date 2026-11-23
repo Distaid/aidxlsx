@@ -9,9 +9,9 @@ using System.Collections;
 
 internal class XlsxRowsCollection : IDictionary<Int32, XlsxRow>
 {
-    private readonly Dictionary<Int32, XlsxRow> _dictionary = new Dictionary<Int32, XlsxRow>();
+    private readonly Dictionary<Int32, XlsxRow> _dictionary = [];
 
-    public Dictionary<Int32, XlsxRow> Deleted { get; } = new Dictionary<Int32, XlsxRow>();
+    public Dictionary<Int32, XlsxRow> Deleted { get; } = [];
 
     public Int32 MaxRowUsed;
 

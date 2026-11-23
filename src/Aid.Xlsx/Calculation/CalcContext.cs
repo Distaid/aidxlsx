@@ -333,7 +333,7 @@ internal sealed class CalcContext
         if (value.TryPickScalar(out var scalar, out var collection))
         {
             if (scalar.IsBlank)
-                return System.Array.Empty<ScalarValue>();
+                return [];
 
             return new ScalarArray(scalar, 1, 1);
         }

@@ -10,7 +10,7 @@ namespace Aid.Xlsx.CodeGen.Schema.Parsing;
 /// </summary>
 public class XsdEnumMapper : IEnumMapper
 {
-    private readonly Dictionary<Type, object> _textToEnumMaps = new();
+    private readonly Dictionary<Type, object> _textToEnumMaps = [];
 
     public XsdEnumMapper()
     {

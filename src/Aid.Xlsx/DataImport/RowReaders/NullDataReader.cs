@@ -6,7 +6,7 @@ namespace Aid.Xlsx.DataImport.RowReaders;
 
 internal class NullDataReader : IInsertDataReader
 {
-    private readonly XlsxCellValue[] _row = { Blank.Value };
+    private readonly XlsxCellValue[] _row = [Blank.Value];
     private readonly int _count;
 
     public NullDataReader(IEnumerable<object> nulls)

@@ -8,7 +8,7 @@ internal class XlsxFilterColumn : IXlsxFilterColumn, IXlsxFilteredColumn, IEnume
 {
     private readonly XlsxAutoFilter _autoFilter;
     private readonly Int32 _column;
-    private readonly List<XlsxFilter> _filters = new();
+    private readonly List<XlsxFilter> _filters = [];
 
     public XlsxFilterColumn(XlsxAutoFilter autoFilter, Int32 column)
     {

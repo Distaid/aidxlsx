@@ -41,7 +41,7 @@ public static class NameUtils
     /// Character not allowed in a sheet name, even quoted one.
     /// </summary>
     private static readonly char[] InvalidSheetChars =
-    {
+    [
         '*', // 0x002A
         '/', // 0x002F
         ':', // 0x003A
@@ -49,7 +49,7 @@ public static class NameUtils
         '[', // 0x005B
         '\\',// 0x005C
         ']', // 0x005D
-    };
+    ];
 
     /// <summary>
     /// Should the name be quoted?

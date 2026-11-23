@@ -31,7 +31,7 @@ internal sealed class XlsxRow : XlsxRangeBase, IXlsxRow, IXlsxFormatContainer
         _height = worksheet.RowHeight;
     }
 
-    internal XlsxRowArea Area => new XlsxRowArea(Worksheet.Name, RowNumber());
+    internal XlsxRowArea Area => new(Worksheet.Name, RowNumber());
 
     public override XlsxRangeType RangeType
     {

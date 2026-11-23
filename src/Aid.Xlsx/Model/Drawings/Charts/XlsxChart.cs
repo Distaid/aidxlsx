@@ -55,7 +55,7 @@ internal class XlsxChart : XlsxDrawing<IXlsxChart>, IXlsxChart
         }
     }
 
-    private HashSet<XlsxChartType> Bar3DCharts = new HashSet<XlsxChartType> {
+    private readonly HashSet<XlsxChartType> Bar3DCharts = [
         XlsxChartType.BarClustered3D,
         XlsxChartType.BarStacked100Percent3D,
         XlsxChartType.BarStacked3D,
@@ -63,7 +63,7 @@ internal class XlsxChart : XlsxDrawing<IXlsxChart>, IXlsxChart
         XlsxChartType.ColumnClustered3D,
         XlsxChartType.ColumnStacked100Percent3D,
         XlsxChartType.ColumnStacked3D
-    };
+    ];
 
     public XlsxBarOrientation BarOrientation
     {
@@ -76,7 +76,7 @@ internal class XlsxChart : XlsxDrawing<IXlsxChart>, IXlsxChart
         }
     }
 
-    private HashSet<XlsxChartType> HorizontalCharts = new HashSet<XlsxChartType>{
+    private readonly HashSet<XlsxChartType> HorizontalCharts = [
         XlsxChartType.BarClustered,
         XlsxChartType.BarClustered3D,
         XlsxChartType.BarStacked,
@@ -92,7 +92,7 @@ internal class XlsxChart : XlsxDrawing<IXlsxChart>, IXlsxChart
         XlsxChartType.PyramidHorizontalClustered,
         XlsxChartType.PyramidHorizontalStacked,
         XlsxChartType.PyramidHorizontalStacked100Percent
-    };
+    ];
 
     public XlsxBarGrouping BarGrouping
     {
@@ -109,8 +109,8 @@ internal class XlsxChart : XlsxDrawing<IXlsxChart>, IXlsxChart
         }
     }
 
-    public HashSet<XlsxChartType> ClusteredCharts = new HashSet<XlsxChartType>()
-    {
+    public HashSet<XlsxChartType> ClusteredCharts =
+    [
         XlsxChartType.BarClustered,
         XlsxChartType.BarClustered3D,
         XlsxChartType.ColumnClustered,
@@ -121,9 +121,9 @@ internal class XlsxChart : XlsxDrawing<IXlsxChart>, IXlsxChart
         XlsxChartType.CylinderHorizontalClustered,
         XlsxChartType.PyramidClustered,
         XlsxChartType.PyramidHorizontalClustered
-    };
+    ];
 
-    public HashSet<XlsxChartType> PercentCharts = new HashSet<XlsxChartType>() {
+    public HashSet<XlsxChartType> PercentCharts = [
         XlsxChartType.AreaStacked100Percent,
         XlsxChartType.AreaStacked100Percent3D,
         XlsxChartType.BarStacked100Percent,
@@ -138,10 +138,10 @@ internal class XlsxChart : XlsxDrawing<IXlsxChart>, IXlsxChart
         XlsxChartType.LineWithMarkersStacked100Percent,
         XlsxChartType.PyramidHorizontalStacked100Percent,
         XlsxChartType.PyramidStacked100Percent
-    };
+    ];
 
-    public HashSet<XlsxChartType> StackedCharts = new HashSet<XlsxChartType>()
-    {
+    public HashSet<XlsxChartType> StackedCharts =
+    [
         XlsxChartType.AreaStacked,
         XlsxChartType.AreaStacked3D,
         XlsxChartType.BarStacked,
@@ -156,5 +156,5 @@ internal class XlsxChart : XlsxDrawing<IXlsxChart>, IXlsxChart
         XlsxChartType.LineWithMarkersStacked,
         XlsxChartType.PyramidHorizontalStacked,
         XlsxChartType.PyramidStacked
-    };
+    ];
 }

@@ -82,16 +82,16 @@ public class FormulaParser<TScalarValue, TNode, TContext>
 
     private TNode Formula()
     {
-        if (_tokens[_tokens.Count - 1].SymbolId == Token.ErrorSymbolId)
-            throw new ParsingException($"Unable to determine token for '{_input}' at index {_tokens[_tokens.Count - 1].StartIndex}.");
+        if (_tokens[^1].SymbolId == Token.ErrorSymbolId)
+            throw new ParsingException($"Unable to determine token for '{_input}' at index {_tokens[^1].StartIndex}.");
 
         if (_la == Token.SPACE)
             Consume();
         var expression = Expression(false, out _);
         if (_la != Token.EofSymbolId)
         {
-            var parsedPart = _input.Substring(0, _tokenSource.StartIndex);
-            var remainder = _input.Substring(_tokenSource.StartIndex);
+            var parsedPart = _input[.._tokenSource.StartIndex];
+            var remainder = _input[_tokenSource.StartIndex..];
             throw new ParsingException($"The formula `{_input}` wasn't parsed correctly. The expression `{parsedPart}` was parsed, but the rest `{remainder}` wasn't.");
         }
 
@@ -562,7 +562,7 @@ public class FormulaParser<TScalarValue, TNode, TContext>
             case Token.BANG_REFERENCE:
                 {
                     // Slice away '!' from the bang reference so it can be parsed.
-                    var referenceToken = GetCurrentToken().Slice(1);
+                    var referenceToken = GetCurrentToken()[1..];
                     var start = _tokenSource.StartIndex;
                     if (referenceToken.Equals(REF_ERROR.AsSpan(), StringComparison.OrdinalIgnoreCase))
                     {
@@ -900,7 +900,7 @@ public class FormulaParser<TScalarValue, TNode, TContext>
         if (_la == Token.CLOSE_BRACE)
         {
             Consume();
-            return Array.Empty<TNode>();
+            return [];
         }
 
         var args = new List<TNode>();
@@ -997,7 +997,7 @@ public class FormulaParser<TScalarValue, TNode, TContext>
 
     private static bool ConvertTextValue(ReadOnlySpan<char> token, out ReadOnlySpan<char> copy, ref Span<char> buffer)
     {
-        var text = token.Slice(1, token.Length - 2);
+        var text = token[1..^1];
         var indexOfDQuote = text.IndexOf('"');
         var textMustBeUnescaped = indexOfDQuote >= 0;
         if (!textMustBeUnescaped)
@@ -1011,16 +1011,16 @@ public class FormulaParser<TScalarValue, TNode, TContext>
         var quoteCount = 0;
         do
         {
-            var quoteText = text.Slice(0, indexOfDQuote + 1);
+            var quoteText = text[..(indexOfDQuote + 1)];
             quoteText.CopyTo(tail);
-            tail = tail.Slice(indexOfDQuote + 1);
-            text = text.Slice(indexOfDQuote + 2);
+            tail = tail[(indexOfDQuote + 1)..];
+            text = text[(indexOfDQuote + 2)..];
             indexOfDQuote = text.IndexOf('"');
             quoteCount++;
         } while (indexOfDQuote >= 0);
 
         text.CopyTo(tail);
-        buffer = unescaped.Slice(0, token.Length - 2 - quoteCount);
+        buffer = unescaped[..(token.Length - 2 - quoteCount)];
         copy = default;
         return false;
     }

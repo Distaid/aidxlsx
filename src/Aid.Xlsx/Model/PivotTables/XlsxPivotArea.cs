@@ -11,7 +11,7 @@ namespace Aid.Xlsx.Model.PivotTables;
 /// </remarks>
 internal class XlsxPivotArea
 {
-    private readonly List<XlsxPivotReference> _references = new();
+    private readonly List<XlsxPivotReference> _references = [];
 
     /// <summary>
     /// A subset of field values that are part of the pivot area.

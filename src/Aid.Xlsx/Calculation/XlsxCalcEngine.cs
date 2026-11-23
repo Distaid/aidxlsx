@@ -189,12 +189,7 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
                     throw new InvalidOperationException($"Formula in a cell {current} is part of a cycle.");
                 }
 
-                var cellFormula = sheetInfo.FormulaSlice.Get(current.Point);
-                if (cellFormula is null)
-                {
-                    throw new InvalidOperationException($"Calculation chain contains a {current}, but the cell doesn't contain a formula.");
-                }
-
+                var cellFormula = sheetInfo.FormulaSlice.Get(current.Point) ?? throw new InvalidOperationException($"Calculation chain contains a {current}, but the cell doesn't contain a formula.");
                 if (!cellFormula.IsDirty)
                     break;
 
@@ -385,8 +380,7 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
 
     void IWorkbookListener.OnSheetRenamed(string oldSheetName, string newSheetName)
     {
-        if (_dependencyTree is not null)
-            _dependencyTree.RenameSheet(oldSheetName, newSheetName);
+        _dependencyTree?.RenameSheet(oldSheetName, newSheetName);
     }
 }
 

@@ -6,7 +6,7 @@ namespace Aid.Xlsx.Model.Drawings;
 
 internal class XlsxPictures : IXlsxPictures, IEnumerable<XlsxPicture>
 {
-    private readonly List<XlsxPicture> _pictures = new List<XlsxPicture>();
+    private readonly List<XlsxPicture> _pictures = [];
     private readonly XlsxWorksheet _worksheet;
 
     public XlsxPictures(XlsxWorksheet worksheet)
@@ -55,13 +55,11 @@ internal class XlsxPictures : IXlsxPictures, IEnumerable<XlsxPicture>
 
     public IXlsxPicture Add(string imageFile)
     {
-        using (var fs = File.OpenRead(imageFile))
-        {
-            var picture = new XlsxPicture(_worksheet, fs);
-            _pictures.Add(picture);
-            picture.Name = GetNextPictureName();
-            return picture;
-        }
+        using var fs = File.OpenRead(imageFile);
+        var picture = new XlsxPicture(_worksheet, fs);
+        _pictures.Add(picture);
+        picture.Name = GetNextPictureName();
+        return picture;
     }
 
     public IXlsxPicture Add(string imageFile, string name)

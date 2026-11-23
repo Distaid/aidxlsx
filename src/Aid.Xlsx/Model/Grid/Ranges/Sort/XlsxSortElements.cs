@@ -6,7 +6,7 @@ namespace Aid.Xlsx.Model.Grid.Ranges.Sort;
 
 internal class XlsxSortElements : IXlsxSortElements
 {
-    List<IXlsxSortElement> elements = new List<IXlsxSortElement>();
+    readonly List<IXlsxSortElement> elements = [];
     public void Add(Int32 elementNumber)
     {
         Add(elementNumber, XlsxSortOrder.Ascending);

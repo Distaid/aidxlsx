@@ -18,30 +18,16 @@ internal class XlsxRangeFactory
 
     public XlsxRangeBase Create(XlsxRangeKey key)
     {
-        switch (key.RangeType)
+        return key.RangeType switch
         {
-            case XlsxRangeType.Range:
-                return CreateRange(key.RangeAddress);
-
-            case XlsxRangeType.Column:
-                return CreateColumn(key.RangeAddress.FirstAddress.ColumnNumber);
-
-            case XlsxRangeType.Row:
-                return CreateColumn(key.RangeAddress.FirstAddress.RowNumber);
-
-            case XlsxRangeType.RangeColumn:
-                return CreateRangeColumn(key.RangeAddress);
-
-            case XlsxRangeType.RangeRow:
-                return CreateRangeRow(key.RangeAddress);
-
-            case XlsxRangeType.Table:
-                return CreateTable(key.RangeAddress);
-
-            case XlsxRangeType.Worksheet:
-            default:
-                throw new NotImplementedException(key.RangeType.ToString());
-        }
+            XlsxRangeType.Range => CreateRange(key.RangeAddress),
+            XlsxRangeType.Column => CreateColumn(key.RangeAddress.FirstAddress.ColumnNumber),
+            XlsxRangeType.Row => CreateColumn(key.RangeAddress.FirstAddress.RowNumber),
+            XlsxRangeType.RangeColumn => CreateRangeColumn(key.RangeAddress),
+            XlsxRangeType.RangeRow => CreateRangeRow(key.RangeAddress),
+            XlsxRangeType.Table => CreateTable(key.RangeAddress),
+            _ => throw new NotImplementedException(key.RangeType.ToString()),
+        };
     }
 
     public XlsxRange CreateRange(XlsxRangeAddress rangeAddress)

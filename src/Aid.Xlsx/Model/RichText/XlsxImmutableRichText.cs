@@ -122,7 +122,7 @@ internal sealed class XlsxImmutableRichText : IEquatable<XlsxImmutableRichText>
         }
         else
         {
-            phoneticRuns = Array.Empty<PhoneticRun>();
+            phoneticRuns = [];
             phoneticProps = null;
         }
 
@@ -145,7 +145,7 @@ internal sealed class XlsxImmutableRichText : IEquatable<XlsxImmutableRichText>
             adjustedRuns[i] = new RichTextRun(adjustedFont, run.StartIndex, run.Length);
         }
 
-        return new XlsxImmutableRichText(Text, adjustedRuns.ToArray(), _phoneticRuns, PhoneticsProperties);
+        return new XlsxImmutableRichText(Text, [.. adjustedRuns], _phoneticRuns, PhoneticsProperties);
     }
 
     internal readonly struct RichTextRun : IEquatable<RichTextRun>

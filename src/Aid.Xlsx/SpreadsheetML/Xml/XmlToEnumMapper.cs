@@ -172,7 +172,7 @@ internal sealed class XmlToEnumMapper : IEnumMapper
 
     internal class Builder
     {
-        private readonly Dictionary<Type, object> _maps = new();
+        private readonly Dictionary<Type, object> _maps = [];
 
         public Builder Add<T>(BiDictionary<string, T> map)
             where T : struct, Enum

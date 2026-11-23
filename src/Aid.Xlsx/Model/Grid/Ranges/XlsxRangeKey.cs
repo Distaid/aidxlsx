@@ -20,7 +20,7 @@ internal struct XlsxRangeKey : IEquatable<XlsxRangeKey>
     /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>
     /// <returns>true if the current object is equal to the <paramref name="other" /> parameter; otherwise, false.</returns>
     /// <param name="other">An object to compare with this object.</param>
-    public bool Equals(XlsxRangeKey other)
+    public readonly bool Equals(XlsxRangeKey other)
     {
         return RangeType == other.RangeType &&
                RangeAddress.Equals(other.RangeAddress);
@@ -31,13 +31,13 @@ internal struct XlsxRangeKey : IEquatable<XlsxRangeKey>
     /// <param name="obj">Another object to compare to. </param>
     public override bool Equals(object obj)
     {
-        if (ReferenceEquals(null, obj)) return false;
+        if (obj is null) return false;
         return obj is XlsxRangeKey && Equals((XlsxRangeKey)obj);
     }
 
     /// <summary>Returns the hash code for this instance.</summary>
     /// <returns>A 32-bit signed integer that is the hash code for this instance.</returns>
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         unchecked
         {

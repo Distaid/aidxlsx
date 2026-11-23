@@ -10,9 +10,9 @@ public class ParserGenerator
 {
     private readonly XsdSchema _schema;
     private readonly string _readerName;
-    private readonly List<ParsletName> _parseMethods = new();
+    private readonly List<ParsletName> _parseMethods = [];
     private readonly SchemeTypeMap _typeMap;
-    private readonly List<string> _usings = new();
+    private readonly List<string> _usings = [];
     private string _targetNamespace = "Aid.Xlsx.SpreadsheetML";
 
     public ParserGenerator(XsdSchema schema, SchemeTypeMap typeMap, string readerField)

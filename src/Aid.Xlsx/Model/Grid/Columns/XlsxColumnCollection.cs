@@ -7,7 +7,7 @@ namespace Aid.Xlsx.Model.Grid.Columns;
 
 internal class XlsxColumnsCollection : IDictionary<Int32, XlsxColumn>
 {
-    private readonly Dictionary<Int32, XlsxColumn> _dictionary = new();
+    private readonly Dictionary<Int32, XlsxColumn> _dictionary = [];
 
     public void ShiftColumnsRight(Int32 startingColumn, Int32 columnsToShift)
     {

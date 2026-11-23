@@ -140,7 +140,7 @@ public partial class XlsxWorkbook
         // ids are set (in this case `Workbook.PivotCaches` relationship table).
         // Only sources that are used by a table are saved.
         SynchronizePivotTableParts(package, workbookPart, allPivotTables, context);
-        WorkbookPartWriter.WritePivotCaches(workbookRoot, allPivotTables.Select(table => table.PivotCache).Distinct().Cast<XlsxPivotCache>().ToList());
+        WorkbookPartWriter.WritePivotCaches(workbookRoot, [.. allPivotTables.Select(table => table.PivotCache).Distinct().Cast<XlsxPivotCache>()]);
         using (var target = workbookPart.OpenWrite())
             new XDocument(workbookRoot).Save(target, System.Xml.Linq.SaveOptions.DisableFormatting);
 
@@ -171,10 +171,7 @@ public partial class XlsxWorkbook
             {
                 // If sheet has comments, we must keep VML in legacy drawing part to display them
                 // as well as comments part for semantic reasons.
-                if (commentsPart == null)
-                {
-                    commentsPart = package.AddPart(worksheetPart, context.RelIdGenerator.GetNext(RelType.Workbook), "comments");
-                }
+                commentsPart ??= package.AddPart(worksheetPart, context.RelIdGenerator.GetNext(RelType.Workbook), "comments");
 
                 if (vmlDrawingPart == null)
                 {
@@ -186,8 +183,8 @@ public partial class XlsxWorkbook
                     vmlDrawingPart = package.AddPart(worksheetPart, worksheet.LegacyDrawingId, "vmlDrawing");
                 }
 
-                using (var target = commentsPart.OpenWrite())
-                    CommentPartWriter.GenerateWorksheetCommentsPartContent(target, worksheet);
+                using var target = commentsPart.OpenWrite();
+                CommentPartWriter.GenerateWorksheetCommentsPartContent(target, worksheet);
             }
             else
             {

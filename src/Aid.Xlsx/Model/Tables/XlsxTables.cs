@@ -13,7 +13,7 @@ internal class XlsxTables : IXlsxTables, IEnumerable<XlsxTable>
 
     public XlsxTables()
     {
-        _tables = new Dictionary<String, XlsxTable>(StringComparer.OrdinalIgnoreCase);
+        _tables = [with(StringComparer.OrdinalIgnoreCase)];
         Deleted = new HashSet<String>();
     }
 

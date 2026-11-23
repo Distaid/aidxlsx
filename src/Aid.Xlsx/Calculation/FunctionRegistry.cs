@@ -20,7 +20,7 @@ internal enum AllowRange
 
 internal class FunctionRegistry
 {
-    private readonly Dictionary<string, FunctionDefinition> _func = new(StringComparer.InvariantCultureIgnoreCase);
+    private readonly Dictionary<string, FunctionDefinition> _func = [with(StringComparer.InvariantCultureIgnoreCase)];
 
     public bool TryGetFunc(string name, out FunctionDefinition func)
     {

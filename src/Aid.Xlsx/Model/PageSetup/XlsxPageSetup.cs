@@ -52,8 +52,8 @@ internal class XlsxPageSetup : IXlsxPageSetup
             DraftQuality = defaultPageOptions.DraftQuality;
             PageOrder = defaultPageOptions.PageOrder;
 
-            ColumnBreaks = defaultPageOptions.ColumnBreaks.ToList();
-            RowBreaks = defaultPageOptions.RowBreaks.ToList();
+            ColumnBreaks = [.. defaultPageOptions.ColumnBreaks];
+            RowBreaks = [.. defaultPageOptions.RowBreaks];
             Header = new XlsxHeaderFooter(defaultPageOptions.Header as XlsxHeaderFooter, worksheet);
             Footer = new XlsxHeaderFooter(defaultPageOptions.Footer as XlsxHeaderFooter, worksheet);
             PrintErrorValue = defaultPageOptions.PrintErrorValue;
@@ -63,8 +63,8 @@ internal class XlsxPageSetup : IXlsxPageSetup
             PrintAreas = new XlsxPrintAreas(worksheet);
             Header = new XlsxHeaderFooter(worksheet);
             Footer = new XlsxHeaderFooter(worksheet);
-            ColumnBreaks = new List<Int32>();
-            RowBreaks = new List<Int32>();
+            ColumnBreaks = [];
+            RowBreaks = [];
         }
     }
     public IXlsxPrintAreas PrintAreas { get; private set; }
@@ -90,7 +90,7 @@ internal class XlsxPageSetup : IXlsxPageSetup
     public void SetColumnsToRepeatAtLeft(String range)
     {
         var arrRange = range.Replace("$", "").Split(':');
-        if (Int32.TryParse(arrRange[0], out int iTest))
+        if (Int32.TryParse(arrRange[0], out _))
             SetColumnsToRepeatAtLeft(Int32.Parse(arrRange[0]), Int32.Parse(arrRange[1]));
         else
             SetColumnsToRepeatAtLeft(arrRange[0], arrRange[1]);

@@ -17,7 +17,7 @@ internal static class EnumerableExtensions
     {
         return GetGenericArgument(source.GetType());
 
-        Type? GetGenericArgument(Type collectionType)
+        static Type? GetGenericArgument(Type collectionType)
         {
             var ienumerable = collectionType.GetInterfaces()
                 .SingleOrDefault(i => i.GetGenericArguments().Length == 1 &&
@@ -46,7 +46,7 @@ internal static class EnumerableExtensions
 
     public static Boolean HasDuplicates<T>(this IEnumerable<T> source)
     {
-        HashSet<T> distinctItems = new HashSet<T>();
+        HashSet<T> distinctItems = [];
         foreach (var item in source)
         {
             if (!distinctItems.Add(item))

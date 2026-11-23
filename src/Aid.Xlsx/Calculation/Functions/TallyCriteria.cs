@@ -14,7 +14,7 @@ internal class TallyCriteria : ITally
     /// A collection of areas that are tested and if all satisfy the criteria, corresponding values
     /// in the tally areas are tallied.
     /// </summary>
-    private readonly List<(XlsxRangeAddress Area, Criteria Criteria)> _criteriaRanges = new();
+    private readonly List<(XlsxRangeAddress Area, Criteria Criteria)> _criteriaRanges = [];
 
     /// <summary>
     /// A method to convert a value in the tally area to a number. If scalar value shouldn't be tallied, return null.

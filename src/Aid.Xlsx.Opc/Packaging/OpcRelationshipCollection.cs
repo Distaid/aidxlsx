@@ -6,7 +6,7 @@ namespace Aid.Xlsx.Opc.Packaging;
 /// <summary>Relationships with IDs unique within their source package or part.</summary>
 public sealed class OpcRelationshipCollection : IReadOnlyCollection<OpcRelationship>
 {
-    private readonly Dictionary<string, OpcRelationship> _relationships = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, OpcRelationship> _relationships = [with(StringComparer.Ordinal)];
     private readonly string? _source;
 
     internal OpcRelationshipCollection(string? source)

@@ -11,7 +11,7 @@ internal static class ColorStringParser
         // * doesn't accept color names
         ReadOnlySpan<char> argb = argbColor.AsSpan();
         if (argb[0] == '#')
-            argb = argb.Slice(1);
+            argb = argb[1..];
 
         if (argb.Length == 8)
         {
@@ -107,7 +107,7 @@ internal static class ColorStringParser
     private static int ReadHex(ReadOnlySpan<char> text, int start, int length)
     {
         if (!TryReadHex(text, start, length, out var hexValue))
-            throw new FormatException($"Unable to parse {text.ToString()}.");
+            throw new FormatException($"Unable to parse {text}.");
 
         return hexValue;
     }

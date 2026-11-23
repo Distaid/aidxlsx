@@ -38,13 +38,12 @@ internal class ObjectReader : IInsertDataReader
         if (itemType.IsNullableType())
             itemType = itemType.GetUnderlyingType();
 
-        _members = itemType.GetFields(MemberBindingFlags).Cast<MemberInfo>()
+        _members = [.. itemType.GetFields(MemberBindingFlags).Cast<MemberInfo>()
             .Concat(itemType.GetProperties(MemberBindingFlags).Where(pi => !pi.GetIndexParameters().Any()))
             .Where(mi => !XlsxColumnAttribute.IgnoreMember(mi))
-            .OrderBy(XlsxColumnAttribute.GetOrder)
-            .ToArray();
+            .OrderBy(XlsxColumnAttribute.GetOrder)];
 
-        _staticMembers = _members.Select(ReflectionExtensions.IsStatic).ToArray();
+        _staticMembers = [.. _members.Select(ReflectionExtensions.IsStatic)];
     }
 
     public IEnumerable<IEnumerable<XlsxCellValue>> GetRecords()

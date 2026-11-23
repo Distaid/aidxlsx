@@ -55,10 +55,7 @@ internal static partial class PivotTableXml
         var xlPivotTable = LoadPivotTableAttributes(pivotTable, sheet, cache);
 
         // Load location
-        var location = Child(pivotTable, "location");
-        if (location is null)
-            throw PartStructureException.ExpectedElementNotFound();
-
+        var location = Child(pivotTable, "location") ?? throw PartStructureException.ExpectedElementNotFound();
         var referenceText = (string?)location.Attribute("ref") ?? throw PartStructureException.MissingAttribute();
         xlPivotTable.Area = Area.Parse(referenceText);
         xlPivotTable.FirstHeaderRow = (uint?)location.Attribute("firstHeaderRow") ?? throw PartStructureException.MissingAttribute();

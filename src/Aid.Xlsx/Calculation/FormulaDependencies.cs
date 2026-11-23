@@ -9,8 +9,8 @@ namespace Aid.Xlsx.Calculation;
 /// </summary>
 internal class FormulaDependencies
 {
-    private readonly HashSet<SheetArea> _areas = new();
-    private readonly HashSet<XlsxName> _names = new();
+    private readonly HashSet<SheetArea> _areas = [];
+    private readonly HashSet<XlsxName> _names = [];
 
     /// <summary>
     /// List of areas the formula depends on. It is likely a superset of accurate
@@ -46,7 +46,7 @@ internal class FormulaDependencies
             if (XlsxHelper.SheetComparer.Equals(areaInFormula.Name, oldSheetName))
             {
                 var renamedArea = new SheetArea(newSheetName, areaInFormula.Area);
-                areasToRename ??= new List<(SheetArea Original, SheetArea Replacement)>();
+                areasToRename ??= [];
                 areasToRename.Add((areaInFormula, renamedArea));
             }
         }
@@ -67,7 +67,7 @@ internal class FormulaDependencies
                 XlsxHelper.SheetComparer.Equals(nameInFormula.SheetName, oldSheetName))
             {
                 var renamedName = new XlsxName(newSheetName, nameInFormula.Name);
-                namesToRename ??= new List<(XlsxName Original, XlsxName Replacement)>();
+                namesToRename ??= [];
                 namesToRename.Add((nameInFormula, renamedName));
             }
         }

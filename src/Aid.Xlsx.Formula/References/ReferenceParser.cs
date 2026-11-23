@@ -196,7 +196,7 @@ public static class ReferenceParser
             return false;
         }
 
-        var referenceArea = text.AsSpan().Slice(sheetPrefixToken.Length);
+        var referenceArea = text.AsSpan()[sheetPrefixToken.Length..];
         area = TokenParser.ParseReference(referenceArea, isA1: true);
         return true;
     }

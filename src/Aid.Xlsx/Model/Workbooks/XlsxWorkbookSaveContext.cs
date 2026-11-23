@@ -20,7 +20,7 @@ public partial class XlsxWorkbook
         {
             RelIdGenerator = new RelIdGenerator();
             TableId = 0;
-            TableNames = new HashSet<String>();
+            TableNames = [];
         }
 
         public RelIdGenerator RelIdGenerator { get; }
@@ -30,13 +30,13 @@ public partial class XlsxWorkbook
         /// formats from the file, all number formats used in the application (styles, pivot
         /// tables, dxf) and all predefined formats.
         /// </summary>
-        internal Dictionary<string, int> NumberFormatMap = new();
+        internal Dictionary<string, int> NumberFormatMap = [];
 
-        internal Dictionary<XlsxFontFormatValue, int> FontMap = new();
+        internal Dictionary<XlsxFontFormatValue, int> FontMap = [];
 
-        internal Dictionary<XlsxCellFormatValue, uint> FormatMap = new();
+        internal Dictionary<XlsxCellFormatValue, uint> FormatMap = [];
 
-        internal Dictionary<XlsxDxfValue, uint> DxfMap = new();
+        internal Dictionary<XlsxDxfValue, uint> DxfMap = [];
 
         public uint TableId { get; set; }
         public HashSet<string> TableNames { get; private set; }
@@ -111,13 +111,13 @@ public partial class XlsxWorkbook
 
     internal sealed class RelIdGenerator
     {
-        private readonly Dictionary<RelType, HashSet<String>> _relIds = new();
+        private readonly Dictionary<RelType, HashSet<String>> _relIds = [];
 
         public void AddValues(IEnumerable<String> values, RelType relType)
         {
             if (!_relIds.TryGetValue(relType, out var set))
             {
-                set = new HashSet<string>();
+                set = [];
                 _relIds.Add(relType, set);
             }
 
@@ -154,7 +154,7 @@ public partial class XlsxWorkbook
         {
             if (!_relIds.TryGetValue(relType, out var set))
             {
-                set = new HashSet<String>();
+                set = [];
                 _relIds.Add(relType, set);
             }
 

@@ -19,10 +19,7 @@ internal static class TableDefinitionXml
         if (string.IsNullOrWhiteSpace(name))
             throw new InvalidDataException("The table name is missing.");
 
-        var range = reference is null ? null : worksheet.Range(reference);
-        if (range is null)
-            throw new InvalidDataException($"Invalid table range '{reference}'.");
-
+        var range = (reference is null ? null : worksheet.Range(reference)) ?? throw new InvalidDataException($"Invalid table range '{reference}'.");
         var table = (XlsxTable)range.CreateTable(name, false);
         table.RelId = relationshipId;
         var formats = worksheet.Workbook.Styles.DifferentialFormats;

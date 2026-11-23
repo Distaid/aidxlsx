@@ -129,7 +129,7 @@ internal class Reference
 
     public static Reference UnionOp(Reference lhs, Reference rhs)
     {
-        return new Reference(lhs.Areas.Concat(rhs.Areas).ToList());
+        return new Reference([.. lhs.Areas, .. rhs.Areas]);
     }
 
     public static OneOf<Reference, XlsxError> Intersect(Reference lhs, Reference rhs, CalcContext ctx)

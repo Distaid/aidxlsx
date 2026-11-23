@@ -10,15 +10,15 @@ namespace Aid.Xlsx.Calculation.Functions;
 internal class Criteria
 {
     // Values are ordered by length of a prefix. The longer ones are before sorter ones.
-    private static readonly List<(string Prefix, Comparison Comparison)> AllComparisons = new()
-    {
+    private static readonly List<(string Prefix, Comparison Comparison)> AllComparisons =
+    [
         ("<>", Comparison.NotEqual),
         (">=", Comparison.GreaterOrEqualTo),
         ("<=", Comparison.LessOrEqualTo),
         ("=", Comparison.Equal),
         (">", Comparison.GreaterThan),
         ("<", Comparison.LessThan),
-    };
+    ];
 
     private readonly Comparison _comparison;
     private readonly ScalarValue _value;

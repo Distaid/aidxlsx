@@ -9,8 +9,8 @@ namespace Aid.Xlsx.Opc.Packaging;
 public sealed class OpcPackage : IDisposable
 {
     private static readonly DateTimeOffset ZipEpoch = new(1980, 1, 1, 0, 0, 0, TimeSpan.Zero);
-    private readonly Dictionary<string, OpcPart> _parts = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, string> _defaults = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, OpcPart> _parts = [with(StringComparer.OrdinalIgnoreCase)];
+    private readonly Dictionary<string, string> _defaults = [with(StringComparer.OrdinalIgnoreCase)];
     private readonly Stream? _source;
     private readonly ZipArchive? _archive;
     private bool _disposed;
@@ -109,8 +109,10 @@ public sealed class OpcPackage : IDisposable
 
         var defaults = new Dictionary<string, string>(_defaults, _defaults.Comparer);
         var overrides = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        var entries = new SortedDictionary<string, Action<Stream>>(StringComparer.Ordinal);
-        entries.Add(OpcPartName.ContentTypesEntry, stream => OpcMetadata.WriteContentTypes(stream, defaults, overrides));
+        var entries = new SortedDictionary<string, Action<Stream>>(StringComparer.Ordinal)
+        {
+            { OpcPartName.ContentTypesEntry, stream => OpcMetadata.WriteContentTypes(stream, defaults, overrides) }
+        };
         AddRelationshipEntry(null, Relationships);
         foreach (var part in _parts.Values)
         {

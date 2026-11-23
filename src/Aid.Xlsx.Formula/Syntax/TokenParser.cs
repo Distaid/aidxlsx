@@ -17,8 +17,8 @@ internal static class TokenParser
         input = input.TrimEnd();
         var isEscaped = input[0] == '\'';
         input = isEscaped
-            ? input.Slice(1, input.Length - 3) // second sheet name ends with TICK EXCLAMATION_MARK ('!).
-            : input.Slice(0, input.Length - 1); // only strip exclamation mark
+            ? input[1..^2] // second sheet name ends with TICK EXCLAMATION_MARK ('!).
+            : input[..^1]; // only strip exclamation mark
 
         // Parse optional WORKBOOK_INDEX
         input = ExtractWorkbookIndex(input, out index);
@@ -42,8 +42,8 @@ internal static class TokenParser
     {
         var isEscaped = input[0] == '\'';
         input = isEscaped
-            ? input.Slice(1, input.Length - 3) // second sheet name ends with TICK EXCLAMATION_MARK ('!).
-            : input.Slice(0, input.Length - 1); // only strip exclamation mark
+            ? input[1..^2] // second sheet name ends with TICK EXCLAMATION_MARK ('!).
+            : input[..^1]; // only strip exclamation mark
 
         // Parse optional WORKBOOK_INDEX
         input = ExtractWorkbookIndex(input, out index);
@@ -53,8 +53,8 @@ internal static class TokenParser
         {
             // SHEET_NAME ':' SHEET_NAME
             var endIndex = sheetRangeSpan.IndexOf(':');
-            firstSheetName = sheetRangeSpan.Slice(0, endIndex).ToString();
-            secondSheetName = sheetRangeSpan.Slice(endIndex + 1).ToString();
+            firstSheetName = sheetRangeSpan[..endIndex].ToString();
+            secondSheetName = sheetRangeSpan[(endIndex + 1)..].ToString();
             return;
         }
 
@@ -81,7 +81,7 @@ internal static class TokenParser
         } while (c != ']');
 
         wbIndex = number;
-        return input.Slice(i + 1);
+        return input[(i + 1)..];
     }
 
     private static string GetEscapedSheetName(ref ReadOnlySpan<char> input, char endChar)
@@ -97,8 +97,8 @@ internal static class TokenParser
             buffer[bufferIdx++] = input[inputIdx++];
         } while (input[inputIdx] != endChar);
 
-        input = input.Slice(inputIdx + 1);
-        return buffer.Slice(0, bufferIdx).ToString();
+        input = input[(inputIdx + 1)..];
+        return buffer[..bufferIdx].ToString();
     }
 
     private static string GetEscapedSheetName(ReadOnlySpan<char> input)
@@ -114,7 +114,7 @@ internal static class TokenParser
             buffer[bufferIdx++] = input[inputIdx++];
         } while (input.Length > inputIdx);
 
-        return buffer.Slice(0, bufferIdx).ToString();
+        return buffer[..bufferIdx].ToString();
     }
 
     internal static RowCol ExtractCellFunction(ReadOnlySpan<char> cellFunctionToken)
@@ -126,10 +126,10 @@ internal static class TokenParser
     internal static ReadOnlySpan<char> ExtractLocalFunctionName(ReadOnlySpan<char> functionNameWithBrace)
     {
         // In most cases, there won't be any whitespace
-        var endPosition = functionNameWithBrace[functionNameWithBrace.Length - 1] == '('
+        var endPosition = functionNameWithBrace[^1] == '('
             ? functionNameWithBrace.Length - 1
             : functionNameWithBrace.LastIndexOf('(');
-        var functionName = functionNameWithBrace.Slice(0, endPosition);
+        var functionName = functionNameWithBrace[..endPosition];
         return functionName;
     }
 
@@ -463,7 +463,7 @@ internal static class TokenParser
             buffer[bufferIdx++] = c;
         }
 
-        columnName = buffer.Slice(0, bufferIdx).ToString();
+        columnName = buffer[..bufferIdx].ToString();
         return i + (c == ']' ? 1 : 0); // char after last bracket
     }
 

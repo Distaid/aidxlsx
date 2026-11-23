@@ -6,7 +6,7 @@ namespace Aid.Xlsx.Model.RichText;
 
 internal class XlsxPhonetics : IXlsxPhonetics
 {
-    private readonly List<IXlsxPhonetic> _phonetics = new();
+    private readonly List<IXlsxPhonetic> _phonetics = [];
     private readonly XlsxWorkbookStyles _styles;
     private readonly XlsxFontFormatValue _defaultFont;
     private readonly Action _onChange;

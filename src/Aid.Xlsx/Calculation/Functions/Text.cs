@@ -434,7 +434,7 @@ internal static class Text
             return XlsxError.IncompatibleValue;
 
         var wildcard = new Wildcard(findText);
-        ReadOnlySpan<char> text = withinText.AsSpan().Slice(startIndex);
+        ReadOnlySpan<char> text = withinText.AsSpan()[startIndex..];
         var firstIdx = wildcard.Search(text);
         if (firstIdx < 0)
             return XlsxError.IncompatibleValue;

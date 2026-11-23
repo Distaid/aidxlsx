@@ -68,7 +68,7 @@ public sealed partial class XlsxTableTheme
 
     public string Name { get; }
 
-    private readonly Dictionary<XlsxTableStyleRegionValues, XlsxDxfValue> _regionFormats = new();
+    private readonly Dictionary<XlsxTableStyleRegionValues, XlsxDxfValue> _regionFormats = [];
 
     public XlsxTableTheme(string name)
     {

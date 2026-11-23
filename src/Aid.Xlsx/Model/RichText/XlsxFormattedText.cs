@@ -18,7 +18,7 @@ internal class XlsxFormattedText<T> : IXlsxFormattedText<T>
     /// Font used for a new rich text run, never modified. It is generally provided by a container of the formatted text.
     /// </summary>
     private readonly XlsxFontFormatValue _defaultFont;
-    private readonly List<XlsxRichString> _richTexts = new();
+    private readonly List<XlsxRichString> _richTexts = [];
     private XlsxPhonetics _phonetics;
 
     protected XlsxFormattedText(XlsxFontFormatValue defaultFont, XlsxWorkbookStyles styles)
@@ -133,7 +133,7 @@ internal class XlsxFormattedText<T> : IXlsxFormattedText<T>
                 retVal.AddText(newRt);
 
                 if (startIndex + leftToTake < rt.Text.Length)
-                    newRichTexts.Add(new XlsxRichString(rt.Text.Substring(startIndex + leftToTake), rt.Font, this, Styles, OnContentChanged));
+                    newRichTexts.Add(new XlsxRichString(rt.Text[(startIndex + leftToTake)..], rt.Font, this, Styles, OnContentChanged));
             }
             else // We haven't reached the desired position yet
             {

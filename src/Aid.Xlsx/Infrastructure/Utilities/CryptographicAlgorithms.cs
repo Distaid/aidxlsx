@@ -28,44 +28,32 @@ internal static class CryptographicAlgorithms
 
         if (password.Length == 0) return "";
 
-        switch (algorithm)
+        return algorithm switch
         {
-            case Algorithm.SimpleHash:
-                return GetDefaultPasswordHash(password);
-
-            case Algorithm.SHA512:
-                return GetSha512PasswordHash(password, salt, spinCount);
-
-            default:
-                return string.Empty;
-        }
+            Algorithm.SimpleHash => GetDefaultPasswordHash(password),
+            Algorithm.SHA512 => GetSha512PasswordHash(password, salt, spinCount),
+            _ => string.Empty,
+        };
     }
 
     public static string GetSalt(int length = 32)
     {
         // Same contract as the obsolete RNGCryptoServiceProvider.GetNonZeroBytes:
         // the salt never contains zero bytes, so its base64 form keeps the expected length.
-        using (var random = RandomNumberGenerator.Create())
-        {
-            var salt = new byte[length];
-            random.GetNonZeroBytes(salt);
-            return Convert.ToBase64String(salt);
-        }
+        using var random = RandomNumberGenerator.Create();
+        var salt = new byte[length];
+        random.GetNonZeroBytes(salt);
+        return Convert.ToBase64String(salt);
     }
 
     public static Boolean RequiresSalt(Algorithm algorithm)
     {
-        switch (algorithm)
+        return algorithm switch
         {
-            case Algorithm.SimpleHash:
-                return false;
-
-            case Algorithm.SHA512:
-                return true;
-
-            default:
-                return false;
-        }
+            Algorithm.SimpleHash => false,
+            Algorithm.SHA512 => true,
+            _ => false,
+        };
     }
 
     private static String GetDefaultPasswordHash(String password)

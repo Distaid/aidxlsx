@@ -66,7 +66,7 @@ internal class XlsxPivotTableAxisField : IXlsxPivotField
             if (isCustomSubtotal)
             {
                 // When subtotal is custom, the automatic is not shown
-                subtotal = new HashSet<XlsxSubtotalFunction>(subtotal);
+                subtotal = [with(subtotal)];
                 subtotal.Remove(XlsxSubtotalFunction.Automatic);
             }
 
@@ -140,7 +140,7 @@ internal class XlsxPivotTableAxisField : IXlsxPivotField
         set => GetField().SortType = value;
     }
 
-    public IReadOnlyList<XlsxCellValue> SelectedValues => Array.Empty<XlsxCellValue>();
+    public IReadOnlyList<XlsxCellValue> SelectedValues => [];
 
     public IXlsxPivotFieldStyleFormats StyleFormats => new XlsxPivotTableAxisFieldStyleFormats(_pivotTable, this);
 

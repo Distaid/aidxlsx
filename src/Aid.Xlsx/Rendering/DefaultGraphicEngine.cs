@@ -46,7 +46,7 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
     private const string MetricCompatibleFontName = "Calibri";
     private const float FontMetricSize = 16f;
     private readonly ImageInfoReader[] _imageReaders =
-    {
+    [
         new PngInfoReader(),
         new JpegInfoReader(),
         new GifInfoReader(),
@@ -56,7 +56,7 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
         new WmfInfoReader(),
         new WebpInfoReader(),
         new PcxInfoReader() // Due to poor magic detection, keep last
-    };
+    ];
 
     private readonly Lazy<IReadOnlyFontCollection> _fontCollection;
     private readonly string _fallbackFont;

@@ -9,7 +9,7 @@ namespace Aid.Xlsx.Model.PivotTables;
 internal class XlsxPivotCaches : IXlsxPivotCaches, IEnumerable<XlsxPivotCache>
 {
     private readonly XlsxWorkbook _workbook;
-    private readonly List<XlsxPivotCache> _caches = new();
+    private readonly List<XlsxPivotCache> _caches = [];
 
     public XlsxPivotCaches(XlsxWorkbook workbook)
     {

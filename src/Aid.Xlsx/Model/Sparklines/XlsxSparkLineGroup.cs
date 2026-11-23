@@ -20,7 +20,7 @@ namespace Aid.Xlsx.Model.Sparklines;
 internal class XlsxSparklineGroup : IXlsxSparklineGroup, ISheetListener
 {
     private readonly XlsxWorksheet _worksheet;
-    private readonly Dictionary<Point, SparklineFormula?> _sparklines = new();
+    private readonly Dictionary<Point, SparklineFormula?> _sparklines = [];
     private IXlsxRange? _dateRange;
     private IXlsxSparklineStyle _style;
 

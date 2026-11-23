@@ -13,7 +13,7 @@ namespace Aid.Xlsx.Model.Grid.Cells;
 internal class XlsxCells : IXlsxCells, IEnumerable<XlsxCell>
 {
     private readonly XlsxWorkbook _workbook;
-    private readonly List<XlsxRangeAddress> _rangeAddresses = new();
+    private readonly List<XlsxRangeAddress> _rangeAddresses = [];
     private readonly bool _usedCellsOnly;
     private readonly Func<XlsxCell, Boolean> _predicate;
     private readonly XlsxCellsUsedOptions _options;

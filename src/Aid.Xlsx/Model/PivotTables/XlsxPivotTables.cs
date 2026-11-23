@@ -10,7 +10,7 @@ namespace Aid.Xlsx.Model.PivotTables;
 
 internal class XlsxPivotTables : IXlsxPivotTables, IEnumerable<XlsxPivotTable>
 {
-    private readonly Dictionary<String, XlsxPivotTable> _pivotTables = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<String, XlsxPivotTable> _pivotTables = [with(StringComparer.OrdinalIgnoreCase)];
 
     public XlsxPivotTables(XlsxWorksheet worksheet)
     {
@@ -36,7 +36,7 @@ internal class XlsxPivotTables : IXlsxPivotTables, IEnumerable<XlsxPivotTable>
             Area = new Area(Point.FromAddress(targetCell.Address)),
         };
         Add(pivotTable);
-        pivotTable.UpdateCacheFields(Array.Empty<string>());
+        pivotTable.UpdateCacheFields([]);
         return pivotTable;
     }
 

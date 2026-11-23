@@ -365,25 +365,23 @@ public partial class XlsxWorkbook
     {
         foreach (var (_, vmlPart) in package.RelatedParts(worksheetPart, "vmlDrawing"))
         {
-            using (var stream = vmlPart.OpenRead())
-            {
-                var xdoc = XDocumentExtensions.Load(stream);
-                if (xdoc == null)
-                    continue;
+            using var stream = vmlPart.OpenRead();
+            var xdoc = XDocumentExtensions.Load(stream);
+            if (xdoc == null)
+                continue;
 
-                var root = xdoc.Root.Element("xml") ?? xdoc.Root;
+            var root = xdoc.Root.Element("xml") ?? xdoc.Root;
 
-                if (root == null)
-                    continue;
+            if (root == null)
+                continue;
 
-                var shapes = root
-                    .Elements()
-                    .Where(VmlDrawingPartWriter.IsCommentShape)
-                    .ToList();
+            var shapes = root
+                .Elements()
+                .Where(VmlDrawingPartWriter.IsCommentShape)
+                .ToList();
 
-                if (shapes != null)
-                    return shapes;
-            }
+            if (shapes != null)
+                return shapes;
         }
 
         throw new ArgumentException("Could not load comments file");
@@ -414,7 +412,7 @@ public partial class XlsxWorkbook
                 String opacityVal = opacity.Value;
                 if (opacityVal.EndsWith("f"))
                     drawing.Style.ColorsAndLines.FillTransparency =
-                        Double.Parse(opacityVal.Substring(0, opacityVal.Length - 1), CultureInfo.InvariantCulture) / 65536.0;
+                        Double.Parse(opacityVal[..^1], CultureInfo.InvariantCulture) / 65536.0;
                 else
                     drawing.Style.ColorsAndLines.FillTransparency = Double.Parse(opacityVal, CultureInfo.InvariantCulture);
             }
@@ -429,7 +427,7 @@ public partial class XlsxWorkbook
                 String opacityVal = opacity.Value;
                 if (opacityVal.EndsWith("f"))
                     drawing.Style.ColorsAndLines.LineTransparency =
-                        Double.Parse(opacityVal.Substring(0, opacityVal.Length - 1), CultureInfo.InvariantCulture) / 65536.0;
+                        Double.Parse(opacityVal[..^1], CultureInfo.InvariantCulture) / 65536.0;
                 else
                     drawing.Style.ColorsAndLines.LineTransparency = Double.Parse(opacityVal, CultureInfo.InvariantCulture);
             }
@@ -668,7 +666,7 @@ public partial class XlsxWorkbook
         }
     }
 
-    private readonly Dictionary<string, double> knownUnits = new Dictionary<string, double>
+    private readonly Dictionary<string, double> knownUnits = new()
     {
         {"pt", 1.0},
         {"in", 72.0},
@@ -717,10 +715,7 @@ public partial class XlsxWorkbook
                     if (area.Contains("["))
                     {
                         var ws = WorksheetsInternal.FirstOrDefault<XlsxWorksheet>(w => w.SheetId == (localSheetId + 1));
-                        if (ws != null)
-                        {
-                            ws.PageSetup.PrintAreas.Add(area);
-                        }
+                        ws?.PageSetup.PrintAreas.Add(area);
                     }
                     else
                     {
@@ -751,7 +746,7 @@ public partial class XlsxWorkbook
         }
     }
 
-    private static Regex definedNameRegex = new Regex(@"\A('?).*\1!.*\z", RegexOptions.Compiled);
+    private static readonly Regex definedNameRegex = new(@"\A('?).*\1!.*\z", RegexOptions.Compiled);
 
     private IEnumerable<String> validateDefinedNames(IEnumerable<String> definedNames)
     {
@@ -819,7 +814,7 @@ public partial class XlsxWorkbook
         else
         {
             sheetName = string.Join("!", sections.Take(sections.Length - 1)).UnescapeSheetName();
-            sheetArea = sections[sections.Length - 1];
+            sheetArea = sections[^1];
         }
     }
 

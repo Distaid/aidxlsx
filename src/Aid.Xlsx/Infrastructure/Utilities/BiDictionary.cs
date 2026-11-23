@@ -24,14 +24,14 @@ internal class BiDictionary<TKey, TValue> : IReadOnlyBiDictionary<TKey, TValue>
 
     internal BiDictionary()
     {
-        _entryToKey = new Dictionary<TValue, TKey>();
-        _keyToValue = new Dictionary<TKey, TValue>();
+        _entryToKey = [];
+        _keyToValue = [];
     }
 
     internal BiDictionary(int capacity)
     {
-        _entryToKey = new Dictionary<TValue, TKey>(capacity);
-        _keyToValue = new Dictionary<TKey, TValue>(capacity);
+        _entryToKey = [with(capacity)];
+        _keyToValue = [with(capacity)];
     }
 
     public TValue this[TKey key] => _keyToValue[key];

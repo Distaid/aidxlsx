@@ -36,7 +36,7 @@ namespace Aid.Xlsx.Model.Grid.Cells;
 [DebuggerDisplay("{Address}")]
 internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 {
-    public static readonly Regex A1SimpleRegex = new Regex(
+    public static readonly Regex A1SimpleRegex = new(
         //  @"(?<=\W)" // Start with non word
         @"(?<Reference>" // Start Group to pick
         + @"(?<Sheet>" // Start Sheet Name, optional
@@ -61,15 +61,15 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
                //+ @"(?=\W)" // End with non word
         , RegexOptions.Compiled);
 
-    private static readonly Regex A1RowRegex = new Regex(
+    private static readonly Regex A1RowRegex = new(
         @"(\$?\d{1,7}:\$?\d{1,7})" // 1:1
         , RegexOptions.Compiled);
 
-    private static readonly Regex A1ColumnRegex = new Regex(
+    private static readonly Regex A1ColumnRegex = new(
         @"(\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})" // A:A
         , RegexOptions.Compiled);
 
-    private static readonly Regex utfPattern = new Regex(@"(?<!_x005F)_x(?!005F)([0-9A-F]{4})_", RegexOptions.Compiled);
+    private static readonly Regex utfPattern = new(@"(?<!_x005F)_x(?!005F)([0-9A-F]{4})_", RegexOptions.Compiled);
 
 
     private readonly XlsxCellsCollection _cellsCollection;
@@ -284,7 +284,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             var text = value.GetText();
             if (text.Length > 0 && text[0] == '\'')
             {
-                value = text.Substring(1);
+                value = text[1..];
             }
         }
 
@@ -467,7 +467,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             {
                 var matchString = match.Value;
                 var matchIndex = match.Index;
-                sb.Append(s.Substring(lastIndex, matchIndex - lastIndex));
+                sb.Append(s[lastIndex..matchIndex]);
 
                 sb.Append((char)int.Parse(match.Groups[1].Value, NumberStyles.AllowHexSpecifier));
 
@@ -475,7 +475,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             }
 
             if (lastIndex < s.Length)
-                sb.Append(s.Substring(lastIndex));
+                sb.Append(s[lastIndex..]);
 
             value = (T)Convert.ChangeType(sb.ToString(), typeof(T));
             return true;
@@ -713,8 +713,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         if (!calledFromRange && IsMerged())
         {
             var firstOrDefault = Worksheet.Internals.MergedRanges.GetIntersectedRanges(Address).FirstOrDefault();
-            if (firstOrDefault != null)
-                firstOrDefault.Clear(clearOptions);
+            firstOrDefault?.Clear(clearOptions);
         }
         else
         {
@@ -1213,7 +1212,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
     private void ClearMerged()
     {
-        List<IXlsxRange> mergeToDelete = Worksheet.Internals.MergedRanges.GetIntersectedRanges(Address).ToList();
+        List<IXlsxRange> mergeToDelete = [.. Worksheet.Internals.MergedRanges.GetIntersectedRanges(Address)];
 
         mergeToDelete.ForEach(m => Worksheet.Internals.MergedRanges.Remove(m));
     }
@@ -1254,7 +1253,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
         var wsName = pair[0];
         if (wsName.StartsWith("'"))
-            wsName = wsName.Substring(1, wsName.Length - 2);
+            wsName = wsName[1..^1];
         return defaultWorksheet.Workbook.Worksheet(wsName).Cell(pair[1]);
     }
 
@@ -1365,14 +1364,14 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             if (value.AsSpan(0, matchIndex).Count('"') % 2 == 0)
             {
                 // Check that the match is not between quotes
-                sb.Append(value.Substring(lastIndex, matchIndex - lastIndex));
+                sb.Append(value[lastIndex..matchIndex]);
                 string sheetName;
                 var useSheetName = false;
                 if (matchString.Contains('!'))
                 {
-                    sheetName = matchString.Substring(0, matchString.IndexOf('!'));
+                    sheetName = matchString[..matchString.IndexOf('!')];
                     if (sheetName[0] == '\'')
-                        sheetName = sheetName.Substring(1, sheetName.Length - 2);
+                        sheetName = sheetName[1..^1];
                     useSheetName = true;
                 }
                 else
@@ -1380,7 +1379,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
                 if (String.Compare(sheetName, shiftedWsName, true) == 0)
                 {
-                    var rangeAddress = matchString.Substring(matchString.IndexOf('!') + 1);
+                    var rangeAddress = matchString[(matchString.IndexOf('!') + 1)..];
                     if (!A1ColumnRegex.IsMatch(rangeAddress))
                     {
                         var matchRange = worksheetInAction.Workbook.Worksheet(sheetName).Range(rangeAddress);
@@ -1403,7 +1402,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
                                 if (row1String[0] == '$')
                                 {
                                     row1 = "$" +
-                                            (XlsxHelper.TrimRowNumber(Int32.Parse(row1String.Substring(1)) + rowsShifted)).ToInvariantString();
+                                            (XlsxHelper.TrimRowNumber(Int32.Parse(row1String[1..]) + rowsShifted)).ToInvariantString();
                                 }
                                 else
                                     row1 = (XlsxHelper.TrimRowNumber(Int32.Parse(row1String) + rowsShifted)).ToInvariantString();
@@ -1412,7 +1411,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
                                 if (row2String[0] == '$')
                                 {
                                     row2 = "$" +
-                                            (XlsxHelper.TrimRowNumber(Int32.Parse(row2String.Substring(1)) + rowsShifted)).ToInvariantString();
+                                            (XlsxHelper.TrimRowNumber(Int32.Parse(row2String[1..]) + rowsShifted)).ToInvariantString();
                                 }
                                 else
                                     row2 = (XlsxHelper.TrimRowNumber(Int32.Parse(row2String) + rowsShifted)).ToInvariantString();
@@ -1482,7 +1481,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         }
 
         if (lastIndex < value.Length)
-            sb.Append(value.Substring(lastIndex));
+            sb.Append(value[lastIndex..]);
 
         return sb.ToString();
     }
@@ -1511,14 +1510,14 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             if (value.AsSpan(0, matchIndex).Count('"') % 2 == 0)
             {
                 // Check that the match is not between quotes
-                sb.Append(value.Substring(lastIndex, matchIndex - lastIndex));
+                sb.Append(value[lastIndex..matchIndex]);
                 string sheetName;
                 var useSheetName = false;
                 if (matchString.Contains('!'))
                 {
-                    sheetName = matchString.Substring(0, matchString.IndexOf('!'));
+                    sheetName = matchString[..matchString.IndexOf('!')];
                     if (sheetName[0] == '\'')
-                        sheetName = sheetName.Substring(1, sheetName.Length - 2);
+                        sheetName = sheetName[1..^1];
                     useSheetName = true;
                 }
                 else
@@ -1526,7 +1525,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
                 if (String.Compare(sheetName, shiftedRange.Worksheet.Name, true) == 0)
                 {
-                    var rangeAddress = matchString.Substring(matchString.IndexOf('!') + 1);
+                    var rangeAddress = matchString[(matchString.IndexOf('!') + 1)..];
                     if (!A1RowRegex.IsMatch(rangeAddress))
                     {
                         var matchRange = worksheetInAction.Workbook.Worksheet(sheetName).Range(rangeAddress);
@@ -1557,7 +1556,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
                                     column1 = "$" +
                                                 XlsxHelper.GetColumnLetterFromNumber(
                                                     XlsxHelper.GetColumnNumberFromLetter(
-                                                        column1String.Substring(1)) + columnsShifted, true);
+                                                        column1String[1..]) + columnsShifted, true);
                                 }
                                 else
                                 {
@@ -1573,7 +1572,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
                                     column2 = "$" +
                                                 XlsxHelper.GetColumnLetterFromNumber(
                                                     XlsxHelper.GetColumnNumberFromLetter(
-                                                        column2String.Substring(1)) + columnsShifted, true);
+                                                        column2String[1..]) + columnsShifted, true);
                                 }
                                 else
                                 {
@@ -1647,7 +1646,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
         }
 
         if (lastIndex < value.Length)
-            sb.Append(value.Substring(lastIndex));
+            sb.Append(value[lastIndex..]);
 
         return sb.ToString();
     }
@@ -1906,7 +1905,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
         static void AddGlyphs(string text, IXlsxFontBase font, IXlsxGraphicEngine engine, Dpi dpi, List<GlyphBox> output)
         {
-            Span<int> zeroWidthJoiner = stackalloc int[1] { 0x200D };
+            Span<int> zeroWidthJoiner = [0x200D];
             var prevWasNewLine = false;
             var graphemeStarts = StringInfo.ParseCombiningCharacters(text);
             var textSpan = text.AsSpan();
@@ -1918,7 +1917,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
             for (var i = 0; i < graphemeStarts.Length; ++i)
             {
                 var startIdx = graphemeStarts[i];
-                var slice = textSpan.Slice(startIdx);
+                var slice = textSpan[startIdx..];
                 if (slice.TrySliceNewLine(out var eolLen))
                 {
                     i += eolLen - 1;
@@ -1935,10 +1934,10 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
                 else
                 {
                     var codeUnits = i + 1 < graphemeStarts.Length
-                        ? textSpan.Slice(startIdx, graphemeStarts[i + 1] - startIdx)
-                        : textSpan.Slice(startIdx);
+                        ? textSpan[startIdx..graphemeStarts[i + 1]]
+                        : textSpan[startIdx..];
                     var count = codeUnits.ToCodePoints(codePointsBuffer);
-                    ReadOnlySpan<int> grapheme = codePointsBuffer.Slice(0, count);
+                    ReadOnlySpan<int> grapheme = codePointsBuffer[..count];
                     var box = engine.GetGlyphBox(grapheme, font, dpi);
                     output.Add(box);
                     prevWasNewLine = false;

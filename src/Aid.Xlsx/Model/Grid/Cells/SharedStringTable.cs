@@ -14,17 +14,17 @@ internal class SharedStringTable
     /// Table of <c>Id</c> to text. Some ids are empty (<c>entry.RefCount = 0</c>) and
     /// are tracked in <see cref="_freeIds"/>.
     /// </summary>
-    private readonly List<Entry> _table = new();
+    private readonly List<Entry> _table = [];
 
     /// <summary>
     /// List of indexes in <see cref="_table"/> that are unused.
     /// </summary>
-    private readonly List<int> _freeIds = new();
+    private readonly List<int> _freeIds = [];
 
     /// <summary>
     /// text -&gt; id
     /// </summary>
-    private readonly Dictionary<Text, int> _reverseDict = new();
+    private readonly Dictionary<Text, int> _reverseDict = [];
 
     /// <summary>
     /// Number of texts the table holds reference to.
@@ -55,10 +55,7 @@ internal class SharedStringTable
     /// </summary>
     internal XlsxImmutableRichText? GetRichText(int id)
     {
-        var text = _table[id].Text.Value;
-        if (text is null)
-            throw new ArgumentException($"Id {id} has no text.");
-
+        var text = _table[id].Text.Value ?? throw new ArgumentException($"Id {id} has no text.");
         return text as XlsxImmutableRichText;
     }
 

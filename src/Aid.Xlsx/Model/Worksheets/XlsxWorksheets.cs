@@ -14,7 +14,7 @@ namespace Aid.Xlsx.Model.Worksheets;
 internal class XlsxWorksheets : IXlsxWorksheets, IEnumerable<XlsxWorksheet>
 {
     private readonly XlsxWorkbook _workbook;
-    private readonly Dictionary<string, XlsxWorksheet> _worksheets = new(XlsxHelper.SheetComparer);
+    private readonly Dictionary<string, XlsxWorksheet> _worksheets = [with(XlsxHelper.SheetComparer)];
     internal ICollection<String> Deleted { get; private set; }
 
     /// <summary>

@@ -18,7 +18,7 @@ internal class XlsxHFItem : IXlsxHFItem
     {
         defaultHFItem.texts.ForEach(kp => texts.Add(kp.Key, kp.Value));
     }
-    private readonly Dictionary<XlsxHFOccurrence, List<XlsxHFText>> texts = new Dictionary<XlsxHFOccurrence, List<XlsxHFText>>();
+    private readonly Dictionary<XlsxHFOccurrence, List<XlsxHFText>> texts = [];
     public String GetText(XlsxHFOccurrence occurrence)
     {
         var sb = new StringBuilder();
@@ -75,26 +75,25 @@ internal class XlsxHFItem : IXlsxHFItem
         if (texts.TryGetValue(occurrence, out List<XlsxHFText> hfTexts))
             hfTexts.Add(hfText);
         else
-            texts.Add(occurrence, new List<XlsxHFText> { hfText });
+            texts.Add(occurrence, [hfText]);
 
         this.HeaderFooter.Changed = true;
     }
 
     public IXlsxRichString AddText(XlsxHFPredefinedText predefinedText, XlsxHFOccurrence occurrence)
     {
-        String hfText;
-        switch (predefinedText)
+        string hfText = predefinedText switch
         {
-            case XlsxHFPredefinedText.PageNumber: hfText = "&P"; break;
-            case XlsxHFPredefinedText.NumberOfPages: hfText = "&N"; break;
-            case XlsxHFPredefinedText.Date: hfText = "&D"; break;
-            case XlsxHFPredefinedText.Time: hfText = "&T"; break;
-            case XlsxHFPredefinedText.Path: hfText = "&Z"; break;
-            case XlsxHFPredefinedText.File: hfText = "&F"; break;
-            case XlsxHFPredefinedText.SheetName: hfText = "&A"; break;
-            case XlsxHFPredefinedText.FullPath: hfText = "&Z&F"; break;
-            default: throw new NotImplementedException();
-        }
+            XlsxHFPredefinedText.PageNumber => "&P",
+            XlsxHFPredefinedText.NumberOfPages => "&N",
+            XlsxHFPredefinedText.Date => "&D",
+            XlsxHFPredefinedText.Time => "&T",
+            XlsxHFPredefinedText.Path => "&Z",
+            XlsxHFPredefinedText.File => "&F",
+            XlsxHFPredefinedText.SheetName => "&A",
+            XlsxHFPredefinedText.FullPath => "&Z&F",
+            _ => throw new NotImplementedException(),
+        };
         return AddText(hfText, occurrence);
     }
 

@@ -248,33 +248,17 @@ internal class XlsxRangeRow : XlsxRangeBase, IXlsxRangeRow
             {
                 if (thisCell.DataType == otherCell.DataType)
                 {
-                    switch (thisCell.DataType)
+                    comparison = thisCell.DataType switch
                     {
-                        case XlsxDataType.Text:
-                            comparison = e.MatchCase
-                                             ? thisCell.GetText().CompareTo(otherCell.GetText())
-                                             : String.Compare(thisCell.GetText(), otherCell.GetText(), true);
-                            break;
-
-                        case XlsxDataType.TimeSpan:
-                            comparison = thisCell.GetTimeSpan().CompareTo(otherCell.GetTimeSpan());
-                            break;
-
-                        case XlsxDataType.DateTime:
-                            comparison = thisCell.GetDateTime().CompareTo(otherCell.GetDateTime());
-                            break;
-
-                        case XlsxDataType.Number:
-                            comparison = thisCell.GetDouble().CompareTo(otherCell.GetDouble());
-                            break;
-
-                        case XlsxDataType.Boolean:
-                            comparison = thisCell.GetBoolean().CompareTo(otherCell.GetBoolean());
-                            break;
-
-                        default:
-                            throw new NotImplementedException();
-                    }
+                        XlsxDataType.Text => e.MatchCase
+                                                                     ? thisCell.GetText().CompareTo(otherCell.GetText())
+                                                                     : String.Compare(thisCell.GetText(), otherCell.GetText(), true),
+                        XlsxDataType.TimeSpan => thisCell.GetTimeSpan().CompareTo(otherCell.GetTimeSpan()),
+                        XlsxDataType.DateTime => thisCell.GetDateTime().CompareTo(otherCell.GetDateTime()),
+                        XlsxDataType.Number => thisCell.GetDouble().CompareTo(otherCell.GetDouble()),
+                        XlsxDataType.Boolean => thisCell.GetBoolean().CompareTo(otherCell.GetBoolean()),
+                        _ => throw new NotImplementedException(),
+                    };
                 }
                 else if (thisCell.Value.IsUnifiedNumber && otherCell.Value.IsUnifiedNumber)
                     comparison = thisCell.Value.GetUnifiedNumber().CompareTo(otherCell.Value.GetUnifiedNumber());

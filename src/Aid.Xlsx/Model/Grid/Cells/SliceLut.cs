@@ -239,7 +239,7 @@ internal partial class Slice<TElement>
             /// <summary>
             /// Index of current element in the LUT. Only valid, if enumerator is valid.
             /// </summary>
-            public int Index => _idx;
+            public readonly int Index => _idx;
 
             public bool MoveNext()
             {
@@ -251,7 +251,7 @@ internal partial class Slice<TElement>
                 return true;
             }
 
-            private int GetNextUsedIndexAtOrLater(int index)
+            private readonly int GetNextUsedIndexAtOrLater(int index)
             {
                 var buckets = _lut._buckets;
                 var (topIdx, bottomIdx) = SplitIndex(index);
@@ -288,9 +288,9 @@ internal partial class Slice<TElement>
                 _startIdx = startIdx;
             }
 
-            public ref T Current => ref _lut._buckets[_idx >> BottomLutBits].Nodes[_idx & BottomLutMask];
+            public readonly ref T Current => ref _lut._buckets[_idx >> BottomLutBits].Nodes[_idx & BottomLutMask];
 
-            public int Index => _idx;
+            public readonly int Index => _idx;
 
             public bool MoveNext()
             {
@@ -302,7 +302,7 @@ internal partial class Slice<TElement>
                 return true;
             }
 
-            private int GetPrevIndexAtOrBefore(int index)
+            private readonly int GetPrevIndexAtOrBefore(int index)
             {
                 var buckets = _lut._buckets;
                 var (topIdx, bottomIdx) = SplitIndex(index);

@@ -11,7 +11,7 @@ namespace Aid.Xlsx.DataImport.RowReaders;
 internal class InsertDataReaderFactory
 {
     private static readonly Lazy<InsertDataReaderFactory> _instance =
-        new Lazy<InsertDataReaderFactory>(() => new InsertDataReaderFactory());
+        new(() => new InsertDataReaderFactory());
 
     public static InsertDataReaderFactory Instance => _instance.Value;
 

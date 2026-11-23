@@ -63,11 +63,11 @@ public static partial class XlsxHelper
     /// </summary>
     internal static readonly StringComparer FunctionComparer = StringComparer.OrdinalIgnoreCase;
 
-    internal static readonly Regex RCSimpleRegex = new Regex(
+    internal static readonly Regex RCSimpleRegex = new(
         @"^(r(((-\d)?\d*)|\[(-\d)?\d*\]))?(c(((-\d)?\d*)|\[(-\d)?\d*\]))?$"
         , RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    internal static readonly Regex A1SimpleRegex = new Regex(
+    internal static readonly Regex A1SimpleRegex = new(
         @"\A"
         + @"(?<Reference>" // Start Group to pick
         + @"(?<Sheet>" // Start Sheet Name, optional
@@ -91,11 +91,11 @@ public static partial class XlsxHelper
         , RegexOptions.Compiled);
 
     internal static readonly Regex NamedRangeReferenceRegex =
-        new Regex(@"^('?(?<Sheet>[^'!]+)'?!(?<Range>.+))|((?<Table>[^\[]+)\[(?<Column>[^\]]+)\])$",
+        new(@"^('?(?<Sheet>[^'!]+)'?!(?<Range>.+))|((?<Table>[^\[]+)\[(?<Column>[^\]]+)\])$",
                   RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture
             );
 
-    private static readonly string[] letters = new[] { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
+    private static readonly string[] letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
 
     private static readonly string[] allLetters;
     private static readonly Dictionary<string, int> letterIndexes;
@@ -215,8 +215,8 @@ public static partial class XlsxHelper
 
         return
             rowPos < addressLength
-            && IsValidRow(address.Substring(rowPos))
-            && IsValidColumn(address.Substring(0, rowPos));
+            && IsValidRow(address[rowPos..])
+            && IsValidColumn(address[..rowPos]);
     }
 
     public static bool IsValidRCAddress(string address)
@@ -250,7 +250,7 @@ public static partial class XlsxHelper
         while (cellAddressString[rowPos] > '9')
             rowPos++;
 
-        return GetColumnNumberFromLetter(cellAddressString.Substring(0, rowPos));
+        return GetColumnNumberFromLetter(cellAddressString[..rowPos]);
     }
 
     internal static string[] SplitRange(string range)
@@ -273,7 +273,7 @@ public static partial class XlsxHelper
         return rows;
     }
 
-    private static readonly Regex A1RegexRelative = new Regex(
+    private static readonly Regex A1RegexRelative = new(
   @"(?<=\W)(?<one>\$?[a-zA-Z]{1,3}\$?\d{1,7})(?=\W)" // A1
 + @"|(?<=\W)(?<two>\$?\d{1,7}:\$?\d{1,7})(?=\W)" // 1:1
 + @"|(?<=\W)(?<three>\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})(?=\W)", RegexOptions.Compiled); // A:A
@@ -308,7 +308,7 @@ public static partial class XlsxHelper
     {
         var oldValue = ">" + value + "<";
         var newVal = A1RegexRelative.Replace(oldValue, m => Evaluator(m, row, column));
-        return newVal.Substring(1, newVal.Length - 2);
+        return newVal[1..^1];
     }
 
     public static Boolean AreEqual(Double d1, Double d2)

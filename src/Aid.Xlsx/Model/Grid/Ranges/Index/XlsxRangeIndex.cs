@@ -17,7 +17,7 @@ internal abstract class XlsxRangeIndex : IXlsxRangeIndex
     public XlsxRangeIndex(IXlsxWorksheet worksheet)
     {
         _worksheet = worksheet;
-        _rangeList = new List<IXlsxAddressable>();
+        _rangeList = [];
         ((XlsxWorksheet)_worksheet).RegisterRangeIndex(this);
     }
 
@@ -130,7 +130,7 @@ internal abstract class XlsxRangeIndex : IXlsxRangeIndex
 
     public int RemoveAll(Predicate<IXlsxAddressable>? predicate = null)
     {
-        predicate = predicate ?? (_ => true);
+        predicate ??= (_ => true);
 
         if (_quadTree == null)
         {
@@ -202,7 +202,7 @@ internal class XlsxRangeIndex<T> : XlsxRangeIndex, IXlsxRangeIndex<T>
 
     public int RemoveAll(Predicate<T>? predicate)
     {
-        predicate = predicate ?? (_ => true);
+        predicate ??= (_ => true);
 
         return base.RemoveAll(r => predicate((T)r));
     }
@@ -225,39 +225,24 @@ internal class XlsxRangeIndex<T> : XlsxRangeIndex, IXlsxRangeIndex<T>
             innerType == typeof(XlsxRangeBase))
             return true;
 
-        switch (rangeType)
+        return rangeType switch
         {
-            case XlsxRangeType.Range:
-                return innerType == typeof(IXlsxRange) ||
-                       innerType == typeof(XlsxRange);
-
-            case XlsxRangeType.Column:
-                return innerType == typeof(IXlsxColumn) ||
-                       innerType == typeof(XlsxColumn);
-
-            case XlsxRangeType.Row:
-                return innerType == typeof(IXlsxRow) ||
-                       innerType == typeof(XlsxRow);
-
-            case XlsxRangeType.RangeColumn:
-                return innerType == typeof(IXlsxRangeColumn) ||
-                       innerType == typeof(XlsxRangeColumn);
-
-            case XlsxRangeType.RangeRow:
-                return innerType == typeof(IXlsxRangeRow) ||
-                       innerType == typeof(XlsxRangeRow);
-
-            case XlsxRangeType.Table:
-                return innerType == typeof(IXlsxTable) ||
-                       innerType == typeof(XlsxTable);
-
-            case XlsxRangeType.Worksheet:
-                return innerType == typeof(IXlsxWorksheet) ||
-                       innerType == typeof(XlsxWorksheet);
-
-            default:
-                throw new NotImplementedException(nameof(rangeType));
-        }
+            XlsxRangeType.Range => innerType == typeof(IXlsxRange) ||
+                                   innerType == typeof(XlsxRange),
+            XlsxRangeType.Column => innerType == typeof(IXlsxColumn) ||
+                                   innerType == typeof(XlsxColumn),
+            XlsxRangeType.Row => innerType == typeof(IXlsxRow) ||
+                                   innerType == typeof(XlsxRow),
+            XlsxRangeType.RangeColumn => innerType == typeof(IXlsxRangeColumn) ||
+                                   innerType == typeof(XlsxRangeColumn),
+            XlsxRangeType.RangeRow => innerType == typeof(IXlsxRangeRow) ||
+                                   innerType == typeof(XlsxRangeRow),
+            XlsxRangeType.Table => innerType == typeof(IXlsxTable) ||
+                                   innerType == typeof(XlsxTable),
+            XlsxRangeType.Worksheet => innerType == typeof(IXlsxWorksheet) ||
+                                   innerType == typeof(XlsxWorksheet),
+            _ => throw new NotImplementedException(nameof(rangeType)),
+        };
     }
 
     public new IEnumerable<T> GetAll()

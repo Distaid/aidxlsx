@@ -19,12 +19,12 @@ internal class XlsxPivotTableAxis : IXlsxPivotFields
     /// <summary>
     /// Fields displayed on the axis, in the order of the fields on the axis.
     /// </summary>
-    private readonly List<FieldIndex> _fields = new();
+    private readonly List<FieldIndex> _fields = [];
 
     /// <summary>
     /// Values of one row/column in an axis. Items are not kept in sync with <see cref="_fields"/>.
     /// </summary>
-    private readonly List<XlsxPivotFieldAxisItem> _axisItems = new();
+    private readonly List<XlsxPivotFieldAxisItem> _axisItems = [];
 
     internal XlsxPivotTableAxis(XlsxPivotTable pivotTable, XlsxPivotAxis axis)
     {

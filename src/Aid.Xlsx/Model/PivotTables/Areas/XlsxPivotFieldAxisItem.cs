@@ -12,7 +12,7 @@ internal class XlsxPivotFieldAxisItem
     {
         ItemType = itemType;
         DataItem = dataItem;
-        FieldItem = fieldItems.ToList();
+        FieldItem = [.. fieldItems];
     }
 
     /// <summary>

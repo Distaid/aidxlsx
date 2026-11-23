@@ -35,7 +35,7 @@ internal class DependencyTree
     /// The source of the truth, a storage of formula dependencies. The dependency tree is
     /// constructed from this collection.
     /// </summary>
-    private readonly Dictionary<XlsxCellFormula, FormulaDependencies> _dependencies = new();
+    private readonly Dictionary<XlsxCellFormula, FormulaDependencies> _dependencies = [];
 
     /// <summary>
     /// Visitor to extract precedents of formulas.
@@ -45,7 +45,7 @@ internal class DependencyTree
     /// <summary>
     /// A dependency tree for each sheet (key is sheet name).
     /// </summary>
-    private readonly Dictionary<string, SheetDependencyTree> _sheetTrees = new(XlsxHelper.SheetComparer);
+    private readonly Dictionary<string, SheetDependencyTree> _sheetTrees = [with(XlsxHelper.SheetComparer)];
 
     public DependencyTree()
     {
@@ -221,7 +221,7 @@ internal class DependencyTree
         internal AreaDependents(in Envelope area, Dependent firstDependent)
         {
             _area = area;
-            _dependents = new List<Dependent> { firstDependent };
+            _dependents = [firstDependent];
         }
 
         /// <summary>
@@ -253,7 +253,7 @@ internal class DependencyTree
 
                 // Remove from list by moving the last element to the removed
                 // element place and decrease capacity.
-                _dependents[i] = _dependents[_dependents.Count - 1];
+                _dependents[i] = _dependents[^1];
 
                 // Remove last item, capacity is unchanged, only list size is updated.
                 _dependents.RemoveAt(_dependents.Count - 1);
@@ -326,7 +326,7 @@ internal class DependencyTree
         internal SheetDependencyTree()
         {
             _tree = new RBush<AreaDependents>();
-            _precedentAreas = new Dictionary<Area, AreaDependents>();
+            _precedentAreas = [];
         }
 
         internal bool IsEmpty => _tree.Count == 0;

@@ -134,7 +134,7 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
                     // change, it doesn't affect the formula, because cells outside
                     // intersection are never used.
                     if (intersection is not null)
-                        return new List<SheetArea> { intersection.Value };
+                        return [intersection.Value];
 
                     return null;
                 }
@@ -273,7 +273,7 @@ internal class DependenciesVisitor : IFormulaVisitor<DependenciesContext, List<S
 
         var anchor = context.FormulaArea.Area.FirstPoint;
         var sheetRange = node.ReferenceArea.ToArea(anchor);
-        return new List<SheetArea> { new(sheetName, sheetRange) };
+        return [new(sheetName, sheetRange)];
     }
 
     public List<SheetArea>? Visit(DependenciesContext context, NameNode node)

@@ -10,11 +10,11 @@ namespace Aid.Xlsx.Infrastructure.Extensions;
 
 internal static class StringExtensions
 {
-    private static readonly Regex RegexNewLine = new Regex(@"((?<!\r)\n|\r\n)", RegexOptions.Compiled);
+    private static readonly Regex RegexNewLine = new(@"((?<!\r)\n|\r\n)", RegexOptions.Compiled);
 
     public static String RemoveSpecialCharacters(this String str)
     {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new();
         foreach (char c in str)
         {
             if (Char.IsLetterOrDigit(c) || c == '.' || c == '_')
@@ -72,7 +72,7 @@ internal static class StringExtensions
         if (value.Length == 1)
             return value.ToLower();
 
-        return value.Substring(0, 1).ToLower() + value.Substring(1);
+        return value[..1].ToLower() + value[1..];
     }
 
     internal static String ToProper(this String value)
@@ -83,7 +83,7 @@ internal static class StringExtensions
         if (value.Length == 1)
             return value.ToUpper();
 
-        return value.Substring(0, 1).ToUpper() + value.Substring(1);
+        return value[..1].ToUpper() + value[1..];
     }
 
     internal static string UnescapeSheetName(this String sheetName)

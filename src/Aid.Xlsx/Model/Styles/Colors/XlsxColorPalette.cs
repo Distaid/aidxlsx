@@ -6,7 +6,7 @@ namespace Aid.Xlsx.Model.Styles.Colors;
 
 public partial class XlsxColor
 {
-    private static readonly XlsxColorRepository Repository = new XlsxColorRepository(key => new XlsxColor(key));
+    private static readonly XlsxColorRepository Repository = new(key => new XlsxColor(key));
 
     /// <summary>
     /// System foreground color. Depends on system settings, but there is no platform-agnostic way to resolve it.

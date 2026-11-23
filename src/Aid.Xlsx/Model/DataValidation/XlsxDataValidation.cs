@@ -192,7 +192,7 @@ internal class XlsxDataValidation : IXlsxDataValidation
     /// <param name="ranges">Ranges to add.</param>
     public void AddRanges(IEnumerable<IXlsxRange> ranges)
     {
-        ranges = ranges ?? Enumerable.Empty<IXlsxRange>();
+        ranges ??= [];
 
         foreach (var range in ranges)
         {

@@ -37,7 +37,7 @@ internal class XlsxHFText
         if (!isRichText)
             return RichText.Text;
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new();
 
         if (RichText.FontName != null && RichText.FontName != wsFont.FontName)
             sb.Append("&\"" + RichText.FontName);
@@ -81,7 +81,7 @@ internal class XlsxHFText
             (lastColorPosition >= 0 && !RichText.FontColor.Equals(XlsxColor.FromHtml("#" + prevText.Substring(lastColorPosition + 2, 6))))
             || (lastColorPosition == -1 && !RichText.FontColor.Equals(wsFont.FontColor))
             )
-            sb.Append("&K" + RichText.FontColor.Color.ToHex().Substring(2));
+            sb.Append("&K" + RichText.FontColor.Color.ToHex()[2..]);
 
         sb.Append(RichText.Text);
 

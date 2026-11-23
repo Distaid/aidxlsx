@@ -23,7 +23,7 @@ internal static class Statistical
         ce.RegisterFunction("COUNTA", 1, 255, CountA, FunctionFlags.Range, AllowRange.All);
         ce.RegisterFunction("COUNTBLANK", 1, 1, Adapt(CountBlank), FunctionFlags.Range, AllowRange.All);
         ce.RegisterFunction("COUNTIF", 2, 2, Adapt((Func<CalcContext, AnyValue, ScalarValue, AnyValue>)CountIf), FunctionFlags.Range, AllowRange.Only, 0);
-        ce.RegisterFunction("COUNTIFS", 2, 255, AdaptIfs(CountIfs), FunctionFlags.Range, AllowRange.Only, Enumerable.Range(0, 128).Select(x => x * 2).ToArray());
+        ce.RegisterFunction("COUNTIFS", 2, 255, AdaptIfs(CountIfs), FunctionFlags.Range, AllowRange.Only, [.. Enumerable.Range(0, 128).Select(x => x * 2)]);
         //COVAR	Returns covariance, the average of the products of paired deviations
         //CRITBINOM	Returns the smallest value for which the cumulative binomial distribution is less than or equal to a criterion value
         ce.RegisterFunction("DEVSQ", 1, 255, DevSq, FunctionFlags.Range, AllowRange.All); // Returns the sum of squares of deviations
@@ -217,7 +217,7 @@ internal static class Statistical
         tally.Add(countArea, criteria);
 
         // TallyCriteria only sums up the value.
-        var result = tally.Tally(ctx, new[] { countRange }, new CountState(0));
+        var result = tally.Tally(ctx, [countRange], new CountState(0));
         if (!result.TryPickT0(out var state, out var error))
             return error;
 
@@ -245,7 +245,7 @@ internal static class Statistical
         }
 
         // The values in the range aren't used, so just use first area
-        var result = tally.Tally(ctx, new[] { criteriaRanges[0].Range }, new CountState(0));
+        var result = tally.Tally(ctx, [criteriaRanges[0].Range], new CountState(0));
         if (!result.TryPickT0(out var state, out var error))
             return error;
 
@@ -319,7 +319,7 @@ internal static class Statistical
     {
         // There is a better median algorithm that uses two heaps, but NetFx
         // doesn't have heap structure.
-        var result = TallyNumbers.Default.Tally(ctx, args, new ValuesState(new List<double>()));
+        var result = TallyNumbers.Default.Tally(ctx, args, new ValuesState([]));
         if (!result.TryPickT0(out var state, out var error))
             return error;
 

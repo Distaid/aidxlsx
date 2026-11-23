@@ -21,8 +21,8 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         public bool Equals(XlsxConditionalFormat? xx, XlsxConditionalFormat? yy)
         {
             if (ReferenceEquals(xx, yy)) return true;
-            if (ReferenceEquals(xx, null)) return false;
-            if (ReferenceEquals(yy, null)) return false;
+            if (xx is null) return false;
+            if (yy is null) return false;
             if (xx.GetType() != yy.GetType()) return false;
 
             var xxValues = xx.Values.Values.Where(v => v == null || !v.IsFormula).Select(v => v?.Value);
@@ -111,10 +111,10 @@ internal class XlsxConditionalFormat : IXlsxDxfContainer, IXlsxConditionalFormat
         _worksheet = worksheet;
         Id = Guid.NewGuid();
         Areas = areaList;
-        Values = new XlsxDictionary<XlsxFormula>();
-        Colors = new XlsxDictionary<XlsxColor>();
-        ContentTypes = new XlsxDictionary<XlsxCFContentType>();
-        IconSetOperators = new XlsxDictionary<XlsxCFIconSetOperator>();
+        Values = [];
+        Colors = [];
+        ContentTypes = [];
+        IconSetOperators = [];
     }
 
     /// <summary>

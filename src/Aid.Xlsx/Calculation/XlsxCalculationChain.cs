@@ -52,7 +52,7 @@ internal class XlsxCalculationChain
     /// cause cycles due to dependencies, but that is manifested by
     /// constantly switching the links in a loop.</para>
     /// </summary>
-    private readonly Dictionary<SheetPoint, Link> _nodeMap = new();
+    private readonly Dictionary<SheetPoint, Link> _nodeMap = [];
 
     private SheetPoint? _current;
 

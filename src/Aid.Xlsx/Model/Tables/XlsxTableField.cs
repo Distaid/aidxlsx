@@ -27,10 +27,7 @@ internal class XlsxTableField : IXlsxTableField
     {
         get
         {
-            if (_column == null)
-            {
-                _column = table.AsRange().Column(this.Index + 1);
-            }
+            _column ??= table.AsRange().Column(this.Index + 1);
             return _column;
         }
         internal set
@@ -193,7 +190,7 @@ internal class XlsxTableField : IXlsxTableField
 
         var distinctDataTypes = dataTypes
             .GroupBy(dt => dt)
-            .Select(g => new { Key = g.Key, Count = g.Count() });
+            .Select(g => new { g.Key, Count = g.Count() });
 
         return distinctDataTypes.Count() == 1;
     }
@@ -210,7 +207,7 @@ internal class XlsxTableField : IXlsxTableField
 
         var distinctFormulas = formulas
             .GroupBy(f => f)
-            .Select(g => new { Key = g.Key, Count = g.Count() });
+            .Select(g => new { g.Key, Count = g.Count() });
 
         return distinctFormulas.Count() == 1;
     }
@@ -232,7 +229,7 @@ internal class XlsxTableField : IXlsxTableField
         return distinctStyles.Count() == 1;
     }
 
-    private static IEnumerable<String> QuotedTableFieldCharacters = new[] { "'", "#" };
+    private static readonly IEnumerable<String> QuotedTableFieldCharacters = new[] { "'", "#" };
 
     internal void UpdateTableFieldTotalsRowFormula()
     {

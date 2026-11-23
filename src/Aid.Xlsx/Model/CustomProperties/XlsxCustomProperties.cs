@@ -6,13 +6,13 @@ namespace Aid.Xlsx.Model.CustomProperties;
 
 internal class XlsxCustomProperties : IXlsxCustomProperties, IEnumerable<IXlsxCustomProperty>
 {
-    XlsxWorkbook workbook;
+    readonly XlsxWorkbook workbook;
     public XlsxCustomProperties(XlsxWorkbook workbook)
     {
         this.workbook = workbook;
     }
 
-    private Dictionary<String, IXlsxCustomProperty> customProperties = new Dictionary<String, IXlsxCustomProperty>();
+    private readonly Dictionary<String, IXlsxCustomProperty> customProperties = [];
     public void Add(IXlsxCustomProperty customProperty)
     {
         customProperties.Add(customProperty.Name, customProperty);

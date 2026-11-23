@@ -136,7 +136,7 @@ internal class XlsxRangeConsolidationEngine
             }
 
             System.Diagnostics.Debug.Assert(
-                _bitMatrix.Values.All(r => r[0] == false && r[r.Length - 1] == false));
+                _bitMatrix.Values.All(r => r[0] == false && r[^1] == false));
         }
 
         private IEnumerable<Tuple<int, int>> GetRangesBoundariesStartingByRow(BitArray rowArray)

@@ -591,7 +591,7 @@ internal class XlsxRange : XlsxRangeBase, IXlsxRange
 
     internal XlsxRangeRows RowsUsed(XlsxCellsUsedOptions options, Func<IXlsxRangeRow, Boolean> predicate = null)
     {
-        XlsxRangeRows rows = new XlsxRangeRows(Worksheet);
+        XlsxRangeRows rows = new(Worksheet);
         Int32 rowCount = RowCount(options);
 
         for (Int32 ro = 1; ro <= rowCount; ro++)
@@ -621,7 +621,7 @@ internal class XlsxRange : XlsxRangeBase, IXlsxRange
 
     internal virtual XlsxRangeColumns ColumnsUsed(XlsxCellsUsedOptions options, Func<IXlsxRangeColumn, Boolean> predicate = null)
     {
-        XlsxRangeColumns columns = new XlsxRangeColumns(Worksheet);
+        XlsxRangeColumns columns = new(Worksheet);
         Int32 columnCount = ColumnCount(options);
 
         for (Int32 co = 1; co <= columnCount; co++)
@@ -806,8 +806,7 @@ internal class XlsxRange : XlsxRangeBase, IXlsxRange
 
     public override bool Equals(object obj)
     {
-        var other = obj as XlsxRange;
-        if (other == null)
+        if (obj is not XlsxRange other)
             return false;
         return RangeAddress.Equals(other.RangeAddress)
                && Worksheet.Equals(other.Worksheet);

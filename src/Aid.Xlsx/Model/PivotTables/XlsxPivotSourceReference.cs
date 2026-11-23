@@ -46,8 +46,7 @@ internal sealed class XlsxPivotSourceReference : IXlsxPivotSource
 
     public bool Equals(IXlsxPivotSource? otherSource)
     {
-        var other = otherSource as XlsxPivotSourceReference;
-        if (other is null)
+        if (otherSource is not XlsxPivotSourceReference other)
             return false;
 
         if (ReferenceEquals(this, other))

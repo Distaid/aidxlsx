@@ -50,7 +50,7 @@ internal class XlsxHeaderFooter : IXlsxHeaderFooter
         return retVal;
     }
 
-    private Dictionary<XlsxHFOccurrence, String> innerTexts = new Dictionary<XlsxHFOccurrence, String>();
+    private readonly Dictionary<XlsxHFOccurrence, String> innerTexts = [];
     internal void SetInnerText(XlsxHFOccurrence occurrence, String text)
     {
         var parsedElements = ParseFormattedHeaderFooterText(text);
@@ -75,7 +75,7 @@ internal class XlsxHeaderFooter : IXlsxHeaderFooter
 
     private static List<ParsedHeaderFooterElement> ParseFormattedHeaderFooterText(string text)
     {
-        Func<int, bool> IsAtPositionIndicator = i => i < text.Length - 1 && text[i] == '&' && (new char[] { 'L', 'C', 'R' }.Contains(text[i + 1]));
+        bool IsAtPositionIndicator(int i) => i < text.Length - 1 && text[i] == '&' && (new char[] { 'L', 'C', 'R' }.Contains(text[i + 1]));
 
         var parsedElements = new List<ParsedHeaderFooterElement>();
         var currentPosition = 'L'; // default is LEFT
@@ -128,7 +128,7 @@ internal class XlsxHeaderFooter : IXlsxHeaderFooter
 
     internal void SetAsInitial()
     {
-        _initialTexts = new Dictionary<XlsxHFOccurrence, string>();
+        _initialTexts = [];
         foreach (var o in Enum.GetValues<XlsxHFOccurrence>())
         {
             _initialTexts.Add(o, GetText(o));

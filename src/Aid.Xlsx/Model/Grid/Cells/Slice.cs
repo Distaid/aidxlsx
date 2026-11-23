@@ -32,7 +32,7 @@ internal partial class Slice<TElement> : ISlice
     /// <summary>
     /// Key is column number, value is number of cells in the column that are used.
     /// </summary>
-    private readonly Dictionary<int, int> _columnUsage = new();
+    private readonly Dictionary<int, int> _columnUsage = [];
 
     internal Slice()
     {

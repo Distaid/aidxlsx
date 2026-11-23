@@ -97,7 +97,7 @@ internal class XlsxSheetProtection : IXlsxSheetProtection
         {
             IsProtected = true;
 
-            password = password ?? "";
+            password ??= "";
 
             this.Algorithm = algorithm;
             this.Base64EncodedSalt = CryptographicAlgorithms.GenerateNewSalt(this.Algorithm);

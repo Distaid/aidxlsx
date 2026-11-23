@@ -24,9 +24,9 @@ internal class XlsxPivotTable : IXlsxPivotTable
     /// pivotFields</c>. Contains info about each field, mostly page/axis info (data field can
     /// reference same field multiple times, so it mostly stores data in data fields).
     /// </summary>
-    private readonly List<XlsxPivotTableField> _fields = new();
-    private readonly List<XlsxPivotFormat> _formats = new();
-    private readonly List<XlsxPivotConditionalFormat> _conditionalFormats = new();
+    private readonly List<XlsxPivotTableField> _fields = [];
+    private readonly List<XlsxPivotFormat> _formats = [];
+    private readonly List<XlsxPivotConditionalFormat> _conditionalFormats = [];
     private XlsxPivotCache _cache;
     private int _filterFieldsPageWrap;
     private bool _outline = true;
@@ -1404,7 +1404,7 @@ internal class XlsxPivotTable : IXlsxPivotTable
         }
 
         var includeValuesField = keptDataFields.Count > 1;
-        var keptFilterSourceNames = GetKeptNames(Filters.Fields.Select(x => (FieldIndex)x.Field).ToList(), oldFieldNames, newNames, includeValuesField);
+        var keptFilterSourceNames = GetKeptNames([.. Filters.Fields.Select(x => (FieldIndex)x.Field)], oldFieldNames, newNames, includeValuesField);
         var keptRowSourceNames = GetKeptNames(RowAxis.Fields, oldFieldNames, newNames, includeValuesField);
         var keptColumnSourceNames = GetKeptNames(ColumnAxis.Fields, oldFieldNames, newNames, includeValuesField);
 

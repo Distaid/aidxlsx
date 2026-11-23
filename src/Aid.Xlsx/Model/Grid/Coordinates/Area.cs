@@ -113,7 +113,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     public static Area Parse(ReadOnlySpan<char> input)
     {
         if (!TryParse(input, out var area))
-            throw new FormatException($"Area reference doesn't have correct format: '{input.ToString()}'.");
+            throw new FormatException($"Area reference doesn't have correct format: '{input}'.");
 
         return area;
     }
@@ -161,7 +161,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
 
         var firstPointLen = FirstPoint.Format(output);
         output[firstPointLen] = ':';
-        var lastPointLen = LastPoint.Format(output.Slice(firstPointLen + 1));
+        var lastPointLen = LastPoint.Format(output[(firstPointLen + 1)..]);
         return firstPointLen + 1 + lastPointLen;
     }
 
@@ -169,7 +169,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     {
         Span<char> text = stackalloc char[21];
         var len = Format(text);
-        return text.Slice(0, len).ToString();
+        return text[..len].ToString();
     }
 
     /// <summary>
