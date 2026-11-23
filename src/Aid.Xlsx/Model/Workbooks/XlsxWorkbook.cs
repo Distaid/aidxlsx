@@ -523,7 +523,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     public void Save(SaveOptions options)
     {
         ThrowIfDisposed();
-        checkForWorksheetsPresent();
+        CheckForWorksheetsPresent();
         if (_loadSource == XlsxLoadSource.New)
             throw new InvalidOperationException("This is a new file. Please use one of the 'SaveAs' methods.");
 
@@ -565,7 +565,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     public void SaveAs(String file, SaveOptions options)
     {
         ThrowIfDisposed();
-        checkForWorksheetsPresent();
+        CheckForWorksheetsPresent();
 
         var directoryName = Path.GetDirectoryName(file);
         if (!string.IsNullOrWhiteSpace(directoryName)) Directory.CreateDirectory(directoryName);
@@ -618,7 +618,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         };
     }
 
-    private void checkForWorksheetsPresent()
+    private void CheckForWorksheetsPresent()
     {
         if (Worksheets.Count == 0)
             throw new InvalidOperationException("Workbooks need at least one worksheet.");
@@ -654,7 +654,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     public void SaveAs(Stream stream, SaveOptions options)
     {
         ThrowIfDisposed();
-        checkForWorksheetsPresent();
+        CheckForWorksheetsPresent();
         if (_loadSource == XlsxLoadSource.New)
         {
             // dm 20130422, this method or better the method SpreadsheetDocument.Create which is called

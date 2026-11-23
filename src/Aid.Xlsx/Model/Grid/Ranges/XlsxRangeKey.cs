@@ -26,7 +26,7 @@ internal struct XlsxRangeKey(XlsxRangeType rangeType, XlsxRangeAddress address) 
     public override readonly bool Equals(object obj)
     {
         if (obj is null) return false;
-        return obj is XlsxRangeKey && Equals((XlsxRangeKey)obj);
+        return obj is XlsxRangeKey key && Equals(key);
     }
 
     /// <summary>Returns the hash code for this instance.</summary>

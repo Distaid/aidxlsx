@@ -584,14 +584,11 @@ public class FormulaParser<TScalarValue, TNode, TContext>
                         out var secondName);
                     Consume();
 
-                    var area = A1Reference();
-                    if (area is null)
-                        throw UnexpectedTokenError(Token.A1_CELL, Token.A1_SPAN_REFERENCE);
-
+                    var area = A1Reference() ?? throw UnexpectedTokenError(Token.A1_CELL, Token.A1_SPAN_REFERENCE);
                     var end = _tokenSource.StartIndex;
                     return wbIdx is not null
-                        ? _factory.ExternalReference3D(_context, new SymbolRange(start, end), wbIdx.Value, firstName, secondName, area.Value)
-                        : _factory.Reference3D(_context, new SymbolRange(start, end), firstName, secondName, area.Value);
+                        ? _factory.ExternalReference3D(_context, new SymbolRange(start, end), wbIdx.Value, firstName, secondName, area)
+                        : _factory.Reference3D(_context, new SymbolRange(start, end), firstName, secondName, area);
                 }
 
             // ref_function_call
@@ -628,12 +625,10 @@ public class FormulaParser<TScalarValue, TNode, TContext>
                         Consume(); // SINGLE_SHEET_PREFIX
 
                         // After prefix, there must be A1Reference
-                        var area = A1Reference();
-                        if (area is null)
-                            throw UnexpectedTokenError(Token.A1_CELL, Token.A1_SPAN_REFERENCE);
+                        var area = A1Reference() ?? throw UnexpectedTokenError(Token.A1_CELL, Token.A1_SPAN_REFERENCE);
 
                         var end = _tokenSource.StartIndex;
-                        return _factory.Reference3D(_context, new SymbolRange(start, end), firstSheetName, lastSheetName, area.Value);
+                        return _factory.Reference3D(_context, new SymbolRange(start, end), firstSheetName, lastSheetName, area);
                     }
 
                     return _factory.Name(_context, new SymbolRange(start, _tokenSource.StartIndex), localName.ToString());

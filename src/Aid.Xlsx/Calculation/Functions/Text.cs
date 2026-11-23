@@ -59,7 +59,7 @@ internal static class Text
         ce.RegisterFunction("SEARCH", 2, 3, AdaptLastOptional(Search), FunctionFlags.Scalar); // Finds one text value within another (not case-sensitive)
         ce.RegisterFunction("SUBSTITUTE", 3, 4, AdaptSubstitute(Substitute), FunctionFlags.Scalar); // Substitutes new text for old text in a text string
         ce.RegisterFunction("T", 1, 1, Adapt(T), FunctionFlags.Range | FunctionFlags.ReturnsArray, AllowRange.All); // Converts its arguments to text
-        ce.RegisterFunction("TEXT", 2, 2, Adapt(_Text), FunctionFlags.Scalar); // Formats a number and converts it to text
+        ce.RegisterFunction("TEXT", 2, 2, Adapt(FormatText), FunctionFlags.Scalar); // Formats a number and converts it to text
         ce.RegisterFunction("TEXTJOIN", 3, 255, Adapt(TextJoin), FunctionFlags.Range | FunctionFlags.Future, AllowRange.Except, 0, 1); // Joins text via delimiter
         ce.RegisterFunction("TRIM", 1, 1, Adapt(Trim), FunctionFlags.Scalar); // Removes spaces from text
         ce.RegisterFunction("UPPER", 1, 1, Adapt(Upper), FunctionFlags.Scalar); // Converts text to uppercase
@@ -544,7 +544,7 @@ internal static class Text
         return cellValue.IsText ? cellValue.GetText() : string.Empty;
     }
 
-    private static ScalarValue _Text(CalcContext ctx, ScalarValue value, string format)
+    private static ScalarValue FormatText(CalcContext ctx, ScalarValue value, string format)
     {
         // Non-convertible values are turned to string
         if (!value.ToNumber(ctx.Culture).TryPickT0(out var number, out _) || value.IsLogical)

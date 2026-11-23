@@ -205,7 +205,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
 
     #region Overrides
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         if (!IsValid)
             return "#REF!";
@@ -377,7 +377,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
         return ToStringRelative(false);
     }
 
-    public String ToStringFixed()
+    public readonly String ToStringFixed()
     {
         return ToStringFixed(XlsxReferenceStyle.Default);
     }
@@ -406,12 +406,12 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
         return new XlsxAddress(worksheet, RowNumber, ColumnNumber, FixedRow, FixedColumn);
     }
 
-    public String ToStringFixed(XlsxReferenceStyle referenceStyle)
+    public readonly String ToStringFixed(XlsxReferenceStyle referenceStyle)
     {
         return ToStringFixed(referenceStyle, false);
     }
 
-    public String ToStringFixed(XlsxReferenceStyle referenceStyle, Boolean includeSheet)
+    public readonly String ToStringFixed(XlsxReferenceStyle referenceStyle, Boolean includeSheet)
     {
         String address;
 

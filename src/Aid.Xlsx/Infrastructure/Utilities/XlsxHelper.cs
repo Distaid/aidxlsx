@@ -295,15 +295,15 @@ public static partial class XlsxHelper
     public static DateTime GetDate(Object v)
     {
         // handle dates
-        if (v is DateTime)
+        if (v is DateTime dateTime)
         {
-            return (DateTime)v;
+            return dateTime;
         }
 
         // handle doubles
-        if (v is double && ((double)v).IsValidOADateNumber())
+        if (v is double d && d.IsValidOADateNumber())
         {
-            return DateTime.FromOADate((double)v);
+            return DateTime.FromOADate(d);
         }
 
         // handle everything else

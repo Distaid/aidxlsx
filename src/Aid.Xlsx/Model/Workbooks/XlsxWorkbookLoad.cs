@@ -709,7 +709,7 @@ public partial class XlsxWorkbook
 
             if (name == "_xlnm.Print_Area")
             {
-                var fixedNames = validateDefinedNames(text.Split(','));
+                var fixedNames = ValidateDefinedNames(text.Split(','));
                 foreach (string area in fixedNames)
                 {
                     if (area.Contains('['))
@@ -749,7 +749,7 @@ public partial class XlsxWorkbook
     [GeneratedRegex(@"\A('?).*\1!.*\z", RegexOptions.Compiled)]
     private static partial Regex definedNameRegex { get; }
 
-    private static IEnumerable<String> validateDefinedNames(IEnumerable<String> definedNames)
+    private static IEnumerable<String> ValidateDefinedNames(IEnumerable<String> definedNames)
     {
         var sb = new StringBuilder();
         foreach (string testName in definedNames)
@@ -773,7 +773,7 @@ public partial class XlsxWorkbook
 
     private void LoadPrintTitles(string definition)
     {
-        var areas = validateDefinedNames(definition.Split(','));
+        var areas = ValidateDefinedNames(definition.Split(','));
         foreach (var item in areas)
         {
             if (this.Range(item) != null)
