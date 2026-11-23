@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Download release assets from the release packaging job and verify their checksums before creating a GitHub Release.
+
 ## [1.0.0]
 
 First stable release of Aid.Xlsx for .NET 10.
