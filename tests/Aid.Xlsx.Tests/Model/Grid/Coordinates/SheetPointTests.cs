@@ -12,7 +12,7 @@ internal class SheetPointTests
     {
         Assert.That(
             () => new SheetPoint(invalidSheetName, new Point(1, 1)),
-            Throws.Exception.TypeOf<ArgumentException>());
+            Throws.InstanceOf<ArgumentException>());
     }
 
     [TestCase("sheet", 2, 5, "sheet", 2, 5, true)]

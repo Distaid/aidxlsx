@@ -13,7 +13,7 @@ internal class XlsxRowAreaTests
     {
         Assert.That(
             () => new XlsxRowArea(invalidSheetName, 1),
-            Throws.Exception.TypeOf<ArgumentException>());
+            Throws.InstanceOf<ArgumentException>());
     }
 
     [TestCase(-50)]
