@@ -1,9 +1,9 @@
 # Workbook I/O performance
 
-The benchmarks use workbooks with one worksheet and five columns of numbers, repeated text,
-dates, and formulas. Each load reads an XLSX file already in memory. Each save writes to a
-new memory stream after loading the source workbook outside the timed operation. Package
-validation and formula calculation are disabled during saving.
+The general I/O benchmarks use workbooks with one worksheet and five columns of numbers,
+repeated text, dates, and formulas. Each load reads an XLSX file already in memory. Each
+save writes to a new memory stream after loading the source workbook outside the timed
+operation. Package validation and formula calculation are disabled during saving.
 
 ## Aid.Xlsx and ClosedXML on JIT
 
@@ -81,3 +81,26 @@ dotnet publish tests/Aid.Xlsx.NativeBenchmarks -c Release -r win-x64 -p:PublishA
 .\artifacts\native-benchmarks\aot-speed\Aid.Xlsx.NativeBenchmarks.exe artifacts/native-benchmarks/input
 .\artifacts\native-benchmarks\jit\Aid.Xlsx.NativeBenchmarks.exe artifacts/native-benchmarks/input
 ```
+
+## Saving workbooks with many styles
+
+Commit `10b8cb1` added an index for saved style IDs. We compared it with its parent commit
+using Release builds on JIT under .NET 10.0.14 on Windows 11 x64. The synthetic workbook
+contains 10,000 rows with one numeric cell per row. Each cell has a distinct fill color,
+with 512 font colors and 200 custom number formats in rotation.
+
+Each run used 8 warmup saves and 25 measured saves. It loaded a fresh copy of the workbook
+before each save and wrote to a new memory stream. Times are medians and allocations are
+mean managed bytes on the benchmark thread per save. Package validation and formula
+calculation were disabled. We ran each build twice and reversed their order for the second
+pair of runs.
+
+| Build | Median save times | Mean allocated per save |
+| --- | ---: | ---: |
+| Before the style index | 218.40–230.83 ms | 1.31 GB |
+| With the style index | 58.06–65.09 ms | 21.17–21.27 MB |
+
+For comparison, we ran the JIT benchmark above on the standard 20,000-row workbook. The
+two save medians were 190.88 and 237.26 ms before the change, and 189.88 and 189.97 ms
+with the index. Both builds allocated about 50.08 MB per save. The spread between the
+two baseline runs makes the timing improvement on this input inconclusive.
