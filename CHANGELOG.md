@@ -7,16 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-23
+
+### Changed
+
+- Apply a single code style across `src/` and enforce it in the build: predefined type
+  keywords, explicit types where the type is not apparent, collection expressions,
+  primary constructors, `readonly` struct members, and generated regexes. The public API
+  is unchanged.
+- Enable `EnforceCodeStyleInBuild` and record the analyzer policy in `.editorconfig`, so
+  a new style or analyzer violation fails the build instead of accumulating silently.
+  On this branch "use var when the type is apparent" stays a suggestion, because the
+  var and explicit-type fixers disagree on deconstruction declarations, and CA1822 stays
+  a suggestion because its code fix fails in the Roslyn version of the .NET 10 SDK.
+- Compile the internal regular expressions at build time (`GeneratedRegex`) and prefer
+  char and span overloads over temporary strings on the cell, style, and formula paths.
+- Group the solution projects into `src/` and `tests/` solution folders.
+
+### Fixed
+
+- Name the offending parameter when throwing `ArgumentException` and
+  `ArgumentOutOfRangeException` instead of creating them without a message; the switch
+  fallbacks now include the received value.
+- Resolve the nullability mismatch in `Reference.RangeOp`, where a list of nullable
+  worksheets was assigned to a non-nullable collection.
+- Call `GC.SuppressFinalize` from `MceXmlReader.Dispose`.
+- Point the GitHub release and NuGet version badges to Aid.Xlsx 1.0.0 on the 1.x branch.
+- Download release assets from the release packaging job and verify their checksums before creating a GitHub Release.
+- Honor workbook defaults when setting `workbook.Style` before adding worksheets and retain the style after saving.
+
 ### Added
 
 - Show the package icon, target .NET version, release and NuGet versions, download count, CI status, and license in the README.
 - Document migration API replacements and regression coverage for template exports.
-
-### Fixed
-
-- Point the GitHub release and NuGet version badges to Aid.Xlsx 1.0.0 on the 1.x branch.
-- Download release assets from the release packaging job and verify their checksums before creating a GitHub Release.
-- Honor workbook defaults when setting `workbook.Style` before adding worksheets and retain the style after saving.
 
 ## [1.0.0]
 
@@ -79,5 +102,6 @@ First stable release of Aid.Xlsx for .NET 10.
   produced empty ranges. Rows of different runtime types are no longer mixed in one
   grouped snapshot.
 
-[Unreleased]: https://github.com/Distaid/aidxlsx/compare/v1.0.0...main
+[Unreleased]: https://github.com/Distaid/aidxlsx/compare/v1.0.1...release/1.x
+[1.0.1]: https://github.com/Distaid/aidxlsx/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Distaid/aidxlsx/releases/tag/v1.0.0
