@@ -86,18 +86,24 @@ jobs:
             exit 1
           fi
 
-          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          git fetch --no-tags origin '+refs/heads/*:refs/remotes/origin/*'
 
-          # 1) The commit being released must be on main, both for a tag push and for a dry run.
-          if ! git merge-base --is-ancestor "$ref_sha" refs/remotes/origin/main; then
-            echo "::error::commit $ref_sha is not on main"
+          # 1) The commit being released must be on the branch that owns the version:
+          #    1.x comes from release/1.x, everything newer comes from main.
+          release_ref="refs/remotes/origin/main"
+          case "$version" in
+            1.*) release_ref="refs/remotes/origin/release/1.x" ;;
+          esac
+
+          if ! git merge-base --is-ancestor "$ref_sha" "$release_ref"; then
+            echo "::error::commit $ref_sha is not on $release_ref"
             exit 1
           fi
 
           # 2a) Tag ancestry is checked ONLY in the push branch.
           if [ "${{ github.event_name }}" == "push" ]; then
-            if ! git merge-base --is-ancestor "refs/tags/$tag^{commit}" refs/remotes/origin/main; then
-              echo "::error::tag $tag is not reachable from the main branch"
+            if ! git merge-base --is-ancestor "refs/tags/$tag^{commit}" "$release_ref"; then
+              echo "::error::tag $tag is not reachable from $release_ref"
               exit 1
             fi
           else
