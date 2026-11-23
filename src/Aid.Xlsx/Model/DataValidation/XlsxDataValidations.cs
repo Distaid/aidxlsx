@@ -181,7 +181,7 @@ internal class XlsxDataValidations(XlsxWorksheet worksheet) : IXlsxDataValidatio
 
     internal void Consolidate()
     {
-        bool areEqual(IXlsxDataValidation dv1, IXlsxDataValidation dv2)
+        static bool areEqual(IXlsxDataValidation dv1, IXlsxDataValidation dv2)
         {
             return
                 dv1.IgnoreBlanks == dv2.IgnoreBlanks &&

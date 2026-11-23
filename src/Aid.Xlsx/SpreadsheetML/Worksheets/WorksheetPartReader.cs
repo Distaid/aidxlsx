@@ -359,7 +359,7 @@ internal static class WorksheetPartReader
             var id = (string)link.Attribute(XName.Get("id", OpenXmlConst.RelationshipsNs))
                 ?? (string)link.Attribute(XName.Get("id", OpenXmlConst.StrictRelationshipsNs));
             var location = (string)link.Attribute("location") ?? reference;
-            foreach (XlsxCell cell in ws.Range(reference).Cells())
+            foreach (XlsxCell cell in ws.Range(reference).Cells().Cast<XlsxCell>())
             {
                 cell.SetCellHyperlink(id is null ? new XlsxHyperlink(location, tooltip) : new XlsxHyperlink(targets[id], tooltip));
             }
@@ -559,7 +559,7 @@ internal static class WorksheetPartReader
     private static void ApplyStyle(XlsxColumns columns, Int32 styleIndex, XlsxWorkbookStyles styles)
     {
         // When loading columns we must propagate style to each column but not deeper. In other cases we do not propagate at all.
-        foreach (XlsxColumn col in columns)
+        foreach (XlsxColumn col in columns.Cast<XlsxColumn>())
             ApplyStyle(col, styleIndex, styles);
     }
 }

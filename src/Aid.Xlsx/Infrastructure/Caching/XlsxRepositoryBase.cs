@@ -15,7 +15,7 @@ internal abstract class XlsxRepositoryBase<Tkey, Tvalue>(Func<Tkey, Tvalue> crea
     const int CONCURRENCY_LEVEL = 4;
     const int INITIAL_CAPACITY = 1000;
 
-    private readonly ConcurrentDictionary<Tkey, WeakReference> _storage = new ConcurrentDictionary<Tkey, WeakReference>(CONCURRENCY_LEVEL, INITIAL_CAPACITY, comparer);
+    private readonly ConcurrentDictionary<Tkey, WeakReference> _storage = new(CONCURRENCY_LEVEL, INITIAL_CAPACITY, comparer);
     private readonly Func<Tkey, Tvalue> _createNew = createNew;
 
     protected XlsxRepositoryBase(Func<Tkey, Tvalue> createNew)

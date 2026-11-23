@@ -50,7 +50,7 @@ internal struct XlsxColorKey : IEquatable<XlsxColorKey>
         return false;
     }
 
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
         if (obj is XlsxColorKey)
             return Equals((XlsxColorKey)obj);

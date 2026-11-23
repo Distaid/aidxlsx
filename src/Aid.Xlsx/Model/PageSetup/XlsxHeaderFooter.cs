@@ -126,7 +126,7 @@ internal class XlsxHeaderFooter : IXlsxHeaderFooter
         set { _changed = value; }
     }
 
-    internal static readonly char[] sourceArray = new char[] { 'L', 'C', 'R' };
+    internal static readonly char[] sourceArray = ['L', 'C', 'R'];
 
     internal void SetAsInitial()
     {

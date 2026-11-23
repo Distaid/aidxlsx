@@ -16,7 +16,7 @@ internal class Reference
         if (!area.IsNormalized)
             throw new ArgumentException();
 
-        Areas = new List<XlsxRangeAddress>(1) { area };
+        Areas = [area];
     }
 
     /// <summary>

@@ -106,9 +106,9 @@ internal static partial class PivotTableXml
         xml.WriteAttribute("firstDataRow", pt.FirstDataRow);
         xml.WriteAttribute("firstDataCol", pt.FirstDataCol);
 
-        var filterArea = pt.Filters.GetSize();
-        xml.WriteAttributeDefault("rowPageCount", filterArea.Height, 0);
-        xml.WriteAttributeDefault("colPageCount", filterArea.Width, 0);
+        var (Width, Height) = pt.Filters.GetSize();
+        xml.WriteAttributeDefault("rowPageCount", Height, 0);
+        xml.WriteAttributeDefault("colPageCount", Width, 0);
         xml.WriteEndElement(); // location
 
         // Pivot Fields

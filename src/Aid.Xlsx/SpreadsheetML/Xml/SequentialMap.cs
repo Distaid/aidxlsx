@@ -72,7 +72,7 @@ internal class SequentialMap<TKey, T>(IReadOnlyBiDictionary<TKey, T> fullMap)
     {
         _saveTable = [.. _savedIdToActualId
             .Select(x => (x.Key, _fullMap[x.Value]))
-            .OrderBy(x => x.Item1)];
+            .OrderBy(x => x.Key)];
     }
 
     public IEnumerable<(int SaveId, T Actual)> GetActual()

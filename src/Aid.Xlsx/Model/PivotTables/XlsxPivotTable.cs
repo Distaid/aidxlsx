@@ -1432,10 +1432,10 @@ internal class XlsxPivotTable : IXlsxPivotTable
         foreach (var columnName in keptColumnSourceNames)
             ColumnAxis.AddField(columnName, columnName);
 
-        foreach (var keptDataField in keptDataFields)
+        foreach (var (SourceName, CustomName, Field) in keptDataFields)
         {
-            var dataField = DataFields.AddField(keptDataField.SourceName, keptDataField.CustomName);
-            dataField.Subtotal = keptDataField.Field.Subtotal;
+            var dataField = DataFields.AddField(SourceName, CustomName);
+            dataField.Subtotal = Field.Subtotal;
         }
 
         static List<string> GetKeptNames(

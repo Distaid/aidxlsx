@@ -21,8 +21,8 @@ internal static class DateTimeParser
     private static readonly ConcurrentDictionary<CultureInfo, string[]> CultureSpecificPatterns = new();
 
     private static readonly string[] TimeOfDayPatterns = ["h:m tt", "h:m t", "h:m:s tt", "h:m:s t"];
-    internal static readonly string[] second = new[] { "yyyy-M-d" };
-    internal static readonly string[] stringArray = new[] { "h:m tt", "H:m", "h:m" };
+    internal static readonly string[] second = ["yyyy-M-d"];
+    internal static readonly string[] stringArray = ["h:m tt", "H:m", "h:m"];
 
     public static bool TryParseCultureDate(string s, CultureInfo culture, out DateTime date)
     {

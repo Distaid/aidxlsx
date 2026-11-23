@@ -787,7 +787,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
         var cells = new XlsxCells(this, false, XlsxCellsUsedOptions.AllContents);
         foreach (var ws in WorksheetsInternal)
         {
-            foreach (XlsxCell cell in ws.CellsUsed(XlsxCellsUsedOptions.All))
+            foreach (XlsxCell cell in ws.CellsUsed(XlsxCellsUsedOptions.All).Cast<XlsxCell>())
             {
                 if (predicate(cell))
                     cells.Add(cell);

@@ -73,7 +73,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
             _fieldNames = CreateFieldNames();
             var headersRow = HeadersRow(false);
             Int32 cellPos = 0;
-            foreach (XlsxCell cell in headersRow.Cells())
+            foreach (XlsxCell cell in headersRow.Cells().Cast<XlsxCell>())
             {
                 var cellValue = cell.CachedValue;
                 var name = cellValue.ToString(CultureInfo.CurrentCulture);

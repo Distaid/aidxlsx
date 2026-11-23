@@ -303,8 +303,8 @@ internal partial class RstReader
     {
         var richTextLength = richRuns.Sum(x => x.Text.Length);
         var sb = new StringBuilder(richTextLength);
-        foreach (var richRun in richRuns)
-            sb.Append(richRun.Text);
+        foreach (var (Text, Font) in richRuns)
+            sb.Append(Text);
 
         var richText = sb.ToString();
 
@@ -314,37 +314,37 @@ internal partial class RstReader
         var prevStartIndex = richTextLength;
         for (var i = phoneticRunDtos.Count - 1; i >= 0; --i)
         {
-            var phoneticRun = phoneticRunDtos[i];
+            var (Text, StartIndex, EndIndex) = phoneticRunDtos[i];
 
             // Each run must have a text
-            if (string.IsNullOrEmpty(phoneticRun.Text))
+            if (string.IsNullOrEmpty(Text))
             {
                 phoneticRunDtos.RemoveAt(i);
                 continue;
             }
 
             // Start index must be less than the end index
-            if (phoneticRun.EndIndex < phoneticRun.StartIndex)
+            if (EndIndex < StartIndex)
             {
                 phoneticRunDtos.RemoveAt(i);
                 continue;
             }
 
             // Omit phonetic runs of length 0
-            if (phoneticRun.EndIndex == phoneticRun.StartIndex)
+            if (EndIndex == StartIndex)
             {
                 phoneticRunDtos.RemoveAt(i);
                 continue;
             }
 
             // Omit phonetic runs that overlap with the next one
-            if (phoneticRun.EndIndex > prevStartIndex)
+            if (EndIndex > prevStartIndex)
             {
                 phoneticRunDtos.RemoveAt(i);
                 continue;
             }
 
-            prevStartIndex = phoneticRun.StartIndex;
+            prevStartIndex = StartIndex;
         }
 
         var runs = new RichTextRun[richRuns.Count];

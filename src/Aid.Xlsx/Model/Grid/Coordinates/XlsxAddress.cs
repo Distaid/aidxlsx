@@ -348,7 +348,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
                _fixedColumn == other._fixedColumn;
     }
 
-    public override Boolean Equals(Object other)
+    public override readonly Boolean Equals(Object other)
     {
         return Equals(other as IXlsxAddress);
     }
@@ -396,12 +396,12 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
         return address;
     }
 
-    internal XlsxAddress WithoutWorksheet()
+    internal readonly XlsxAddress WithoutWorksheet()
     {
         return new XlsxAddress(RowNumber, ColumnNumber, FixedRow, FixedColumn);
     }
 
-    internal XlsxAddress WithWorksheet(XlsxWorksheet worksheet)
+    internal readonly XlsxAddress WithWorksheet(XlsxWorksheet worksheet)
     {
         return new XlsxAddress(worksheet, RowNumber, ColumnNumber, FixedRow, FixedColumn);
     }
@@ -446,9 +446,9 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
         return address;
     }
 
-    public String UniqueId { get { return RowNumber.ToString("0000000") + ColumnNumber.ToString("00000"); } }
+    public readonly String UniqueId { get { return RowNumber.ToString("0000000") + ColumnNumber.ToString("00000"); } }
 
-    public bool IsValid
+    public readonly bool IsValid
     {
         get
         {

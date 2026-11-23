@@ -40,7 +40,7 @@ public static partial class XlsxHelper
     /// 1904 calendar serial date upper limit (exclusive).
     /// </summary>
     internal const int Calendar1904UpperLimit = 2957004;
-    private static readonly char[] sourceArray = new[] { 'C', 'R' };
+    private static readonly char[] sourceArray = ['C', 'R'];
     public static Encoding NoBomUTF8 = new UTF8Encoding(false);
 
     public static String LastCell { get { return $"{MaxColumnLetter}{MaxRowNumber}"; } }

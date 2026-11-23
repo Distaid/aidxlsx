@@ -844,13 +844,13 @@ internal static class MathTrig
         // The result can have at most 15 chars
         var result = new StringBuilder(15);
         var subtractValues = RomanForms.Value[form];
-        foreach (var subtract in subtractValues)
+        foreach (var (Symbol, Value) in subtractValues)
         {
             // While the number is larger than the current value, append the symbol
-            while (number >= subtract.Value)
+            while (number >= Value)
             {
-                result.Append(subtract.Symbol);
-                number -= subtract.Value;
+                result.Append(Symbol);
+                number -= Value;
             }
         }
 

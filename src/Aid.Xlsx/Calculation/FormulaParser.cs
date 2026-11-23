@@ -7,8 +7,8 @@ namespace Aid.Xlsx.Calculation;
 
 internal class FormulaParser(FunctionRegistry functionRegistry)
 {
-    private readonly AstFactory _nodeFactoryA1 = new AstFactory(functionRegistry, true);
-    private readonly AstFactory _nodeFactoryR1C1 = new AstFactory(functionRegistry, false);
+    private readonly AstFactory _nodeFactoryA1 = new(functionRegistry, true);
+    private readonly AstFactory _nodeFactoryR1C1 = new(functionRegistry, false);
 
     /// <summary>
     /// Parse a formula into an abstract syntax tree.

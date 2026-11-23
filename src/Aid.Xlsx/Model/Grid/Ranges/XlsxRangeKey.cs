@@ -23,7 +23,7 @@ internal struct XlsxRangeKey(XlsxRangeType rangeType, XlsxRangeAddress address) 
     /// <summary>Indicates whether this instance and a specified object are equal.</summary>
     /// <returns>true if <paramref name="obj" /> and this instance are the same type and represent the same value; otherwise, false.</returns>
     /// <param name="obj">Another object to compare to. </param>
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
         if (obj is null) return false;
         return obj is XlsxRangeKey && Equals((XlsxRangeKey)obj);

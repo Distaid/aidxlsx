@@ -378,7 +378,7 @@ internal readonly struct AnyValue
 
     public static AnyValue BinaryPlus(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return BinaryArithmeticOp(in leftItem, in rightItem, static (lhs, rhs) => lhs + rhs, ctx);
         }, context);
@@ -386,7 +386,7 @@ internal readonly struct AnyValue
 
     public static AnyValue BinaryMinus(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return BinaryArithmeticOp(in leftItem, in rightItem, static (lhs, rhs) => lhs - rhs, ctx);
         }, context);
@@ -394,7 +394,7 @@ internal readonly struct AnyValue
 
     public static AnyValue BinaryMult(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return BinaryArithmeticOp(in leftItem, in rightItem, static (lhs, rhs) => lhs * rhs, ctx);
         }, context);
@@ -402,7 +402,7 @@ internal readonly struct AnyValue
 
     public static AnyValue BinaryDiv(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return BinaryArithmeticOp(in leftItem, in rightItem, static (lhs, rhs) => rhs == 0.0 ? XlsxError.DivisionByZero : lhs / rhs, ctx);
         }, context);
@@ -410,7 +410,7 @@ internal readonly struct AnyValue
 
     public static AnyValue BinaryExp(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return BinaryArithmeticOp(in leftItem, in rightItem, static (lhs, rhs) => lhs == 0 && rhs == 0 ? XlsxError.NumberInvalid : Math.Pow(lhs, rhs), ctx);
         }, context);
@@ -422,7 +422,7 @@ internal readonly struct AnyValue
 
     public static AnyValue IsEqual(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return CompareValues(leftItem, rightItem, ctx.Culture).Match<ScalarValue>(
                 static cmp => cmp == 0,
@@ -432,7 +432,7 @@ internal readonly struct AnyValue
 
     public static AnyValue IsNotEqual(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return CompareValues(leftItem, rightItem, ctx.Culture).Match<ScalarValue>(
                 static cmp => cmp != 0,
@@ -442,7 +442,7 @@ internal readonly struct AnyValue
 
     public static AnyValue IsGreaterThan(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return CompareValues(leftItem, rightItem, ctx.Culture).Match<ScalarValue>(
                 static cmp => cmp > 0,
@@ -452,7 +452,7 @@ internal readonly struct AnyValue
 
     public static AnyValue IsGreaterThanOrEqual(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return CompareValues(leftItem, rightItem, ctx.Culture).Match<ScalarValue>(
                 static cmp => cmp >= 0,
@@ -462,7 +462,7 @@ internal readonly struct AnyValue
 
     public static AnyValue IsLessThan(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return CompareValues(leftItem, rightItem, ctx.Culture).Match<ScalarValue>(
                 static cmp => cmp < 0,
@@ -472,7 +472,7 @@ internal readonly struct AnyValue
 
     public static AnyValue IsLessThanOrEqual(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             return CompareValues(leftItem, rightItem, ctx.Culture).Match<ScalarValue>(
                 static cmp => cmp <= 0,
@@ -484,7 +484,7 @@ internal readonly struct AnyValue
 
     public static AnyValue Concat(in AnyValue left, in AnyValue right, CalcContext context)
     {
-        return BinaryOperation(in left, in right, static (in ScalarValue leftItem, in ScalarValue rightItem, CalcContext ctx) =>
+        return BinaryOperation(in left, in right, static (in leftItem, in rightItem, ctx) =>
         {
             var leftTextResult = leftItem.ToText(ctx.Culture);
             if (!leftTextResult.TryPickT0(out var leftText, out var leftError))
