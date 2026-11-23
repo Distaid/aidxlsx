@@ -249,7 +249,7 @@ internal record XlsxFontFormatValue
             set => throw Exception();
         }
 
-        private NotSupportedException Exception()
+        private static NotSupportedException Exception()
         {
             return new NotSupportedException("This is an adapter for an immutable font format.");
         }

@@ -42,7 +42,7 @@ internal class XlsxCells(XlsxWorkbook workbook, bool usedCellsOnly, XlsxCellsUse
         }
     }
 
-    private IEnumerable<Point> GetAllCellsInRange(IXlsxRangeAddress rangeAddress)
+    private static IEnumerable<Point> GetAllCellsInRange(IXlsxRangeAddress rangeAddress)
     {
         if (!rangeAddress.IsValid)
             yield break;

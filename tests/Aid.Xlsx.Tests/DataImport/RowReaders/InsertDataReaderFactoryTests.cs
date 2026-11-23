@@ -116,7 +116,7 @@ public class InsertDataReaderFactoryTests
     public void CanCreateDataTableReader()
     {
         var dt = new DataTable();
-        var reader = InsertDataReaderFactory.Instance.CreateReader(dt);
+        var reader = InsertDataReaderFactory.CreateReader(dt);
 
         Assert.IsInstanceOf<Aid.Xlsx.DataImport.RowReaders.DataTableReader>(reader);
     }

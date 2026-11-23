@@ -36,7 +36,7 @@ internal class FunctionDefinition
 
     public AnyValue CallFunction(CalcContext ctx, Span<AnyValue> args)
     {
-        if (ctx.UseImplicitIntersection)
+        if (CalcContext.UseImplicitIntersection)
             IntersectArguments(ctx, args);
 
         return _function(ctx, args);

@@ -18,7 +18,7 @@ public class XsdSchemaParser
     /// </summary>
     private const string XsdNs = "http://www.w3.org/2001/XMLSchema";
 
-    public XsdSchema ParseSchema(XmlTreeReader reader)
+    public static XsdSchema ParseSchema(XmlTreeReader reader)
     {
         var file = new XsdSchema();
 

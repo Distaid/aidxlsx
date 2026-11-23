@@ -206,7 +206,7 @@ internal partial class StylesReader(XmlTreeReader reader, XlsxWorkbookStyles sty
             _styles.AddFormat(cellFormat);
     }
 
-    private (int NumFmtId, XlsxNumberFormat FormatCode) OnNumFmtParsed(uint numFmtId, string formatCode)
+    private static (int NumFmtId, XlsxNumberFormat FormatCode) OnNumFmtParsed(uint numFmtId, string formatCode)
     {
         return (checked((int)numFmtId), XlsxNumberFormat.Parse(formatCode));
     }
@@ -431,7 +431,7 @@ internal partial class StylesReader(XmlTreeReader reader, XlsxWorkbookStyles sty
         }
     }
 
-    private XlsxFillFormatValue OnGradientFillParsed(List<(FractionOfOne Value, XlsxColor Color)> stop, XlsxGradientType type, double degree, double left, double right, double top, double bottom)
+    private static XlsxFillFormatValue OnGradientFillParsed(List<(FractionOfOne Value, XlsxColor Color)> stop, XlsxGradientType type, double degree, double left, double right, double top, double bottom)
     {
         var stops = stop.ToDictionary(x => x.Value, x => x.Color);
         return type switch
@@ -453,7 +453,7 @@ internal partial class StylesReader(XmlTreeReader reader, XlsxWorkbookStyles sty
         };
     }
 
-    private (FractionOfOne Position, XlsxColor Color) OnGradientStopParsed(XlsxColor color, double position)
+    private static (FractionOfOne Position, XlsxColor Color) OnGradientStopParsed(XlsxColor color, double position)
     {
         // Spec requires stop positions to be 0..1, but doesn't have a type for that. Excel repairs workbook when it receives values outside 0..1.
         return (position, color);
@@ -483,7 +483,7 @@ internal partial class StylesReader(XmlTreeReader reader, XlsxWorkbookStyles sty
         return dxfBorder;
     }
 
-    private XlsxBorderLine OnBorderPrParsed(XlsxColor? color, XlsxBorderStyleValues style)
+    private static XlsxBorderLine OnBorderPrParsed(XlsxColor? color, XlsxBorderStyleValues style)
     {
         return new XlsxBorderLine(color ?? XlsxColor.Automatic, style);
     }
@@ -568,7 +568,7 @@ internal partial class StylesReader(XmlTreeReader reader, XlsxWorkbookStyles sty
         return (format, checked((int?)xfId));
     }
 
-    private List<(XlsxCellFormatValue Format, int? CellStyleXfId)> OnCellXfsParsed(List<(XlsxCellFormatValue Format, int? CellStyleXfId)> xf, uint? count)
+    private static List<(XlsxCellFormatValue Format, int? CellStyleXfId)> OnCellXfsParsed(List<(XlsxCellFormatValue Format, int? CellStyleXfId)> xf, uint? count)
     {
         return xf;
     }
@@ -648,7 +648,7 @@ internal partial class StylesReader(XmlTreeReader reader, XlsxWorkbookStyles sty
         return cellStyles;
     }
 
-    private XlsxDifferentialAlignmentValue OnCellAlignmentParsed(XlsxAlignmentHorizontalValues? horizontal, XlsxAlignmentVerticalValues vertical, uint? textRotation, bool? wrapText, uint? indent, int? relativeIndent, bool? justifyLastLine, bool? shrinkToFit, uint? readingOrder)
+    private static XlsxDifferentialAlignmentValue OnCellAlignmentParsed(XlsxAlignmentHorizontalValues? horizontal, XlsxAlignmentVerticalValues vertical, uint? textRotation, bool? wrapText, uint? indent, int? relativeIndent, bool? justifyLastLine, bool? shrinkToFit, uint? readingOrder)
     {
         if (readingOrder is not null && readingOrder is not (0 or 1 or 2))
             throw PartStructureException.InvalidAttributeFormat();
@@ -744,7 +744,7 @@ internal partial class StylesReader(XmlTreeReader reader, XlsxWorkbookStyles sty
             _styles.DefaultPivotStyle = defaultPivotStyle;
     }
 
-    private uint OnRgbColorParsed(uint? rgb)
+    private static uint OnRgbColorParsed(uint? rgb)
     {
         // Despite the name, it's ARGB. If not specified, use black (Excel supplies 0x00000000, but
         // Excel plays very fast and loose with transparency).
@@ -782,7 +782,7 @@ internal partial class StylesReader(XmlTreeReader reader, XlsxWorkbookStyles sty
         return Xpr.Success();
     }
 
-    private XlsxDifferentialProtectionValue OnCellProtectionParsed(bool? locked, bool? hidden)
+    private static XlsxDifferentialProtectionValue OnCellProtectionParsed(bool? locked, bool? hidden)
     {
         return new XlsxDifferentialProtectionValue
         {
@@ -791,12 +791,12 @@ internal partial class StylesReader(XmlTreeReader reader, XlsxWorkbookStyles sty
         };
     }
 
-    private XlsxFillFormatValue OnFillPatternFillParsed(XlsxFillFormatValue patternFillValue)
+    private static XlsxFillFormatValue OnFillPatternFillParsed(XlsxFillFormatValue patternFillValue)
     {
         return patternFillValue;
     }
 
-    private XlsxFillFormatValue OnFillGradientFillParsed(XlsxFillFormatValue gradientFillValue)
+    private static XlsxFillFormatValue OnFillGradientFillParsed(XlsxFillFormatValue gradientFillValue)
     {
         return gradientFillValue;
     }

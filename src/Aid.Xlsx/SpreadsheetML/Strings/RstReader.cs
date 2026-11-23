@@ -108,37 +108,37 @@ internal partial class RstReader
         };
     }
 
-    private bool OnBooleanPropertyParsed(bool value)
+    private static bool OnBooleanPropertyParsed(bool value)
     {
         return value;
     }
 
-    private int OnIntPropertyParsed(int value)
+    private static int OnIntPropertyParsed(int value)
     {
         return value;
     }
 
-    private XlsxFontSize OnFontSizeParsed(double sizePt)
+    private static XlsxFontSize OnFontSizeParsed(double sizePt)
     {
         return XlsxFontSize.FromPoints(sizePt);
     }
 
-    private XlsxFontName OnFontNameParsed(string fontName)
+    private static XlsxFontName OnFontNameParsed(string fontName)
     {
         return fontName;
     }
 
-    private XlsxFontVerticalTextAlignmentValues OnVerticalAlignFontPropertyParsed(XlsxFontVerticalTextAlignmentValues verticalAlignment)
+    private static XlsxFontVerticalTextAlignmentValues OnVerticalAlignFontPropertyParsed(XlsxFontVerticalTextAlignmentValues verticalAlignment)
     {
         return verticalAlignment;
     }
 
-    private XlsxFontScheme OnFontSchemeParsed(XlsxFontScheme scheme)
+    private static XlsxFontScheme OnFontSchemeParsed(XlsxFontScheme scheme)
     {
         return scheme;
     }
 
-    private XlsxFontUnderlineValues OnUnderlinePropertyParsed(XlsxFontUnderlineValues underline)
+    private static XlsxFontUnderlineValues OnUnderlinePropertyParsed(XlsxFontUnderlineValues underline)
     {
         return underline;
     }
@@ -276,7 +276,7 @@ internal partial class RstReader
         return (runText, runFont);
     }
 
-    private PhoneticRunDto OnPhoneticRunParsed(string text, uint sb, uint eb)
+    private static PhoneticRunDto OnPhoneticRunParsed(string text, uint sb, uint eb)
     {
         // Validate and filter out later, in the method that construct the rich text
         return new PhoneticRunDto(text, checked((int)sb), checked((int)eb));
@@ -288,7 +288,7 @@ internal partial class RstReader
         return new PhoneticProperties(phoneticFont, type, alignment);
     }
 
-    private OneOf<string, XlsxImmutableRichText> OnRstParsed(string? fullText, List<(string Text, XlsxDifferentialFontValue Font)> richRuns, List<PhoneticRunDto> phoneticRuns, PhoneticProperties? phoneticProps)
+    private static OneOf<string, XlsxImmutableRichText> OnRstParsed(string? fullText, List<(string Text, XlsxDifferentialFontValue Font)> richRuns, List<PhoneticRunDto> phoneticRuns, PhoneticProperties? phoneticProps)
     {
         if (richRuns.Count == 0 && phoneticProps is null)
             return fullText ?? string.Empty;

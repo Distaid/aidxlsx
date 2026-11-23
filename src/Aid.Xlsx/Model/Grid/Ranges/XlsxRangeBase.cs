@@ -1667,7 +1667,7 @@ internal abstract class XlsxRangeBase(XlsxRangeAddress rangeAddress) : IXlsxRang
         cellsCollection.RemapColumns(columns, sortRange);
     }
 
-    private IEnumerable<XlsxSortElement> ParseSortOrder(string columnsToSortBy, XlsxSortOrder defaultSortOrder, bool matchCase, bool ignoreBlanks)
+    private static IEnumerable<XlsxSortElement> ParseSortOrder(string columnsToSortBy, XlsxSortOrder defaultSortOrder, bool matchCase, bool ignoreBlanks)
     {
         foreach (var sortColumn in columnsToSortBy.Split(',').Select(coPair => coPair.Trim()))
         {

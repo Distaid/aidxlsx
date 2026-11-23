@@ -178,7 +178,7 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
         return GetDescent(font, dpiY, metrics);
     }
 
-    private double GetDescent(IXlsxFontBase font, double dpiY, FontMetrics metrics)
+    private static double GetDescent(IXlsxFontBase font, double dpiY, FontMetrics metrics)
     {
         return PointsToPixels(-metrics.VerticalMetrics.Descender * font.FontSize / metrics.UnitsPerEm, dpiY);
     }
@@ -285,7 +285,7 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
         return string.Equals(fontName, MetricCompatibleFontName, StringComparison.OrdinalIgnoreCase);
     }
 
-    private void AddEmbeddedFont(FontCollection fontCollection)
+    private static void AddEmbeddedFont(FontCollection fontCollection)
     {
         var assembly = Assembly.GetExecutingAssembly();
         const string resourcePath = "Aid.Xlsx.Graphics.Fonts.CarlitoBare-{0}.ttf";

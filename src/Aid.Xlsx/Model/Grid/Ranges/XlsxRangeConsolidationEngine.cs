@@ -114,7 +114,7 @@ internal class XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ra
             }
         }
 
-        private void ClearRangeInRow(BitArray rowArray, Tuple<int, int> rangeBoundaries)
+        private static void ClearRangeInRow(BitArray rowArray, Tuple<int, int> rangeBoundaries)
         {
             for (int i = rangeBoundaries.Item1; i <= rangeBoundaries.Item2; i++)
             {
@@ -133,7 +133,7 @@ internal class XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ra
                 _bitMatrix.Values.All(r => r[0] == false && r[^1] == false));
         }
 
-        private IEnumerable<Tuple<int, int>> GetRangesBoundariesStartingByRow(BitArray rowArray)
+        private static IEnumerable<Tuple<int, int>> GetRangesBoundariesStartingByRow(BitArray rowArray)
         {
             int startIdx = 0;
             for (int i = 1; i < rowArray.Length - 1; i++)
@@ -177,7 +177,7 @@ internal class XlsxRangeConsolidationEngine(XlsxWorkbook workbook, XlsxRanges ra
             }
         }
 
-        private bool RowIncludesRange(BitArray rowArray, Tuple<int, int> rangeBoundaries)
+        private static bool RowIncludesRange(BitArray rowArray, Tuple<int, int> rangeBoundaries)
         {
             for (int i = rangeBoundaries.Item1; i <= rangeBoundaries.Item2; i++)
             {

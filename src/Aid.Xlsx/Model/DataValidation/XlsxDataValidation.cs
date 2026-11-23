@@ -253,7 +253,7 @@ internal class XlsxDataValidation : IXlsxDataValidation
 
     #endregion IXlsxDataValidation Members
 
-    private void Validate(String value)
+    private static void Validate(String value)
     {
         if (value.Length > 255)
             throw new ArgumentOutOfRangeException(nameof(value), "The maximum allowed length of the value is 255 characters.");

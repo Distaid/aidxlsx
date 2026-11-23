@@ -25,7 +25,7 @@ internal class XlsxRangeFactory(XlsxWorksheet worksheet)
         };
     }
 
-    public XlsxRange CreateRange(XlsxRangeAddress rangeAddress)
+    public static XlsxRange CreateRange(XlsxRangeAddress rangeAddress)
     {
         return new XlsxRange(rangeAddress);
     }
@@ -40,12 +40,12 @@ internal class XlsxRangeFactory(XlsxWorksheet worksheet)
         return new XlsxRow(_worksheet, rowNumber);
     }
 
-    public XlsxRangeColumn CreateRangeColumn(XlsxRangeAddress rangeAddress)
+    public static XlsxRangeColumn CreateRangeColumn(XlsxRangeAddress rangeAddress)
     {
         return new XlsxRangeColumn(rangeAddress);
     }
 
-    public XlsxRangeRow CreateRangeRow(XlsxRangeAddress rangeAddress)
+    public static XlsxRangeRow CreateRangeRow(XlsxRangeAddress rangeAddress)
     {
         return new XlsxRangeRow(rangeAddress);
     }

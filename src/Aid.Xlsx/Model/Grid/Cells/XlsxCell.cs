@@ -634,7 +634,7 @@ internal sealed partial class XlsxCell : IXlsxCell, IXlsxFormatContainer
         if (createTable && this.Worksheet.Tables.Any<XlsxTable>(t => t.Contains(this)))
             throw new InvalidOperationException($"This cell '{this.Address}' is already part of a table.");
 
-        var reader = InsertDataReaderFactory.Instance.CreateReader(data);
+        var reader = InsertDataReaderFactory.CreateReader(data);
         return Worksheet.InsertTable(Point, reader, tableName, createTable, addHeadings: true, transpose: false);
     }
 
@@ -673,7 +673,7 @@ internal sealed partial class XlsxCell : IXlsxCell, IXlsxFormatContainer
         if (dataTable == null)
             return null;
 
-        var reader = InsertDataReaderFactory.Instance.CreateReader(dataTable);
+        var reader = InsertDataReaderFactory.CreateReader(dataTable);
         return Worksheet.InsertData(Point, reader, addHeadings: false, transpose: false);
     }
 
@@ -1222,7 +1222,7 @@ internal sealed partial class XlsxCell : IXlsxCell, IXlsxFormatContainer
         }
     }
 
-    private IXlsxCell GetTargetCell(String target, XlsxWorksheet defaultWorksheet)
+    private static IXlsxCell GetTargetCell(String target, XlsxWorksheet defaultWorksheet)
     {
         var pair = target.Split('!');
         if (pair.Length == 1)

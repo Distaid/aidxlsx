@@ -285,7 +285,7 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
             RecalculateSheetName = recalculateSheetName
         };
         var result = EvaluateFormula(expression, ctx);
-        if (ctx.UseImplicitIntersection)
+        if (CalcContext.UseImplicitIntersection)
         {
             result = result.Match(
                 () => AnyValue.Blank,
@@ -328,7 +328,7 @@ internal class XlsxCalcEngine : ISheetListener, IWorkbookListener
     }
 
     // build/get static keyword table
-    private FunctionRegistry GetFunctionTable()
+    private static FunctionRegistry GetFunctionTable()
     {
         var fr = new FunctionRegistry();
 

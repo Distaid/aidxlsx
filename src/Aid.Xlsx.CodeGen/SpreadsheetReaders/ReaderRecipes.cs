@@ -18,7 +18,7 @@ internal static class ReaderRecipes
         using var reader = new XmlTreeReader(fileStream, new XsdEnumMapper(), true);
         var parser = new XsdSchemaParser();
 
-        var schema = parser.ParseSchema(reader);
+        var schema = XsdSchemaParser.ParseSchema(reader);
         switch (command)
         {
             case "styles":

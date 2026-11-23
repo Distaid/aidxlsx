@@ -568,32 +568,32 @@ public partial class XlsxWorkbook
         if (anchor != null) LoadClientDataAnchor<T>(drawing, anchor);
 
         LoadDrawingPositioning<T>(drawing, clientData);
-        LoadDrawingProtection<T>(drawing, clientData);
+        LoadDrawingProtection(drawing, clientData);
 
         var visible = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "Visible");
         drawing.Visible = visible != null &&
                           (string.IsNullOrEmpty(visible.Value) ||
                            visible.Value.StartsWith("t", StringComparison.OrdinalIgnoreCase));
 
-        LoadDrawingHAlignment<T>(drawing, clientData);
-        LoadDrawingVAlignment<T>(drawing, clientData);
+        LoadDrawingHAlignment(drawing, clientData);
+        LoadDrawingVAlignment(drawing, clientData);
     }
 
-    private void LoadDrawingHAlignment<T>(IXlsxDrawing<T> drawing, XElement clientData)
+    private static void LoadDrawingHAlignment<T>(IXlsxDrawing<T> drawing, XElement clientData)
     {
         var textHAlign = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "TextHAlign");
         if (textHAlign != null)
             drawing.Style.Alignment.Horizontal = Enum.Parse<XlsxDrawingHorizontalAlignment>(textHAlign.Value.ToProper());
     }
 
-    private void LoadDrawingVAlignment<T>(IXlsxDrawing<T> drawing, XElement clientData)
+    private static void LoadDrawingVAlignment<T>(IXlsxDrawing<T> drawing, XElement clientData)
     {
         var textVAlign = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "TextVAlign");
         if (textVAlign != null)
             drawing.Style.Alignment.Vertical = Enum.Parse<XlsxDrawingVerticalAlignment>(textVAlign.Value.ToProper());
     }
 
-    private void LoadDrawingProtection<T>(IXlsxDrawing<T> drawing, XElement clientData)
+    private static void LoadDrawingProtection<T>(IXlsxDrawing<T> drawing, XElement clientData)
     {
         var lockedElement = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "Locked");
         var lockTextElement = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "LockText");
@@ -749,7 +749,7 @@ public partial class XlsxWorkbook
     [GeneratedRegex(@"\A('?).*\1!.*\z", RegexOptions.Compiled)]
     private static partial Regex definedNameRegex { get; }
 
-    private IEnumerable<String> validateDefinedNames(IEnumerable<String> definedNames)
+    private static IEnumerable<String> validateDefinedNames(IEnumerable<String> definedNames)
     {
         var sb = new StringBuilder();
         foreach (string testName in definedNames)

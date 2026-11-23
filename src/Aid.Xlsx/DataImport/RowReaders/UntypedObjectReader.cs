@@ -55,7 +55,7 @@ internal class UntypedObjectReader : IInsertDataReader
             if (itemType == null)
                 return new NullDataReader(items);
 
-            return InsertDataReaderFactory.Instance.CreateReader(items, itemType);
+            return InsertDataReaderFactory.CreateReader(items, itemType);
         }
     }
 

@@ -320,7 +320,7 @@ internal struct XlsxAddress : IXlsxAddress, IEquatable<XlsxAddress>
         return x == y;
     }
 
-    public new readonly Boolean Equals(object x, object y)
+    public new static Boolean Equals(object x, object y)
     {
         return x == y;
     }
