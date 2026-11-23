@@ -8,9 +8,10 @@ using Aid.Xlsx.Infrastructure.Utilities;
 
 namespace Aid.Xlsx.Infrastructure.Extensions;
 
-internal static class StringExtensions
+internal static partial class StringExtensions
 {
-    private static readonly Regex RegexNewLine = new(@"((?<!\r)\n|\r\n)", RegexOptions.Compiled);
+    [GeneratedRegex(@"((?<!\r)\n|\r\n)", RegexOptions.Compiled)]
+    private static partial Regex RegexNewLine { get; }
 
     public static String RemoveSpecialCharacters(this String str)
     {
@@ -56,7 +57,7 @@ internal static class StringExtensions
 
     internal static String FixNewLines(this String value)
     {
-        return value.Contains("\n") ? RegexNewLine.Replace(value, Environment.NewLine) : value;
+        return value.Contains('\n') ? RegexNewLine.Replace(value, Environment.NewLine) : value;
     }
 
     internal static Boolean PreserveSpaces(this String value)

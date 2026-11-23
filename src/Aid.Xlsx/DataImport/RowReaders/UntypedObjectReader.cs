@@ -15,7 +15,7 @@ internal class UntypedObjectReader : IInsertDataReader
     [RequiresUnreferencedCode("A sequence with mixed runtime item types is split by type and dispatched to reflection-based readers. Use a homogeneous typed sequence or a DataTable to stay trim-compatible.")]
     public UntypedObjectReader(IEnumerable data)
     {
-        _data = (data ?? new object[0]).Cast<object>();
+        _data = (data ?? Array.Empty<object>()).Cast<object>();
         _readers = [.. CreateReaders()];
 
         IEnumerable<IInsertDataReader> CreateReaders()

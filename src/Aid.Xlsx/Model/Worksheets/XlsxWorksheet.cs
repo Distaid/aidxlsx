@@ -539,7 +539,7 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
     public IXlsxWorksheet CollapseRows(Int32 outlineLevel)
     {
         if (outlineLevel < 1 || outlineLevel > 8)
-            throw new ArgumentOutOfRangeException("outlineLevel", "Outline level must be between 1 and 8.");
+            throw new ArgumentOutOfRangeException(nameof(outlineLevel), "Outline level must be between 1 and 8.");
 
         Internals.RowsCollection.Values.Where(r => r.OutlineLevel == outlineLevel).ForEach(r => r.Collapse());
         return this;
@@ -548,7 +548,7 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
     public IXlsxWorksheet CollapseColumns(Int32 outlineLevel)
     {
         if (outlineLevel < 1 || outlineLevel > 8)
-            throw new ArgumentOutOfRangeException("outlineLevel", "Outline level must be between 1 and 8.");
+            throw new ArgumentOutOfRangeException(nameof(outlineLevel), "Outline level must be between 1 and 8.");
 
         Internals.ColumnsCollection.Values.Where(c => c.OutlineLevel == outlineLevel).ForEach(c => c.Collapse());
         return this;
@@ -557,7 +557,7 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
     public IXlsxWorksheet ExpandRows(Int32 outlineLevel)
     {
         if (outlineLevel < 1 || outlineLevel > 8)
-            throw new ArgumentOutOfRangeException("outlineLevel", "Outline level must be between 1 and 8.");
+            throw new ArgumentOutOfRangeException(nameof(outlineLevel), "Outline level must be between 1 and 8.");
 
         Internals.RowsCollection.Values.Where(r => r.OutlineLevel == outlineLevel).ForEach(r => r.Expand());
         return this;
@@ -566,7 +566,7 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
     public IXlsxWorksheet ExpandColumns(Int32 outlineLevel)
     {
         if (outlineLevel < 1 || outlineLevel > 8)
-            throw new ArgumentOutOfRangeException("outlineLevel", "Outline level must be between 1 and 8.");
+            throw new ArgumentOutOfRangeException(nameof(outlineLevel), "Outline level must be between 1 and 8.");
 
         Internals.ColumnsCollection.Values.Where(c => c.OutlineLevel == outlineLevel).ForEach(c => c.Expand());
         return this;
@@ -1516,7 +1516,7 @@ internal class XlsxWorksheet : XlsxRangeBase, IXlsxWorksheet, IXlsxFormatContain
         if (XlsxHelper.IsValidRangeAddress(rangeAddressStr))
             return Range(new XlsxRangeAddress(Worksheet, rangeAddressStr));
 
-        if (rangeAddressStr.Contains("["))
+        if (rangeAddressStr.Contains('['))
             return Table(rangeAddressStr[..rangeAddressStr.IndexOf("[")]) as XlsxRange;
 
         if (DefinedNames.TryGetValue(rangeAddressStr, out var sheetDefinedName))

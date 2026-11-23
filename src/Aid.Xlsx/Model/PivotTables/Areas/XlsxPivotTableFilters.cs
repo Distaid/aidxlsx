@@ -108,7 +108,7 @@ internal class XlsxPivotTableFilters : IXlsxPivotFields
     internal XlsxPivotTablePageField Add(String sourceName, String customName)
     {
         if (sourceName == XlsxConstants.PivotTable.ValuesSentinalLabel)
-            throw new ArgumentException(nameof(sourceName), $"The column '{sourceName}' does not appear in the source range.");
+            throw new ArgumentException($"The column '{sourceName}' does not appear in the source range.", nameof(sourceName));
 
         var heightDifference = GetHeightDifference(1);
         var movedArea = _pivotTable.Area.ShiftRows(heightDifference);

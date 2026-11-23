@@ -28,8 +28,7 @@ public static class ReferenceParser
     /// <returns><c>true</c> if parsing was a success, <c>false</c> otherwise.</returns>
     public static bool TryParseA1(string text, out string? sheetName, out ReferenceArea area)
     {
-        if (text is null)
-            throw new ArgumentNullException();
+        ArgumentNullException.ThrowIfNull(text);
 
         sheetName = null;
         var tokens = RolexLexer.GetTokensA1(text.AsSpan());
@@ -57,8 +56,7 @@ public static class ReferenceParser
     /// <returns><c>true</c> if parsing was a success, <c>false</c> otherwise.</returns>
     public static bool TryParseA1(string text, out ReferenceArea area)
     {
-        if (text is null)
-            throw new ArgumentNullException();
+        ArgumentNullException.ThrowIfNull(text);
 
         var tokens = RolexLexer.GetTokensA1(text.AsSpan());
         return TryParseA1(tokens, text, out area);
@@ -102,8 +100,7 @@ public static class ReferenceParser
     /// <returns><c>true</c> if parsing was a success, <c>false</c> otherwise.</returns>
     public static bool TryParseSheetA1(string text, out string sheetName, out ReferenceArea area)
     {
-        if (text is null)
-            throw new ArgumentNullException(nameof(text));
+        ArgumentNullException.ThrowIfNull(text);
 
         var tokens = RolexLexer.GetTokensA1(text.AsSpan());
         return TryParseSheetA1(tokens, text, out sheetName, out area);
@@ -122,8 +119,7 @@ public static class ReferenceParser
     /// <returns><c>true</c> if parsing was a success, <c>false</c> otherwise.</returns>
     public static bool TryParseName(string text, out string? sheetName, out string name)
     {
-        if (text is null)
-            throw new ArgumentNullException(nameof(text));
+        ArgumentNullException.ThrowIfNull(text);
 
         var tokens = RolexLexer.GetTokensA1(text.AsSpan());
         if (tokens.Count == 2 &&
@@ -148,8 +144,7 @@ public static class ReferenceParser
     /// <returns><c>true</c> if parsing was a success, <c>false</c> otherwise.</returns>
     public static bool TryParseSheetName(string text, out string sheetName, out string name)
     {
-        if (text is null)
-            throw new ArgumentNullException(nameof(text));
+        ArgumentNullException.ThrowIfNull(text);
 
         var tokens = RolexLexer.GetTokensA1(text.AsSpan());
         return TryParseSheetName(tokens, text, out sheetName, out name);

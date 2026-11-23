@@ -85,7 +85,7 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
     public DefaultGraphicEngine(string fallbackFont)
     {
         if (string.IsNullOrWhiteSpace(fallbackFont))
-            throw new ArgumentException(nameof(fallbackFont));
+            throw new ArgumentException(null, nameof(fallbackFont));
 
         var fontCollection = new FontCollection();
         AddEmbeddedFont(fontCollection);
@@ -105,11 +105,9 @@ public class DefaultGraphicEngine : IXlsxGraphicEngine
     /// <param name="fontStreams">Extra fonts that should be loaded to the engine.</param>
     private DefaultGraphicEngine(Stream fallbackFontStream, bool useSystemFonts, Stream[] fontStreams)
     {
-        if (fallbackFontStream is null)
-            throw new ArgumentNullException(nameof(fallbackFontStream));
+        ArgumentNullException.ThrowIfNull(fallbackFontStream);
 
-        if (fontStreams is null)
-            throw new ArgumentNullException(nameof(fontStreams));
+        ArgumentNullException.ThrowIfNull(fontStreams);
 
         var fontCollection = new FontCollection();
         AddEmbeddedFont(fontCollection);

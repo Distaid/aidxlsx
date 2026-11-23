@@ -75,7 +75,7 @@ internal class XlsxHeaderFooter : IXlsxHeaderFooter
 
     private static List<ParsedHeaderFooterElement> ParseFormattedHeaderFooterText(string text)
     {
-        bool IsAtPositionIndicator(int i) => i < text.Length - 1 && text[i] == '&' && (new char[] { 'L', 'C', 'R' }.Contains(text[i + 1]));
+        bool IsAtPositionIndicator(int i) => i < text.Length - 1 && text[i] == '&' && (sourceArray.Contains(text[i + 1]));
 
         var parsedElements = new List<ParsedHeaderFooterElement>();
         var currentPosition = 'L'; // default is LEFT
@@ -125,6 +125,8 @@ internal class XlsxHeaderFooter : IXlsxHeaderFooter
         }
         set { _changed = value; }
     }
+
+    internal static readonly char[] sourceArray = new char[] { 'L', 'C', 'R' };
 
     internal void SetAsInitial()
     {

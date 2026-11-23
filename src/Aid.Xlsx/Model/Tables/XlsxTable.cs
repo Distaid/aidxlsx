@@ -130,7 +130,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     internal void RenameField(String oldName, String newName)
     {
         if (!_fieldNames.TryGetValue(oldName, out var field))
-            throw new ArgumentException("The field does not exist in this table", "oldName");
+            throw new ArgumentException("The field does not exist in this table", nameof(oldName));
 
         _fieldNames.Remove(oldName);
         _fieldNames.Add(newName, field);
@@ -893,7 +893,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     public IXlsxRange AppendData(IEnumerable data, bool transpose, Boolean propagateExtraColumns = false)
     {
         var castedData = data?.Cast<object>().ToArray() ?? [];
-        if (!castedData.Any() || data is String)
+        if (castedData.Length == 0 || data is String)
             return null;
 
         return AppendDataCore(castedData.Length, cell => cell.InsertData(castedData, transpose));
@@ -911,7 +911,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     public IXlsxRange AppendData<T>(IEnumerable<T> data, Boolean propagateExtraColumns = false)
     {
         var materializedData = data?.ToArray() ?? [];
-        if (!materializedData.Any() || data is String)
+        if (materializedData.Length == 0 || data is String)
             return null;
 
         return AppendDataCore(materializedData.Length, cell => cell.InsertData(materializedData));
@@ -927,7 +927,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     public IXlsxRange ReplaceData(IEnumerable data, bool transpose, Boolean propagateExtraColumns = false)
     {
         var castedData = data?.Cast<object>().ToArray() ?? [];
-        if (!castedData.Any() || data is String)
+        if (castedData.Length == 0 || data is String)
             throw new InvalidOperationException("Cannot replace table data with empty enumerable.");
 
         return ReplaceDataCore(castedData.Length, propagateExtraColumns, cell => cell.InsertData(castedData, transpose));
@@ -945,7 +945,7 @@ internal class XlsxTable : XlsxRange, IXlsxTable
     public IXlsxRange ReplaceData<T>(IEnumerable<T> data, Boolean propagateExtraColumns = false)
     {
         var materializedData = data?.ToArray() ?? [];
-        if (!materializedData.Any() || data is String)
+        if (materializedData.Length == 0 || data is String)
             throw new InvalidOperationException("Cannot replace table data with empty enumerable.");
 
         return ReplaceDataCore(materializedData.Length, propagateExtraColumns, cell => cell.InsertData(materializedData));

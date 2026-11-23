@@ -438,7 +438,7 @@ internal abstract class XlsxRangeBase : IXlsxRangeBase
 
     public bool Contains(String rangeAddress)
     {
-        string addressToUse = rangeAddress.Contains("!")
+        string addressToUse = rangeAddress.Contains('!')
                                   ? rangeAddress[(rangeAddress.IndexOf("!") + 1)..]
                                   : rangeAddress;
 

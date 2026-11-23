@@ -20,11 +20,9 @@ internal static class CryptographicAlgorithms
 
     public static String GetPasswordHash(Algorithm algorithm, String password, String salt = "", UInt32 spinCount = 0)
     {
-        if (password == null)
-            throw new ArgumentNullException(nameof(password));
+        ArgumentNullException.ThrowIfNull(password);
 
-        if (salt == null)
-            throw new ArgumentNullException(nameof(salt));
+        ArgumentNullException.ThrowIfNull(salt);
 
         if (password.Length == 0) return "";
 
@@ -58,8 +56,7 @@ internal static class CryptographicAlgorithms
 
     private static String GetDefaultPasswordHash(String password)
     {
-        if (password == null)
-            throw new ArgumentNullException(nameof(password));
+        ArgumentNullException.ThrowIfNull(password);
 
         // http://kohei.us/2008/01/18/excel-sheet-protection-password-hash/
         // http://sc.openoffice.org/excelfileformat.pdf - 4.18.4
@@ -86,29 +83,24 @@ internal static class CryptographicAlgorithms
 
     private static String GetSha512PasswordHash(String password, String salt, UInt32 spinCount)
     {
-        if (password == null)
-            throw new ArgumentNullException(nameof(password));
+        ArgumentNullException.ThrowIfNull(password);
 
-        if (salt == null)
-            throw new ArgumentNullException(nameof(salt));
+        ArgumentNullException.ThrowIfNull(salt);
 
         var saltBytes = Convert.FromBase64String(salt);
         var passwordBytes = Encoding.Unicode.GetBytes(password);
         var bytes = saltBytes.Concat(passwordBytes).ToArray();
 
         byte[] hashedBytes;
-        using (var hash = SHA512.Create())
-        {
-            hashedBytes = hash.ComputeHash(bytes);
+        hashedBytes = SHA512.HashData(bytes);
 
-            bytes = new byte[hashedBytes.Length + sizeof(uint)];
-            for (uint i = 0; i < spinCount; i++)
-            {
-                var le = BitConverter.GetBytes(i);
-                Array.Copy(hashedBytes, bytes, hashedBytes.Length);
-                Array.Copy(le, 0, bytes, hashedBytes.Length, le.Length);
-                hashedBytes = hash.ComputeHash(bytes);
-            }
+        bytes = new byte[hashedBytes.Length + sizeof(uint)];
+        for (uint i = 0; i < spinCount; i++)
+        {
+            var le = BitConverter.GetBytes(i);
+            Array.Copy(hashedBytes, bytes, hashedBytes.Length);
+            Array.Copy(le, 0, bytes, hashedBytes.Length, le.Length);
+            hashedBytes = SHA512.HashData(bytes);
         }
 
         return Convert.ToBase64String(hashedBytes);

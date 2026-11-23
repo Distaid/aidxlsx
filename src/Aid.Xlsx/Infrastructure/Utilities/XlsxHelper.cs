@@ -40,7 +40,7 @@ public static partial class XlsxHelper
     /// 1904 calendar serial date upper limit (exclusive).
     /// </summary>
     internal const int Calendar1904UpperLimit = 2957004;
-
+    private static readonly char[] sourceArray = new[] { 'C', 'R' };
     public static Encoding NoBomUTF8 = new UTF8Encoding(false);
 
     public static String LastCell { get { return $"{MaxColumnLetter}{MaxRowNumber}"; } }
@@ -63,37 +63,15 @@ public static partial class XlsxHelper
     /// </summary>
     internal static readonly StringComparer FunctionComparer = StringComparer.OrdinalIgnoreCase;
 
-    internal static readonly Regex RCSimpleRegex = new(
-        @"^(r(((-\d)?\d*)|\[(-\d)?\d*\]))?(c(((-\d)?\d*)|\[(-\d)?\d*\]))?$"
-        , RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    [GeneratedRegex(@"^(r(((-\d)?\d*)|\[(-\d)?\d*\]))?(c(((-\d)?\d*)|\[(-\d)?\d*\]))?$"
+, RegexOptions.IgnoreCase | RegexOptions.Compiled, "ru-BY")]
+    internal static partial Regex RCSimpleRegex { get; }
 
-    internal static readonly Regex A1SimpleRegex = new(
-        @"\A"
-        + @"(?<Reference>" // Start Group to pick
-        + @"(?<Sheet>" // Start Sheet Name, optional
-        + @"("
-        + @"\'([^\[\]\*/\\\?:\']+|\'\')\'"
-        // Sheet name with special characters, surrounding apostrophes are required
-        + @"|"
-        + @"\'?\w+\'?" // Sheet name with letters and numbers, surrounding apostrophes are optional
-        + @")"
-        + @"!)?" // End Sheet Name, optional
-        + @"(?<Range>" // Start range
-        + @"\$?[a-zA-Z]{1,3}\$?\d{1,7}" // A1 Address 1
-        + @"(?<RangeEnd>:\$?[a-zA-Z]{1,3}\$?\d{1,7})?" // A1 Address 2, optional
-        + @"|"
-        + @"(?<ColumnNumbers>\$?\d{1,7}:\$?\d{1,7})" // 1:1
-        + @"|"
-        + @"(?<ColumnLetters>\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})" // A:A
-        + @")" // End Range
-        + @")" // End Group to pick
-        + @"\Z"
-        , RegexOptions.Compiled);
+    [GeneratedRegex(@"\A(?<Reference>(?<Sheet>(\'([^\[\]\*/\\\?:\']+|\'\')\'|\'?\w+\'?)!)?(?<Range>\$?[a-zA-Z]{1,3}\$?\d{1,7}(?<RangeEnd>:\$?[a-zA-Z]{1,3}\$?\d{1,7})?|(?<ColumnNumbers>\$?\d{1,7}:\$?\d{1,7})|(?<ColumnLetters>\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})))\Z", RegexOptions.Compiled)]
+    internal static partial Regex A1SimpleRegex { get; }
 
-    internal static readonly Regex NamedRangeReferenceRegex =
-        new(@"^('?(?<Sheet>[^'!]+)'?!(?<Range>.+))|((?<Table>[^\[]+)\[(?<Column>[^\]]+)\])$",
-                  RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture
-            );
+    [GeneratedRegex(@"^('?(?<Sheet>[^'!]+)'?!(?<Range>.+))|((?<Table>[^\[]+)\[(?<Column>[^\]]+)\])$", RegexOptions.ExplicitCapture | RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+    internal static partial Regex NamedRangeReferenceRegex { get; }
 
     private static readonly string[] letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
 
@@ -124,7 +102,7 @@ public static partial class XlsxHelper
     /// <param name="columnLetter"> The column letter to translate into a column number. </param>
     public static int GetColumnNumberFromLetter(string columnLetter)
     {
-        if (string.IsNullOrEmpty(columnLetter)) throw new ArgumentNullException("columnLetter");
+        if (string.IsNullOrEmpty(columnLetter)) throw new ArgumentNullException(nameof(columnLetter));
 
         //Extra check because we allow users to pass row col positions in as strings
         if (columnLetter[0] <= '9')
@@ -273,10 +251,8 @@ public static partial class XlsxHelper
         return rows;
     }
 
-    private static readonly Regex A1RegexRelative = new(
-  @"(?<=\W)(?<one>\$?[a-zA-Z]{1,3}\$?\d{1,7})(?=\W)" // A1
-+ @"|(?<=\W)(?<two>\$?\d{1,7}:\$?\d{1,7})(?=\W)" // 1:1
-+ @"|(?<=\W)(?<three>\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})(?=\W)", RegexOptions.Compiled); // A:A
+    [GeneratedRegex(@"(?<=\W)(?<one>\$?[a-zA-Z]{1,3}\$?\d{1,7})(?=\W)|(?<=\W)(?<two>\$?\d{1,7}:\$?\d{1,7})(?=\W)|(?<=\W)(?<three>\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})(?=\W)", RegexOptions.Compiled)]
+    private static partial Regex A1RegexRelative { get; }
 
     private static string Evaluator(Match match, Int32 row, String column)
     {
@@ -401,7 +377,7 @@ public static partial class XlsxHelper
             return false;
         }
 
-        if (new[] { 'C', 'R' }.Any(c => newName.ToUpper().Equals(c.ToString())))
+        if (sourceArray.Any(c => newName.ToUpper().Equals(c.ToString())))
         {
             message = $"The {objectType} name '{newName}' is invalid";
             return false;

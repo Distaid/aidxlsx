@@ -651,11 +651,7 @@ internal partial class StylesReader
             // Multiple cell styles use same style formatting - split them, so each one uses
             // separate formatting. I considered removing duplicates, but it could mean that I
             // also might remove normal style, which is not desirable.
-            if (!cellStyles.ContainsKey(cellStyleXfId))
-            {
-                cellStyles.Add(cellStyleXfId, style);
-            }
-            else
+            if (!cellStyles.TryAdd(cellStyleXfId, style))
             {
                 _styleFormats.Add(_styleFormats[cellStyleXfId]);
                 var newCellStyleXfId = _styleFormats.Count - 1;

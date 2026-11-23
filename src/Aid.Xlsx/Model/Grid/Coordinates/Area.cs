@@ -263,8 +263,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <param name="rows">How many rows to take, must be at least one.</param>
     public Area SliceFromBottom(int rows)
     {
-        if (rows < 1)
-            throw new ArgumentOutOfRangeException();
+        ArgumentOutOfRangeException.ThrowIfLessThan(rows, 1);
 
         return new Area(new Point(BottomRow - rows + 1, FirstPoint.Column), LastPoint);
     }
@@ -275,8 +274,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <param name="rows">How many rows to take, must be at least one.</param>
     public Area SliceFromTop(int rows)
     {
-        if (rows < 1)
-            throw new ArgumentOutOfRangeException();
+        ArgumentOutOfRangeException.ThrowIfLessThan(rows, 1);
 
         return new Area(FirstPoint, new Point(TopRow + rows - 1, LastPoint.Column));
     }
@@ -287,8 +285,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <param name="columns">How many columns to take, must be at least one.</param>
     public Area SliceFromLeft(int columns)
     {
-        if (columns < 1)
-            throw new ArgumentOutOfRangeException();
+        ArgumentOutOfRangeException.ThrowIfLessThan(columns, 1);
 
         return new Area(FirstPoint, new Point(LastPoint.Row, LeftColumn + columns - 1));
     }
@@ -299,8 +296,7 @@ internal readonly struct Area : IEquatable<Area>, IEnumerable<Point>
     /// <param name="columns">How many columns to take, must be at least one.</param>
     public Area SliceFromRight(int columns)
     {
-        if (columns < 1)
-            throw new ArgumentOutOfRangeException();
+        ArgumentOutOfRangeException.ThrowIfLessThan(columns, 1);
 
         return new Area(new Point(FirstPoint.Row, RightColumn - columns + 1), LastPoint);
     }

@@ -171,8 +171,7 @@ internal class XlsxDataValidation : IXlsxDataValidation
     /// <param name="range">A range to add.</param>
     public void AddRange(IXlsxRange range)
     {
-        if (range == null)
-            throw new ArgumentNullException(nameof(range));
+        ArgumentNullException.ThrowIfNull(range);
 
         // Do not add area if the DV has been detached (e.g. consolidation).
         var isDetached = !_worksheet.DataValidations.Contains(this);

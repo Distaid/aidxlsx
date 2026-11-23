@@ -113,7 +113,6 @@ internal class XlsxHFItem : IXlsxHFItem
 
     private void ClearOccurrence(XlsxHFOccurrence occurrence)
     {
-        if (texts.ContainsKey(occurrence))
-            texts.Remove(occurrence);
+        texts.Remove(occurrence);
     }
 }

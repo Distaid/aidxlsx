@@ -107,8 +107,7 @@ internal sealed class CalcContext
     internal T[] AllocateArray<T>(int length)
         where T : struct
     {
-        if (length < 0)
-            throw new ArgumentOutOfRangeException(nameof(length));
+        ArgumentOutOfRangeException.ThrowIfNegative(length);
         if (length == 0)
             return [];
 
@@ -127,10 +126,8 @@ internal sealed class CalcContext
     internal T[,] AllocateArray<T>(int rows, int columns)
         where T : struct
     {
-        if (rows <= 0)
-            throw new ArgumentOutOfRangeException(nameof(rows));
-        if (columns <= 0)
-            throw new ArgumentOutOfRangeException(nameof(columns));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(rows);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(columns);
 
         // 0 means unlimited
         if (MaxCalculationMemoryBytes == 0)

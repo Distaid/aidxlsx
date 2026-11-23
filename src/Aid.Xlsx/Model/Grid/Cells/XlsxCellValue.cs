@@ -46,8 +46,7 @@ public readonly struct XlsxCellValue : IEquatable<XlsxCellValue>, IEquatable<Bla
 
     private XlsxCellValue(string text) : this()
     {
-        if (text is null)
-            throw new ArgumentNullException(nameof(text));
+        ArgumentNullException.ThrowIfNull(text);
 
         if (text.Length > 32767)
             throw new ArgumentOutOfRangeException(nameof(text), "Cells can hold a maximum of 32,767 characters.");

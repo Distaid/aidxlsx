@@ -108,7 +108,7 @@ internal class XlsxDefinedNames : IXlsxDefinedNames, IEnumerable<XlsxDefinedName
                             "The range address '{0}' for the named range '{1}' is not a valid range.", rangeAddress,
                             name));
 
-                    if (Scope == XlsxNamedRangeScope.Workbook || !XlsxHelper.NamedRangeReferenceRegex.Match(range.ToString() ?? string.Empty).Success)
+                    if (Scope == XlsxNamedRangeScope.Workbook || !XlsxHelper.NamedRangeReferenceRegex.IsMatch(range.ToString() ?? string.Empty))
                         throw new ArgumentException(
                             "For named ranges in the workbook scope, specify the sheet name in the reference.");
 

@@ -10,8 +10,7 @@ internal class XlsxPivotPageField
 {
     internal XlsxPivotPageField(int field)
     {
-        if (field < 0)
-            throw new ArgumentOutOfRangeException();
+        ArgumentOutOfRangeException.ThrowIfNegative(field);
 
         Field = field;
     }

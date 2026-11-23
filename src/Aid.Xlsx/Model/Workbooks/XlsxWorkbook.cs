@@ -413,7 +413,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
     public IXlsxDefinedName? DefinedName(String name)
     {
         ThrowIfDisposed();
-        if (name.Contains("!"))
+        if (name.Contains('!'))
         {
             var split = name.Split('!');
             var first = split[0];
@@ -907,8 +907,7 @@ public sealed partial class XlsxWorkbook : IXlsxWorkbook
 
     public XlsxWorkbook(LoadOptions loadOptions)
     {
-        if (loadOptions is null)
-            throw new ArgumentNullException(nameof(loadOptions));
+        ArgumentNullException.ThrowIfNull(loadOptions);
 
         DpiX = loadOptions.Dpi.X;
         DpiY = loadOptions.Dpi.Y;

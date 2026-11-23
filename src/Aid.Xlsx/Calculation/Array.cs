@@ -313,8 +313,8 @@ internal class ScalarArray : Array
 
     public ScalarArray(ScalarValue value, int columns, int rows)
     {
-        if (columns < 1) throw new ArgumentOutOfRangeException(nameof(columns));
-        if (rows < 1) throw new ArgumentOutOfRangeException(nameof(rows));
+        ArgumentOutOfRangeException.ThrowIfLessThan(columns, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(rows, 1);
         _value = value;
         _columns = columns;
         _rows = rows;

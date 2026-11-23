@@ -20,7 +20,7 @@ internal class FunctionDefinition
     public FunctionDefinition(int minParams, int maxParams, CalcEngineFunction function, FunctionFlags flags, AllowRange allowRanges, IReadOnlyCollection<int> markedParams)
     {
         if (allowRanges == AllowRange.None && markedParams.Any())
-            throw new ArgumentException(nameof(markedParams));
+            throw new ArgumentException(null, nameof(markedParams));
 
         MinParams = minParams;
         MaxParams = maxParams;

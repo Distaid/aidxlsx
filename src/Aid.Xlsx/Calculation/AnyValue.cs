@@ -51,8 +51,7 @@ internal readonly struct AnyValue
 
     public static AnyValue From(string text)
     {
-        if (text is null)
-            throw new ArgumentNullException();
+        ArgumentNullException.ThrowIfNull(text);
 
         return new AnyValue(TextValue, default, default, text, default, default, default);
     }
@@ -61,16 +60,14 @@ internal readonly struct AnyValue
 
     public static AnyValue From(Array array)
     {
-        if (array is null)
-            throw new ArgumentNullException();
+        ArgumentNullException.ThrowIfNull(array);
 
         return new(ArrayValue, default, default, default, default, array, default);
     }
 
     public static AnyValue From(Reference reference)
     {
-        if (reference is null)
-            throw new ArgumentNullException();
+        ArgumentNullException.ThrowIfNull(reference);
 
         return new(ReferenceValue, default, default, default, default, default, reference);
     }

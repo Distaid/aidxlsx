@@ -23,7 +23,7 @@ internal readonly struct XlsxName : IEquatable<XlsxName>
     public XlsxName(string sheetName, string name)
     {
         if (string.IsNullOrEmpty(sheetName))
-            throw new ArgumentException(nameof(sheetName));
+            throw new ArgumentException(null, nameof(sheetName));
 
         if (name.Any(char.IsWhiteSpace))
             throw new ArgumentException("Name can't contain whitespace.");

@@ -257,7 +257,7 @@ internal class XlsxTableField : IXlsxTableField
                 modifiedName = "[" + modifiedName + "]";
             }
 
-            var prependTableName = modifiedName.Contains(" ");
+            var prependTableName = modifiedName.Contains(' ');
 
             cell.FormulaA1 = $"SUBTOTAL({formulaCode},{(prependTableName ? table.Name : string.Empty)}[{modifiedName}])";
             var lastCell = table.LastRow().Cell(Index + 1);

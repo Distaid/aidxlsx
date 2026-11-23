@@ -72,8 +72,7 @@ internal class XlsxDefinedName : IXlsxDefinedName, IWorkbookListener
         get => _formula;
         set
         {
-            if (value is null)
-                throw new ArgumentNullException();
+            ArgumentNullException.ThrowIfNull(value);
 
             var formula = value.TrimFormulaEqual();
             if (string.IsNullOrWhiteSpace(formula))

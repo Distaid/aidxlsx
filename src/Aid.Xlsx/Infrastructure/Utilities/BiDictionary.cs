@@ -79,8 +79,7 @@ internal class BiDictionary<TKey, TValue> : IReadOnlyBiDictionary<TKey, TValue>
 
         // Keep first one. Entries should be added in ascending order (or at least order from
         // a file) and we want to reuse the earliest one to make things predictable.
-        if (!_entryToKey.ContainsKey(value))
-            _entryToKey.Add(value, id);
+        _entryToKey.TryAdd(value, id);
     }
 
     public bool TryGetValue(TValue value, [NotNullWhen(true)] out TValue? foundValue)

@@ -312,7 +312,7 @@ internal class XlsxColumn : XlsxRangeBase, IXlsxColumn, IXlsxFormatContainer
         set
         {
             if (value < 0 || value > 8)
-                throw new ArgumentOutOfRangeException("value", "Outline level must be between 0 and 8.");
+                throw new ArgumentOutOfRangeException(nameof(value), "Outline level must be between 0 and 8.");
 
             Worksheet.IncrementColumnOutline(value);
             Worksheet.DecrementColumnOutline(_outlineLevel);

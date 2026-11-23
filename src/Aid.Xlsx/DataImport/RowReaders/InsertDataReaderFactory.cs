@@ -18,7 +18,7 @@ internal class InsertDataReaderFactory
     [RequiresUnreferencedCode("Inserting data from an arbitrary IEnumerable uses reflection to discover the item type and its members. Use the DataTable overloads or explicit rows to stay trim-compatible.")]
     public IInsertDataReader CreateReader(IEnumerable data)
     {
-        if (data == null) throw new ArgumentNullException(nameof(data));
+        ArgumentNullException.ThrowIfNull(data);
 
         return CreateReader(data, data.GetItemType());
     }
@@ -26,7 +26,7 @@ internal class InsertDataReaderFactory
     [RequiresUnreferencedCode("Inserting data from an arbitrary IEnumerable uses reflection to discover the item type and its members. Use the DataTable overloads or explicit rows to stay trim-compatible.")]
     internal IInsertDataReader CreateReader(IEnumerable data, Type itemType)
     {
-        if (data == null) throw new ArgumentNullException(nameof(data));
+        ArgumentNullException.ThrowIfNull(data);
 
         if (itemType == null || itemType == typeof(Object))
             return new UntypedObjectReader(data);
@@ -46,7 +46,7 @@ internal class InsertDataReaderFactory
 
     public IInsertDataReader CreateReader<T>(IEnumerable<T[]> data)
     {
-        if (data == null) throw new ArgumentNullException(nameof(data));
+        ArgumentNullException.ThrowIfNull(data);
 
         return new ArrayReader(data);
     }
@@ -54,7 +54,7 @@ internal class InsertDataReaderFactory
     [RequiresUnreferencedCode("Inserting data from an IEnumerable of rows uses reflection to discover the row element type. Use the DataTable overloads or write XlsxCellValue values explicitly to stay trim-compatible.")]
     public IInsertDataReader CreateReader(IEnumerable<IEnumerable> data)
     {
-        if (data == null) throw new ArgumentNullException(nameof(data));
+        ArgumentNullException.ThrowIfNull(data);
 
         if (data.GetType().GetElementType() == typeof(String))
             return new SimpleTypeReader(data);
@@ -64,7 +64,7 @@ internal class InsertDataReaderFactory
 
     public IInsertDataReader CreateReader(DataTable dataTable)
     {
-        if (dataTable == null) throw new ArgumentNullException(nameof(dataTable));
+        ArgumentNullException.ThrowIfNull(dataTable);
 
         return new DataTableReader(dataTable);
     }

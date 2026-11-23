@@ -13,7 +13,7 @@ internal class DataRecordReader : IInsertDataReader
 
     public DataRecordReader(IEnumerable<IDataRecord> data)
     {
-        if (data == null) throw new ArgumentNullException(nameof(data));
+        ArgumentNullException.ThrowIfNull(data);
 
         _inMemoryData = [.. ReadToEnd(data)];
     }

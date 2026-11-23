@@ -34,36 +34,14 @@ using Aid.Xlsx.Rendering;
 namespace Aid.Xlsx.Model.Grid.Cells;
 
 [DebuggerDisplay("{Address}")]
-internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
+internal sealed partial class XlsxCell : IXlsxCell, IXlsxFormatContainer
 {
-    public static readonly Regex A1SimpleRegex = new(
-        //  @"(?<=\W)" // Start with non word
-        @"(?<Reference>" // Start Group to pick
-        + @"(?<Sheet>" // Start Sheet Name, optional
-        + @"("
-        + @"\'([^\[\]\*/\\\?:\']+|\'\')\'"
-        // Sheet name with special characters, surrounding apostrophes are required
-        + @"|"
-        + @"\'?\w+\'?" // Sheet name with letters and numbers, surrounding apostrophes are optional
-        + @")"
-        + @"!)?" // End Sheet Name, optional
-        + @"(?<Range>" // Start range
-        + @"(?<![\w\d])" // Preceded by anything but a letter or a number
-        + @"\$?[a-zA-Z]{1,3}\$?\d{1,7}" // A1 Address 1
-        + @"(?<RangeEnd>:\$?[a-zA-Z]{1,3}\$?\d{1,7})?" // A1 Address 2, optional
-        + @"(?![\w\d])" // followed by anything but a letter or a number
-        + @"|"
-        + @"(?<ColumnNumbers>\$?\d{1,7}:\$?\d{1,7})" // 1:1
-        + @"|"
-        + @"(?<ColumnLetters>\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})" // A:A
-        + @")" // End Range
-        + @")" // End Group to pick
-               //+ @"(?=\W)" // End with non word
-        , RegexOptions.Compiled);
+    [GeneratedRegex(@"(?<Reference>(?<Sheet>(\'([^\[\]\*/\\\?:\']+|\'\')\'|\'?\w+\'?)!)?(?<Range>(?<![\w\d])\$?[a-zA-Z]{1,3}\$?\d{1,7}(?<RangeEnd>:\$?[a-zA-Z]{1,3}\$?\d{1,7})?(?![\w\d])|(?<ColumnNumbers>\$?\d{1,7}:\$?\d{1,7})|(?<ColumnLetters>\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})))", RegexOptions.Compiled)]
+    public static partial Regex A1SimpleRegex { get; }
 
-    private static readonly Regex A1RowRegex = new(
-        @"(\$?\d{1,7}:\$?\d{1,7})" // 1:1
-        , RegexOptions.Compiled);
+    [GeneratedRegex(@"(\$?\d{1,7}:\$?\d{1,7})" // 1:1
+, RegexOptions.Compiled)]
+    private static partial Regex A1RowRegex { get; }
 
     private static readonly Regex A1ColumnRegex = new(
         @"(\$?[a-zA-Z]{1,3}:\$?[a-zA-Z]{1,3})" // A:A
@@ -1133,8 +1111,7 @@ internal sealed class XlsxCell : IXlsxCell, IXlsxFormatContainer
 
     public IXlsxCell CopyFrom(IXlsxRangeBase rangeObject)
     {
-        if (rangeObject is null)
-            throw new ArgumentNullException(nameof(rangeObject));
+        ArgumentNullException.ThrowIfNull(rangeObject);
 
         var asRange = (XlsxRangeBase)rangeObject;
         var maxRows = asRange.RowCount();

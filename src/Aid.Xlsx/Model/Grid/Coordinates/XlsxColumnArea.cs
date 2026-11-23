@@ -13,7 +13,7 @@ internal readonly record struct XlsxColumnArea
     public XlsxColumnArea(string name, int columnNumber)
     {
         if (string.IsNullOrEmpty(name))
-            throw new ArgumentException(nameof(name));
+            throw new ArgumentException(null, nameof(name));
 
         if (columnNumber is < XlsxHelper.MinColumnNumber or > XlsxHelper.MaxColumnNumber)
             throw new ArgumentOutOfRangeException(nameof(columnNumber));

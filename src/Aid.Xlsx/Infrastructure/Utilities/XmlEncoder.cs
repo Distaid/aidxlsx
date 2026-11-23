@@ -4,9 +4,10 @@ using System.Xml;
 
 namespace Aid.Xlsx.Infrastructure.Utilities;
 
-internal static class XmlEncoder
+internal static partial class XmlEncoder
 {
-    private static readonly Regex xHHHHRegex = new("_(x[\\dA-Fa-f]{4})_", RegexOptions.Compiled);
+    [GeneratedRegex("_(x[\\dA-Fa-f]{4})_", RegexOptions.Compiled)]
+    private static partial Regex xHHHHRegex { get; }
 
     public static string EncodeString(string encodeStr)
     {

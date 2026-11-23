@@ -39,7 +39,7 @@ internal class ObjectReader : IInsertDataReader
             itemType = itemType.GetUnderlyingType();
 
         _members = [.. itemType.GetFields(MemberBindingFlags).Cast<MemberInfo>()
-            .Concat(itemType.GetProperties(MemberBindingFlags).Where(pi => !pi.GetIndexParameters().Any()))
+            .Concat(itemType.GetProperties(MemberBindingFlags).Where(pi => pi.GetIndexParameters().Length == 0))
             .Where(mi => !XlsxColumnAttribute.IgnoreMember(mi))
             .OrderBy(XlsxColumnAttribute.GetOrder)];
 

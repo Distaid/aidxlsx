@@ -583,14 +583,14 @@ public partial class XlsxWorkbook
     {
         var textHAlign = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "TextHAlign");
         if (textHAlign != null)
-            drawing.Style.Alignment.Horizontal = (XlsxDrawingHorizontalAlignment)Enum.Parse(typeof(XlsxDrawingHorizontalAlignment), textHAlign.Value.ToProper());
+            drawing.Style.Alignment.Horizontal = Enum.Parse<XlsxDrawingHorizontalAlignment>(textHAlign.Value.ToProper());
     }
 
     private void LoadDrawingVAlignment<T>(IXlsxDrawing<T> drawing, XElement clientData)
     {
         var textVAlign = clientData.Elements().FirstOrDefault(e => e.Name.LocalName == "TextVAlign");
         if (textVAlign != null)
-            drawing.Style.Alignment.Vertical = (XlsxDrawingVerticalAlignment)Enum.Parse(typeof(XlsxDrawingVerticalAlignment), textVAlign.Value.ToProper());
+            drawing.Style.Alignment.Vertical = Enum.Parse<XlsxDrawingVerticalAlignment>(textVAlign.Value.ToProper());
     }
 
     private void LoadDrawingProtection<T>(IXlsxDrawing<T> drawing, XElement clientData)
@@ -712,7 +712,7 @@ public partial class XlsxWorkbook
                 var fixedNames = validateDefinedNames(text.Split(','));
                 foreach (string area in fixedNames)
                 {
-                    if (area.Contains("["))
+                    if (area.Contains('['))
                     {
                         var ws = WorksheetsInternal.FirstOrDefault<XlsxWorksheet>(w => w.SheetId == (localSheetId + 1));
                         ws?.PageSetup.PrintAreas.Add(area);
@@ -746,7 +746,8 @@ public partial class XlsxWorkbook
         }
     }
 
-    private static readonly Regex definedNameRegex = new(@"\A('?).*\1!.*\z", RegexOptions.Compiled);
+    [GeneratedRegex(@"\A('?).*\1!.*\z", RegexOptions.Compiled)]
+    private static partial Regex definedNameRegex { get; }
 
     private IEnumerable<String> validateDefinedNames(IEnumerable<String> definedNames)
     {
@@ -806,7 +807,7 @@ public partial class XlsxWorkbook
     private static void ParseReference(string item, out string sheetName, out string sheetArea)
     {
         var sections = item.Trim().Split('!');
-        if (sections.Count() == 1)
+        if (sections.Length == 1)
         {
             sheetName = string.Empty;
             sheetArea = item;

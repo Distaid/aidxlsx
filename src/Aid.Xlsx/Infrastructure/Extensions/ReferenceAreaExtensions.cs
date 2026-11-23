@@ -43,7 +43,7 @@ internal static class ReferenceAreaExtensions
     public static Area ToAreaFromA1(this ReferenceArea area)
     {
         if (area.Style != ReferenceStyle.A1)
-            throw new ArgumentException(nameof(area));
+            throw new ArgumentException(null, nameof(area));
 
         var row1 = A1ToPosition(area.First.RowType, area.First.RowValue, XlsxHelper.MinRowNumber);
         var col1 = A1ToPosition(area.First.ColumnType, area.First.ColumnValue, XlsxHelper.MinColumnNumber);
@@ -55,7 +55,7 @@ internal static class ReferenceAreaExtensions
     public static Area ToAreaFromR1C1(this ReferenceArea area, Point anchor)
     {
         if (area.Style != ReferenceStyle.R1C1)
-            throw new ArgumentException(nameof(area));
+            throw new ArgumentException(null, nameof(area));
 
         var row1 = R1C1ToPosition(area.First.RowType, area.First.RowValue, anchor.Row, XlsxHelper.MinRowNumber, XlsxHelper.MaxRowNumber);
         var col1 = R1C1ToPosition(area.First.ColumnType, area.First.ColumnValue, anchor.Column, XlsxHelper.MinColumnNumber, XlsxHelper.MaxColumnNumber);

@@ -470,8 +470,7 @@ internal readonly struct XlsxRangeAddress : IXlsxRangeAddress, IEquatable<XlsxRa
 
     public IXlsxRangeAddress Intersection(IXlsxRangeAddress otherRangeAddress)
     {
-        if (otherRangeAddress == null)
-            throw new ArgumentNullException(nameof(otherRangeAddress));
+        ArgumentNullException.ThrowIfNull(otherRangeAddress);
 
         var xlOtherRangeAddress = (XlsxRangeAddress)otherRangeAddress;
         return Intersection(in xlOtherRangeAddress);

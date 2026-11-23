@@ -25,7 +25,7 @@ internal sealed class XlsxPicture : IXlsxPicture, IDisposable
     internal XlsxPicture(IXlsxWorksheet worksheet, Stream stream, XlsxPictureFormat format)
         : this(worksheet)
     {
-        if (stream == null) throw new ArgumentNullException(nameof(stream));
+        ArgumentNullException.ThrowIfNull(stream);
 
         var info = worksheet.Workbook.GraphicEngine.GetPictureInfo(stream, format);
         Init(info);

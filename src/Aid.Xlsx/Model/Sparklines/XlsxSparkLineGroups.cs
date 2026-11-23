@@ -45,30 +45,25 @@ internal class XlsxSparklineGroups : IXlsxSparklineGroups, IEnumerable<XlsxSpark
 
     public IXlsxSparklineGroup Add(string locationAddress, string sourceDataAddress)
     {
-        if (locationAddress is null)
-            throw new ArgumentNullException(nameof(locationAddress));
+        ArgumentNullException.ThrowIfNull(locationAddress);
 
-        if (sourceDataAddress is null)
-            throw new ArgumentNullException(nameof(sourceDataAddress));
+        ArgumentNullException.ThrowIfNull(sourceDataAddress);
 
         return Add(new XlsxSparklineGroup(Worksheet, locationAddress, sourceDataAddress));
     }
 
     public IXlsxSparklineGroup Add(IXlsxCell location, IXlsxRange sourceData)
     {
-        if (location is null)
-            throw new ArgumentNullException(nameof(location));
+        ArgumentNullException.ThrowIfNull(location);
 
         return Add(new XlsxSparklineGroup(location, sourceData));
     }
 
     public IXlsxSparklineGroup Add(IXlsxRange locationRange, IXlsxRange sourceDataRange)
     {
-        if (locationRange is null)
-            throw new ArgumentNullException(nameof(locationRange));
+        ArgumentNullException.ThrowIfNull(locationRange);
 
-        if (sourceDataRange is null)
-            throw new ArgumentNullException(nameof(sourceDataRange));
+        ArgumentNullException.ThrowIfNull(sourceDataRange);
 
         return Add(new XlsxSparklineGroup(locationRange, sourceDataRange));
     }

@@ -23,8 +23,7 @@ internal class XlsxDataValidations : IXlsxDataValidations, IEnumerable<XlsxDataV
 
     IXlsxDataValidation IXlsxDataValidations.Add(IXlsxDataValidation dataValidation)
     {
-        if (dataValidation == null)
-            throw new ArgumentNullException(nameof(dataValidation));
+        ArgumentNullException.ThrowIfNull(dataValidation);
 
         var dv = (XlsxDataValidation)dataValidation;
         if (dv.Worksheet != _worksheet)
