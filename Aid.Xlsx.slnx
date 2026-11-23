@@ -1,11 +1,15 @@
 <Solution>
-  <Project Path="src/Aid.Xlsx/Aid.Xlsx.csproj" />
-  <Project Path="src/Aid.Xlsx.Opc/Aid.Xlsx.Opc.csproj" />
-  <Project Path="src/Aid.Xlsx.Formula/Aid.Xlsx.Formula.csproj" />
-  <Project Path="src/Aid.Xlsx.CodeGen/Aid.Xlsx.CodeGen.csproj" />
-  <Project Path="src/Aid.Xlsx.Generators/Aid.Xlsx.Generators.csproj" />
-  <Project Path="tests/Aid.Xlsx.Tests/Aid.Xlsx.Tests.csproj" />
-  <Project Path="tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj" />
-  <Project Path="tests/Aid.Xlsx.ApiCompat/Aid.Xlsx.ApiCompat.csproj" />
-  <Project Path="tests/Aid.Xlsx.Fuzzing/Aid.Xlsx.Fuzzing.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/Aid.Xlsx.CodeGen/Aid.Xlsx.CodeGen.csproj" />
+    <Project Path="src/Aid.Xlsx.Formula/Aid.Xlsx.Formula.csproj" />
+    <Project Path="src/Aid.Xlsx.Generators/Aid.Xlsx.Generators.csproj" />
+    <Project Path="src/Aid.Xlsx.Opc/Aid.Xlsx.Opc.csproj" />
+    <Project Path="src/Aid.Xlsx/Aid.Xlsx.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Aid.Xlsx.AotSmoke/Aid.Xlsx.AotSmoke.csproj" />
+    <Project Path="tests/Aid.Xlsx.ApiCompat/Aid.Xlsx.ApiCompat.csproj" />
+    <Project Path="tests/Aid.Xlsx.Fuzzing/Aid.Xlsx.Fuzzing.csproj" />
+    <Project Path="tests/Aid.Xlsx.Tests/Aid.Xlsx.Tests.csproj" />
+  </Folder>
 </Solution>
