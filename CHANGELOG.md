@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add user guides for workbook creation, cells, formatting, formulas, tables, data import, and file handling.
 - Compare workbook I/O for ClosedXML on JIT and Aid.Xlsx on JIT and NativeAOT using the same inputs and measurement code.
 - Include a CycloneDX dependency SBOM and SHA-256 checksums in the release artifacts.
 - Convert Excel 97–2003 BIFF8 worksheet data to `.xlsx` from paths or streams without Office automation.

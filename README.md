@@ -6,6 +6,12 @@ Aid.Xlsx is a .NET library for reading, creating and editing `.xlsx` and `.xlsm`
 workbooks. It targets `net10.0` and uses its own OPC/XML layer. The Open XML SDK is
 used by the tests for schema validation.
 
+## Documentation
+
+Create your first workbook with the [getting started guide](docs/getting-started.md).
+Find recipes for cells, formatting, formulas, tables, streams, and `.xls` conversion
+in the [documentation index](docs/README.md).
+
 ## Goals
 
 - read, create and edit `.xlsx`/`.xlsm`: cells, values, formulas, cached values, styles,
