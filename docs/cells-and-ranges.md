@@ -170,6 +170,10 @@ Console.WriteLine(sheet.RangeUsed()!.RangeAddress);    // A1:D4
 
 foreach (IXlsxCell cell in sheet.Range("A1:B2").Cells())
     Console.WriteLine(cell.Address);
+
+// The predicate runs while the used cells are enumerated.
+foreach (IXlsxCell cell in sheet.Range("A1:D4").CellsUsed(c => c.DataType == XlsxDataType.Number))
+    Console.WriteLine($"{cell.Address} = {cell.GetDouble()}");
 ```
 
 | Member | Returns |
@@ -177,6 +181,8 @@ foreach (IXlsxCell cell in sheet.Range("A1:B2").Cells())
 | `Cells()` | Every position in the range, in row-major order. |
 | `CellsUsed()` | Positions that are not empty under `AllContents`. |
 | `CellsUsed(options)` | Positions under the selected flags. |
+| `CellsUsed(predicate)` | Non-empty positions under `AllContents` that match the predicate. |
+| `CellsUsed(options, predicate)` | Positions under the selected flags that match the predicate. |
 | `Cells(bool usedCellsOnly)` | Bounded enumeration with or without empty positions. |
 | `FirstCellUsed()` / `LastCellUsed()` | Topmost-leftmost and bottommost-rightmost used cell. |
 | `RangeUsed()` | Smallest range containing the used cells, or `null`. |
@@ -187,6 +193,12 @@ Flags in `XlsxCellsUsedOptions` are additive. `AllContents` is
 `Contents | DataType | Comments`, so a note alone makes a cell used. `NormalFormats` adds
 cells whose format differs from inherited formatting; `All` adds every modeled feature.
 `Cells(false)` on a whole column or sheet is effectively unbounded and should be avoided.
+
+The predicate overloads are declared on `IXlsxRangeBase`, so they exist on ranges,
+worksheets, and table ranges. The predicate is applied to each used cell during
+enumeration; keep it cheap and free of side effects. `IXlsxColumns`, `IXlsxRows`, and
+`IXlsxRanges` expose only `CellsUsed()` and `CellsUsed(options)`. `FirstCellUsed` and
+`LastCellUsed` also accept an `(options, predicate)` pair.
 
 A blank cell has `DataType == Blank`. A cell assigned an empty string has
 `DataType == Text`, `GetText()` returns `""`, and `IsEmpty()` returns `true`. Both are
