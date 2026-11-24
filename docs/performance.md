@@ -43,10 +43,10 @@ two run medians. Allocations are averaged across both runs.
 
 | Operation | Rows | ClosedXML JIT | Aid.Xlsx JIT | Aid.Xlsx NativeAOT | Aid.Xlsx NativeAOT `Speed` |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Load | 2,000 | 27.26–62.79 ms | 14.09–14.92 ms | 17.76–17.94 ms | 15.73–15.79 ms |
-| Load | 20,000 | 210.25–216.62 ms | 127.81–128.16 ms | 207.51–214.62 ms | 190.82–191.62 ms |
-| Save | 2,000 | 40.00–57.30 ms | 42.12–42.28 ms | 21.82–21.85 ms | 20.56–21.34 ms |
-| Save | 20,000 | 401.58–411.49 ms | 179.42–183.20 ms | 235.04–239.00 ms | 226.44–229.19 ms |
+| Load | 2,000 | 27.26вЂ“62.79 ms | 14.09вЂ“14.92 ms | 17.76вЂ“17.94 ms | 15.73вЂ“15.79 ms |
+| Load | 20,000 | 210.25вЂ“216.62 ms | 127.81вЂ“128.16 ms | 207.51вЂ“214.62 ms | 190.82вЂ“191.62 ms |
+| Save | 2,000 | 40.00вЂ“57.30 ms | 42.12вЂ“42.28 ms | 21.82вЂ“21.85 ms | 20.56вЂ“21.34 ms |
+| Save | 20,000 | 401.58вЂ“411.49 ms | 179.42вЂ“183.20 ms | 235.04вЂ“239.00 ms | 226.44вЂ“229.19 ms |
 
 ### Managed allocations per operation
 
@@ -96,10 +96,124 @@ pair of runs.
 
 | Build | Median save times | Mean allocated per save |
 | --- | ---: | ---: |
-| Before the style index | 218.40–230.83 ms | 1.31 GB |
-| With the style index | 58.06–65.09 ms | 21.17–21.27 MB |
+| Before the style index | 218.40вЂ“230.83 ms | 1.31 GB |
+| With the style index | 58.06вЂ“65.09 ms | 21.17вЂ“21.27 MB |
 
 For comparison, we ran the JIT benchmark above on the standard 20,000-row workbook. The
 two save medians were 190.88 and 237.26 ms before the change, and 189.88 and 189.97 ms
 with the index. Both builds allocated about 50.08 MB per save. The spread between the
 two baseline runs makes the timing improvement on this input inconclusive.
+
+## Making your own workload fast
+
+The numbers above describe the repository's fixtures, not every workbook. The following
+choices matter most for load and save time and for allocations.
+
+### Styles
+
+- A cell format becomes a new style entry when it differs from every style already in
+  the workbook. The save path indexes style IDs, but thousands of unique combinations
+  still cost memory and time.
+- Reuse a small set of formats: configure a range once and copy it, or assign the same
+  `IXlsxStyle` instance to many cells, instead of setting font, fill, border, and number
+  format per cell.
+- Set column-level formats when the whole column shares a format, and use conditional
+  formatting or table styles for presentation that depends on values.
+- The synthetic test in the previous section is the worst case on purpose: 10,000 rows,
+  a distinct fill color per row, 512 font colors, and 200 custom number formats. A real
+  report usually has a handful of formats.
+
+```csharp
+using Aid.Xlsx.Model.Styles.Colors;
+using Aid.Xlsx.Model.Workbooks;
+
+using var workbook = new XlsxWorkbook();
+var sheet = workbook.Worksheets.Add("Data");
+
+var body = sheet.Range("A2:D20001");
+body.Style.NumberFormat.Format = "#,##0.00";
+body.Style.Font.FontName = "Calibri";
+body.Style.Font.FontSize = 10;
+
+// One distinct format for the header, reused by all four cells.
+sheet.Range("A1:D1").Style.Font.Bold = true;
+sheet.Range("A1:D1").Style.Fill.BackgroundColor = XlsxColor.LightBlue;
+
+workbook.SaveAs("data.xlsx");
+```
+
+### Values and ranges
+
+- Write values through a range or cell loop; both are supported. Batch APIs such as
+  `InsertData`, `InsertTable`, `InsertMappedData`, and `InsertMappedTable` avoid
+  per-record mapping code in your application and keep the write path in the library.
+- Prefer `CellsUsed()` and `RangeUsed()` over scanning the full 1,048,576-row grid. A
+  whole-column range such as `A:A` intersects the used part in these APIs, but a manual
+  loop over `Rows()` does not.
+- Merge operations and row or column insertions shift cells; perform them before bulk
+  writes when possible.
+
+### Save options that cost time
+
+| Option | Default | Effect |
+| --- | --- | --- |
+| `SaveOptions.ValidatePackage` | `false` in Release, `true` in Debug | Validates relationships and supported XML roots after writing. Enabling it adds a full pass over the package. |
+| `SaveOptions.EvaluateFormulasBeforeSaving` | `false` | Calculates dirty formulas and writes cached results. Cost scales with the calculation graph and formula count. |
+| `SaveOptions.GenerateCalculationChain` | `true` | Writes the calculation chain part. Disabling it saves work but applications may recalculate more at open. |
+| `SaveOptions.ConsolidateConditionalFormatRanges` | `true` | Merges equivalent conditional-format ranges. Keep it enabled unless you need the original range split. |
+| `SaveOptions.ConsolidateDataValidationRanges` | `true` | Merges equivalent validation ranges, with the same trade-off. |
+
+### Load options that cost time
+
+| Option | Effect |
+| --- | --- |
+| `LoadOptions.RecalculateAllFormulas` | Runs a full calculation after loading. Use it only when the cached results are missing or untrusted. |
+| `LoadOptions.MaxCalculationMemoryBytes` | Default `0` means no limit. A positive value caps buffers used by one calculation and makes a memory-heavy calculation fail instead of exhausting memory. |
+| `LoadOptions.Dpi` | Default 96 x 96. Affects image and drawing metrics used by the model; it does not change cell data. |
+| `LoadOptions.StrictAttributeParsing` | Default `true`. Enables stricter attribute parsing; useful for catching malformed files. |
+| `LoadOptions.CancellationToken` | Cancels long loads when your host supports cancellation. |
+
+### Memory and lifetime
+
+- Loading keeps the workbook model in memory; saving builds package parts from it. A
+  typical 20,000-row workbook needs tens of megabytes, as the measurements above show.
+- Dispose the workbook and the streams you create. A workbook loaded from a stream keeps
+  using that stream until it is disposed.
+- When serving downloads, save into a `MemoryStream` and copy it to the response; do not
+  keep workbook objects or streams in static fields.
+- For very large workbooks, consider splitting the output into several files or writing
+  the data with a streaming writer outside the workbook model.
+
+## Measuring your own workload
+
+Measure the real shape of your data: row count, number of columns, how many distinct
+styles, formulas versus values, images, and charts. A short loop is usually enough to
+decide between two approaches.
+
+```csharp
+using System.Diagnostics;
+
+var before = GC.GetAllocatedBytesForCurrentThread();
+var stopwatch = Stopwatch.StartNew();
+
+using (var workbook = new XlsxWorkbook("input.xlsx"))
+{
+    workbook.Worksheet(1).Cell("B2").Value = 1;
+    workbook.SaveAs("output.xlsx");
+}
+
+stopwatch.Stop();
+var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+Console.WriteLine($"{stopwatch.ElapsedMilliseconds} ms, {allocated / 1024.0 / 1024.0:F1} MB");
+```
+
+Call the measured code once outside the stopwatch first, so the numbers describe the
+operation and not JIT compilation. For BenchmarkDotNet measurements, use the
+`tests/Aid.Xlsx.Benchmarks` project; the commands are shown above.
+
+## See also
+
+- [Workbook files and streams](workbook-files.md) for the complete `LoadOptions` and
+  `SaveOptions` reference.
+- [NativeAOT and trimming](native-aot.md) for startup and publishing considerations.
+- [Compatibility](compatibility.md) for what a save preserves.
