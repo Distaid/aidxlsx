@@ -43,10 +43,10 @@ two run medians. Allocations are averaged across both runs.
 
 | Operation | Rows | ClosedXML JIT | Aid.Xlsx JIT | Aid.Xlsx NativeAOT | Aid.Xlsx NativeAOT `Speed` |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Load | 2,000 | 27.26вЂ“62.79 ms | 14.09вЂ“14.92 ms | 17.76вЂ“17.94 ms | 15.73вЂ“15.79 ms |
-| Load | 20,000 | 210.25вЂ“216.62 ms | 127.81вЂ“128.16 ms | 207.51вЂ“214.62 ms | 190.82вЂ“191.62 ms |
-| Save | 2,000 | 40.00вЂ“57.30 ms | 42.12вЂ“42.28 ms | 21.82вЂ“21.85 ms | 20.56вЂ“21.34 ms |
-| Save | 20,000 | 401.58вЂ“411.49 ms | 179.42вЂ“183.20 ms | 235.04вЂ“239.00 ms | 226.44вЂ“229.19 ms |
+| Load | 2,000 | 27.26–62.79 ms | 14.09–14.92 ms | 17.76–17.94 ms | 15.73–15.79 ms |
+| Load | 20,000 | 210.25–216.62 ms | 127.81–128.16 ms | 207.51–214.62 ms | 190.82–191.62 ms |
+| Save | 2,000 | 40.00–57.30 ms | 42.12–42.28 ms | 21.82–21.85 ms | 20.56–21.34 ms |
+| Save | 20,000 | 401.58–411.49 ms | 179.42–183.20 ms | 235.04–239.00 ms | 226.44–229.19 ms |
 
 ### Managed allocations per operation
 
@@ -96,8 +96,8 @@ pair of runs.
 
 | Build | Median save times | Mean allocated per save |
 | --- | ---: | ---: |
-| Before the style index | 218.40вЂ“230.83 ms | 1.31 GB |
-| With the style index | 58.06вЂ“65.09 ms | 21.17вЂ“21.27 MB |
+| Before the style index | 218.40–230.83 ms | 1.31 GB |
+| With the style index | 58.06–65.09 ms | 21.17–21.27 MB |
 
 For comparison, we ran the JIT benchmark above on the standard 20,000-row workbook. The
 two save medians were 190.88 and 237.26 ms before the change, and 189.88 and 189.97 ms
