@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add a complete set of user guides: data types and conversions, conditional formatting,
+  data validation, comments and rich text, hyperlinks and sparklines, images and drawings,
+  pivot tables, protection, troubleshooting, and a cookbook. Every page is cross-linked
+  from the documentation index and verified against the public API baseline.
+
+### Changed
+
+- Expand the existing guides for cells and ranges, formulas, formatting and worksheet
+  features, tables and data import, workbook files and streams, NativeAOT, and migration
+  from the upstream API, and turn the compatibility page into a feature matrix.
+
 ## [1.0.1] - 2026-11-23
 
 ### Changed
